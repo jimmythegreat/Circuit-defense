@@ -757,6 +757,68 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 14: phantom enemy (wave-13 blinker, intangible mid-blink) ----
+  console.log('\n[14] Phantom enemy (blink / intangibility)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w13, present from w13
+      const w12 = buildWave(12).some(e => e.kind === 'phantom');
+      const w13 = buildWave(13).filter(e => e.kind === 'phantom').length;
+
+      // (b) focused blink mechanics with a single phantom + an overpowered tower
+      enemies = []; projectiles = []; towers = [];
+      const mid = pathLen * 0.4;
+      const p0 = pointAt(mid);
+      const ph = { kind:'phantom', hp:1000, maxHp:1000, spd:0, dist:mid,
+                   x:p0.x, y:p0.y, px:p0.x, py:p0.y, armor:0, bounty:1, r:10,
+                   color:'#39d0d8', flash:0, frozen:0, slow:0, blinkCd:0.0001 };
+      enemies.push(ph);
+      towers.push({ type:'gun', x:p0.x, y:p0.y, range:99999, dmg:1, rate:0.05,
+                    cd:0, level:1, baseCost:50, invested:50, angle:0, mode:'first',
+                    spec:null, dealt:0, kills:0, buffPower:0, flash:0 });
+      const beforeDist = ph.dist;
+      update(1/60);                              // blink fires this frame
+      const blinked = ph.dist >= beforeDist + 50;
+      const invulnAfterBlink = ph.blinkInvuln > 0;
+      const targetSkipped = (pickTarget(towers[0]) === null);   // skipped while intangible
+      const hpBefore = ph.hp;
+      damage(ph, 500, null);
+      const damageBlocked = ph.hp === hpBefore;  // damage no-ops mid-blink
+      // let intangibility lapse (blinkCd just reset to 2.0, so no second blink)
+      for (let i = 0; i < 40; i++) update(1/60);
+      const targetableAgain = ph.blinkInvuln === 0 && pickTarget(towers[0]) !== null;
+      const hpNow = ph.hp;
+      damage(ph, 500, null);
+      const damageAppliesAfter = ph.hp < hpNow;
+      backToMenu();
+
+      // (c) integration: a real wave-13+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 14 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+      return { w12, w13, blinked, invulnAfterBlink, targetSkipped, damageBlocked,
+               targetableAgain, damageAppliesAfter, run };
+    });
+    check('no phantoms before wave 13', r.w12 === false);
+    check('phantoms spawn from wave 13', r.w13 >= 1, 'count=' + r.w13);
+    check('phantom blinks forward (dist jumps ~58px)', r.blinked);
+    check('phantom is intangible (blinkInvuln>0) right after a blink', r.invulnAfterBlink);
+    check('pickTarget skips an intangible phantom', r.targetSkipped);
+    check('damage() no-ops on an intangible phantom', r.damageBlocked);
+    check('phantom becomes targetable again once the blink ends', r.targetableAgain);
+    check('damage applies normally after the blink ends', r.damageAppliesAfter);
+    check('wave-13+ run with phantoms reaches w>=14 alive', r.run.wave >= 14 && !r.run.gameOver,
+      JSON.stringify(r.run));
+    check('no console errors during phantom tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

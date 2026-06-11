@@ -61,6 +61,21 @@ function update(dt) {
       damage(e, e.poison.dps * dt, e.poison.src, true);
     }
     if (e.dead) continue;
+    // phantom: periodically blink forward along the path, briefly untargetable —
+    // punishes slow single-target towers (the shot lands where it no longer is)
+    if (e.kind === 'phantom') {
+      e.blinkInvuln = Math.max(0, (e.blinkInvuln || 0) - dt);
+      if (e.frozen <= 0) {
+        e.blinkCd = (e.blinkCd == null ? 1.8 : e.blinkCd) - dt;
+        if (e.blinkCd <= 0) {
+          e.blinkCd = 2.0;
+          e.blinkInvuln = 0.35;
+          if (e.x !== undefined) addExplosion(e.x, e.y, '#39d0d8', 7, 80);
+          e.dist += 58;
+          SFX.blink();
+        }
+      }
+    }
     e.px = e.x; e.py = e.y;
     e.dist += e.spd * slowMul * dt;
     const p = pointAt(e.dist);
@@ -165,7 +180,7 @@ function pickTarget(t) {
   let target = null, bestVal = null;
   const range = effRange(t);
   for (const e of enemies) {
-    if (e.x === undefined || e.dead) continue;
+    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;
     const d = Math.hypot(e.x-t.x, e.y-t.y);
     if (d > range) continue;
     let val;
@@ -244,6 +259,7 @@ function hitEnemy(p) {
 
 function damage(e, dmg, src, silent=false, ignoreArmor=false) {
   if (e.hp <= 0 || e.dead) return;
+  if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
   const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) - 2 * tRank('piercing'));
   const actual = Math.max(0.5, dmg - armor * (dmg > 2 ? 1 : 0.05));
   const applied = Math.min(e.hp, actual);

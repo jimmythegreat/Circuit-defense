@@ -4,9 +4,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.8.6';
+const GAME_VERSION = 'v1.9.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.9.0', date: '2026-06-11', body: "New enemy — the 👻 Phantom! From wave 13 on, ghostly teal blinkers join the line. Every couple of seconds a phantom flickers and teleports a short hop forward — and while it's mid-blink it's intangible, so shots pass right through it. Slow, single-target towers get punished; quick-firing and area towers shine. Listen for the whoosh." },
   { v: 'v1.8.6', date: '2026-06-11', body: "🩺 Health check (every-6th-run maintenance pass): tests all green (123/0), code files all well within size limits, docs verified against the code, and old saves still load correctly. Also added the basics a polished web game should have — a ⚡ favicon in the browser tab, a page description, a mobile-friendly viewport tag, and link-preview (Open Graph) tags. No gameplay changes. Audited the bigger missing pieces (touch controls, gamepad, reduced-motion, PWA install) onto the roadmap." },
   { v: 'v1.8.5', date: '2026-06-11', body: "Combo meter moved to the bottom-right corner (your suggestion): instead of squeezing it into the busy top area — where it kept bumping the boss bar, the 'Wave clear! +bonus' text, and the milestone pop, and was getting clipped against the top edge — the COMBO meter now lives in the empty bottom-right corner with room to breathe. The '🔥 N× COMBO!' milestone pop stays on the center board. No more overlap, anywhere." },
   { v: 'v1.8.4', date: '2026-06-11', body: "Combo pop placement, take two (your feedback): v1.8.3 moved the '🔥 N× COMBO!' milestone pop into the top-left corner — but that's where the COMBO meter itself lived, so they overlapped. The pop now fires on the center board, below the top HUD band. (The meter itself moved to the bottom-right in v1.8.5.)" },
@@ -20,7 +21,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v1.6.0', date: '2026-06-11', body: "Records! A new 🏆 Records button on the start screen shows your highest wave reached on every map × difficulty, plus an 'Any map' row of your all-time bests, your campaign progress, lifetime damage, total runs and chips. Quick-mode runs now log a best-wave per map (not just per difficulty)." },
   { v: 'v1.5.2', date: '2026-06-11', body: "What's New no longer grows taller than the game on big screens — the panel is now capped to the game's height and scrolls internally, so it stays a tidy window flush beside the board instead of overhanging the bottom." },
   { v: 'v1.5.1', date: '2026-06-11', body: "Cleaner start screen — when no game is running, the stats bar, tower shop, wave controls and hotkey hint now dim out and go non-interactive so the start menu is the only live surface. They light back up the moment you hit Play or resume a run." },
-  { v: 'v1.5.0', date: '2026-06-10', body: "Achievements! Earn 8 permanent badges across all your runs — First Victory, Flawless (win without losing a life), No Mercy (win on Hard), Mountaineer (Campaign L10), Conqueror (finish the campaign), Endless (reach wave 50), Megadamage (1M lifetime damage) and Veteran (25 runs). A new 🏅 Achievements button on the start screen shows your progress; unlocks pop on the end-of-run screen." },
   { v: 'v1.4.1', date: '2026-06-10', body: "What's New now floats beside the ENTIRE game — opening it shifts the whole layout (title, HUD, towers, controls) together instead of only sliding the canvas over. On narrow screens it still tucks below." },
   { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it opens by default, sits flush beside the game, and scrolls; ✕ to hide) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
   { v: 'v1.3.x', date: '2026-06', body: 'Removed the Scrapper perk and dropped rare-draft chance from 26% to 14% to make legendary perks feel special again.' },
@@ -134,6 +134,8 @@ const SFX = {
   poison()  { tone(280, 0.1, 'triangle', 0.045, -140); tone(190, 0.12, 'triangle', 0.035, -90);
               setTimeout(()=>tone(150, 0.08, 'triangle', 0.03, -60), 70); },
   death()   { tone(300, 0.15, 'triangle', 0.07, -200); },
+  // Phantom blink: a quick rising whoosh as it teleports forward
+  blink()   { tone(720, 0.07, 'sine', 0.03, 900); noise(0.05, 0.02, 'highpass', 4200, 1800); },
   // Kill-streak milestone: a bright rising chirp that climbs with the streak tier
   combo(n)  { const tier = Math.min(9, Math.floor(n/10)); const base = 540 + tier*70;
               tone(base, 0.07, 'square', 0.06, 140); tone(base*1.5, 0.06, 'sine', 0.03, 90);

@@ -3,6 +3,35 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.9.0 — 2026-06-11
+
+**👻 New enemy: the Phantom** — a blinking, intangible harasser that joins waves
+from **wave 13 onward**. New content (owner likes new enemy types + surprises),
+adds mid-game variety, and partly answers the standing *"still a bit too easy"*
+FEEDBACK note by introducing a threat that slow single-target towers can't simply
+out-trade.
+
+**Behavior.** Phantoms are teal (`#39d0d8`), ~0.9× HP, 1.15× speed, no armor, and
+spawn on the `i % 6 === 5` slot for w≥13 (so ~5 per wave at first). Every ~2s a
+phantom **blinks forward 58px** along the path and is **intangible for 0.35s** —
+during that window `pickTarget()` skips it and `damage()` returns early, so any
+in-flight shot whiffs. Freezing a phantom (`frozen>0`) pauses its blink clock, so
+frost/freeze still counter it. Render: drawn translucent (0.72 alpha, dropping to
+0.22 mid-blink) with a 👻 glyph; a teal particle poof + rising `SFX.blink()` whoosh
+on each teleport.
+
+**Why it's safe.** Enemies only exist *during* a wave and `saveRun()` only writes
+between waves, so the new `blinkCd`/`blinkInvuln` fields never touch the save
+schema — zero migration needed. Purely additive: no change to existing enemy
+stats, economy, or any `eff*` helper. `waveDesc(13+)` now lists `phantoms`.
+
+**Test evidence.** New test group **[14]** drives a wave-13 quick run and asserts:
+phantoms spawn at w≥13 and never before; a phantom goes `blinkInvuln>0` and is
+skipped by `pickTarget`; `damage()` no-ops while intangible; phantoms are still
+killable (blink ends) and a full run clears with zero console errors. Full suite
+green (see test subagent report). Verified double-click `file://` playability and
+in-preview that phantoms blink + flicker correctly.
+
 ## v1.8.6 — 2026-06-11
 
 **🩺 Health check** (every-6th-run maintenance pass; resets the 5-run counter).

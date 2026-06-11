@@ -21,8 +21,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the legacy per-diff bests, plus campaign progress, lifetime damage, runs and
       chips. Follow-ups: *"new record!" flourish on the end-of-run screen when a
       cell is beaten*, and highlight the player's single all-time best in the grid.
-- [ ] **New enemy type: "phantom"** — periodically dodges/blinks forward,
-      punishing slow single-target towers. Introduce around wave 13+.
+- [x] **New enemy type: "phantom"** — shipped v1.9.0. Teal blinker from wave 13+;
+      teleports 58px forward every ~2s and is intangible (untargetable + immune)
+      for 0.35s mid-blink, punishing slow single-target towers. Frost/freeze pauses
+      its blink clock. Render-translucent with a 👻 glyph + `SFX.blink` whoosh.
+      Test group [14]. Follow-ups: *a phantom-heavy Mayhem wave modifier*, and a
+      tower spec tuned to counter blinkers (e.g. predictive lead-shot).
 - [ ] **New tower: "arc/chain" or "mortar"** — a 7th/8th tower with a distinct
       role (chain-lightning bounce, or lobbed AoE that ignores armor).
 - [ ] **Daily challenge seed** — a deterministic map+modifier set keyed off the

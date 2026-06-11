@@ -55,7 +55,7 @@ Rough section order in the file:
 - **Document metadata** (v1.8.6, in `tower-defense.html` `<head>`): the favicon is an **inline SVG data URI** (gold ⚡ bolt) — keep it inline so it needs no network and works on double-click `file://`; never switch it to a separate `favicon.ico` file/URL. Head also carries `viewport`/`description`/`theme-color`/Open Graph tags. Test group `[13]` asserts these exist.
 - Speed toggle just runs `update()` 1–3× per frame; pause/draft/menu gate at the top of `update()`
 - `damage()` handles armor (reduced by piercing talent), kill credit (`src.dealt/kills`), bounty (fortune talent, midas perk, bountyAdd), splitter children via `pendingSpawns`
-- Enemy kinds: norm, fast (w3+), tank (w5+), heal (w7+), shield/armored (w9+), split (w11+), boss every 5th wave
+- Enemy kinds: norm, fast (w3+), tank (w5+), heal (w7+), shield/armored (w9+), split (w11+), **phantom (w13+)**, boss every 5th wave. **Phantom** (`#39d0d8`, slot `i%6===5`) blinks forward 58px every ~2s and sets `e.blinkInvuln=0.35s` — while >0 it's skipped by `pickTarget()` and `damage()` returns early (intangible). `e.blinkCd` only ticks when `frozen<=0`, so freeze counters it. Render-translucent (cd-render.js) with a 👻 glyph. Blink fields are run-only (enemies never saved mid-wave) — no save migration.
 - When adding a perk/talent that changes a stat, wire it into the corresponding `eff*()` helper AND `upgradeKey()` if it shows in the panel
 - User's stated preferences so far: loves additive/addictive loops, wanted talents expensive/grindy (~50 runs to max), campaign maps random per attempt, booster non-stacking is fine but must be labeled
 

@@ -253,6 +253,9 @@ function draw() {
     ctx.fill();
     // shaded sphere
     const ecol = e.flash > 0 ? '#ffffff' : (e.frozen > 0 ? '#9be8ff' : e.color);
+    // phantoms render translucent, fading almost out while they're mid-blink
+    const phantomA = e.kind === 'phantom' ? (e.blinkInvuln > 0 ? 0.22 : 0.72) : 1;
+    if (phantomA < 1) ctx.globalAlpha = phantomA;
     const sphereG = ctx.createRadialGradient(e.x - e.r*0.35, e.y - e.r*0.4, e.r*0.15, e.x, e.y, e.r);
     sphereG.addColorStop(0, shade(ecol, 85));
     sphereG.addColorStop(0.6, ecol);
@@ -271,6 +274,8 @@ function draw() {
     else if (e.kind === 'heal') { ctx.font = 'bold 12px sans-serif'; ctx.fillText('+', e.x, e.y + 4); }
     else if (e.kind === 'shield') { ctx.font = '10px sans-serif'; ctx.fillText('🛡', e.x, e.y + 4); }
     else if (e.kind === 'split') { ctx.font = 'bold 11px sans-serif'; ctx.fillText('✂', e.x, e.y + 4); }
+    else if (e.kind === 'phantom') { ctx.font = '11px sans-serif'; ctx.fillText('👻', e.x, e.y + 4); }
+    if (phantomA < 1) ctx.globalAlpha = 1;
     ctx.textAlign = 'left';
     const w = e.r * 2.2;
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
