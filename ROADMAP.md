@@ -53,7 +53,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **What's New flush polish** — since v1.4.1 the panel butts against the
       `#gameCol` right edge, which is ~21px wider than the canvas (driven by the
       `.hint` margins). Minor cosmetic gap between the canvas and the panel; could
-      tighten by constraining the column width to the canvas.
+      tighten by constraining the column width to the canvas. (Height overhang was
+      fixed separately in v1.5.2 — the panel now caps to the game's height.)
+- [ ] **What's New "new since last visit" marker** — now that the panel caps to
+      the game height (v1.5.2), highlight entries newer than the last-seen version
+      (persist `cd_wnseen`) with a dot/badge so players notice fresh changelog
+      items, and auto-scroll the list to the top on open.
 
 ## Balance (simulate before/after, ≤25% per number per run)
 

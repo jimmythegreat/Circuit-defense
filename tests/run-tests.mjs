@@ -230,6 +230,31 @@ async function main() {
     check('panel height capped to game (scrolls internally)', r.capped);
     check('opening the panel shifts the WHOLE game together, not just the canvas', r.shiftsTogether);
 
+    // Regression (v1.5.2): on a TALL viewport (where 88vh exceeds the game's own
+    // height) the panel used to grow past the bottom of the game, dragging #appRow
+    // taller than #gameCol. It must now cap to the game's height and scroll internally.
+    await page.setViewportSize({ width: 1400, height: 1200 });
+    const tall = await page.evaluate(() => {
+      openWhatsNew();              // re-sync the cap for the new viewport
+      const col = document.getElementById('gameCol').getBoundingClientRect();
+      const panel = document.getElementById('whatsnew').getBoundingClientRect();
+      const row = document.getElementById('appRow').getBoundingClientRect();
+      const list = document.getElementById('wnList');
+      return {
+        gameH: Math.round(col.height), panelH: Math.round(panel.height), rowH: Math.round(row.height),
+        eightyEight: Math.round(window.innerHeight * 0.88),
+        scrolls: list.scrollHeight > list.clientHeight + 1,
+      };
+    });
+    check('tall viewport: 88vh actually exceeds the game (precondition)',
+      tall.eightyEight > tall.gameH, JSON.stringify(tall));
+    check('tall viewport: panel height capped to the game, not 88vh',
+      tall.panelH <= tall.gameH + 2, JSON.stringify(tall));
+    check('tall viewport: appRow does NOT grow past the game',
+      tall.rowH <= tall.gameH + 2, JSON.stringify(tall));
+    check('tall viewport: overflowing entries scroll inside the panel', tall.scrolls, JSON.stringify(tall));
+    await page.setViewportSize({ width: 1400, height: 820 });
+
     // Closing persists, and survives a reload.
     const closed = await page.evaluate(() => {
       document.getElementById('wnClose').click();

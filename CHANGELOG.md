@@ -3,6 +3,29 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.5.2 — 2026-06-11
+
+**Fix: What's New panel no longer grows past the game (FEEDBACK item).**
+
+Owner feedback: *"What's new should not grow past the game. It should instead
+convert to a scrollable window."*
+
+- On tall viewports the panel's `max-height:88vh` could exceed the game's own
+  height (~836px), so the panel overhung the bottom of the board and dragged the
+  `#appRow` flex row taller than `#gameCol`. The panel now caps to the game's
+  actual height and scrolls its entries internally instead.
+- Implementation: a new `syncWhatsNewHeight()` helper sets
+  `#whatsnew.style.maxHeight = #gameCol.offsetHeight + 'px'` (the row is
+  `align-items:flex-start`, so `#gameCol`'s height is its own content height,
+  independent of the panel — no feedback loop). Called from `openWhatsNew()` and
+  on `window` `resize`. Pure DOM/CSS; touches no save logic.
+- **Test evidence:** `tests/` green (58 checks, exit 0), including a new
+  tall-viewport regression block that asserts (a) the precondition that 88vh
+  exceeds the game height, (b) panel height ≤ game height, (c) `#appRow` does not
+  grow past the game, and (d) overflowing entries scroll inside the panel.
+  Verified live in the browser preview: at 1280×1100 the panel dropped from 968px
+  (overhanging) to 836px (= game), `#appRow` from 968→836, list scrollable.
+
 ## v1.5.1 — 2026-06-11
 
 **UX polish: dim the in-game chrome on the start screen (FEEDBACK item).**

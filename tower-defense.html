@@ -338,9 +338,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.5.1';
+const GAME_VERSION = 'v1.5.2';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.5.2', date: '2026-06-11', body: "What's New no longer grows taller than the game on big screens — the panel is now capped to the game's height and scrolls internally, so it stays a tidy window flush beside the board instead of overhanging the bottom." },
   { v: 'v1.5.1', date: '2026-06-11', body: "Cleaner start screen — when no game is running, the stats bar, tower shop, wave controls and hotkey hint now dim out and go non-interactive so the start menu is the only live surface. They light back up the moment you hit Play or resume a run." },
   { v: 'v1.5.0', date: '2026-06-10', body: "Achievements! Earn 8 permanent badges across all your runs — First Victory, Flawless (win without losing a life), No Mercy (win on Hard), Mountaineer (Campaign L10), Conqueror (finish the campaign), Endless (reach wave 50), Megadamage (1M lifetime damage) and Veteran (25 runs). A new 🏅 Achievements button on the start screen shows your progress; unlocks pop on the end-of-run screen." },
   { v: 'v1.4.1', date: '2026-06-10', body: "What's New now floats beside the ENTIRE game — opening it shifts the whole layout (title, HUD, towers, controls) together instead of only sliding the canvas over. On narrow screens it still tucks below." },
@@ -363,11 +364,21 @@ function renderWnList() {
     list.appendChild(d);
   }
 }
+// Cap the panel to the game's height so it never grows past the game — it
+// scrolls internally instead (the #gameCol drives the row height since the row
+// is align-items:flex-start, so its offsetHeight is the game's natural height).
+function syncWhatsNewHeight() {
+  const gc = document.getElementById('gameCol');
+  const wn = document.getElementById('whatsnew');
+  if (!gc || !wn || getComputedStyle(wn).display === 'none') return;
+  wn.style.maxHeight = gc.offsetHeight + 'px';
+}
 function openWhatsNew() {
   renderWnList();
   wnClosed = false;
   localStorage.removeItem('cd_wnclosed');
   document.getElementById('whatsnew').style.display = 'flex';
+  syncWhatsNewHeight();
 }
 function closeWhatsNew() {
   wnClosed = true;
@@ -379,6 +390,8 @@ function initWhatsNew() {
   if (wnClosed) document.getElementById('whatsnew').style.display = 'none';
   else openWhatsNew();
 }
+// Keep the cap in sync as the viewport (and thus the game's height) changes.
+window.addEventListener('resize', syncWhatsNewHeight);
 
 // ================= Audio =================
 let audioCtx = null;
