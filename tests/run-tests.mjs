@@ -188,21 +188,33 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 6: What's New panel opens & lists entries ----
-  console.log("\n[6] What's New panel");
+  // ---- Test 6: What's New side panel (beside the game, scrollable, all entries) ----
+  console.log("\n[6] What's New side panel");
   {
     const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1400, height: 820 });
     const r = await page.evaluate(() => {
       openWhatsNew();
       const panel = document.getElementById('whatsnew');
-      const entries = document.getElementById('wnList').children.length;
+      const list = document.getElementById('wnList');
+      const entries = list.children.length;
       const visible = panel.style.display === 'flex';
+      // Side panel is a sibling of #gameWrap inside #stage — NOT a descendant overlay.
+      const insideGame = !!document.getElementById('gameWrap').querySelector('#whatsnew');
+      const wrap = document.getElementById('gameWrap').getBoundingClientRect();
+      const pr = panel.getBoundingClientRect();
+      const beside = pr.left >= wrap.right - 2 && Math.abs(pr.top - wrap.top) < 6;
+      // List scrolls internally rather than growing past the game height.
+      const capped = pr.height <= wrap.height + 4;
       closeWhatsNew();
-      const closed = document.getElementById('whatsnew').style.display === 'none';
-      return { visible, entries, closed, hasData: Array.isArray(CHANGELOG_ENTRIES) && CHANGELOG_ENTRIES.length >= 1 };
+      const closed = panel.style.display === 'none';
+      return { visible, entries, total: CHANGELOG_ENTRIES.length, insideGame, beside, capped, closed };
     });
     check("panel opens", r.visible);
-    check('lists changelog entries', r.entries >= 1 && r.entries === (await page.evaluate(() => CHANGELOG_ENTRIES.length)));
+    check('lists ALL changelog entries', r.entries >= 1 && r.entries === r.total, `${r.entries}/${r.total}`);
+    check('panel is a side panel, not a game overlay', !r.insideGame);
+    check('panel sits beside the game (same top, to the right)', r.beside);
+    check('panel height capped to game (scrolls internally)', r.capped);
     check('panel closes', r.closed);
     check('no console errors', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();

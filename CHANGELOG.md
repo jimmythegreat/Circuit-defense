@@ -7,11 +7,13 @@ patch = fixes/balance, minor = features/content.
 
 **Added: in-game "What's New" panel + headless test harness.**
 
-- **What's New panel** — a new `✨ What's New` button and a clickable version
-  tag (`v1.4.0`) on the start screen open a panel listing the last ~10 changelog
-  entries (data lives in `CHANGELOG_ENTRIES` in `tower-defense.html`, mirroring
-  this file). Styled to match the existing talent/draft modals; no save-schema
-  changes.
+- **What's New side panel** — a new `✨ What's New` button and a clickable
+  version tag (`v1.4.0`) on the start screen open a scrollable **side panel**
+  (an `<aside>` beside the game canvas, not a modal overlay) listing the last
+  ~10 changelog entries (data in `CHANGELOG_ENTRIES` in `tower-defense.html`,
+  mirroring this file). It sits to the right of the canvas on wide viewports,
+  wraps below on narrow ones, is height-capped to the canvas and scrolls
+  internally, and has a `✕` to hide it. No save-schema changes.
 - **Test harness** (`tests/`, dev-only) — Node + Playwright drives the real
   `tower-defense.html` headlessly and verifies: page loads with zero console
   errors; a scripted run clears several waves; a draft opens at wave 5 and a pick
@@ -23,9 +25,11 @@ _Why:_ first real auto-improver run. The routine designates the test harness as
 the first run's improvement, and the What's New panel + version constant are
 required bookkeeping infrastructure that every subsequent run depends on.
 
-_Test evidence:_ `cd tests && npm test` → **27 passed, 0 failed.** Confirms zero
+_Test evidence:_ `cd tests && npm test` → **30 passed, 0 failed.** Confirms zero
 console errors on load, wave-5 draft applies, victory at wave 30, defeat at 0
-lives, and a save/reload/resume round-trip restoring wave + towers.
+lives, a save/reload/resume round-trip restoring wave + towers, and that the
+What's New side panel opens beside the game (not as an overlay), lists all
+entries, height-caps to the canvas, and closes.
 
 ---
 
