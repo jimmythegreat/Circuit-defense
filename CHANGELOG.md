@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.5 — 2026-06-11
+
+**What's New shows the full history again (owner request — reverses a v1.13.4 cleanup).**
+The v1.13.4 health check had trimmed the in-game `CHANGELOG_ENTRIES` list to the 10 most-
+recent entries (citing the old "keep ~10" comment). The owner prefers the panel show
+**every** past update — it scrolls, so length isn't a problem.
+
+- Restored all previously-removed entries (v1.9.2 … v1.1.0) verbatim from git, prepended a
+  v1.13.5 entry, and changed the array comment from "keep ~10" to "show the FULL history".
+- Recorded the preference in **CLAUDE.md** so future routine runs never re-trim it: the
+  What's New panel must show every past update; keep prepending, never prune, unless the
+  owner asks in writing.
+- Display-data only — no gameplay/save/economy impact. Tests stay green.
+
 ## v1.13.4 — 2026-06-11
 
 **🩺 Health check** (every-6th-run maintenance pass; resets the 5-run counter). 12
