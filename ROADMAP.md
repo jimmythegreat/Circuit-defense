@@ -9,9 +9,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Next up (high value)
 
-- [ ] **Achievements system** — a small set of unlockable badges (first victory,
-      beat campaign L10, win without losing a life, 1M total damage). Persist in
-      a new `cd_meta` field with a default; show on the start screen.
+- [x] **Achievements system** — shipped v1.5.0. 8 badges (First Victory, Flawless,
+      No Mercy, Mountaineer L10, Conqueror L40, Endless w50, Megadamage 1M, Veteran
+      25 runs), persisted in additive `meta.achievements`/`meta.stats`, with a 🏅
+      start-screen panel and end-of-run unlock toasts. Follow-ups: *toast/sound when
+      a badge unlocks mid-menu*, more badges (no-ability win, all-one-tower-type,
+      speedrun), and a per-achievement chip reward.
 - [ ] **Endless-mode leaderboard / personal bests panel** — show best wave per
       map+difficulty on the start screen (data already in `cd_best_*`).
 - [ ] **New enemy type: "phantom"** — periodically dodges/blinks forward,

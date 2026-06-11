@@ -98,14 +98,14 @@
   button.ctl.gray { background: #30363d; }
   button.ctl.gray:hover { background: #484f58; }
   button.ctl.gray.off { opacity: .55; }
-  #overlay, #startScreen, #draftModal, #talentPanel {
+  #overlay, #startScreen, #draftModal, #talentPanel, #achPanel {
     position: absolute; inset: 0;
     background: rgba(13,17,23,.93);
     flex-direction: column; align-items: center; justify-content: center;
     text-align: center; z-index: 10; border-radius: 8px;
   }
-  #overlay, #draftModal, #talentPanel { display: none; }
-  #talentPanel { z-index: 20; }
+  #overlay, #draftModal, #talentPanel, #achPanel { display: none; }
+  #talentPanel, #achPanel { z-index: 20; }
   /* appRow = the whole game (gameCol) + the What's New side panel, side by side.
      The panel floats beside the ENTIRE game, so opening it never shifts only the canvas. */
   #appRow { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; width: 100%; }
@@ -174,6 +174,15 @@
   }
   .talentCard button:hover { background: #8957e5; }
   .talentCard button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+  #achGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; max-width: 800px; max-height: 380px; overflow-y: auto; padding: 4px; }
+  .achCard {
+    background: #161b22; border: 2px solid #30363d; border-radius: 12px;
+    padding: 10px 8px; font-size: 12px; width: 178px; opacity: .5; filter: grayscale(1);
+  }
+  .achCard.got { opacity: 1; filter: none; border-color: #e3b341; box-shadow: 0 0 12px rgba(227,179,65,.25); }
+  .achCard .aicon { font-size: 24px; display: block; }
+  .achCard b { font-size: 13px; color: #e3e6eb; }
+  .achCard small { display: block; color: #8b949e; margin: 4px 0 0; min-height: 26px; }
   #upgradePanel {
     position: absolute; display: none;
     background: #161b22; border: 1px solid #58a6ff; border-radius: 10px;
@@ -263,6 +272,14 @@
       <button class="ctl blue" onclick="closeTalents()">Done</button>
     </div>
   </div>
+  <div id="achPanel">
+    <h2 style="color:#e3b341; text-shadow:0 0 16px rgba(227,179,65,.4)">🏅 ACHIEVEMENTS</h2>
+    <p style="color:#8b949e; margin:2px 0 0">Earned across all your runs · <b id="achProgress" style="color:#e3b341">0 / 0</b> unlocked</p>
+    <div id="achGrid"></div>
+    <div style="display:flex; gap:10px;">
+      <button class="ctl blue" onclick="closeAchievements()">Done</button>
+    </div>
+  </div>
   <div id="startScreen">
     <h2>⚡ CIRCUIT DEFENSE</h2>
     <p>Survive 30 waves. Build. Upgrade. Don't let them through.</p>
@@ -277,6 +294,7 @@
       <button class="ctl" style="font-size:17px; padding: 11px 36px;" onclick="beginGame()">▶ PLAY</button>
       <button class="ctl blue" id="resumeBtn" style="font-size:17px; padding: 11px 20px; display:none;" onclick="loadRun()">⏯ Resume Run</button>
       <button class="ctl" style="font-size:17px; padding: 11px 20px; background:#6e40c9;" onclick="openTalents()">🧬 Talents (<span id="chipsBtn">0</span>🪙)</button>
+      <button class="ctl" style="font-size:17px; padding: 11px 20px; background:#9e6a00;" onclick="openAchievements()">🏅 Achievements (<span id="achBtn">0/0</span>)</button>
       <button class="ctl gray" style="font-size:17px; padding: 11px 20px;" onclick="openWhatsNew()">✨ What's New</button>
     </div>
   </div>
@@ -309,9 +327,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.4.1';
+const GAME_VERSION = 'v1.5.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.5.0', date: '2026-06-10', body: "Achievements! Earn 8 permanent badges across all your runs — First Victory, Flawless (win without losing a life), No Mercy (win on Hard), Mountaineer (Campaign L10), Conqueror (finish the campaign), Endless (reach wave 50), Megadamage (1M lifetime damage) and Veteran (25 runs). A new 🏅 Achievements button on the start screen shows your progress; unlocks pop on the end-of-run screen." },
   { v: 'v1.4.1', date: '2026-06-10', body: "What's New now floats beside the ENTIRE game — opening it shifts the whole layout (title, HUD, towers, controls) together instead of only sliding the canvas over. On narrow screens it still tucks below." },
   { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it opens by default, sits flush beside the game, and scrolls; ✕ to hide) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
   { v: 'v1.3.x', date: '2026-06', body: 'Removed the Scrapper perk and dropped rare-draft chance from 26% to 14% to make legendary perks feel special again.' },
@@ -616,7 +635,7 @@ const TALENTS = {
   mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 4 + r*4, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
   mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 4 + r*4, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
 };
-let meta = { chips: 0, talents: {} };
+let meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
 function loadMeta() {
   try {
     const m = JSON.parse(localStorage.getItem('cd_meta'));
@@ -626,6 +645,11 @@ function loadMeta() {
     if (!(k in meta.talents)) meta.talents[k] = 0;
     meta.talents[k] = Math.min(meta.talents[k], TALENTS[k].max);
   }
+  // additive schema migration — older saves predate achievements/stats
+  if (!meta.achievements || typeof meta.achievements !== 'object') meta.achievements = {};
+  if (!meta.stats || typeof meta.stats !== 'object') meta.stats = {};
+  if (typeof meta.stats.dmg !== 'number') meta.stats.dmg = 0;
+  if (typeof meta.stats.runs !== 'number') meta.stats.runs = 0;
 }
 const maxTowerLevel = () => 5 + tRank('overdrive');
 function saveMeta() { localStorage.setItem('cd_meta', JSON.stringify(meta)); }
@@ -884,6 +908,7 @@ function pickPerk(p) {
 
 // ================= State =================
 let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters, beams, pendingSpawns;
+let livesLostThisRun = false;
 let waveActive, spawnQueue, spawnTimer, selectedShop, selectedTower, gameOver, victory, started;
 let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
 let bestKey = () => 'cd_best_' + diffKey;
@@ -906,6 +931,7 @@ function resetState() {
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
   abilityCd = { meteor: 0, freeze: 0, rush: 0 };
   armedAbility = null;
+  livesLostThisRun = false;
   waveMod = null; meteorRainTimer = 0;
   if (isMayhem()) MAPS.mayhem.pts = genMayhemPath();
   best = +(localStorage.getItem(bestKey()) || 0);
@@ -946,6 +972,7 @@ function loadRun() {
   document.getElementById('startScreen').style.display = 'none';
   resetState();
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
+  livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;
   if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0}, s.abilityCd);
@@ -977,6 +1004,7 @@ function loadRun() {
 // ================= Start screen =================
 function renderStartScreen() {
   document.getElementById('chipsBtn').textContent = meta.chips;
+  document.getElementById('achBtn').textContent = `${achDone()}/${ACHIEVEMENTS.length}`;
   document.getElementById('verTag').textContent = GAME_VERSION;
   let hasSave = false;
   try { const s = JSON.parse(localStorage.getItem('cd_save')); hasSave = !!(s && s.wave > 0); } catch(e) {}
@@ -1483,6 +1511,7 @@ function update(dt) {
       e.dead = true;
       const dmgLives = e.kind === 'boss' ? 5 : 1;
       lives -= dmgLives;
+      livesLostThisRun = true;
       shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
       addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
       SFX.life();
@@ -1692,6 +1721,56 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
 }
 
 // ================= Game end =================
+// ================= Achievements =================
+const ACHIEVEMENTS = [
+  { id:'first_win', icon:'🏆', name:'First Victory',  desc:'Win any game' },
+  { id:'flawless',  icon:'💎', name:'Flawless',       desc:'Win a game without losing a single life' },
+  { id:'hard_win',  icon:'🔥', name:'No Mercy',        desc:'Win a game on Hard difficulty' },
+  { id:'camp10',    icon:'🏔️', name:'Mountaineer',     desc:'Clear Campaign level 10' },
+  { id:'camp_done', icon:'👑', name:'Conqueror',       desc:'Complete the entire campaign (L40)' },
+  { id:'endless50', icon:'♾️', name:'Endless',          desc:'Reach wave 50 in a single run' },
+  { id:'million',   icon:'⚡', name:'Megadamage',       desc:'Deal 1,000,000 total damage (lifetime)' },
+  { id:'veteran',   icon:'🎖️', name:'Veteran',          desc:'Finish 25 runs' },
+];
+const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
+function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
+// Tally a finished run and grant any newly-earned achievements. Returns the new ones.
+function grantAchievements(won) {
+  const runDmg = towers.reduce((s, t) => s + (t.dealt || 0), 0);
+  meta.stats.dmg += runDmg;
+  meta.stats.runs += 1;
+  const newly = [];
+  const give = id => { if (!meta.achievements[id]) { meta.achievements[id] = true; newly.push(ACH_BY_ID[id]); } };
+  if (won) give('first_win');
+  if (won && !livesLostThisRun) give('flawless');
+  if (won && diffKey === 'hard') give('hard_win');
+  if (won && gameMode === 'campaign' && campLevel >= 10) give('camp10');
+  if (won && gameMode === 'campaign' && campLevel >= CAMPAIGN_LEVELS) give('camp_done');
+  if (wave >= 50) give('endless50');
+  if (meta.stats.dmg >= 1e6) give('million');
+  if (meta.stats.runs >= 25) give('veteran');
+  saveMeta();
+  return newly;
+}
+function achLine(newly) {
+  if (!newly.length) return '';
+  return '\n🏅 Achievement' + (newly.length > 1 ? 's' : '') + ' unlocked: ' + newly.map(a => `${a.icon} ${a.name}`).join(' · ');
+}
+function openAchievements() { renderAchievements(); document.getElementById('achPanel').style.display = 'flex'; }
+function closeAchievements() { document.getElementById('achPanel').style.display = 'none'; renderStartScreen(); }
+function renderAchievements() {
+  document.getElementById('achProgress').textContent = `${achDone()} / ${ACHIEVEMENTS.length}`;
+  const grid = document.getElementById('achGrid');
+  grid.innerHTML = '';
+  for (const a of ACHIEVEMENTS) {
+    const got = !!meta.achievements[a.id];
+    const card = document.createElement('div');
+    card.className = 'achCard' + (got ? ' got' : '');
+    card.innerHTML = `<span class="aicon">${got ? a.icon : '🔒'}</span><b>${a.name}</b><small>${a.desc}</small>`;
+    grid.appendChild(card);
+  }
+}
+
 function chipsForRun() {
   const base = wave * DIFFS[diffKey].chipMult * (1 + 0.10 * tRank('scholar'));
   const victoryBonus = victory ? 25 + (gameMode === 'campaign' ? campLevel * 2 : 0) : 0;
@@ -1713,10 +1792,11 @@ function endGame() {
   const earned = chipsForRun();
   meta.chips += earned;
   saveMeta();
+  const newAch = grantAchievements(false);
   if (wave > best) { best = wave; localStorage.setItem(bestKey(), best); }
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   document.getElementById('ovText').textContent =
-    `You survived ${wave} waves with ${kills} kills on ${DIFFS[diffKey].name}. Best: ${best}\n🪙 +${earned} chips earned (total: ${meta.chips}) — spend them in Talents!` + mvpLine() + perkLine();
+    `You survived ${wave} waves with ${kills} kills on ${DIFFS[diffKey].name}. Best: ${best}\n🪙 +${earned} chips earned (total: ${meta.chips}) — spend them in Talents!` + mvpLine() + perkLine() + achLine(newAch);
   document.getElementById('ovContinue').style.display = 'none';
   document.getElementById('ovNext').style.display = 'none';
   document.getElementById('ovMain').textContent = 'Main Menu';
@@ -1731,11 +1811,12 @@ function winGame() {
   const earned = chipsForRun();
   meta.chips += earned;
   saveMeta();
+  const newAch = grantAchievements(true);
   if (wave > best) { best = wave; localStorage.setItem(bestKey(), best); }
   const where = gameMode === 'campaign' ? `Campaign level ${campLevel}` : DIFFS[diffKey].name;
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   document.getElementById('ovText').textContent =
-    `You beat all ${victoryWave()} waves (${where}, ${DIFFS[diffKey].name}) with ${kills} kills and ${lives} lives left!\n🪙 +${earned} chips earned (total: ${meta.chips})` + mvpLine() + perkLine();
+    `You beat all ${victoryWave()} waves (${where}, ${DIFFS[diffKey].name}) with ${kills} kills and ${lives} lives left!\n🪙 +${earned} chips earned (total: ${meta.chips})` + mvpLine() + perkLine() + achLine(newAch);
   if (gameMode === 'campaign') {
     if (campLevel > campaignDone()) localStorage.setItem('cd_campaign', campLevel);
     document.getElementById('ovNext').style.display = campLevel < CAMPAIGN_LEVELS ? 'inline-block' : 'none';

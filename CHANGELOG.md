@@ -3,6 +3,34 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.5.0 — 2026-06-10
+
+**Added: Achievements — 8 permanent, account-wide badges (top ROADMAP item).**
+
+- A new meta-progression layer that persists across all runs (alongside chips/
+  talents). The eight achievements: **First Victory** (win any game), **Flawless**
+  (win without losing a single life), **No Mercy** (win on Hard), **Mountaineer**
+  (clear Campaign L10), **Conqueror** (complete the campaign at L40), **Endless**
+  (reach wave 50 in one run), **Megadamage** (1,000,000 total damage, lifetime),
+  and **Veteran** (finish 25 runs).
+- **Start screen:** a 🏅 Achievements button shows live `done/total` progress and
+  opens a grid panel (locked badges are greyed/🔒, unlocked ones glow gold),
+  mirroring the Talents panel's look. **End-of-run screen:** any newly-unlocked
+  badge is announced inline ("🏅 Achievement unlocked: …").
+- **Save schema (additive, migrated):** `meta` gains `achievements` (id→true map)
+  and `stats` (`{dmg, runs}` lifetime counters). `loadMeta()` defaults both when
+  absent, so pre-v1.5 `cd_meta` saves load untouched (verified by a migration
+  test — chips/talents survive, new fields default). No existing field changed.
+- **Flawless integrity:** a per-run `livesLostThisRun` flag (set when any life
+  leaks) gates Flawless. Resumed runs are marked non-flawless since the earlier
+  waves can't be verified.
+- **Tests:** new section [7] (11 checks) — definitions present, panel exists,
+  progress shown, a flawless Hard win grants three badges at once, the unlock is
+  announced, Flawless is withheld when a life was lost, 1M damage grants
+  Megadamage, and an old-save migration round-trips. Full suite green:
+  **45 passed, 0 failed.** Guardrail review: PASS on all five (save-compat, scope
+  ~154 lines, offline/no-build, theme, no duplicate ids / stray code).
+
 ## v1.4.1 — 2026-06-10
 
 **Fixed: What's New panel now floats beside the ENTIRE game (owner feedback).**

@@ -252,6 +252,72 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 7: achievements grant, persist, and respect their conditions ----
+  console.log('\n[7] Achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Definitions exist and start screen reflects 0/N progress.
+    const defs = await page.evaluate(() => ({
+      count: ACHIEVEMENTS.length,
+      done: achDone(),
+      btn: document.getElementById('achBtn').textContent,
+      panel: !!document.getElementById('achPanel'),
+    }));
+    check('ACHIEVEMENTS defined (>=4)', defs.count >= 4, 'count=' + defs.count);
+    check('achievements panel exists', defs.panel);
+    check('start screen shows 0/N progress', defs.done === 0 && defs.btn === `0/${defs.count}`, defs.btn);
+
+    // A flawless Hard win grants First Victory + Flawless + No Mercy at once.
+    const win = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; campLevel = 1;
+      beginGame();
+      wave = victoryWave();
+      livesLostThisRun = false;
+      towers.push({ type: 'gun', dealt: 500, kills: 10 });
+      winGame();
+      const txt = document.getElementById('ovText').textContent;
+      const got = Object.keys(meta.achievements);
+      backToMenu();
+      return { got, achLine: txt.includes('Achievement') };
+    });
+    check('flawless Hard win grants first_win + flawless + hard_win',
+      ['first_win', 'flawless', 'hard_win'].every(id => win.got.includes(id)), JSON.stringify(win.got));
+    check('end-of-run screen announces the unlock', win.achLine);
+
+    // Flawless is withheld when a life is lost; lifetime damage still accrues for million.
+    const lossy = await page.evaluate(() => {
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0 };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      wave = victoryWave();
+      livesLostThisRun = true;
+      towers.push({ type: 'gun', dealt: 1000000, kills: 1 });
+      const newly = grantAchievements(true).map(a => a.id);
+      const all = Object.keys(meta.achievements);
+      backToMenu();
+      return { newly, all };
+    });
+    check('flawless NOT granted when a life was lost', !lossy.all.includes('flawless'), JSON.stringify(lossy.all));
+    check('1M lifetime damage grants million', lossy.all.includes('million'), JSON.stringify(lossy.all));
+
+    // Old pre-v1.5 saves (no achievements/stats fields) migrate cleanly.
+    const migrated = await page.evaluate(() => {
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 42, talents: { firepower: 3 } }));
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+      loadMeta();
+      const res = { chips: meta.chips, fp: meta.talents.firepower, ach: meta.achievements, stats: meta.stats };
+      localStorage.removeItem('cd_meta');
+      return res;
+    });
+    check('old save migrates: chips/talents intact', migrated.chips === 42 && migrated.fp === 3, JSON.stringify(migrated));
+    check('old save migrates: achievements/stats defaulted',
+      typeof migrated.ach === 'object' && migrated.stats.dmg === 0 && migrated.stats.runs === 0, JSON.stringify(migrated));
+
+    check('no console errors during achievements tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
