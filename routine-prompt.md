@@ -17,7 +17,12 @@ If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that
 
 ## Hard guardrails — never violate
 - The game stays a BROWSER game, playable offline by double-clicking tower-defense.html. No server, no CDN/network dependencies at runtime, no frameworks.
-- No build step. The shipped artifact is the single HTML file. (You may create dev-only tooling — tests, scripts, CI workflows — but the game itself must never require building.)
+- No build step. The game must run from the raw files in the repo. (You may create dev-only tooling — tests, scripts, CI workflows — but the game itself must never require building.)
+- Splitting the single HTML file into separate .js/.css files IS allowed, under these rules:
+  - Use classic `<script src>` tags with explicit load order — NEVER ES modules (`type="module"` breaks on file:// due to CORS). Re-verify double-click-from-Explorer playability after any split.
+  - A refactor/split is its own run with ZERO behavior change: tests green before, identical tests green after, no balance or feature edits smuggled in.
+  - Split by domain (audio, paths/maps, towers, enemies, perks/talents, rendering, ui, save). Keep any one file under ~1500 lines; when a file outgrows that, splitting it is a valid run.
+  - Update CLAUDE.md's architecture map and the test harness in the same run so the next run isn't lost.
 - It stays a TOWER DEFENSE game at its core (paths, waves, towers, defending). The visual/narrative theme is yours to evolve — gradual drift from the sci-fi/circuit aesthetic is fine if it stays coherent and each step is intentional.
 - NEVER break player saves. localStorage keys (cd_save, cd_meta, cd_campaign, cd_best_*, cd_mute) may gain fields with defaults, but existing saved data must keep loading. If you change a schema, write a migration.
 - Respect recorded design decisions in CLAUDE.md (e.g. booster auras don't stack; talent economy is intentionally grindy; campaign maps are random per attempt). Changing one requires a written rationale in CHANGELOG.md.
