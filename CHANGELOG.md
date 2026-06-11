@@ -3,6 +3,30 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.0 — 2026-06-11
+
+**Feature: "Combo Master" achievement + lifetime best-combo stat (ROADMAP
+combo follow-ups, from v1.7.0).**
+
+The kill-streak combo system shipped in v1.7.0 was purely cosmetic and left no
+mark on your account. This run cashes it in:
+
+- **💥 Combo Master** — a new 9th achievement, granted when you reach a **30×
+  kill-streak** in a single run. Evaluated in `grantAchievements()` from the
+  run's peak (`comboBest`), so it unlocks on the end-of-run screen like the
+  other badges.
+- **🔥 Best combo** — a new lifetime stat on the 🏆 Records panel footer, next
+  to lifetime damage / runs / chips. Tracks your all-time highest streak across
+  every run via a new additive `meta.stats.bestCombo` field (`Math.max`
+  semantics — a smaller later peak never lowers it).
+- **Save-safe:** `meta.stats.bestCombo` is an additive field defaulted to `0`
+  in `loadMeta()`'s migration, so pre-v1.8.0 saves load unchanged. No existing
+  keys touched. No gold/economy/balance impact — this is progression flavor on
+  top of the cosmetic combo system.
+- **Test evidence:** `tests/` green — **87 checks, exit 0** (up from 83). Four
+  new assertions: a 30× run grants `combo30` and records `bestCombo`; a sub-30
+  peak does NOT grant it and never lowers a higher stored best.
+
 ## v1.7.1 — 2026-06-11
 
 **Fix: combo meter was hidden behind the ability bar.**

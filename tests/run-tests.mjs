@@ -339,6 +339,38 @@ async function main() {
     check('old save migrates: achievements/stats defaulted',
       typeof migrated.ach === 'object' && migrated.stats.dmg === 0 && migrated.stats.runs === 0, JSON.stringify(migrated));
 
+    // Combo Master (v1.8.0): a 30x run streak grants combo30 + records lifetime bestCombo.
+    const combo = await page.evaluate(() => {
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0 };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      wave = victoryWave();
+      comboBest = 31;
+      towers.push({ type: 'gun', dealt: 100, kills: 5 });
+      const newly = grantAchievements(true).map(a => a.id);
+      const res = { newly, all: Object.keys(meta.achievements), best: meta.stats.bestCombo };
+      backToMenu();
+      return res;
+    });
+    check('30x run streak grants combo30', combo.all.includes('combo30'), JSON.stringify(combo));
+    check('lifetime bestCombo records the run peak', combo.best === 31, JSON.stringify(combo));
+
+    // A sub-30 peak does NOT grant combo30 (but still updates bestCombo only if higher).
+    const noCombo = await page.evaluate(() => {
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 40 };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      wave = victoryWave();
+      comboBest = 12;
+      towers.push({ type: 'gun', dealt: 100, kills: 5 });
+      grantAchievements(true);
+      const res = { all: Object.keys(meta.achievements), best: meta.stats.bestCombo };
+      backToMenu();
+      return res;
+    });
+    check('sub-30 streak does NOT grant combo30', !noCombo.all.includes('combo30'), JSON.stringify(noCombo));
+    check('bestCombo is not lowered by a smaller peak', noCombo.best === 40, JSON.stringify(noCombo));
+
     check('no console errors during achievements tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

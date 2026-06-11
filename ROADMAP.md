@@ -47,9 +47,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       2s window builds a top-right COMBO meter that glows hotter (green→gold→
       orange→red→purple); milestones (5, then every 10) fire a rising `SFX.combo`
       chirp + shake + particle burst + floater. Cosmetic only — no gold/save
-      impact. Follow-ups: *combo-gated cosmetic flourishes (e.g. a brief board
-      tint at huge streaks)*, a **best-combo** stat on the Records panel, and an
-      optional **"Combo Master" achievement** (e.g. reach a 30× streak).
+      impact. Follow-ups: ✅ **best-combo stat on Records panel** + ✅ **"Combo
+      Master" achievement (30× streak)** both shipped v1.8.0 (💥 9th badge + 🔥
+      lifetime `meta.stats.bestCombo`). Remaining: *combo-gated board tint at
+      huge streaks*, and a **mid-streak "near miss" cue** (combo timer bar
+      flashes red as the 2s window runs out) so keeping the chain alive feels
+      tense.
+- [ ] **Combo meter layout bug** (owner-reported, FEEDBACK) — the top-left COMBO
+      meter overlaps the round-completion bonus display, and the draining timer
+      bar overlaps the word "COMBO". Reposition/relayout so both read cleanly.
 - [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).

@@ -366,9 +366,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.7.1';
+const GAME_VERSION = 'v1.8.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.8.0', date: '2026-06-11', body: "Combo Master! A new 💥 achievement for reaching a 30× kill-streak in a single run, plus a 🔥 Best combo stat on the Records panel that tracks your all-time highest streak. Chase those chains — the combo system finally pays off your account." },
   { v: 'v1.7.1', date: '2026-06-11', body: "Fix: the new COMBO meter was drawing behind the ability buttons (Meteor / Freeze / Gold Rush) in the top-right corner. Moved it to the top-left of the board so it no longer hides behind your abilities." },
   { v: 'v1.7.0', date: '2026-06-11', body: "Kill streaks! Chain kills within 2 seconds to build a COMBO meter (top-left of the board) that glows hotter as it climbs — green → gold → orange → red → purple. Every milestone (5, then every 10) fires a rising chirp, a screen-shake and a particle burst, so wiping out a packed wave feels chunky. Purely cosmetic — no effect on gold or saves." },
   { v: 'v1.6.1', date: '2026-06-11', body: "New record! flourish — when a quick-mode run beats your best wave for that map × difficulty (your Records cell), the game-over/victory screen now celebrates with a golden banner showing the old→new wave delta, a triumphant fanfare, and a screen-shake + particle burst. First-ever entries record quietly; only beating a real best fires the party." },
@@ -382,7 +383,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v1.3.x', date: '2026-06', body: 'Increased enemy HP 20% across all modes and lengthened campaign waves (15 at level 1 up to 54 at level 40).' },
   { v: 'v1.2.0', date: '2026-06', body: 'Campaign mode (40 levels, random maps each attempt), abilities (Meteor / Freeze / Gold Rush), rarity-tiered perk drafts, and the Mayhem map.' },
   { v: 'v1.1.0', date: '2026-06', body: 'Talents and permanent chip progression, tower specializations at max level, difficulties, and save/resume.' },
-  { v: 'v1.0.0', date: '2026-06', body: 'Circuit Defense launch — single-file browser tower defense with synthesized audio and canvas pseudo-3D rendering.' },
 ];
 // Open by default; only stays hidden if the player explicitly closes it (persisted).
 let wnClosed = localStorage.getItem('cd_wnclosed') === '1';
@@ -714,6 +714,7 @@ function loadMeta() {
   if (!meta.stats || typeof meta.stats !== 'object') meta.stats = {};
   if (typeof meta.stats.dmg !== 'number') meta.stats.dmg = 0;
   if (typeof meta.stats.runs !== 'number') meta.stats.runs = 0;
+  if (typeof meta.stats.bestCombo !== 'number') meta.stats.bestCombo = 0;
 }
 const maxTowerLevel = () => 5 + tRank('overdrive');
 function saveMeta() { localStorage.setItem('cd_meta', JSON.stringify(meta)); }
@@ -1827,6 +1828,7 @@ const ACHIEVEMENTS = [
   { id:'endless50', icon:'♾️', name:'Endless',          desc:'Reach wave 50 in a single run' },
   { id:'million',   icon:'⚡', name:'Megadamage',       desc:'Deal 1,000,000 total damage (lifetime)' },
   { id:'veteran',   icon:'🎖️', name:'Veteran',          desc:'Finish 25 runs' },
+  { id:'combo30',   icon:'💥', name:'Combo Master',     desc:'Reach a 30× kill-streak in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -1835,6 +1837,7 @@ function grantAchievements(won) {
   const runDmg = towers.reduce((s, t) => s + (t.dealt || 0), 0);
   meta.stats.dmg += runDmg;
   meta.stats.runs += 1;
+  if (comboBest > (meta.stats.bestCombo || 0)) meta.stats.bestCombo = comboBest;
   const newly = [];
   const give = id => { if (!meta.achievements[id]) { meta.achievements[id] = true; newly.push(ACH_BY_ID[id]); } };
   if (won) give('first_win');
@@ -1845,6 +1848,7 @@ function grantAchievements(won) {
   if (wave >= 50) give('endless50');
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
+  if (comboBest >= 30) give('combo30');
   saveMeta();
   return newly;
 }
@@ -1910,9 +1914,11 @@ function renderBests() {
   }
   html += '</tr></tbody></table>';
   const dmg = (meta.stats && meta.stats.dmg) || 0, runs = (meta.stats && meta.stats.runs) || 0;
+  const bestCombo = (meta.stats && meta.stats.bestCombo) || 0;
   html += `<div class="bestStats">`
     + `<span>🎖 Campaign: <b>L${campaignDone()}</b> cleared</span>`
     + `<span>⚔ Lifetime dmg: <b>${fmtNum(dmg)}</b></span>`
+    + `<span>🔥 Best combo: <b>${bestCombo ? bestCombo + '×' : '—'}</b></span>`
     + `<span>🎮 Runs: <b>${runs}</b></span>`
     + `<span>🪙 Chips: <b>${meta.chips}</b></span></div>`;
   document.getElementById('bestBody').innerHTML = html;
