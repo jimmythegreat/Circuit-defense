@@ -230,7 +230,9 @@ function fireChain(t, first, dmg) {
 
 function hitEnemy(p) {
   if (p.crit) {
-    addFloater(p.target.x, p.target.y - 22, `CRIT ${Math.round(p.dmg)}!`, '#ff7b42', 15);
+    const cd = Math.round(p.dmg);
+    addFloater(p.target.x, p.target.y - 22, `CRIT ${cd}!`, '#ff7b42', 15,
+      { merge: 'crit', value: cd, prefix: 'CRIT ', suffix: '!', radius: 28 });
     SFX.crit();
   }
   if (p.kind === 'bomb') {
@@ -305,7 +307,10 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
       addFloater(e.x, e.y - 40, '👑 MIDAS ×5!', '#ffd866', 16);
     }
     gold += bounty;
-    addFloater(e.x, e.y - 14, `+${bounty}`, '#ffd866');
+    // bounty pops fire on every kill — merge nearby ones so AoE/combo bursts read as
+    // a single growing +N instead of a confetti of overlapping numbers
+    addFloater(e.x, e.y - 14, `+${bounty}`, '#ffd866', 14,
+      { merge: 'gold', value: bounty, prefix: '+', radius: 36 });
     if (e.kind === 'boss') {
       SFX.bossDeath();
       shake = Math.max(shake, 16);

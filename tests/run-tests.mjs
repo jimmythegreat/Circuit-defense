@@ -1082,6 +1082,42 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 22: damage-number floater aggregation (v1.12.2) ----
+  console.log('\n[22] Damage-number aggregation');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      floaters.length = 0;
+      // 4 gold pops clustered near (300,300) -> merge into one +25; one far away stays
+      addFloater(300, 300, '+5', '#ffd866', 14, { merge: 'gold', value: 5, prefix: '+', radius: 36 });
+      addFloater(310, 305, '+7', '#ffd866', 14, { merge: 'gold', value: 7, prefix: '+', radius: 36 });
+      addFloater(295, 310, '+3', '#ffd866', 14, { merge: 'gold', value: 3, prefix: '+', radius: 36 });
+      addFloater(305, 298, '+10', '#ffd866', 14, { merge: 'gold', value: 10, prefix: '+', radius: 36 });
+      addFloater(600, 400, '+8', '#ffd866', 14, { merge: 'gold', value: 8, prefix: '+', radius: 36 });
+      // two close crits -> merge to CRIT 80!
+      addFloater(200, 200, 'CRIT 50!', '#ff7b42', 15, { merge: 'crit', value: 50, prefix: 'CRIT ', suffix: '!', radius: 28 });
+      addFloater(210, 205, 'CRIT 30!', '#ff7b42', 15, { merge: 'crit', value: 30, prefix: 'CRIT ', suffix: '!', radius: 28 });
+      // an untagged floater is never merged
+      addFloater(300, 300, 'LEVEL UP!', '#3fb950', 14);
+      const gold = floaters.filter(f => f.merge === 'gold').map(f => f.text).sort();
+      const crit = floaters.filter(f => f.merge === 'crit').map(f => f.text);
+      const plain = floaters.filter(f => !f.merge).length;
+      backToMenu();
+      return { gold, crit, plain, total: floaters.length };
+    });
+    check('clustered gold pops merge into one summed floater', r.gold.includes('+25'),
+      `gold=${JSON.stringify(r.gold)}`);
+    check('a distant gold pop stays separate', r.gold.includes('+8') && r.gold.length === 2,
+      `gold=${JSON.stringify(r.gold)}`);
+    check('nearby crits merge (summed damage)', r.crit.length === 1 && r.crit[0] === 'CRIT 80!',
+      `crit=${JSON.stringify(r.crit)}`);
+    check('untagged floaters never merge', r.plain === 1, `plain=${r.plain}`);
+    check('no console errors during aggregation test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -75,7 +75,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
       pinned to the lower-left corner, bottom-anchored. Test group [15]. Follow-up:
       *hide/dim the faint between-wave `Next:` preview while the panel is open* so
       the corner never double-stacks, and a small slide-in animation for game feel.
-- [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
+- [x] **Damage-number aggregation** — shipped v1.12.2. `addFloater()` takes an
+      optional `{merge,value,prefix,suffix,radius}` group; nearby same-group floaters
+      fold into one growing number. Applied to per-kill +gold and CRIT hits. Test [22].
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).
 - [ ] **Tower range preview on hover** in the shop (before placing).

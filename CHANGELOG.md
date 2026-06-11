@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.12.2 — 2026-06-11
+
+**Damage-number aggregation (ROADMAP polish).** Floaters spammed during mass-kill
+moments (splash, meteor, big combos) — a dozen overlapping `+gold` and `CRIT` numbers.
+`addFloater()` (`cd-game.js`) now takes an optional `{merge, value, prefix, suffix,
+radius}` group: a tagged floater folds into a nearby recent one of the same group
+instead of spawning a fresh number — the `value`s sum and the text/position/life
+refresh. Applied to the two spammiest sources: the per-kill **+gold bounty**
+(`merge:'gold'`, radius 36) and **CRIT** hits (`merge:'crit'`, radius 28). So a burst
+reads as one growing `+25` / `CRIT 80!` instead of confetti; distant kills still get
+their own number. Untagged `addFloater` calls are unchanged. Render-only, no economy
+impact (gold is still awarded per kill; only the *display* merges). New test group
+**[22]** verifies clustered pops merge (summed) while distant ones stay separate.
+
 ## v1.12.1 — 2026-06-11
 
 **Hover tooltips for milestone bonuses (FEEDBACK).** Owner: *"milestone bonuses should

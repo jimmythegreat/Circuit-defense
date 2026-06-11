@@ -207,7 +207,27 @@ function updateHud() {
   renderShop();
   maybeRefreshUpgrade();
 }
-function addFloater(x, y, text, color, size=14) {
+function addFloater(x, y, text, color, size=14, opts=null) {
+  // Aggregation: floaters tagged with a `merge` group (e.g. gold/crit) fold into a
+  // nearby recent one of the same group instead of spamming a fresh number — their
+  // `value`s sum and the text/position/life refresh. Keeps mass-kill bursts readable.
+  if (opts && opts.merge) {
+    let best = null, bd = opts.radius || 32;
+    for (const f of floaters) {
+      if (f.merge !== opts.merge || f.life < 0.25) continue;
+      const d = Math.hypot(f.x - x, f.y - y);
+      if (d < bd) { bd = d; best = f; }
+    }
+    if (best) {
+      best.value += opts.value;
+      best.text = (opts.prefix || '') + Math.round(best.value) + (opts.suffix || '');
+      best.life = 1.2; best.x = (best.x + x) / 2; best.y = Math.min(best.y, y);
+      best.size = size; best.color = color;
+      return best;
+    }
+    floaters.push({ x, y, text, color, size, life: 1.2, merge: opts.merge, value: opts.value });
+    return;
+  }
   floaters.push({x, y, text, color, size, life: 1.2});
 }
 function shade(col, amt) {

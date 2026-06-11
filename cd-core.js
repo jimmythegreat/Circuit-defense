@@ -11,9 +11,10 @@ let _rmQuery = (typeof window !== 'undefined' && window.matchMedia)
 function reduceMotion() { return !!(_rmQuery && _rmQuery.matches); }
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.12.1';
+const GAME_VERSION = 'v1.12.2';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.12.2', date: '2026-06-11', body: "Cleaner game feel: when a bunch of enemies die together (splash, meteor, a fat combo), the floating +gold and CRIT numbers no longer pile up into an unreadable confetti — nearby ones now merge into a single growing number (e.g. +25 instead of +5 +7 +3 +10). Easier to read, less visual noise." },
   { v: 'v1.12.1', date: '2026-06-11', body: "The perk icons in the top-left of the board (the milestone bonuses you draft every 5 waves) now have a hover tooltip — mouse over any one to see its name and exactly what it does, colour-coded by rarity. No more forgetting which legendary you grabbed three waves ago." },
   { v: 'v1.12.0', date: '2026-06-11', body: "Concurrent waves! You can now start the next wave WHILE one is still running — the Start button becomes ➕ Add Wave, so you can pour up to 3 waves onto the path at the same time for a high-risk rush. Each wave spawns as its own parallel stream. When the field finally clears, every bundled wave pays out its clear bonus and any boss-wave draft you crossed still pops — so rushing never costs you gold or perks, it just throws everything at you at once. (Spacebar adds a wave too.)" },
   { v: 'v1.11.0', date: '2026-06-11', body: "New 🗑 Reset All button on the start screen — wipes everything (chips, talents, achievements, records, your current run, and settings) and starts you completely fresh. It's a two-click confirm so you can't nuke your progress by accident: the first click arms it (turns red, 'Erase ALL — click again'), the second within 3 seconds does the deed." },
