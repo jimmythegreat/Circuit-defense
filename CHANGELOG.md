@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.9.2 — 2026-06-11
+
+**Difficulty step: enemy HP +20% across the board (FEEDBACK / balance).** Owner
+report (FEEDBACK #4, also ROADMAP "Late-campaign difficulty audit"): *"The game is
+still a too easy. I'm able to clear classic-normal with money I got from the first
+10 rounds … campaign 6 on hard can be completed with a single gunner and booster at
+max level (only losing 5 hp to the final boss)."*
+
+- **What changed:** the global enemy-HP multiplier in `enemyTemplate()` (`cd-game.js`)
+  went from `1.2` → `1.44` — a flat **+20%** to every enemy's health. Because it's a
+  single uniform coefficient, the swing is exactly +20% at *every* wave (including
+  deep endless), staying safely under the ≤25%-per-number balance guardrail where an
+  exponent change would have blown past it at high waves. Bosses (HP = `t.hp*mult`)
+  and tanks (`t.hp*3.2`) scale off the same template, so they get tougher too —
+  directly targeting the "only lost 5 hp to the boss" complaint.
+- **Why uniform, not late-only:** I considered steepening the `w^1.9` exponent to bite
+  only late, but any exponent bump produces an unbounded, ever-growing % swing that
+  exceeds 25% in deep endless. A flat coefficient is the only lever that's both
+  meaningful and guardrail-safe at all waves. This is a deliberately *modest* first
+  step — the owner found it *trivially* easy (a fraction of the intended resources),
+  which is a multi-run gap; the guardrail caps me at ~25%/run, so difficulty is being
+  dialed up iteratively. Economy was left untouched this run to keep the diff to one
+  reasoned lever (a follow-up economy-pacing pass is on the ROADMAP).
+- **Simulation / evidence:** deterministic — every enemy's HP is exactly ×1.2 of the
+  prior value, so total wave HP-to-kill rises a uniform +20% with zero change to
+  spawn counts, speeds, bounties, economy, or saves. New test group **[16]** asserts
+  `enemyTemplate(w).hp` matches `(18 + w*7 + w^1.9) * 1.44 * d.hp` at waves 1/5/10/20/30
+  and that it's the buffed (not old-baseline) value. Full suite green (see below).
+- **No save/economy/theme impact** — HP is computed live per wave from the formula;
+  nothing about this is persisted, so old saves are unaffected.
+
 ## v1.9.1 — 2026-06-11
 
 **Tower upgrade/sell menu pinned to the lower-left corner (FEEDBACK).** Owner

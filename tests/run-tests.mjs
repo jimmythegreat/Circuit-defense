@@ -857,6 +857,43 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 16: enemy HP difficulty scaling (v1.9.2, +20% uniform) ----
+  console.log('\n[16] Enemy HP difficulty scaling');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      campLevel = 1;
+      // enemyTemplate uses the live formula; assert the +20% multiplier (1.44)
+      // is applied uniformly across waves. Expected = (18 + w*7 + w^1.9) * 1.44
+      // * DIFFS.normal.hp (campScale=1 in quick mode).
+      const dh = DIFFS['normal'].hp;
+      const expect = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * dh;
+      // oldBaseline(w) = the pre-v1.9.2 formula (1.2 multiplier). The live value
+      // must be strictly above it (it's now 1.44), so a revert to 1.2 would fail.
+      const oldBaseline = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.2 * dh;
+      const samples = [1, 5, 10, 20, 30].map(w => {
+        const got = enemyTemplate(w).hp;
+        return { w, got, exp: expect(w), old: oldBaseline(w), ok: Math.abs(got - expect(w)) < 1e-6 };
+      });
+      // A boss (wave 5) scales off the same template HP, so it's tougher too.
+      const tmpl = enemyTemplate(5);
+      backToMenu();
+      return { samples, tmplHp5: tmpl.hp };
+    });
+    for (const s of r.samples) {
+      check(`enemy HP at wave ${s.w} matches +20% formula`, s.ok,
+        `got=${s.got.toFixed(1)} exp=${s.exp.toFixed(1)}`);
+    }
+    // Regression guard: HP must be the buffed value, i.e. clearly above the old
+    // 1.2 baseline (old wave-10 normal HP was 1.2*dh*(...); new is 1.44*dh*(...)).
+    check('wave-10 HP is the buffed (1.44) value, strictly above the old 1.2 baseline',
+      r.samples[2].got > r.samples[2].old + 1e-6,
+      `hp=${r.samples[2].got.toFixed(1)} oldBaseline=${r.samples[2].old.toFixed(1)}`);
+    check('no console errors during HP-scaling tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

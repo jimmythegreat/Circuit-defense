@@ -99,8 +99,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Balance (simulate before/after, ≤25% per number per run)
 
+- [~] **Overall difficulty too easy** (owner FEEDBACK, recurring) — being raised
+      iteratively, ≤25%/run. v1.9.2 took the first step: enemy HP +20% uniform
+      (`enemyTemplate` `1.2`→`1.44`). The owner finds it *trivially* easy (clears
+      with a fraction of intended resources), so keep ratcheting: next candidate
+      levers — another HP step, slower economy snowball (trim early interest/
+      wave-clear bonus/bounty), or stronger late bosses. Don't exceed 25% on any
+      one number per run; simulate before/after.
 - [ ] **Interest/economy curve review** — verify gold pacing across difficulties
-      with the harness.
+      with the harness. Tie to the difficulty work above: the owner's "money from
+      the first 10 rounds" line points at a front-loaded snowball — a modest cut to
+      early interest cap / wave-clear bonus is the cleanest next economy lever.
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 

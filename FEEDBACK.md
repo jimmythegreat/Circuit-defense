@@ -12,6 +12,7 @@ When it completes an item it moves it to DONE below with the date and version.
 [Low priority] All the maps look the same. We should add random colors and textures to them. In the classic mode it should always pick the same theme. In mayham it should be while (things on fire, wild colors, etc). In campain mode it should be random but not crazy like mayham. Also Mayhem should be a random map every time.
 
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
+  > _In progress (iterative, guardrail-capped at ~25%/run): v1.9.2 raised all enemy HP +20% (incl. bosses/tanks). Left in PENDING — this is a multi-run gap, so difficulty will keep ratcheting up in future runs (next: an economy-pacing pass so the snowball is slower)._
 
 [low priority] milestone bonuses should have a mouse hover that lets you know what they do.
 

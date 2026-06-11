@@ -90,7 +90,10 @@ function backToMenu() {
 function enemyTemplate(w) {
   const d = DIFFS[diffKey];
   const campScale = gameMode === 'campaign' ? 1 + (campLevel - 1) * 0.04 : 1;
-  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.2 * d.hp * campScale;
+  // v1.9.2: enemy HP multiplier 1.2 -> 1.44 (+20% uniform) — owner FEEDBACK
+  // "the game is still too easy". Uniform so the swing stays <25% at ALL waves
+  // (incl. deep endless); bosses/tanks scale off this too. Iterative tuning.
+  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * d.hp * campScale;
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
 }
 function buildWave(w) {
