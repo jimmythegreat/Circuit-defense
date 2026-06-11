@@ -616,46 +616,64 @@ async function main() {
     check('combo lapses to 0 after its window with no kills',
       lapse.count === 0 && lapse.timer === 0, JSON.stringify(lapse));
 
-    // v1.8.3 layout fix: (a) the meter's timer bar must not overlap the "COMBO"
-    // label, and (b) the milestone burst/floater must clear the WHOLE top HUD
-    // band — the top-left combo meter, the centered round-clear bonus text, and
-    // the centered boss HP bar — so it never lands on any of them.
+    // v1.8.5 layout: the combo meter lives in the BOTTOM-RIGHT corner (its own
+    // empty space). Verify (a) its timer bar doesn't overlap the "COMBO" label,
+    // (b) the whole meter — even a wide "100×" — fits on-canvas with no edge
+    // clipping, and (c) the centered milestone floater clears both the top HUD
+    // band (boss bar / round-clear bonus) and the bottom-right meter.
     const layout = await page.evaluate(() => {
+      const W = cv.width, H = cv.height;
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
       beginGame();
-      comboCount = 28; comboTimer = 1.4; comboFlash = 0.4; started = true; gameOver = false;
-      draw();
-      // meter geometry (mirrors the draw() coordinates in cd-render.js)
-      ctx.save();
-      ctx.font = 'bold 11px sans-serif';
-      const lbl = ctx.measureText('COMBO');
-      ctx.font = 'bold 26px sans-serif';
-      const numW = ctx.measureText('28×').width;
-      const labelLeft = 16 + numW + 6, labelBaseY = 32;
-      const labelTop = labelBaseY - lbl.actualBoundingBoxAscent;
-      const labelBottom = labelBaseY + lbl.actualBoundingBoxDescent;
-      const bar = { top: 44, bottom: 48 };
-      const barOverlapsLabel = !(bar.bottom <= labelTop || bar.top >= labelBottom);
-      // milestone floater: center board (W/2, 132). It must sit BELOW the whole
-      // top HUD band (meter bottom ~48, round-clear bonus ~y90, boss bar ~y32).
-      ctx.font = 'bold 22px sans-serif';
+      started = true; gameOver = false; comboTimer = 1.4; comboFlash = 1;
+      // bottom-right meter geometry (mirrors draw(): ax=W-16, baseY=H-26)
+      const measureMeter = (n) => {
+        const ax = W - 16, baseY = H - 26;
+        ctx.save();
+        ctx.font = 'bold 11px sans-serif';
+        const lbl = ctx.measureText('COMBO');
+        ctx.font = 'bold 26px sans-serif';
+        const numW = ctx.measureText(`${n}×`).width;
+        ctx.restore();
+        const pulse = 1.22;                // worst case (comboFlash=1)
+        // number: right-aligned at ax, baseline baseY, scaled about (ax,baseY)
+        const numTop = baseY - (26 * 0.78) * pulse;     // approx ascent
+        const numLeft = ax - (numW + 6 + lbl.width) * pulse; // number + gap + label
+        // label baseline baseY-2, right edge at ax-numW-6
+        const labelBottom = (baseY - 2) + lbl.actualBoundingBoxDescent;
+        const labelRight = ax - numW - 6;
+        const bar = { left: ax - 84, right: ax, top: baseY + 10, bottom: baseY + 14 };
+        const barOverlapsLabel = !(bar.top >= labelBottom) && (bar.left < labelRight); // vertical+horizontal
+        return {
+          n, numTop, numLeft, barBottom: bar.bottom, barRight: bar.right,
+          barOverlapsLabel,
+          fits: numTop >= 0 && numLeft >= 0 && bar.bottom <= H && bar.right <= W,
+        };
+      };
+      comboCount = 9;  const narrow = measureMeter(9);
+      comboCount = 100; const wide = measureMeter(100);
+      // centered milestone floater (W/2, 132)
+      ctx.save(); ctx.font = 'bold 22px sans-serif';
       const fMet = ctx.measureText('🔥 28× COMBO!');
+      ctx.restore();
       const floaterTop = 132 - fMet.actualBoundingBoxAscent;
       const floaterBottom = 132 + fMet.actualBoundingBoxDescent;
-      const meterBottom = 48;            // bar lane bottom
-      const bonusBottom = 90;            // lowest round-clear/early-call floater band
-      const bossBarBottom = 32;          // boss HP bar box bottom (by-6+24, by=14)
-      ctx.restore();
       return {
-        barOverlapsLabel,
+        narrow, wide,
         floaterTop, floaterBottom,
-        floaterBelowHud: floaterTop > meterBottom && floaterTop > bonusBottom && floaterTop > bossBarBottom,
-        floaterOnCanvas: floaterBottom <= 560,
+        // clears top band (boss bar ~y32, round-clear bonus ~y90) and the
+        // bottom-right meter (top ~y509 at worst-case pulse)
+        floaterClearsTopBand: floaterTop > 90,
+        floaterClearsMeter: floaterBottom < (H - 26 - (26 * 0.78) * 1.22),
+        floaterOnCanvas: floaterBottom <= H,
       };
     });
-    check('timer bar does not overlap the COMBO label', !layout.barOverlapsLabel, JSON.stringify(layout));
-    check('milestone combo floater clears the top HUD band (meter / bonus / boss bar)',
-      layout.floaterBelowHud && layout.floaterOnCanvas, JSON.stringify(layout));
+    check('timer bar does not overlap the COMBO label (bottom-right meter)',
+      !layout.narrow.barOverlapsLabel && !layout.wide.barOverlapsLabel, JSON.stringify(layout));
+    check('combo meter fits on-canvas with no clipping (9× and 100×)',
+      layout.narrow.fits && layout.wide.fits, JSON.stringify(layout));
+    check('milestone combo floater clears the top band and the bottom-right meter',
+      layout.floaterClearsTopBand && layout.floaterClearsMeter && layout.floaterOnCanvas, JSON.stringify(layout));
     await page.evaluate(() => { backToMenu(); });
 
     await page.evaluate(() => { localStorage.removeItem('cd_save'); });

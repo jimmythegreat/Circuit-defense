@@ -53,15 +53,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       huge streaks*, and a **mid-streak "near miss" cue** (combo timer bar
       flashes red as the 2s window runs out) so keeping the chain alive feels
       tense.
-- [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed v1.8.3 +
-      v1.8.4. The "COMBO" label moved to the right of the multiplier with the
-      timer bar in its own lane below (no more bar-over-text). The `🔥 N× COMBO!`
-      milestone burst/floater (was dead-center, stacking on the "Wave clear!
-      +bonus" text) ended up on the **center board below the top HUD band**
-      (`W/2,114`/`W/2,132`) — v1.8.3 first tried the top-left corner but that
-      collided with the meter itself, corrected in v1.8.4. Render-only; Test 11
-      layout assertions verify the bar clears the label and the pop clears the
-      whole top HUD band.
+- [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed across
+      v1.8.3 → v1.8.5. The "COMBO" label sits beside the multiplier with the
+      timer bar in its own lane (no bar-over-text). The persistent meter now
+      lives in the **bottom-right corner** (`ax=W-16`, baseline `H-26`) — its own
+      empty space, which also fixed the top-edge clipping ("9×"→"g×") seen at the
+      old top-left spot. The `🔥 N× COMBO!` milestone pop is on the **center
+      board** (`W/2,114/132`). (Path: top-right v1.7.0 → top-left v1.7.1 →
+      relayout v1.8.3 → pop to center v1.8.4 → meter to bottom-right v1.8.5.)
+      Render-only; Test 11 verifies bar-vs-label, on-canvas fit for 9×/100×, and
+      the pop clearing both the top band and the corner meter.
 - [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).

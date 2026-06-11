@@ -4,10 +4,11 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.8.4';
+const GAME_VERSION = 'v1.8.5';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
-  { v: 'v1.8.4', date: '2026-06-11', body: "Combo pop placement, take two (your feedback): v1.8.3 moved the '🔥 N× COMBO!' milestone pop into the top-left corner — but that's where the COMBO meter itself lives, so they overlapped. The pop now fires on the center board, just below the top HUD band, so it's clear of the meter, the 'Wave clear! +bonus' text AND the boss HP bar. The meter's own bar-vs-label fix from v1.8.3 stays." },
+  { v: 'v1.8.5', date: '2026-06-11', body: "Combo meter moved to the bottom-right corner (your suggestion): instead of squeezing it into the busy top area — where it kept bumping the boss bar, the 'Wave clear! +bonus' text, and the milestone pop, and was getting clipped against the top edge — the COMBO meter now lives in the empty bottom-right corner with room to breathe. The '🔥 N× COMBO!' milestone pop stays on the center board. No more overlap, anywhere." },
+  { v: 'v1.8.4', date: '2026-06-11', body: "Combo pop placement, take two (your feedback): v1.8.3 moved the '🔥 N× COMBO!' milestone pop into the top-left corner — but that's where the COMBO meter itself lived, so they overlapped. The pop now fires on the center board, below the top HUD band. (The meter itself moved to the bottom-right in v1.8.5.)" },
   { v: 'v1.8.3', date: '2026-06-11', body: "Combo meter cleanup (your feedback): the draining timer bar no longer overlaps the word COMBO — the 'COMBO' label now sits to the right of the multiplier with the bar in its own lane below. (The milestone-pop placement from this update was corrected in v1.8.4.)" },
   { v: 'v1.8.2', date: '2026-06-11', body: "More under-the-hood tidy-up: the game's code is now split by domain into seven small files (core/audio, maps, definitions, state, gameplay, update, rendering) instead of one big script. Still zero change for you — double-click tower-defense.html and play exactly as before. Purely a maintainability win." },
   { v: 'v1.8.1', date: '2026-06-11', body: "Under-the-hood tidy-up: the game is now split into separate files — tower-defense.html (markup), tower-defense.css (styles) and the game code — instead of one giant HTML file. Nothing changes for you: just double-click tower-defense.html to play, exactly as before. This makes the codebase easier to maintain going forward." },

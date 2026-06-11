@@ -3,6 +3,36 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.5 — 2026-06-11
+
+**Combo meter relocated to the bottom-right corner (owner suggestion).**
+
+After v1.8.3/v1.8.4, the persistent COMBO meter was still fighting for space in
+the crowded top band — owner reported it was getting clipped against the top edge
+(`topY≈11`, so "9×" read like "g×") and still felt cramped next to the boss bar /
+round-clear bonus. Owner's suggestion: *"move the milestones or the combo meter to
+the bottom right so we don't have to worry about the overlap."* Done.
+
+- The meter now anchors to the **bottom-right corner** (`ax = W-16`, number
+  baseline `H-26`): the `N×` multiplier is right-aligned to the corner, "COMBO"
+  sits to its **left** on the same baseline, and the draining timer bar is in its
+  own lane below (`y = H-16`), draining toward the corner. Right-anchored so wide
+  counts (`100×`) grow leftward instead of off-edge.
+- Verified by **reading actual canvas pixels**: a `9×` meter occupies x817–883 /
+  y511–547 and a purple `100×` meter x754–883 / y511–547 — both fully inside the
+  900×560 board with **no edge clipping** (the top-edge clip is gone). The corner
+  is otherwise empty: the only bottom-edge text is the wave-preview on the bottom-
+  **left**, and the top band (boss bar, round-clear bonus, ability bar) is now
+  completely separate.
+- The `🔥 N× COMBO!` milestone pop stays on the **center board** (`W/2,114/132`,
+  from v1.8.4), which is clear of both the top band and the new bottom-right meter.
+
+**Render-only, no balance/economy/save impact** — combo stays cosmetic and
+run-only. **Tests:** suite green. The Test 11 layout block was rewritten to verify
+the bottom-right meter's bar doesn't overlap the label, the whole meter (9× and
+100×) fits on-canvas with no clipping, and the centered milestone floater clears
+both the top band and the bottom-right meter. Zero console errors.
+
 ## v1.8.4 — 2026-06-11
 
 **Fix: combo milestone pop was overlapping the meter (owner follow-up to v1.8.3).**

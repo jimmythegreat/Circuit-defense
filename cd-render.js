@@ -380,18 +380,21 @@ function draw() {
     ctx.fillText(`${waveMod.icon} ${waveMod.name} — ${waveMod.desc}`, 12, H - 12);
   }
 
-  // kill-streak combo meter (top-left — clear of the top-right ability bar and
-  // the centered boss bar): grows + glows hotter with the streak
+  // kill-streak combo meter (BOTTOM-RIGHT — its own empty corner, clear of the
+  // whole top HUD band [boss bar, round-clear bonus, ability bar], the centered
+  // milestone pop, and the bottom-LEFT wave preview): grows + glows with streak
   if (comboCount >= 2 && comboTimer > 0 && started && !gameOver) {
     const cc = comboColor(comboCount);
     const frac = Math.max(0, comboTimer / COMBO_WINDOW);
     const pulse = 1 + comboFlash * 0.22;
+    const ax = W - 16, baseY = H - 26;   // bottom-right anchor (number baseline)
     ctx.save();
-    ctx.translate(16, 34);
+    ctx.translate(ax, baseY);
     ctx.scale(pulse, pulse);
-    ctx.textAlign = 'left';
-    // big multiplier, with the "COMBO" label to its RIGHT (baseline-aligned) so
-    // the label no longer sits under — and collide with — the timer bar.
+    ctx.textAlign = 'right';
+    // big multiplier right-aligned to the corner, "COMBO" label to its LEFT on
+    // the same baseline (so the label never sits under — and collides with — the
+    // timer bar). Right-anchored so wider counts (100×) grow leftward, not off-edge.
     ctx.fillStyle = cc;
     ctx.shadowColor = cc; ctx.shadowBlur = 12;
     ctx.font = 'bold 26px sans-serif';
@@ -400,13 +403,15 @@ function draw() {
     ctx.shadowBlur = 0;
     ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = 'rgba(230,237,243,0.85)';
-    ctx.fillText('COMBO', numW + 6, -2);
+    ctx.fillText('COMBO', -(numW + 6), -2);
     ctx.restore();
-    // draining timer bar in its own lane below the number — clear of the text.
+    // draining timer bar in its own lane below the number — clear of the text,
+    // right-aligned to the corner, draining toward the corner as time runs out.
+    const barW = 84;
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.fillRect(16, 44, 84, 4);
+    ctx.fillRect(ax - barW, baseY + 10, barW, 4);
     ctx.fillStyle = cc;
-    ctx.fillRect(16, 44, 84 * frac, 4);
+    ctx.fillRect(ax - barW * frac, baseY + 10, barW * frac, 4);
     ctx.textAlign = 'left';
   }
 
