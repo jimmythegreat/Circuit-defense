@@ -8,6 +8,7 @@ When it completes an item it moves it to DONE below with the date and version.
 [Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME.
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
 [Low priority] Mayhem should be a random map every time.
+[Low priority] The newly added combo meter overlaps the round completion bonuses display and the bar overlaps the word 'combo'
 
 ## DONE
 
