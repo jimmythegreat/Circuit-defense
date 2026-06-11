@@ -106,7 +106,7 @@
   }
   #overlay, #draftModal, #talentPanel { display: none; }
   #talentPanel { z-index: 20; }
-  #stage { display: flex; gap: 12px; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; }
+  #stage { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; }
   #startScreen { display: flex; }
   #overlay h2 { font-size: 38px; margin-bottom: 6px; }
   #overlay p, #startScreen p { font-size: 15px; margin-bottom: 12px; color: #8b949e; white-space: pre-line; max-width: 800px; }
@@ -192,7 +192,8 @@
   #whatsnew {
     display: none; flex-direction: column;
     width: 280px; align-self: stretch; max-height: 562px;
-    background: #0f1420; border: 1px solid #30363d; border-radius: 8px;
+    background: #0f1420; border: 1px solid #30363d; border-left: none;
+    border-radius: 0 8px 8px 0;
     overflow: hidden;
   }
   #wnHead {
@@ -304,14 +305,16 @@ const W = cv.width, H = cv.height;
 const GAME_VERSION = 'v1.4.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
-  { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it sits beside the game and scrolls) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
+  { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it opens by default, sits flush beside the game, and scrolls; ✕ to hide) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
   { v: 'v1.3.x', date: '2026-06', body: 'Removed the Scrapper perk and dropped rare-draft chance from 26% to 14% to make legendary perks feel special again.' },
   { v: 'v1.3.x', date: '2026-06', body: 'Increased enemy HP 20% across all modes and lengthened campaign waves (15 at level 1 up to 54 at level 40).' },
   { v: 'v1.2.0', date: '2026-06', body: 'Campaign mode (40 levels, random maps each attempt), abilities (Meteor / Freeze / Gold Rush), rarity-tiered perk drafts, and the Mayhem map.' },
   { v: 'v1.1.0', date: '2026-06', body: 'Talents and permanent chip progression, tower specializations at max level, difficulties, and save/resume.' },
   { v: 'v1.0.0', date: '2026-06', body: 'Circuit Defense launch — single-file browser tower defense with synthesized audio and canvas pseudo-3D rendering.' },
 ];
-function openWhatsNew() {
+// Open by default; only stays hidden if the player explicitly closes it (persisted).
+let wnClosed = localStorage.getItem('cd_wnclosed') === '1';
+function renderWnList() {
   const list = document.getElementById('wnList');
   list.innerHTML = '';
   for (const e of CHANGELOG_ENTRIES) {
@@ -320,9 +323,23 @@ function openWhatsNew() {
     d.innerHTML = `<span class="wnver">${e.v}</span><span class="wndate">${e.date}</span><div class="wnbody">${e.body}</div>`;
     list.appendChild(d);
   }
+}
+function openWhatsNew() {
+  renderWnList();
+  wnClosed = false;
+  localStorage.removeItem('cd_wnclosed');
   document.getElementById('whatsnew').style.display = 'flex';
 }
-function closeWhatsNew() { document.getElementById('whatsnew').style.display = 'none'; }
+function closeWhatsNew() {
+  wnClosed = true;
+  localStorage.setItem('cd_wnclosed', '1');
+  document.getElementById('whatsnew').style.display = 'none';
+}
+// Show it on first load (and every load) unless the player closed it before.
+function initWhatsNew() {
+  if (wnClosed) document.getElementById('whatsnew').style.display = 'none';
+  else openWhatsNew();
+}
 
 // ================= Audio =================
 let audioCtx = null;
@@ -2175,6 +2192,7 @@ loadMeta();
 buildPath();
 renderStartScreen();
 resetState();
+initWhatsNew();
 requestAnimationFrame(loop);
 </script>
 </body>

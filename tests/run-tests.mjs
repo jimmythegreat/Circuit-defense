@@ -188,34 +188,51 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 6: What's New side panel (beside the game, scrollable, all entries) ----
+  // ---- Test 6: What's New side panel (open by default, flush, persists closed) ----
   console.log("\n[6] What's New side panel");
   {
     const { page, consoleErrors } = await newPage(browser);
     await page.setViewportSize({ width: 1400, height: 820 });
     const r = await page.evaluate(() => {
-      openWhatsNew();
       const panel = document.getElementById('whatsnew');
       const list = document.getElementById('wnList');
+      // Open by default on load — no click required.
+      const openByDefault = panel.style.display === 'flex';
       const entries = list.children.length;
-      const visible = panel.style.display === 'flex';
       // Side panel is a sibling of #gameWrap inside #stage — NOT a descendant overlay.
       const insideGame = !!document.getElementById('gameWrap').querySelector('#whatsnew');
       const wrap = document.getElementById('gameWrap').getBoundingClientRect();
       const pr = panel.getBoundingClientRect();
       const beside = pr.left >= wrap.right - 2 && Math.abs(pr.top - wrap.top) < 6;
-      // List scrolls internally rather than growing past the game height.
-      const capped = pr.height <= wrap.height + 4;
-      closeWhatsNew();
-      const closed = panel.style.display === 'none';
-      return { visible, entries, total: CHANGELOG_ENTRIES.length, insideGame, beside, capped, closed };
+      const flush = Math.abs(pr.left - wrap.right) <= 2; // no gap — attached to the game
+      const capped = pr.height <= wrap.height + 4;        // scrolls internally
+      return { openByDefault, entries, total: CHANGELOG_ENTRIES.length, insideGame, beside, flush, capped };
     });
-    check("panel opens", r.visible);
+    check('panel is OPEN by default (no click needed)', r.openByDefault);
     check('lists ALL changelog entries', r.entries >= 1 && r.entries === r.total, `${r.entries}/${r.total}`);
     check('panel is a side panel, not a game overlay', !r.insideGame);
     check('panel sits beside the game (same top, to the right)', r.beside);
+    check('panel is flush against the game (no gap)', r.flush);
     check('panel height capped to game (scrolls internally)', r.capped);
-    check('panel closes', r.closed);
+
+    // Closing persists, and survives a reload.
+    const closed = await page.evaluate(() => {
+      document.getElementById('wnClose').click();
+      return { display: document.getElementById('whatsnew').style.display, flag: localStorage.getItem('cd_wnclosed') };
+    });
+    check('clicking ✕ hides the panel', closed.display === 'none');
+    check('closed state is persisted', closed.flag === '1');
+
+    await page.reload({ waitUntil: 'load' });
+    await page.evaluate(INSTALL_DRIVER);
+    const afterReload = await page.evaluate(() => document.getElementById('whatsnew').style.display);
+    check('panel stays closed after reload', afterReload === 'none', `display=${afterReload}`);
+
+    const reopened = await page.evaluate(() => {
+      openWhatsNew();
+      return { display: document.getElementById('whatsnew').style.display, flag: localStorage.getItem('cd_wnclosed') };
+    });
+    check('reopening clears the closed flag', reopened.display === 'flex' && reopened.flag === null);
     check('no console errors', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
