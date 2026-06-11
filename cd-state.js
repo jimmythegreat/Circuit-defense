@@ -2,7 +2,13 @@
 // ================= State =================
 let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters, beams, pendingSpawns;
 let livesLostThisRun = false;
-let waveActive, spawnQueue, spawnTimer, selectedShop, selectedTower, gameOver, victory, started;
+let waveActive, selectedShop, selectedTower, gameOver, victory, started;
+// Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
+// parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
+// or enemies still on the field. lastSettledWave = highest wave whose clear-bonus/draft
+// has been paid; pendingDrafts = drafts owed but not yet shown (bundled rush settlement).
+let spawners = [], lastSettledWave = 0, pendingDrafts = 0;
+const MAX_CONCURRENT_WAVES = 3;  // cap unsettled waves so rapid Space can't stack endlessly
 let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
 // Restore the game-speed preference (1x/2x/3x) — persisted like cd_mute so a refresh
 // (and resuming a run) keeps your chosen speed instead of silently dropping to 1x,
@@ -29,7 +35,7 @@ function resetState() {
   lives = d.lives + 2 * tRank('fortitude');
   wave = 0; kills = 0; gameTime = 0;
   towers = []; enemies = []; projectiles = []; particles = []; floaters = []; beams = []; pendingSpawns = [];
-  waveActive = false; spawnQueue = []; spawnTimer = 0;
+  waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;
   selectedShop = null; selectedTower = null; gameOver = false; victory = false;
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
   abilityCd = { meteor: 0, freeze: 0, rush: 0 };
@@ -58,7 +64,9 @@ function saveRun() {
     localStorage.setItem('cd_save', JSON.stringify({
       mapKey, diffKey, gameMode, campLevel,
       gold: Math.floor(gold), lives, kills,
-      wave: waveActive ? wave - 1 : wave, // quitting mid-wave resumes at the start of that wave
+      // resume from the last fully-settled wave: quitting mid-wave (or mid-rush with
+      // several waves in flight) replays the unsettled wave(s), never double-paying
+      wave: waveActive ? lastSettledWave : wave,
       perkState, runPerks, abilityCd,
       towers: towers.map(t => ({ type: t.type, x: t.x, y: t.y, level: t.level, mode: t.mode, spec: t.spec || null, invested: t.invested, dealt: Math.round(t.dealt), kills: t.kills }))
     }));
@@ -110,6 +118,7 @@ function loadRun() {
   setActiveUI();
   resetState();
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
+  lastSettledWave = wave;  // resumed at a clean boundary — all prior waves are settled
   livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;

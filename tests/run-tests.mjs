@@ -1010,6 +1010,44 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 20: concurrent waves (start a wave while one is running, v1.12.0) ----
+  console.log('\n[20] Concurrent waves');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); gold = 999999;
+      __cdGodTowers(8);
+      autoWave = false;
+      startWave(); startWave(); startWave();        // 3 parallel waves
+      const parallel = { wave, spawners: spawners.length, active: waveActive };
+      const w0 = wave; startWave();                  // capped: 4th must be blocked
+      const capped = wave === w0;
+      // drive to a full clear -> bundled settlement of waves 1,2,3 (no draft, no 5x)
+      let g = 0; while ((spawners.length || enemies.length || pendingSpawns.length) && !draftOpen && g < 300000) { update(1/60); g++; }
+      const settled = { wave, lastSettled: lastSettledWave, active: waveActive };
+      // rush waves 4 & 5 -> crosses wave 5 -> exactly one deferred draft on clear
+      startWave(); startWave();
+      g = 0; while ((spawners.length || enemies.length || pendingSpawns.length) && !draftOpen && g < 300000) { update(1/60); g++; }
+      const draftState = { draftOpen, pendingDrafts, wave };
+      if (draftOpen) document.getElementById('draftCards').children[0].click();
+      const afterPick = { draftOpen, pendingDrafts, perks: runPerks.length };
+      backToMenu();
+      return { parallel, capped, settled, draftState, afterPick };
+    });
+    check('three waves run as parallel spawners at once', r.parallel.spawners === 3 && r.parallel.wave === 3,
+      `spawners=${r.parallel.spawners} wave=${r.parallel.wave}`);
+    check('4th wave blocked at the concurrent cap (3)', r.capped, `wave went to ${r.parallel.wave}`);
+    check('field fully clears and settles all bundled waves', r.settled.lastSettled === 3 && r.settled.active === false,
+      `lastSettled=${r.settled.lastSettled} active=${r.settled.active}`);
+    check('a rush across wave 5 defers exactly one draft', r.draftState.draftOpen === true && r.draftState.pendingDrafts === 1,
+      `draftOpen=${r.draftState.draftOpen} pending=${r.draftState.pendingDrafts}`);
+    check('picking the deferred draft clears the queue and resumes', r.afterPick.draftOpen === false && r.afterPick.pendingDrafts === 0 && r.afterPick.perks === 1,
+      `open=${r.afterPick.draftOpen} pending=${r.afterPick.pendingDrafts} perks=${r.afterPick.perks}`);
+    check('no console errors during concurrent-wave test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

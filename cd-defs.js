@@ -291,6 +291,8 @@ function pickPerk(p) {
   document.getElementById('draftModal').style.display = 'none';
   addFloater(W/2, 90, `${p.icon} ${p.name}!`, '#ffd866', 20);
   SFX.perk();
+  if (pendingDrafts > 0) pendingDrafts--;
+  if (pendingDrafts > 0) { openDraft(); return; }  // rush bundled several drafts — show the next
   if (autoWave) autoStartTimer = 6;
   saveRun();
   updateHud();

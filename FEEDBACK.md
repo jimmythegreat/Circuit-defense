@@ -7,8 +7,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
-[Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME.
-
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
 
 [Low priority] All the maps look the same. We should add random colors and textures to them. In the classic mode it should always pick the same theme. In mayham it should be while (things on fire, wild colors, etc). In campain mode it should be random but not crazy like mayham. Also Mayhem should be a random map every time.
@@ -18,6 +16,8 @@ When it completes an item it moves it to DONE below with the date and version.
 [low priority] milestone bonuses should have a mouse hover that lets you know what they do.
 
 ## DONE
+
+- **2026-06-11 · v1.12.0** — "[Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME." → The single spawn queue became an array of parallel `spawners` (one per in-flight wave, ticking independently), so up to **3 waves spawn simultaneously**. The Start button reads ➕ Add Wave while a wave runs (Spacebar too); at the cap it shows 🌊 Wave N… disabled. `endWave()` fires only on a full field-clear and then settles every bundled wave — summing each clear bonus and deferring a draft for each multiple-of-5 crossed (`pendingDrafts`) — so rushing never loses gold or perks. Save-safe (spawn state isn't persisted; mid-rush quit resumes at the last settled wave). New test group [20].
 
 - **2026-06-11 · v1.11.0** — "[Low priority] A reset feature that deletes everything and you start new." → Added a 🗑 **Reset All** start-screen button. `resetAllData()` removes every `cd_`-prefixed localStorage key (save, meta, campaign, all records, prefs) and resets in-memory `meta`/`speed`/`best`/`muted` to factory, then returns to a clean menu. Two-click confirm (arms red, "Erase ALL — click again"; commits on a second click within 3s). New test group [19].
 

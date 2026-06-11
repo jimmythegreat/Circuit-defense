@@ -3,6 +3,32 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.12.0 — 2026-06-11
+
+**Concurrent waves: start a new wave while one is running (FEEDBACK).** Owner: *"I
+should be able to start a new wave even if the current wave is going. This would let me
+spawn more than one wave AT THE SAME TIME."*
+
+- **Parallel spawners.** The single `spawnQueue`/`spawnTimer` became an array of
+  `spawners` (`{queue, timer}`), one per in-flight wave, each ticking independently in
+  `update()` — so multiple waves spawn *simultaneously*, not back-to-back. `startWave()`
+  no longer bails when `waveActive`; it pushes a new spawner and bumps `wave`. The Start
+  button reads **➕ Add Wave N+1** while a wave runs (Spacebar works too).
+- **Capped at 3 unsettled waves** (`MAX_CONCURRENT_WAVES`) so mashing Space can't stack
+  endlessly or tank performance; the button shows `🌊 Wave N…` (disabled) at the cap.
+- **Bundled settlement keeps the economy & drafts whole.** `endWave()` fires only when
+  the field fully clears (no spawners/enemies/pendingSpawns) and then settles *every*
+  wave from `lastSettledWave+1..wave`: it sums each wave's clear bonus + interest and
+  pays them all, and queues a draft for **each** multiple-of-5 crossed (`pendingDrafts`,
+  chained through `pickPerk`). So a rush never loses a clear bonus or a boss-wave perk —
+  it just faces everything at once. Drafts always open on an empty field (clean).
+- **Save-safe.** Spawn state was never persisted. `saveRun()` now stores
+  `lastSettledWave` (not `wave-1`) when active, so quitting mid-rush resumes by replaying
+  the unsettled waves — never double-paying. `loadRun()` syncs `lastSettledWave = wave`.
+- New test group **[20]**: 3 parallel spawners start at once, the 4th is capped, the
+  field settles all bundled waves, a rush across wave 5 defers exactly one draft, and a
+  mid-rush save resumes at the last settled boundary. Full suite green.
+
 ## v1.11.0 — 2026-06-11
 
 **Reset feature: wipe all data and start fresh (FEEDBACK).** Owner: *"A reset feature

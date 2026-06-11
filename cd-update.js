@@ -35,14 +35,19 @@ function update(dt) {
     }
   }
 
-  // spawning
-  if (waveActive && spawnQueue.length) {
-    spawnTimer -= dt;
-    if (spawnTimer <= 0) {
-      const e = spawnQueue.shift();
-      enemies.push({...e, dist: 0, slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px: 0, py: 0});
-      spawnTimer = e.gap;
+  // spawning — every in-flight wave is a parallel spawner, so concurrent waves spawn
+  // simultaneously. Drained spawners are removed once empty.
+  if (waveActive) {
+    for (const sp of spawners) {
+      if (!sp.queue.length) continue;
+      sp.timer -= dt;
+      if (sp.timer <= 0) {
+        const e = sp.queue.shift();
+        enemies.push({...e, dist: 0, slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px: 0, py: 0});
+        sp.timer = e.gap;
+      }
     }
+    spawners = spawners.filter(sp => sp.queue.length);
   }
 
   // enemies
@@ -173,7 +178,7 @@ function update(dt) {
   if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) { comboTimer = 0; comboCount = 0; } }
   if (comboFlash > 0) comboFlash = Math.max(0, comboFlash - dt*3);
 
-  if (waveActive && !spawnQueue.length && !enemies.length && !pendingSpawns.length) endWave();
+  if (waveActive && !spawners.length && !enemies.length && !pendingSpawns.length) endWave();
 }
 
 function pickTarget(t) {

@@ -141,8 +141,12 @@ function waveDesc(w) {
 }
 
 function startWave() {
-  if (waveActive || gameOver || !started || draftOpen) return;
-  if (autoStartTimer > 0.5 && wave > 0) {
+  if (gameOver || !started || draftOpen) return;
+  // Concurrent waves: allow starting the next wave while others are still running,
+  // up to MAX_CONCURRENT_WAVES unsettled at once (so you can pour multiple waves onto
+  // the path at the same time). The classic between-waves start still works too.
+  if (wave - lastSettledWave >= MAX_CONCURRENT_WAVES) return;
+  if (!waveActive && autoStartTimer > 0.5 && wave > 0) {
     const bonus = Math.floor(autoStartTimer * 4);
     gold += bonus;
     addFloater(W/2, 70, `Early call! +${bonus}💰`, '#3fb950', 16);
@@ -150,28 +154,39 @@ function startWave() {
   wave++;
   if (isMayhem() && wave > 1 && (wave - 1) % 5 === 0) shiftWorld();
   rollWaveMod();
-  spawnQueue = buildWave(wave);
-  spawnTimer = 0;
+  spawners.push({ queue: buildWave(wave), timer: 0 });  // a parallel spawn stream for this wave
   waveActive = true;
   autoStartTimer = -1;
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('startBtn').textContent = `🌊 Wave ${wave}...`;
+  document.getElementById('startBtn').disabled = (wave - lastSettledWave >= MAX_CONCURRENT_WAVES);
+  document.getElementById('startBtn').textContent =
+    (wave - lastSettledWave >= MAX_CONCURRENT_WAVES) ? `🌊 Wave ${wave}...` : `➕ Add Wave ${wave+1}`;
   SFX.wave();
   updateHud();
 }
 
+// Called once when the field fully clears (no spawners, enemies, or pending spawns).
+// Settles EVERY bundled wave from lastSettledWave+1..wave: pays each clear bonus and
+// queues a draft for each multiple-of-5 crossed, so rushing never loses bonuses/drafts.
 function endWave() {
   waveActive = false;
   waveMod = null;
+  const from = lastSettledWave + 1, to = wave;
+  lastSettledWave = wave;
   if (wave >= victoryWave() && !victory) { winGame(); return; }
+  let totalBonus = 0, drafts = 0;
   const interestCap = 30 + 10 * tRank('banking');
-  const interest = Math.floor(Math.min(gold * 0.05, interestCap));
-  const bonus = Math.floor((25 + wave*5) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
-  gold += bonus;
-  addFloater(W/2, 50, `Wave clear! +${bonus}💰${interest ? ` (incl. ${interest} interest)` : ''}`, '#ffd866', 18);
+  for (let w = from; w <= to; w++) {
+    const interest = Math.floor(Math.min((gold + totalBonus) * 0.05, interestCap));
+    totalBonus += Math.floor((25 + w*5) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
+    if (w % 5 === 0 && w < victoryWave()) drafts++;
+  }
+  gold += totalBonus;
+  const label = to > from ? `${to - from + 1} waves clear!` : 'Wave clear!';
+  addFloater(W/2, 50, `${label} +${totalBonus}💰`, '#ffd866', 18);
   document.getElementById('startBtn').disabled = false;
   document.getElementById('startBtn').textContent = `▶ Start Wave ${wave+1}`;
-  if (wave % 5 === 0 && wave < victoryWave()) {
+  pendingDrafts += drafts;
+  if (pendingDrafts > 0) {
     openDraft();
   } else if (autoWave) {
     autoStartTimer = 6;
@@ -417,7 +432,7 @@ function canPlace(x, y) {
 }
 document.addEventListener('keydown', e => {
   if (!started) return;
-  if (e.key === ' ') { e.preventDefault(); if (!waveActive && !paused && !draftOpen) startWave(); }
+  if (e.key === ' ') { e.preventDefault(); if (!paused && !draftOpen) startWave(); }  // start/add a wave (startWave self-guards on the concurrent cap)
   if (e.key === 'p' || e.key === 'P') togglePause();
   if (e.key === 'm' || e.key === 'M') toggleMute();
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
