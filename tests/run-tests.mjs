@@ -458,6 +458,73 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 10: "New record!" end-of-run flourish ----
+  console.log('\n[10] New record flourish');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    const defs = await page.evaluate(() => ({
+      banner: !!document.getElementById('ovRecord'),
+      applyFn: typeof applyRecordFlourish === 'function',
+      sfx: typeof SFX.record === 'function',
+    }));
+    check('ovRecord banner element exists', defs.banner);
+    check('applyRecordFlourish + SFX.record exist', defs.applyFn && defs.sfx);
+
+    // Beating a prior per-map best fires the flourish: banner text + record class.
+    const beat = await page.evaluate(() => {
+      localStorage.setItem('cd_best_classic_normal', '4');
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      best = 4; wave = 15; lives = 0;
+      endGame();
+      const ov = document.getElementById('overlay');
+      const out = {
+        rec: ov.classList.contains('record'),
+        text: document.getElementById('ovRecord').textContent,
+        stored: +(localStorage.getItem('cd_best_classic_normal') || 0),
+      };
+      backToMenu();
+      return out;
+    });
+    check('beating a best adds the .record class', beat.rec, JSON.stringify(beat));
+    check('banner shows old + new wave', /beat your best of 4/.test(beat.text) && /Wave 15/.test(beat.text), beat.text);
+    check('beaten best is persisted (15)', beat.stored === 15, JSON.stringify(beat));
+
+    // First-ever entry on a fresh cell records silently — no flourish.
+    const first = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_serpent_hard');
+      gameMode = 'quick'; mapKey = 'serpent'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const ov = document.getElementById('overlay');
+      const out = { rec: ov.classList.contains('record'), text: document.getElementById('ovRecord').textContent };
+      backToMenu();
+      return out;
+    });
+    check('first-ever entry does not fire the flourish', !first.rec && first.text === '', JSON.stringify(first));
+
+    // Campaign never fires the flourish (no per-map records).
+    const camp = await page.evaluate(() => {
+      gameMode = 'campaign'; mapKey = 'classic'; diffKey = 'easy'; campLevel = 1;
+      beginGame();
+      best = 0; wave = 20; lives = 0;
+      endGame();
+      const ov = document.getElementById('overlay');
+      const out = { rec: ov.classList.contains('record') };
+      backToMenu();
+      return out;
+    });
+    check('campaign defeat does not fire the flourish', !camp.rec, JSON.stringify(camp));
+
+    await page.evaluate(() => {
+      ['cd_best_classic_normal', 'cd_best_serpent_hard', 'cd_best_normal', 'cd_best_hard', 'cd_best_easy', 'cd_save'].forEach(k => localStorage.removeItem(k));
+    });
+    check('no console errors during flourish tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

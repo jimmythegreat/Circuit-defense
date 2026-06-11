@@ -3,6 +3,35 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.6.1 — 2026-06-11
+
+**Feature: "New record!" end-of-run flourish (ROADMAP "Game feel / polish" +
+v1.6.0 follow-up).**
+
+When a quick-mode run finishes (defeat *or* victory) and its wave beats the
+existing **Records-grid cell** for that map × difficulty, the game-over/victory
+overlay now celebrates it.
+
+- A golden **🏆 NEW RECORD!** banner appears above the result text, showing the
+  new wave, the previous best, and the delta — e.g. *"Wave 15 — beat your best
+  of 4 by 11 on Classic · Normal"*. The banner pops in with a spring scale
+  animation and the title gets a brief golden pulse.
+- A new triumphant `SFX.record()` fanfare (rising arpeggio + shimmer) plays
+  ~450 ms after the win/defeat sting so it lands as its own beat, plus a
+  screen-shake and a golden particle burst for chunky game-feel.
+- `recordBest()` now returns a `{prev, now}` record event (or `null`) so callers
+  can react; `endGame()`/`winGame()` pass it to the new `applyRecordFlourish()`.
+  **First-ever** entries on a fresh cell record **silently** (prev 0) — the
+  party only fires when you beat a *real* prior best, keeping it meaningful.
+- **No save/schema changes.** The flourish is DOM/audio only; the same per-map
+  (`cd_best_<map>_<diff>`) and legacy (`cd_best_<diff>`) keys are written exactly
+  as before. Campaign runs never fire it (campaign maps are random per attempt,
+  so they keep no per-map records).
+- **Test evidence:** `tests/` green (76 checks, exit 0). New **Test 10** asserts
+  the banner/`SFX.record`/`applyRecordFlourish` exist, beating a prior best adds
+  the `.record` class + a correct banner + persists the new value, a first-ever
+  entry does **not** fire the flourish, and a campaign defeat does **not** fire it.
+
 ## v1.6.0 — 2026-06-11
 
 **Feature: Records / personal-bests panel (ROADMAP "Next up" item).**

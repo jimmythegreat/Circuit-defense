@@ -124,6 +124,14 @@
   #startScreen { display: flex; }
   #overlay h2 { font-size: 38px; margin-bottom: 6px; }
   #overlay p, #startScreen p { font-size: 15px; margin-bottom: 12px; color: #8b949e; white-space: pre-line; max-width: 800px; }
+  /* "New record!" flourish banner (v1.6.1) — shown above ovText when a run beats its Records cell. */
+  #ovRecord { display: none; margin: 2px 0 10px; padding: 8px 18px; font-size: 18px; font-weight: bold;
+    color: #1a1205; background: linear-gradient(90deg,#f0c850,#e3b341,#f7d869,#e3b341,#f0c850);
+    border-radius: 8px; box-shadow: 0 0 26px rgba(227,179,65,.7); max-width: 760px; }
+  #overlay.record #ovRecord { display: block; animation: recPop .6s cubic-bezier(.2,1.5,.4,1); }
+  #overlay.record h2 { animation: recPulse 1.4s ease-out; }
+  @keyframes recPop { 0%{transform:scale(.4);opacity:0} 60%{transform:scale(1.12)} 100%{transform:scale(1);opacity:1} }
+  @keyframes recPulse { 0%,100%{text-shadow:0 0 20px rgba(88,166,255,.0)} 30%{text-shadow:0 0 28px rgba(227,179,65,.95)} }
   #startScreen h2 { font-size: 32px; margin-bottom: 4px; color: #58a6ff; text-shadow: 0 0 20px rgba(88,166,255,.6); }
   .optRow { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
   .lvlBtn {
@@ -272,6 +280,7 @@
   <div id="upgradePanel"></div>
   <div id="overlay">
     <h2 id="ovTitle">GAME OVER</h2>
+    <div id="ovRecord"></div>
     <p id="ovText"></p>
     <div style="display:flex; gap:10px;">
       <button class="ctl" id="ovMain" onclick="backToMenu()">Main Menu</button>
@@ -357,9 +366,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.6.0';
+const GAME_VERSION = 'v1.6.1';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.6.1', date: '2026-06-11', body: "New record! flourish — when a quick-mode run beats your best wave for that map × difficulty (your Records cell), the game-over/victory screen now celebrates with a golden banner showing the old→new wave delta, a triumphant fanfare, and a screen-shake + particle burst. First-ever entries record quietly; only beating a real best fires the party." },
   { v: 'v1.6.0', date: '2026-06-11', body: "Records! A new 🏆 Records button on the start screen shows your highest wave reached on every map × difficulty, plus an 'Any map' row of your all-time bests, your campaign progress, lifetime damage, total runs and chips. Quick-mode runs now log a best-wave per map (not just per difficulty)." },
   { v: 'v1.5.2', date: '2026-06-11', body: "What's New no longer grows taller than the game on big screens — the panel is now capped to the game's height and scrolls internally, so it stays a tidy window flush beside the board instead of overhanging the bottom." },
   { v: 'v1.5.1', date: '2026-06-11', body: "Cleaner start screen — when no game is running, the stats bar, tower shop, wave controls and hotkey hint now dim out and go non-interactive so the start menu is the only live surface. They light back up the moment you hit Play or resume a run." },
@@ -494,6 +504,9 @@ const SFX = {
   crit()    { tone(1000, 0.06, 'square', 0.05, 200); },
   win()     { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f, 0.25, 'square', 0.07), i*150)); },
   over()    { [400,300,200,120].forEach((f,i)=>setTimeout(()=>tone(f, 0.3, 'sawtooth', 0.08, -40), i*200)); },
+  // New record: bright rising fanfare with a shimmer on top
+  record()  { [784,988,1175,1568].forEach((f,i)=>setTimeout(()=>{ tone(f, 0.18, 'triangle', 0.08); tone(f*2, 0.1, 'sine', 0.025); }, i*90));
+              setTimeout(()=>noise(0.3, 0.03, 'highpass', 7000), 360); },
 };
 function toggleMute() {
   muted = !muted;
@@ -1815,12 +1828,35 @@ function closeAchievements() { document.getElementById('achPanel').style.display
 // Records / personal bests. Updates the legacy per-difficulty key AND a new
 // per-map+difficulty key (quick mode only; campaign maps are random per attempt).
 // Both keys are additive — older saves without them just start at 0.
+// Returns a record event {prev, now} when a quick-mode run beats its existing
+// Records-grid cell (per map × difficulty), else null. First-ever entries
+// (prev 0) record silently — the flourish only fires when you beat a real best.
 function recordBest() {
   if (wave > best) { best = wave; localStorage.setItem(bestKey(), best); }
+  let rec = null;
   if (gameMode === 'quick') {
     const k = 'cd_best_' + mapKey + '_' + diffKey;
-    if (wave > +(localStorage.getItem(k) || 0)) localStorage.setItem(k, wave);
+    const prev = +(localStorage.getItem(k) || 0);
+    if (wave > prev) {
+      localStorage.setItem(k, wave);
+      if (prev > 0) rec = { prev, now: wave };
+    }
   }
+  return rec;
+}
+// Celebrate a new personal best on the game-over/victory overlay: a golden
+// banner + a triumphant fanfare + a particle/shake burst. rec=null clears it.
+function applyRecordFlourish(rec) {
+  const ov = document.getElementById('overlay'), el = document.getElementById('ovRecord');
+  ov.classList.remove('record');
+  if (!rec) { el.textContent = ''; return; }
+  const delta = rec.now - rec.prev;
+  el.textContent = `🏆 NEW RECORD! Wave ${rec.now} — beat your best of ${rec.prev} by ${delta} on ${MAPS[mapKey].name} · ${DIFFS[diffKey].name}`;
+  void ov.offsetWidth;           // restart the pop/pulse animation
+  ov.classList.add('record');
+  setTimeout(() => SFX.record(), 450);   // land after the win/over sting
+  shake = Math.max(shake, 16);
+  for (let i = 0; i < 5; i++) addExplosion(120 + i*150, 60, '#e3b341', 14, 200);
 }
 function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; }
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
@@ -1887,7 +1923,7 @@ function endGame() {
   meta.chips += earned;
   saveMeta();
   const newAch = grantAchievements(false);
-  recordBest();
+  const rec = recordBest();
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   document.getElementById('ovText').textContent =
     `You survived ${wave} waves with ${kills} kills on ${DIFFS[diffKey].name}. Best: ${best}\n🪙 +${earned} chips earned (total: ${meta.chips}) — spend them in Talents!` + mvpLine() + perkLine() + achLine(newAch);
@@ -1895,6 +1931,7 @@ function endGame() {
   document.getElementById('ovNext').style.display = 'none';
   document.getElementById('ovMain').textContent = 'Main Menu';
   document.getElementById('overlay').style.display = 'flex';
+  applyRecordFlourish(rec);
   hideUpgrade();
   updateHud();
 }
@@ -1906,7 +1943,7 @@ function winGame() {
   meta.chips += earned;
   saveMeta();
   const newAch = grantAchievements(true);
-  recordBest();
+  const rec = recordBest();
   const where = gameMode === 'campaign' ? `Campaign level ${campLevel}` : DIFFS[diffKey].name;
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   document.getElementById('ovText').textContent =
@@ -1924,6 +1961,7 @@ function winGame() {
   }
   document.getElementById('ovMain').textContent = 'Main Menu';
   document.getElementById('overlay').style.display = 'flex';
+  applyRecordFlourish(rec);
   hideUpgrade();
   updateHud();
 }

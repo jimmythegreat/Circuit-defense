@@ -63,10 +63,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the game height (v1.5.2), highlight entries newer than the last-seen version
       (persist `cd_wnseen`) with a dot/badge so players notice fresh changelog
       items, and auto-scroll the list to the top on open.
-- [ ] **"New record!" end-of-run flourish** — now that Records (v1.6.0) track a
-      best per map × difficulty, detect when a finished run *beat* its cell's prior
-      value and celebrate it on the game-over/victory overlay (a 🏆 line + a chunky
-      sound/particle burst). Pairs well with surfacing the old→new wave delta.
+- [x] **"New record!" end-of-run flourish** — shipped v1.6.1. Beating a quick-mode
+      Records cell now fires a golden 🏆 banner (old→new wave delta), an `SFX.record`
+      fanfare, and a shake/particle burst on the game-over/victory overlay. First-ever
+      entries record silently; campaign never fires it. Follow-ups: *also highlight the
+      beaten cell in the Records grid when it's next opened (persist a "last-beaten"
+      marker)*, and a matching flourish for a new **campaign-level** record.
 
 ## Balance (simulate before/after, ≤25% per number per run)
 
