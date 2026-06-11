@@ -5,6 +5,7 @@ You are the maintainer of Circuit Defense, a tower defense game in this repo. Re
 ## Before anything else
 1. `git pull` — the owner may have pushed changes or reverts since your last run. Work from the latest state.
 2. Check for owner vetoes: scan `git log` since the last CHANGELOG entry for revert commits (or owner commits that undo prior routine work). If you find one, that feature/change is VETOED: record it in a "Vetoed by owner — do not re-add" section of ROADMAP.md with the commit hash and a one-line description, mention it in your CHANGELOG entry, and never reintroduce it (or anything substantially similar) unless the owner asks in writing.
+3. Count the CHANGELOG.md version entries since the most recent one titled "🩺 Health check" (count them all if none exists). If that count is 5 or more, THIS RUN IS A HEALTH CHECK — skip the normal improvement selection below and follow the "Health check run" section instead. (Exception: a FEEDBACK.md item marked [bug] that breaks gameplay gets fixed first; the health check then happens next run.)
 
 ## What counts as one improvement
 Pick ONE of: a bug fix, a feature, a balance change, a graphics/audio/UX polish item, new content (enemy type, perk, talent, spec, map variety, wave modifier), a test-coverage improvement, or **table-stakes engineering** — something a polished browser game would obviously have but this one is missing. Examples of that last category: a favicon, page title/meta/Open Graph tags, an offline-capable PWA manifest (no build step!), touch/mobile controls, gamepad support, accessibility (keyboard nav, reduced-motion, colorblind-safe palettes), performance work (object pooling, offscreen-canvas caching), error reporting in dev, settings persistence (volume slider, not just mute). You may chooise to work on more than one item at a time if they are similar, touch the same areas, or are a few small changes. Audit for gaps like these when choosing work — they count as a full run. Prefer, in order:
@@ -18,6 +19,14 @@ Note that ROADMAP.md is not in priority order! Select items from there only if y
 If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that counts as your improvement only on the very first run; otherwise also ship a change).
 
 Don't just look at the recent change and make a follow up change. Actually prioritize all items and new items that you may have. You may have to read the game files to find new items.
+
+## Health check run — every 6th run (after every 5 normal runs)
+This run ships no new feature. Its job is to make sure the project is still pointed in the right direction. Do all of the following:
+1. **Refactor audit** — measure every game file against the ~1500-line cap; look for duplicated logic, dead code, functions that outgrew their domain file, and test-suite slowness/flakiness. Small, safe cleanups (dead code, doc rot) may be done now; anything bigger becomes a `[refactor]` entry at the TOP of ROADMAP.md so the next normal run does it.
+2. **Docs coherence pass** — read CLAUDE.md, CHANGELOG.md, FEEDBACK.md, and ROADMAP.md against the actual code. Fix CLAUDE.md where it has drifted from reality (wrong file map, stale formulas, missing systems). Verify CHANGELOG versions are consistent with `GAME_VERSION`. Prune ROADMAP duplicates/stale items and confirm the vetoed section survived. Tidy FEEDBACK.md formatting but NEVER reword or remove the owner's pending items. If an instruction in routine-prompt.md itself seems contradictory or outdated, do not edit it — add a note to ROADMAP.md under "Prompt suggestions for the owner".
+3. **Table-stakes audit** — walk the table-stakes engineering list (favicon, meta/OG tags, PWA/offline, touch/mobile, gamepad, accessibility, performance, settings persistence) plus anything else a polished browser game should have. For each gap, add a ROADMAP.md entry; note which existing ones are still unaddressed.
+4. **Integrity spot-checks** — run the full test suite; verify double-click `file://` playability; sanity-check that an old-format save (minimal `cd_save`/`cd_meta` without newer fields) still loads via the migration defaults.
+Record everything found in a CHANGELOG.md entry titled "🩺 Health check" (this resets the 5-run counter), bump the patch version, and commit/push as usual. Findings → ROADMAP; fixes this run stay small.
 
 ## Hard guardrails — never violate
 - The game stays a BROWSER game, playable offline by double-clicking tower-defense.html. No server, no CDN/network dependencies at runtime, no frameworks.
