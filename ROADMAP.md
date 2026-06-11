@@ -133,7 +133,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — audited v1.8.6 health check)
+## Table-stakes (polished-browser-game basics — re-audited v1.13.4 health check)
+
+_Still-unaddressed, in priority order: **touch/pointer controls** (top mobile blocker) →
+colorblind-safe palette → gamepad → PWA install → **high-DPI canvas** → **menu keyboard
+a11y**. Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2)._
+
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
       offline-safe), responsive `viewport` meta, meta description, `theme-color`,
@@ -160,6 +165,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [x] **Volume slider** — shipped v1.13.2. 0–100 master Volume in the ⚙ Settings panel;
       all audio routes through a master GainNode (`masterGain()`), `setVolume()` scales it
       and persists `cd_vol` (default 0.7). Independent of mute. Test [25].
+- [ ] **High-DPI (devicePixelRatio) canvas scaling** (new, v1.13.4 audit) — the canvas is a
+      fixed 900×560 backing store; on Retina / 4K / 150%-scaled Windows displays the browser
+      upsamples it, so towers/text render slightly blurry. Standard fix: size the backing
+      store to `cssW*dpr × cssH*dpr`, keep the CSS box at 900×560, and `ctx.scale(dpr,dpr)`
+      once. Must re-derive click coords from `getBoundingClientRect()` (already does) so input
+      stays correct, and guard `dpr=1` fallback. Pure rendering crispness — no gameplay/save
+      impact. Watch perf on huge dpr (cap at ~2).
+- [ ] **Menu / panel keyboard accessibility** (new, v1.13.4 audit) — gameplay has rich
+      hotkeys, but the start-screen panels (Talents, Achievements, Records, Settings, What's
+      New, draft cards) are mouse-only: no focus trapping, no Esc-to-close on the panels, no
+      Tab order or `aria` roles. Add focus management + Esc-close + visible focus rings so the
+      menus are keyboard-navigable. (Esc already cancels in-game ability targeting.)
 
 ## Tech / tooling
 

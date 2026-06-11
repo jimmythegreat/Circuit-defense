@@ -3,6 +3,41 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.4 — 2026-06-11
+
+**🩺 Health check** (every-6th-run maintenance pass; resets the 5-run counter). 12
+version entries had accumulated since the last health check (v1.8.6), so this run ships
+no feature — it confirms the project is still pointed in the right direction.
+
+- **Integrity spot-checks — all green:**
+  - Full test suite **200 passed / 0 failed**, zero console errors (run by a subagent).
+  - `file://` double-click playability re-verified: 7 classic `<script src>` files in
+    dependency order (NEVER `type="module"`), inline SVG favicon, all paths relative,
+    no CDN/network at runtime.
+  - Old-format save migration: a minimal `cd_meta` (only `chips`+`talents`) loads via
+    `loadMeta()` with `achievements`/`stats`/`bestCombo` defaulted in; chips & talents
+    preserved. A minimal `cd_save` (no `lastSettledWave`) is resumable. (Tested in-page,
+    real data backed up & restored.)
+- **Docs coherence pass:** every formula in CLAUDE.md re-checked against the code and
+  found accurate — `enemyTemplate` HP `(18 + w*7 + 1.25*w^1.9) * 1.80 * d.hp * campScale`,
+  `victoryWave()` = `14 + campLevel` (campaign) / 30 (quick), campaign HP scale
+  `1 + (campLevel-1)*0.04`, poison base dmg 7, `MAX_CONCURRENT_WAVES = 3`, the
+  `masterGain()`/`cd_vol` audio routing, and the `loadMeta()` migration defaults. CHANGELOG
+  versions are consistent with `GAME_VERSION`. No drift found in the architecture map.
+- **Refactor audit:** all 9 game files comfortably within the ~1500-line cap (largest is
+  `cd-update.js` at 580). No dead code, no leftover `console.`/`debugger` in shipped
+  files, no duplicated logic spotted. No `[refactor]` split needed this run.
+- **Small cleanup (doc-rot):** the in-game What's New list (`CHANGELOG_ENTRIES` in
+  `cd-core.js`) had grown to ~30 entries despite the documented "keep ~10" intent;
+  trimmed back to the 10 most-recent (full history stays here in CHANGELOG.md). Verified
+  in-preview: panel renders 10 entries, `verTag` reads v1.13.4, zero console errors.
+- **Table-stakes audit refreshed** — still-unaddressed gaps re-noted on ROADMAP, ordered:
+  **touch/pointer controls** (top mobile blocker), colorblind-safe palette, gamepad,
+  PWA install. Added two newly-spotted gaps: **high-DPI (devicePixelRatio) canvas scaling**
+  and **menu/panel keyboard accessibility** (start-screen panels are mouse-only).
+
+Version bumped v1.13.3 → **v1.13.4** (patch — maintenance only, no gameplay change).
+
 ## v1.13.3 — 2026-06-11
 
 **Difficulty curve steepened — harder *per wave* at higher waves (FEEDBACK / balance).**
