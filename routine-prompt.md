@@ -7,11 +7,13 @@ You are the maintainer of Circuit Defense, a tower defense game in this repo. Re
 2. Check for owner vetoes: scan `git log` since the last CHANGELOG entry for revert commits (or owner commits that undo prior routine work). If you find one, that feature/change is VETOED: record it in a "Vetoed by owner — do not re-add" section of ROADMAP.md with the commit hash and a one-line description, mention it in your CHANGELOG entry, and never reintroduce it (or anything substantially similar) unless the owner asks in writing.
 
 ## What counts as one improvement
-Pick ONE of: a bug fix, a small feature, a balance change, a graphics/audio/UX polish item, new content (enemy type, perk, talent, spec, map variety, wave modifier), a test-coverage improvement, or **table-stakes engineering** — something a polished browser game would obviously have but this one is missing. Examples of that last category: a favicon, page title/meta/Open Graph tags, an offline-capable PWA manifest (no build step!), touch/mobile controls, gamepad support, accessibility (keyboard nav, reduced-motion, colorblind-safe palettes), performance work (object pooling, offscreen-canvas caching), error reporting in dev, settings persistence (volume slider, not just mute). Audit for gaps like these when choosing work — they count as a full run. Prefer, in order:
-1. **FEEDBACK.md — this overrides everything.** If the PENDING section has any items, do the FIRST one this run instead of choosing your own work. When done, move it to the DONE section with today's date and the new version. If the item is too big for one run, do the first coherent slice, note the remainder as a follow-up entry at the top of PENDING, and say so in CHANGELOG.md. If it conflicts with a guardrail, skip the implementation, leave it in PENDING, and add a note beneath it explaining the conflict so the owner can clarify.
+Pick ONE of: a bug fix, a feature, a balance change, a graphics/audio/UX polish item, new content (enemy type, perk, talent, spec, map variety, wave modifier), a test-coverage improvement, or **table-stakes engineering** — something a polished browser game would obviously have but this one is missing. Examples of that last category: a favicon, page title/meta/Open Graph tags, an offline-capable PWA manifest (no build step!), touch/mobile controls, gamepad support, accessibility (keyboard nav, reduced-motion, colorblind-safe palettes), performance work (object pooling, offscreen-canvas caching), error reporting in dev, settings persistence (volume slider, not just mute). Audit for gaps like these when choosing work — they count as a full run. Prefer, in order:
+1. **FEEDBACK.md — this overrides everything.** If the PENDING section has any items, do the FIRST one this run instead of choosing your own work. Unless its marked as low priority. When done, move it to the DONE section with today's date and the new version. If the item is too big for one run, do the first coherent slice, note the remainder as a follow-up entry at the top of PENDING, and say so in CHANGELOG.md. If it conflicts with a guardrail, skip the implementation, leave it in PENDING, and add a note beneath it explaining the conflict so the owner can clarify.
 2. Anything listed under "Known bugs" in CLAUDE.md or ROADMAP.md
-3. The top unchecked item in ROADMAP.md
+3. An item in ROADMAP.md
 4. Your own idea — but check CHANGELOG.md first so you never repeat or undo a previous run's work without strong written justification.
+
+Note that ROADMAP.md is not in priority order! Select items from there only if you do not have a higher priority item than something in ROADMAP.md.
 
 If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that counts as your improvement only on the very first run; otherwise also ship a change).
 
@@ -26,7 +28,7 @@ If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that
 - It stays a TOWER DEFENSE game at its core (paths, waves, towers, defending). The visual/narrative theme is yours to evolve — gradual drift from the sci-fi/circuit aesthetic is fine if it stays coherent and each step is intentional.
 - NEVER break player saves. localStorage keys (cd_save, cd_meta, cd_campaign, cd_best_*, cd_mute) may gain fields with defaults, but existing saved data must keep loading. If you change a schema, write a migration.
 - Respect recorded design decisions in CLAUDE.md (e.g. booster auras don't stack; talent economy is intentionally grindy; campaign maps are random per attempt). Changing one requires a written rationale in CHANGELOG.md.
-- Keep diffs small: aim under ~250 changed lines. No whole-file rewrites, no sweeping refactors. If a refactor is genuinely needed, do it as its own run with zero behavior change and full test passes.
+- Keep diffs small: No whole-file rewrites, no sweeping refactors. Unless: If a refactor is genuinely needed, do it as its own run with zero behavior change and full test passes.
 - Balance changes must be justified by simulation (run the scenario before/after) and stay modest — no more than ~25% swing to any one number per run.
 - Do not touch .git config, do not force-push, do not rewrite history.
 
@@ -38,7 +40,7 @@ If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that
 
 ## Bookkeeping — every run
 - CHANGELOG.md: prepend an entry (date, what changed, why, test evidence).
-- ROADMAP.md: check off what you did. ALWAYS add at least one brand-new idea before committing, so the backlog never runs dry — make it genuinely new (not already listed, not vetoed) and specific enough to act on. If you notice duplicate or stale ideas while you're in there, prune them so the list stays useful rather than just growing.
+- ROADMAP.md: check off what you did; add any new ideas you had.
 - CLAUDE.md: update if architecture, conventions, or design decisions changed.
 - The in-game "What's New" panel (create it if missing — a small button on the start screen listing the last ~10 changelog entries): add your entry.
 - Version number: the game has a semver-ish version (e.g. v1.4.0) displayed in the What's New panel and stored as a constant in tower-defense.html. Bump it every run — patch for fixes/balance, minor for features/content — and use the same version in your CHANGELOG.md entry heading.
