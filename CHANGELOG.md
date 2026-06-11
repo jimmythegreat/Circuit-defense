@@ -3,6 +3,39 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.3 — 2026-06-11
+
+**Fix: combo-meter overlap (owner FEEDBACK / ROADMAP "Combo meter layout bug").**
+
+Owner report: *"The newly added combo meter overlaps the round completion bonuses
+display and the bar overlaps the word 'COMBO'."* Two render-only fixes:
+
+- **Bar over "COMBO":** the top-left meter's draining timer bar (canvas y48–52)
+  was sitting on top of the "COMBO" label (y45–53) — measured overlap. The label
+  now renders **to the right of the multiplier** on the same baseline, and the
+  bar drops to its **own lane** below the number (`y44`, with a ~10px gap to the
+  number and ~12px to the label). The number font eased 28→26px so the compact
+  `26×  COMBO` row fits cleanly. Verified numerically in-browser:
+  `bar_overlaps_label` went `true → false`; bar clears both the number and the
+  label.
+- **Milestone pop over the round-clear bonus:** the `🔥 N× COMBO!` milestone
+  floater + particle burst rendered dead-center (`W/2, 84`) — exactly where the
+  centered *"Wave clear! +bonus"* round-completion floater lives (`W/2, 50`). A
+  wave-ending kill is often itself a milestone, so the two texts stacked. The
+  burst (`96, 40`) and floater (`120, 74`) are now **anchored to the top-left
+  combo column**, so the combo system owns that corner and never lands on the
+  centered bonus text. Measured: the floater footprint (x34–206) is fully clear
+  of the bonus zone (x291–609) and stays on-canvas. The screen-shake is kept, so
+  the milestone still feels chunky.
+
+**No balance/economy/save impact** — the combo system stays purely cosmetic and
+its state is still run-only (never persisted). Render coordinates only.
+
+**Tests:** suite green. Test 11 gains two assertions — the timer bar does **not**
+overlap the COMBO label, and the milestone floater stays top-left and clear of
+the centered round-clear bonus. Verified live over `http://` with zero console
+errors.
+
 ## v1.8.2 — 2026-06-11
 
 **Refactor: domain-split `tower-defense.js` into seven ordered files (the "etc."

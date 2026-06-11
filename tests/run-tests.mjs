@@ -616,6 +616,44 @@ async function main() {
     check('combo lapses to 0 after its window with no kills',
       lapse.count === 0 && lapse.timer === 0, JSON.stringify(lapse));
 
+    // v1.8.3 layout fix: the meter's timer bar must not overlap the "COMBO"
+    // label, and the milestone burst/floater must stay in the top-left combo
+    // column (clear of the centered "Wave clear! +bonus" round-clear text).
+    const layout = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      comboCount = 28; comboTimer = 1.4; comboFlash = 0.4; started = true; gameOver = false;
+      draw();
+      // meter geometry (mirrors the draw() coordinates in cd-render.js)
+      ctx.save();
+      ctx.font = 'bold 11px sans-serif';
+      const lbl = ctx.measureText('COMBO');
+      ctx.font = 'bold 26px sans-serif';
+      const numW = ctx.measureText('28×').width;
+      const labelLeft = 16 + numW + 6, labelBaseY = 32;
+      const labelTop = labelBaseY - lbl.actualBoundingBoxAscent;
+      const labelBottom = labelBaseY + lbl.actualBoundingBoxDescent;
+      const bar = { top: 44, bottom: 48 };
+      const barOverlapsLabel = !(bar.bottom <= labelTop || bar.top >= labelBottom);
+      // milestone floater anchoring + centered round-clear bonus footprint
+      ctx.font = 'bold 22px sans-serif';
+      const fw = ctx.measureText('🔥 28× COMBO!').width;
+      const floater = { left: 120 - fw / 2, right: 120 + fw / 2 };
+      ctx.font = 'bold 18px sans-serif';
+      const bw = ctx.measureText('Wave clear! +325💰 (incl. 30 interest)').width;
+      const bonusLeft = 450 - bw / 2;
+      ctx.restore();
+      return {
+        barOverlapsLabel,
+        floaterOnCanvas: floater.left >= 0 && floater.right <= 900,
+        floaterClearOfBonus: floater.right < bonusLeft,
+      };
+    });
+    check('timer bar does not overlap the COMBO label', !layout.barOverlapsLabel, JSON.stringify(layout));
+    check('milestone combo floater stays top-left, clear of round-clear bonus',
+      layout.floaterOnCanvas && layout.floaterClearOfBonus, JSON.stringify(layout));
+    await page.evaluate(() => { backToMenu(); });
+
     await page.evaluate(() => { localStorage.removeItem('cd_save'); });
     check('no console errors during combo tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();

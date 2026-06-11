@@ -387,22 +387,26 @@ function draw() {
     const frac = Math.max(0, comboTimer / COMBO_WINDOW);
     const pulse = 1 + comboFlash * 0.22;
     ctx.save();
-    ctx.translate(16, 38);
+    ctx.translate(16, 34);
     ctx.scale(pulse, pulse);
     ctx.textAlign = 'left';
+    // big multiplier, with the "COMBO" label to its RIGHT (baseline-aligned) so
+    // the label no longer sits under — and collide with — the timer bar.
     ctx.fillStyle = cc;
     ctx.shadowColor = cc; ctx.shadowBlur = 12;
-    ctx.font = 'bold 28px sans-serif';
+    ctx.font = 'bold 26px sans-serif';
     ctx.fillText(`${comboCount}×`, 0, 0);
+    const numW = ctx.measureText(`${comboCount}×`).width;
     ctx.shadowBlur = 0;
     ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = 'rgba(230,237,243,0.85)';
-    ctx.fillText('COMBO', 1, 15);
+    ctx.fillText('COMBO', numW + 6, -2);
     ctx.restore();
+    // draining timer bar in its own lane below the number — clear of the text.
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.fillRect(16, 48, 80, 4);
+    ctx.fillRect(16, 44, 84, 4);
     ctx.fillStyle = cc;
-    ctx.fillRect(16, 48, 80 * frac, 4);
+    ctx.fillRect(16, 44, 84 * frac, 4);
     ctx.textAlign = 'left';
   }
 

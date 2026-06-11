@@ -11,9 +11,9 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] Mayhem should be a random map every time.
 
-[Low priority] The newly added combo meter overlaps the round completion bonuses display and the bar overlaps the word 'combo'
-
 ## DONE
+
+- **2026-06-11 · v1.8.3** — "[Low priority] The newly added combo meter overlaps the round completion bonuses display and the bar overlaps the word 'combo'." → Two render-only fixes. (1) The meter's draining timer bar was overlapping the "COMBO" label (measured y48–52 over y45–53); the label now sits to the **right** of the multiplier and the bar drops to its own lane below the number (number eased 28→26px), so `bar_overlaps_label` went `true→false` with clear gaps to both. (2) The `🔥 N× COMBO!` milestone burst + floater rendered dead-center (`W/2,84`) right where the centered "Wave clear! +bonus" round-completion text lives — a wave-ending kill is often a milestone, so they stacked; both are now anchored to the **top-left combo column** (burst `96,40`, floater `120,74`), measured fully clear of the centered bonus zone (floater x34–206 vs bonus x291–609) and on-canvas. No balance/save impact (combo stays cosmetic, run-only). Test 11 gained two layout assertions; suite green, zero console errors.
 
 - **2026-06-11 · v1.8.2** — "[refactor] split it out into its own files (html, css, js, **etc.**)" (the "etc." / follow-up slice) → Domain-split the 2118-line `tower-defense.js` into seven ordered classic `<script src>` files (`cd-core`/`cd-maps`/`cd-defs`/`cd-state`/`cd-game`/`cd-update`/`cd-render`), each independently `'use strict'`, all under the ~1500-line guideline. Sliced strictly at section boundaries with no reordering, so concatenation is byte-identical to the pre-split file (slicer asserted `REBUILD MATCHES ORIGINAL: true`); NOT ES modules (they break `file://`). Tests 112/0 green ([12] rewritten to check all seven files exist, are strict, load in dependency order, and that cross-file globals resolve). Double-click `file://` play re-verified. **The full refactor request (html + css + js + domain split) is now complete.**
 

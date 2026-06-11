@@ -4,9 +4,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.8.2';
+const GAME_VERSION = 'v1.8.3';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.8.3', date: '2026-06-11', body: "Combo meter cleanup (your feedback): the draining timer bar no longer overlaps the word COMBO — the 'COMBO' label now sits to the right of the multiplier with the bar in its own lane below. And the '🔥 N× COMBO!' milestone pop is anchored to the top-left combo corner instead of dead-center, so it no longer lands on top of the 'Wave clear! +bonus' text when a wave-ending kill hits a milestone." },
   { v: 'v1.8.2', date: '2026-06-11', body: "More under-the-hood tidy-up: the game's code is now split by domain into seven small files (core/audio, maps, definitions, state, gameplay, update, rendering) instead of one big script. Still zero change for you — double-click tower-defense.html and play exactly as before. Purely a maintainability win." },
   { v: 'v1.8.1', date: '2026-06-11', body: "Under-the-hood tidy-up: the game is now split into separate files — tower-defense.html (markup), tower-defense.css (styles) and the game code — instead of one giant HTML file. Nothing changes for you: just double-click tower-defense.html to play, exactly as before. This makes the codebase easier to maintain going forward." },
   { v: 'v1.8.0', date: '2026-06-11', body: "Combo Master! A new 💥 achievement for reaching a 30× kill-streak in a single run, plus a 🔥 Best combo stat on the Records panel that tracks your all-time highest streak. Chase those chains — the combo system finally pays off your account." },

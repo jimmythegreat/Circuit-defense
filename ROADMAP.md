@@ -53,9 +53,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       huge streaks*, and a **mid-streak "near miss" cue** (combo timer bar
       flashes red as the 2s window runs out) so keeping the chain alive feels
       tense.
-- [ ] **Combo meter layout bug** (owner-reported, FEEDBACK) — the top-left COMBO
-      meter overlaps the round-completion bonus display, and the draining timer
-      bar overlaps the word "COMBO". Reposition/relayout so both read cleanly.
+- [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed v1.8.3. The
+      "COMBO" label moved to the right of the multiplier with the timer bar in its
+      own lane below (no more bar-over-text), and the `🔥 N× COMBO!` milestone
+      burst/floater anchored to the top-left combo column (was dead-center, where
+      it stacked on the "Wave clear! +bonus" text). Render-only; Test 11 gained
+      two layout assertions.
 - [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).

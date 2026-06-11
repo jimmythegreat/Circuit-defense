@@ -263,8 +263,10 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
       const cc = comboColor(comboCount);
       SFX.combo(comboCount);
       shake = Math.max(shake, Math.min(13, 4 + comboCount * 0.16));
-      addExplosion(W/2, 66, cc, 14, 150);
-      addFloater(W/2, 84, `🔥 ${comboCount}× COMBO!`, cc, 22);
+      // Anchor the milestone burst + floater to the top-left combo column so it
+      // never lands on the centered round-clear "Wave clear! +bonus" text.
+      addExplosion(96, 40, cc, 14, 150);
+      addFloater(120, 74, `🔥 ${comboCount}× COMBO!`, cc, 22);
     }
     let bounty = e.bounty + perkState.bountyAdd;
     const luck = 0.08 * tRank('fortune');
