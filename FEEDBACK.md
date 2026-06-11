@@ -6,7 +6,7 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-(nothing pending)
+Opening the change log pushes the middle of the game over but the top panel (game title and status) and the bottom panel (towers, options, hotkeys) doesn't shift over. Really the change log should float next to the entire game.
 
 ## DONE
 
