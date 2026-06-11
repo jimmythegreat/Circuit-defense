@@ -65,6 +65,39 @@ function saveRun() {
   } catch(e) {}
 }
 function clearRun() { localStorage.removeItem('cd_save'); }
+
+// Full wipe: erase ALL persistent data (run, meta/chips/talents/achievements,
+// campaign progress, records, prefs) and return to a brand-new state. Two-click
+// confirm (like quitRun) since it's irreversible.
+let resetArm = -Infinity;  // -Infinity (not 0) so the very first click always ARMS, even <3s after page load
+function resetAllData() {
+  const btn = document.getElementById('resetBtn');
+  const now = performance.now();
+  if (now - resetArm > 3000) {
+    resetArm = now;
+    if (btn) { btn.textContent = '🗑 Erase ALL — click again'; btn.classList.add('danger'); }
+    setTimeout(() => { if (btn && btn.classList.contains('danger')) { btn.textContent = '🗑 Reset All'; btn.classList.remove('danger'); } }, 3000);
+    return;
+  }
+  // remove every cd_-prefixed key (covers cd_save/cd_meta/cd_campaign/cd_best_*/
+  // cd_mute/cd_speed/cd_wnclosed and any future ones) without touching other sites' data
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('cd_') === 0) keys.push(k); }
+    keys.forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  // reset the in-memory persistent state to factory defaults
+  meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+  loadMeta();
+  speed = 1; best = 0; muted = false;
+  if (btn) { btn.textContent = '🗑 Reset All'; btn.classList.remove('danger'); }
+  document.getElementById('speedBtn').textContent = '⏩ 1x';
+  document.getElementById('muteBtn').textContent = '🔊 Sound';
+  document.getElementById('muteBtn').classList.remove('off');
+  backToMenu();
+  addFloater(W / 2, H / 2, 'All data erased — fresh start', '#f85149', 18);
+  SFX.sell();
+}
 function loadRun() {
   let s;
   try { s = JSON.parse(localStorage.getItem('cd_save')); } catch(e) { return false; }

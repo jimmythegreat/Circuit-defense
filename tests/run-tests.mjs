@@ -979,6 +979,37 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 19: Reset All wipes every cd_ key + in-memory state (v1.11.0) ----
+  console.log('\n[19] Reset All (full data wipe)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // seed persistent data across several cd_ keys
+      meta.chips = 500; meta.talents.firepower = 3; meta.stats.runs = 12; saveMeta();
+      localStorage.setItem('cd_best_classic_normal', '27');
+      localStorage.setItem('cd_campaign', '9');
+      localStorage.setItem('cd_speed', '3');
+      const before = Object.keys(localStorage).filter(k => k.indexOf('cd_') === 0).length;
+      resetAllData();                       // first click: arms, no wipe
+      const armed = !!localStorage.getItem('cd_meta');
+      const armedLabel = document.getElementById('resetBtn').textContent;
+      resetAllData();                       // second click within 3s: wipes
+      const after = Object.keys(localStorage).filter(k => k.indexOf('cd_') === 0);
+      return { before, armed, armedLabel, afterCount: after.length, afterKeys: after,
+               chips: meta.chips, firepower: meta.talents.firepower, runs: meta.stats.runs, speed };
+    });
+    check('seeded multiple cd_ keys before reset', r.before >= 4, `count=${r.before}`);
+    check('first click ARMS but does not wipe', r.armed === true && /again/i.test(r.armedLabel),
+      `label="${r.armedLabel}"`);
+    check('second click wipes ALL cd_ keys', r.afterCount === 0, `left=${JSON.stringify(r.afterKeys)}`);
+    check('in-memory meta reset to factory (chips/talents/runs = 0)',
+      r.chips === 0 && r.firepower === 0 && r.runs === 0,
+      `chips=${r.chips} firepower=${r.firepower} runs=${r.runs}`);
+    check('speed pref reset to 1×', r.speed === 1, `speed=${r.speed}`);
+    check('no console errors during reset test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

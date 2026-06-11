@@ -7,8 +7,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
-[Low priority] A reset feature that deletes everything and you start new.
-
 [Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
@@ -20,6 +18,8 @@ When it completes an item it moves it to DONE below with the date and version.
 [low priority] milestone bonuses should have a mouse hover that lets you know what they do.
 
 ## DONE
+
+- **2026-06-11 · v1.11.0** — "[Low priority] A reset feature that deletes everything and you start new." → Added a 🗑 **Reset All** start-screen button. `resetAllData()` removes every `cd_`-prefixed localStorage key (save, meta, campaign, all records, prefs) and resets in-memory `meta`/`speed`/`best`/`muted` to factory, then returns to a clean menu. Two-click confirm (arms red, "Erase ALL — click again"; commits on a second click within 3s). New test group [19].
 
 - **2026-06-11 · v1.10.0** — "[bug] When you refresh and continue a game the towers still shoot at their original speed. Damage seems to work right." (reported verbally) → Root cause was the **game-speed setting** (1×/2×/3×), not the towers: the rAF loop runs `update()` `speed` times per frame, but `speed` was never persisted, so every page load reset it to 1×. After a refresh + Resume the whole game ran at 1×, making every tower fire at its base cadence while per-shot damage looked correct. Verified the per-tower stat restore was already correct (a resumed tower's `effRate`/range are byte-identical to a fresh one, plain and minigun). Fix: persist `speed` in `localStorage.cd_speed` (like `cd_mute`). New test group [18]; suite 159/0 green.
 

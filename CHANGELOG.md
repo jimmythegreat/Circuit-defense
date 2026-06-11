@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.11.0 — 2026-06-11
+
+**Reset feature: wipe all data and start fresh (FEEDBACK).** Owner: *"A reset feature
+that deletes everything and you start new."* Added a 🗑 **Reset All** button to the
+start screen. `resetAllData()` (`cd-state.js`) removes every `cd_`-prefixed localStorage
+key (save, meta/chips/talents/achievements, campaign, all per-map/per-diff records,
+mute, speed, What's-New-closed) — iterating `localStorage` so it also catches future
+keys and never touches other sites' data — then resets the in-memory `meta`, `speed`,
+`best`, and `muted` to factory defaults and returns to a clean menu via `backToMenu()`.
+Two-click confirm (mirrors `quitRun`): the first click arms the button (red `.danger`
+pulse, "Erase ALL — click again"), a second click within 3s commits; otherwise it
+disarms. New test group **[19]**. Pure additive — no schema change, can't corrupt
+existing saves (it only deletes).
+
 ## v1.10.0 — 2026-06-11
 
 **Spec rework + poison buff (FEEDBACK / balance) bundled with two polish wins.**
