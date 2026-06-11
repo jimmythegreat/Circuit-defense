@@ -95,6 +95,32 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
+## Table-stakes (polished-browser-game basics — audited v1.8.6 health check)
+
+- [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
+      offline-safe), responsive `viewport` meta, meta description, `theme-color`,
+      and Open Graph title/description/type. Head-only, zero gameplay impact.
+- [ ] **Touch / pointer controls** — the whole game is mouse-click driven (tower
+      placement, upgrade panel, ability targeting). On touch devices there are no
+      handlers, so it's effectively unplayable on phones/tablets. Add
+      `pointerdown`/`touchstart` paths (pointer events unify mouse+touch). The
+      `viewport` meta is now in place (v1.8.6), so this is the next mobile blocker.
+- [ ] **`prefers-reduced-motion` support** — the game leans hard on screen-shake
+      and particle bursts. Respect the OS reduced-motion setting (gate `shake`,
+      explosions, combo flashes) for an accessibility + motion-sensitivity win.
+      Also add an in-game toggle (ties into the existing "shake/particle toggle"
+      polish item).
+- [ ] **Gamepad support** — `navigator.getGamepads()` polling for tower select /
+      ability fire / cursor movement. Lower priority than touch.
+- [ ] **Colorblind-safe palette option** — enemy kinds and combo tiers lean on
+      hue (green/gold/orange/red/purple). Add a high-contrast / shape-coded mode.
+- [ ] **PWA install (offline manifest)** — a `manifest.webmanifest` + minimal
+      service worker so the game is installable and offline-cacheable when *hosted*
+      (it's already offline via `file://`). No build step required. Note: a service
+      worker does nothing on `file://`, so this only helps the hosted case.
+- [ ] **Volume slider** — settings currently persist only mute (`cd_mute`). Add a
+      0–100 volume level (scale the WebAudio gain), persisted in localStorage.
+
 ## Tech / tooling
 
 - [x] **Split the single HTML file** — shipped v1.8.1. `tower-defense.html` →

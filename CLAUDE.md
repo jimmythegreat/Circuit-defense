@@ -52,6 +52,7 @@ Rough section order in the file:
 ## Conventions & gotchas
 
 - localStorage keys all prefixed `cd_`: `cd_save`, `cd_meta`, `cd_campaign`, `cd_best_<diff>`, `cd_best_<map>_<diff>` (per-map quick-mode best, v1.6.0), `cd_mute`, `cd_wnclosed` (What's New panel hidden by player)
+- **Document metadata** (v1.8.6, in `tower-defense.html` `<head>`): the favicon is an **inline SVG data URI** (gold ⚡ bolt) — keep it inline so it needs no network and works on double-click `file://`; never switch it to a separate `favicon.ico` file/URL. Head also carries `viewport`/`description`/`theme-color`/Open Graph tags. Test group `[13]` asserts these exist.
 - Speed toggle just runs `update()` 1–3× per frame; pause/draft/menu gate at the top of `update()`
 - `damage()` handles armor (reduced by piercing talent), kill credit (`src.dealt/kills`), bounty (fortune talent, midas perk, bountyAdd), splitter children via `pendingSpawns`
 - Enemy kinds: norm, fast (w3+), tank (w5+), heal (w7+), shield/armored (w9+), split (w11+), boss every 5th wave

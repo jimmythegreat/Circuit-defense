@@ -3,6 +3,47 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.6 — 2026-06-11
+
+**🩺 Health check** (every-6th-run maintenance pass; resets the 5-run counter).
+This is the first health check — there were 15 prior version entries and no
+earlier health check, so the counter (≥5) triggered it. No `[bug]` FEEDBACK items
+were pending (all 5 PENDING items are `[Low priority]`), so no feature shipped.
+
+**1. Refactor audit.** All game files are comfortably within the ~1500-line cap —
+largest is `cd-update.js` at 517 lines (html 116, css 255, cd-core 167→169,
+cd-maps 153, cd-defs 298, cd-state 104, cd-game 443, cd-render 458). No oversized
+files, no obvious dead code, no duplicated logic flagged. Test suite runs in ~15s
+with no flakiness. **No split or refactor needed this run.**
+
+**2. Docs coherence.** Verified CLAUDE.md against the actual code: the combo-meter
+positions (bottom-right `W-16`/`H-26` meter in `cd-render.js:390`, center-board
+`W/2,114/132` milestone pop in `cd-update.js:269`), the `loadMeta()` additive
+migration (defaults `achievements`/`stats`/`dmg`/`runs`/`bestCombo`), and the
+seven-file load-order map all match reality. `GAME_VERSION` is consistent with the
+CHANGELOG. No drift found. ROADMAP's vetoed section is intact.
+
+**3. Table-stakes audit + small fix.** Audited the polished-browser-game checklist.
+The document `<head>` was missing the basics, so this run adds them (head-only,
+zero gameplay/save/balance impact): a **⚡ inline-SVG favicon** (data URI — no
+network, works offline on `file://`), a **responsive `viewport` meta**, a **meta
+description**, a **`theme-color`**, and **Open Graph** title/description/type for
+link previews. The page title is now "Circuit Defense — Browser Tower Defense".
+The larger table-stakes gaps (touch/pointer controls, gamepad, `prefers-reduced-
+motion`, colorblind-safe palette, PWA install manifest, full settings persistence)
+are recorded as prioritized ROADMAP entries under a new **Table-stakes** section.
+
+**4. Integrity spot-checks.** Full suite **123/0 green**, zero console errors
+(8 new checks in a new `[13] Document metadata` group). `file://` playability
+re-confirmed structurally (relative classic `<script src>`, no ES modules, no
+network). Old-format save migration verified by the existing migration test plus a
+direct read of `loadMeta()`'s defaults — minimal `cd_meta` (chips/talents only)
+still loads and gains `achievements`/`stats` defaults.
+
+**Tests:** 115/0 before the metadata change → **123/0 after** (8 new). Verified the
+live DOM in-browser: favicon, viewport, theme-color, and OG title all present and
+correct, zero console errors.
+
 ## v1.8.5 — 2026-06-11
 
 **Combo meter relocated to the bottom-right corner (owner suggestion).**

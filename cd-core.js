@@ -4,9 +4,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.8.5';
+const GAME_VERSION = 'v1.8.6';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.8.6', date: '2026-06-11', body: "🩺 Health check (every-6th-run maintenance pass): tests all green (123/0), code files all well within size limits, docs verified against the code, and old saves still load correctly. Also added the basics a polished web game should have — a ⚡ favicon in the browser tab, a page description, a mobile-friendly viewport tag, and link-preview (Open Graph) tags. No gameplay changes. Audited the bigger missing pieces (touch controls, gamepad, reduced-motion, PWA install) onto the roadmap." },
   { v: 'v1.8.5', date: '2026-06-11', body: "Combo meter moved to the bottom-right corner (your suggestion): instead of squeezing it into the busy top area — where it kept bumping the boss bar, the 'Wave clear! +bonus' text, and the milestone pop, and was getting clipped against the top edge — the COMBO meter now lives in the empty bottom-right corner with room to breathe. The '🔥 N× COMBO!' milestone pop stays on the center board. No more overlap, anywhere." },
   { v: 'v1.8.4', date: '2026-06-11', body: "Combo pop placement, take two (your feedback): v1.8.3 moved the '🔥 N× COMBO!' milestone pop into the top-left corner — but that's where the COMBO meter itself lived, so they overlapped. The pop now fires on the center board, below the top HUD band. (The meter itself moved to the bottom-right in v1.8.5.)" },
   { v: 'v1.8.3', date: '2026-06-11', body: "Combo meter cleanup (your feedback): the draining timer bar no longer overlaps the word COMBO — the 'COMBO' label now sits to the right of the multiplier with the bar in its own lane below. (The milestone-pop placement from this update was corrected in v1.8.4.)" },

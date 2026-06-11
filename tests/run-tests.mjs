@@ -733,6 +733,30 @@ async function main() {
     await page.close();
   }
 
+  // ---------------------------------------------------------------------------
+  console.log('\n[13] Document metadata (favicon / viewport / OG — table stakes)');
+  {
+    const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
+    check('has a responsive viewport meta', /<meta[^>]+name=["']viewport["']/.test(html));
+    check('has a meta description', /<meta[^>]+name=["']description["']/.test(html));
+    check('has a theme-color meta', /<meta[^>]+name=["']theme-color["']/.test(html));
+    check('declares an Open Graph title', /<meta[^>]+property=["']og:title["']/.test(html));
+    // Favicon must be a self-contained data URI (offline-safe on file:// — no network fetch).
+    const icon = html.match(/<link[^>]+rel=["']icon["'][^>]*>/);
+    check('has a favicon link', !!icon, icon ? icon[0] : 'none');
+    check('favicon is an inline data URI (no network request)',
+      !!icon && /href=["']data:image\/svg\+xml,/.test(icon[0]), icon ? icon[0] : 'none');
+
+    const { page, consoleErrors } = await newPage(browser);
+    const fav = await page.evaluate(() => {
+      const l = document.querySelector('link[rel="icon"]');
+      return l ? l.getAttribute('href') : null;
+    });
+    check('favicon present in the live DOM', !!fav && fav.startsWith('data:image/svg+xml,'));
+    check('no console errors with metadata', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
