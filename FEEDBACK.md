@@ -6,7 +6,7 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-(nothing pending)
+The stats bar (bar below the game name) and the tower, wave options, and hotkeys should not be shown if you're not currently in an active game.
 
 ## DONE
 
