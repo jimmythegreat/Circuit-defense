@@ -3,6 +3,17 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.7.1 — 2026-06-11
+
+**Fix: combo meter was hidden behind the ability bar.**
+
+The v1.7.0 COMBO meter rendered at the top-right of the board, directly behind
+the `#abilityBar` HTML overlay (Meteor / Freeze / Gold Rush buttons), so it was
+obscured during play. Moved it to the **top-left** corner, which is clear of
+both the top-right ability bar and the centered boss HP bar. Render-only change
+(coordinates + left text-align); no logic, balance, or save impact. Tests stay
+green (83 checks, exit 0).
+
 ## v1.7.0 — 2026-06-11
 
 **Feature: kill-streak combo system (ROADMAP "Game feel / polish" — combo /
@@ -11,8 +22,9 @@ kill-streak feedback).**
 Chunky reward for clearing enemies fast. Consecutive kills within a 2-second
 window now build a **combo streak** with escalating game-feel:
 
-- A **COMBO meter** appears at the top-right of the board (`× N` + a "COMBO"
-  label and a draining timer bar). It pops on each kill and **glows hotter** as
+- A **COMBO meter** appears at the top-left of the board (`× N` + a "COMBO"
+  label and a draining timer bar). _(Originally top-right; moved to top-left in
+  v1.7.1 to clear the ability bar.)_ It pops on each kill and **glows hotter** as
   the streak climbs — green → gold → orange → red → purple
   (`comboColor(n)` thresholds at 10 / 20 / 30 / 50).
 - Every **milestone** (5, then every 10) fires a new `SFX.combo(n)` rising chirp

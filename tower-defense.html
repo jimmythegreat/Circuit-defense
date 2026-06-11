@@ -366,10 +366,11 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.7.0';
+const GAME_VERSION = 'v1.7.1';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
-  { v: 'v1.7.0', date: '2026-06-11', body: "Kill streaks! Chain kills within 2 seconds to build a COMBO meter (top-right of the board) that glows hotter as it climbs — green → gold → orange → red → purple. Every milestone (5, then every 10) fires a rising chirp, a screen-shake and a particle burst, so wiping out a packed wave feels chunky. Purely cosmetic — no effect on gold or saves." },
+  { v: 'v1.7.1', date: '2026-06-11', body: "Fix: the new COMBO meter was drawing behind the ability buttons (Meteor / Freeze / Gold Rush) in the top-right corner. Moved it to the top-left of the board so it no longer hides behind your abilities." },
+  { v: 'v1.7.0', date: '2026-06-11', body: "Kill streaks! Chain kills within 2 seconds to build a COMBO meter (top-left of the board) that glows hotter as it climbs — green → gold → orange → red → purple. Every milestone (5, then every 10) fires a rising chirp, a screen-shake and a particle burst, so wiping out a packed wave feels chunky. Purely cosmetic — no effect on gold or saves." },
   { v: 'v1.6.1', date: '2026-06-11', body: "New record! flourish — when a quick-mode run beats your best wave for that map × difficulty (your Records cell), the game-over/victory screen now celebrates with a golden banner showing the old→new wave delta, a triumphant fanfare, and a screen-shake + particle burst. First-ever entries record quietly; only beating a real best fires the party." },
   { v: 'v1.6.0', date: '2026-06-11', body: "Records! A new 🏆 Records button on the start screen shows your highest wave reached on every map × difficulty, plus an 'Any map' row of your all-time bests, your campaign progress, lifetime damage, total runs and chips. Quick-mode runs now log a best-wave per map (not just per difficulty)." },
   { v: 'v1.5.2', date: '2026-06-11', body: "What's New no longer grows taller than the game on big screens — the panel is now capped to the game's height and scrolls internally, so it stays a tidy window flush beside the board instead of overhanging the bottom." },
@@ -2403,15 +2404,16 @@ function draw() {
     ctx.fillText(`${waveMod.icon} ${waveMod.name} — ${waveMod.desc}`, 12, H - 12);
   }
 
-  // kill-streak combo meter (top-right): grows + glows hotter with the streak
+  // kill-streak combo meter (top-left — clear of the top-right ability bar and
+  // the centered boss bar): grows + glows hotter with the streak
   if (comboCount >= 2 && comboTimer > 0 && started && !gameOver) {
     const cc = comboColor(comboCount);
     const frac = Math.max(0, comboTimer / COMBO_WINDOW);
     const pulse = 1 + comboFlash * 0.22;
     ctx.save();
-    ctx.translate(W - 16, 36);
+    ctx.translate(16, 38);
     ctx.scale(pulse, pulse);
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'left';
     ctx.fillStyle = cc;
     ctx.shadowColor = cc; ctx.shadowBlur = 12;
     ctx.font = 'bold 28px sans-serif';
@@ -2419,12 +2421,12 @@ function draw() {
     ctx.shadowBlur = 0;
     ctx.font = 'bold 11px sans-serif';
     ctx.fillStyle = 'rgba(230,237,243,0.85)';
-    ctx.fillText('COMBO', 0, 15);
+    ctx.fillText('COMBO', 1, 15);
     ctx.restore();
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.fillRect(W - 96, 46, 80, 4);
+    ctx.fillRect(16, 48, 80, 4);
     ctx.fillStyle = cc;
-    ctx.fillRect(W - 96, 46, 80 * frac, 4);
+    ctx.fillRect(16, 48, 80 * frac, 4);
     ctx.textAlign = 'left';
   }
 
