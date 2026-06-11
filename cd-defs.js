@@ -105,7 +105,7 @@ const TOWER_TYPES = {
   frost:  { name:'Frost',  icon:'❄️', cost:80,  range:95,  dmg:4,   rate:0.6,  color:'#79c0ff', proj:'frost',  desc:'Slows 40%' },
   cannon: { name:'Cannon', icon:'💣', cost:150, range:130, dmg:26,  rate:1.2,  color:'#ffd866', proj:'bomb',   desc:'Splash damage' },
   tesla:  { name:'Tesla',  icon:'⚡', cost:200, range:120, dmg:14,  rate:0.7,  color:'#d2a8ff', proj:'chain',  desc:'Chains 3 targets' },
-  poison: { name:'Poison', icon:'☣️', cost:90,  range:105, dmg:6,   rate:0.8,  color:'#3fb950', proj:'poison', desc:'Damage over time' },
+  poison: { name:'Poison', icon:'☣️', cost:90,  range:105, dmg:7,   rate:0.8,  color:'#3fb950', proj:'poison', desc:'DoT + corrodes armor', tip:'Stacking damage-over-time. Each hit also corrodes −3 enemy armor (down to 0), stripping shield/armored/boss defenses so your whole team hits harder.' },
   buff:   { name:'Booster',icon:'📡', cost:100, range:90,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
@@ -116,11 +116,11 @@ const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', cl
 const SPECS = {
   gun:    [ {id:'minigun', name:'Minigun',      desc:'Fire rate ×1.8'},          {id:'ap',       name:'AP Rounds',    desc:'+25% dmg, ignores armor'} ],
   sniper: [ {id:'deadeye', name:'Deadeye',      desc:'20% crits ×4 dmg'},        {id:'executor', name:'Executioner',  desc:'+60% dmg vs tanks & bosses'} ],
-  frost:  [ {id:'deep',    name:'Deep Freeze',  desc:'Slow 65% instead of 40%'}, {id:'shatter',  name:'Shatter',      desc:'Damage ×6'} ],
-  cannon: [ {id:'mega',    name:'Mega Blast',   desc:'+50% splash radius'},      {id:'cluster',  name:'Cluster Bomb', desc:'+50% damage'} ],
+  frost:  [ {id:'deep',    name:'Deep Freeze',  desc:'Slow 65% instead of 40%'}, {id:'shatter',  name:'Shatter',      desc:'Damage ×4.5'} ],
+  cannon: [ {id:'mega',    name:'Mega Blast',   desc:'+60% splash & +15% dmg'},  {id:'cluster',  name:'Cluster Bomb', desc:'+50% damage'} ],
   tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets'},       {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
   poison: [ {id:'virulent',name:'Virulent',     desc:'Poison DPS ×2'},           {id:'lingering',name:'Lingering',    desc:'Poison duration ×2'} ],
-  buff:   [ {id:'network', name:'Network',      desc:'Aura range +50%'},         {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
+  buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
 };
 function specOf(t) {
   if (!t.spec) return null;

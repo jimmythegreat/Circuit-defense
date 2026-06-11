@@ -5,6 +5,10 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
+
+[Low priority] A reset feature that deletes everything and you start new.
+
 [Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
@@ -16,6 +20,12 @@ When it completes an item it moves it to DONE below with the date and version.
 [low priority] milestone bonuses should have a mouse hover that lets you know what they do.
 
 ## DONE
+
+- **2026-06-11 · v1.10.0** — "[bug] When you refresh and continue a game the towers still shoot at their original speed. Damage seems to work right." (reported verbally) → Root cause was the **game-speed setting** (1×/2×/3×), not the towers: the rAF loop runs `update()` `speed` times per frame, but `speed` was never persisted, so every page load reset it to 1×. After a refresh + Resume the whole game ran at 1×, making every tower fire at its base cadence while per-shot damage looked correct. Verified the per-tower stat restore was already correct (a resumed tower's `effRate`/range are byte-identical to a fresh one, plain and minigun). Fix: persist `speed` in `localStorage.cd_speed` (like `cd_mute`). New test group [18]; suite 159/0 green.
+
+- **2026-06-11 · v1.10.0** — "[balance] Frost Mastery (+dmg) combined with the Shatter spec is overpowered — completed campaign 9/40 on hard with two L6 frost towers + an L6 booster, frost doing 764 dmg (879 after a +15% rare)." (given verbally mid-run) → Cut Shatter's flat damage multiplier **×6 → ×4.5** (−25%, at the guardrail edge, justified by the owner's sim): 764→573, 879→659. Shatter remains the clear damage pick over Deep Freeze without warping whole runs. Booster aura scaling (+75% at L6) and Frost Mastery flagged on ROADMAP as the next levers if still too strong. Test group [17] extended; suite green.
+
+- **2026-06-11 · v1.10.0** — "[balance] Booster final upgrades need a rework. I'm not sure I'd ever choose 50% range over 20% damage. Similarly for cannon … 50% blast radius over 50% damage. Also, Poison is WAY under powered. Maybe it should also reduce enemy defense. As well as do some more damage over time." → Reworked the dominated specs so each is a real choice, not a trap: **Booster · Network** now adds **+10% aura power** on top of +50% range (so wide coverage no longer means zero damage; Overclock stays the max-power pick). **Cannon · Mega Blast** now gives **+15% damage** plus a bigger **+60% blast** (radius 1.5→1.6), making it the crowd-clear pick vs Cluster's +50% single-target. **Poison** buffed three ways: base dmg 6→7, DoT coefficient 2.2→2.6 (DoT 13.2→18.2 dps, +38%), **and every hit corrodes −3 enemy armor (floored at 0)** — a hard counter to shielded/armored/boss enemies. Each individual number ≤25% swing; nothing persisted (save-safe). New test group [17]; full suite green.
 
 - **2026-06-11 · v1.9.1** — "[Low priority] When I click on a tower the menu pops up to sell/upgrade. This sometimes overlaps things happening on the game. I think it would be better if this was positioned in the lower left corner and now hovering where I clicked." → The upgrade/sell panel no longer floats at the clicked tower (`t.x+20, t.y-70`); it's now **pinned to the lower-left corner** of the board (`left:10px`, bottom-anchored `top:auto; bottom:10px` so the level-5 spec choice grows upward and never clips off-canvas). Render/DOM-only — no gameplay/economy/save impact. New test group [15] (opens on select, hugs left edge, sits at bottom, bottom-anchored, position independent of tower location); suite 139/0 green. Verified in-preview: panel at `left:10px` / 10px bottom gap with a tower placed upper-right.
 

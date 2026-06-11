@@ -2,7 +2,7 @@
 // ================= Render =================
 function draw() {
   ctx.save();
-  if (shake > 0) {
+  if (shake > 0 && !reduceMotion()) {
     ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
   }
   ctx.clearRect(-20, -20, W+40, H+40);
@@ -415,7 +415,10 @@ function draw() {
     const barW = 84;
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(ax - barW, baseY + 10, barW, 4);
-    ctx.fillStyle = cc;
+    // near-miss cue: in the last third of the window the bar blinks red so keeping
+    // the chain alive feels tense (blink derived from comboTimer — no wall clock)
+    const danger = frac < 0.33;
+    ctx.fillStyle = (danger && Math.floor(comboTimer * 8) % 2 === 0) ? '#ff4d4d' : cc;
     ctx.fillRect(ax - barW * frac, baseY + 10, barW * frac, 4);
     ctx.textAlign = 'left';
   }
@@ -454,6 +457,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 started = false;
+document.getElementById('speedBtn').textContent = `⏩ ${speed}x`;  // reflect restored cd_speed pref
 loadMeta();
 buildPath();
 renderStartScreen();

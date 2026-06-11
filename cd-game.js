@@ -90,10 +90,11 @@ function backToMenu() {
 function enemyTemplate(w) {
   const d = DIFFS[diffKey];
   const campScale = gameMode === 'campaign' ? 1 + (campLevel - 1) * 0.04 : 1;
-  // v1.9.2: enemy HP multiplier 1.2 -> 1.44 (+20% uniform) — owner FEEDBACK
-  // "the game is still too easy". Uniform so the swing stays <25% at ALL waves
-  // (incl. deep endless); bosses/tanks scale off this too. Iterative tuning.
-  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * d.hp * campScale;
+  // Enemy HP multiplier, raised iteratively per recurring owner "too easy" FEEDBACK:
+  // 1.2 -> 1.44 (v1.9.2, +20%) -> 1.80 (v1.10.0, +25% more). Uniform coefficient so
+  // the swing is exactly +25% at ALL waves (incl. deep endless); bosses/tanks scale
+  // off this too. Each step stays within the ≤25%/number/run guardrail.
+  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.80 * d.hp * campScale;
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
 }
 function buildWave(w) {
@@ -203,6 +204,8 @@ function shade(col, amt) {
   return `rgb(${r},${g},${b})`;
 }
 function addExplosion(x, y, color, n=10, spd=120) {
+  // reduced-motion: thin out the burst (keep a faint hit cue, drop the spray)
+  if (reduceMotion()) { n = Math.max(1, Math.ceil(n * 0.3)); spd *= 0.5; }
   for (let i = 0; i < n; i++) {
     const a = Math.random()*Math.PI*2, v = (0.3+Math.random()*0.7)*spd;
     particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: 0.4+Math.random()*0.3, color});
@@ -218,6 +221,7 @@ function renderShop() {
     const cost = costOf(key);
     const btn = document.createElement('div');
     btn.className = 'towerBtn' + (selectedShop===key ? ' selected' : '') + (gold < cost ? ' cant' : '');
+    btn.title = `${t.name} — ${t.tip || t.desc}`;  // hover tooltip (fuller text for towers w/ a tip)
     btn.innerHTML = `<span class="key">${i+1}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
     btn.onclick = () => {
       if (gold < cost) return;
@@ -339,8 +343,9 @@ function effDmg(t) {
   let d = t.dmg * metaDmgMult() * buffMultFor(t) * (perkState.typeDmg[t.type] || 1) * perkState.dmgMult;
   d *= 1 + 0.06 * tRank('mastery_' + t.type);
   if (t.spec === 'ap') d *= 1.25;
-  if (t.spec === 'shatter') d *= 6;
+  if (t.spec === 'shatter') d *= 4.5;
   if (t.spec === 'cluster') d *= 1.5;
+  if (t.spec === 'mega') d *= 1.15;
   if (modIs('surge')) d *= 1.3;
   return d;
 }
@@ -353,7 +358,7 @@ function effRange(t) {
   return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1);
 }
 function effBuffPower(t) {
-  return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + 0.03 * tRank('mastery_buff');
+  return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');
 }
 function effBuffRange(t) {
   return t.range * (t.spec === 'network' ? 1.5 : 1) * (1 + 0.02 * tRank('mastery_buff'));
@@ -431,6 +436,7 @@ document.addEventListener('keydown', e => {
 
 function toggleSpeed() {
   speed = speed === 1 ? 2 : speed === 2 ? 3 : 1;
+  try { localStorage.setItem('cd_speed', speed); } catch(e) {}
   document.getElementById('speedBtn').textContent = `⏩ ${speed}x`;
 }
 function togglePause() {

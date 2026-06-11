@@ -42,8 +42,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       lanes.
 - [ ] **Boss variety** — distinct boss behaviors per campaign tier (shielded,
       summoner, regenerator) instead of just scaled HP.
-- [ ] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
-      option and buff it (justify with sim).
+- [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
+      option and buff it (justify with sim). v1.10.0 reworked the three the owner
+      flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
+      a poison overhaul). Still to audit: sniper (Deadeye vs Executioner), frost
+      (Deep Freeze vs Shatter), tesla (Superconductor vs Overcharge), gun (Minigun
+      vs AP) — check none is strictly dominated.
 
 ## Game feel / polish
 
@@ -53,10 +57,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
       chirp + shake + particle burst + floater. Cosmetic only — no gold/save
       impact. Follow-ups: ✅ **best-combo stat on Records panel** + ✅ **"Combo
       Master" achievement (30× streak)** both shipped v1.8.0 (💥 9th badge + 🔥
-      lifetime `meta.stats.bestCombo`). Remaining: *combo-gated board tint at
-      huge streaks*, and a **mid-streak "near miss" cue** (combo timer bar
-      flashes red as the 2s window runs out) so keeping the chain alive feels
-      tense.
+      lifetime `meta.stats.bestCombo`). ✅ **Mid-streak "near miss" cue** shipped
+      v1.10.0 — the bottom-right combo timer bar now blinks red in the last third
+      of the 2s window. Remaining: *combo-gated board tint at huge streaks*.
 - [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed across
       v1.8.3 → v1.8.5. The "COMBO" label sits beside the multiplier with the
       timer bar in its own lane (no bar-over-text). The persistent meter now
@@ -100,12 +103,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
 ## Balance (simulate before/after, ≤25% per number per run)
 
 - [~] **Overall difficulty too easy** (owner FEEDBACK, recurring) — being raised
-      iteratively, ≤25%/run. v1.9.2 took the first step: enemy HP +20% uniform
-      (`enemyTemplate` `1.2`→`1.44`). The owner finds it *trivially* easy (clears
-      with a fraction of intended resources), so keep ratcheting: next candidate
+      iteratively, ≤25%/run. Enemy HP multiplier (`enemyTemplate`): `1.2`→`1.44`
+      (v1.9.2, +20%)→`1.80` (v1.10.0, +25% more). The owner still cleared campaign
+      9/40 on hard with 2 frosts + a booster, so keep ratcheting: next candidate
       levers — another HP step, slower economy snowball (trim early interest/
-      wave-clear bonus/bounty), or stronger late bosses. Don't exceed 25% on any
-      one number per run; simulate before/after.
+      wave-clear bonus/bounty), the Frost/booster snowball item below, or stronger
+      late bosses. Don't exceed 25% on any one number per run; simulate before/after.
+- [ ] **Frost/booster damage snowball** (owner FEEDBACK, v1.10.0) — Shatter was cut
+      ×6→×4.5, but the underlying multiplicative stack is still strong: a single L6
+      **booster** aura is +75% (`buffPower` +0.1/level off a 0.25 base) and **Frost
+      Mastery** adds +30%, all multiplying Shatter and Frostbite. Owner cleared
+      campaign 9 on hard with just 2 frosts + 1 booster. Next candidate levers (≤25%
+      each, sim first): taper booster per-level scaling (e.g. +0.08/level, or a soft
+      cap), or trim Frost Mastery's per-rank dmg. Don't gut any single build.
 - [ ] **Interest/economy curve review** — verify gold pacing across difficulties
       with the harness. Tie to the difficulty work above: the owner's "money from
       the first 10 rounds" line points at a front-loaded snowball — a modest cut to
@@ -123,11 +133,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       handlers, so it's effectively unplayable on phones/tablets. Add
       `pointerdown`/`touchstart` paths (pointer events unify mouse+touch). The
       `viewport` meta is now in place (v1.8.6), so this is the next mobile blocker.
-- [ ] **`prefers-reduced-motion` support** — the game leans hard on screen-shake
-      and particle bursts. Respect the OS reduced-motion setting (gate `shake`,
-      explosions, combo flashes) for an accessibility + motion-sensitivity win.
-      Also add an in-game toggle (ties into the existing "shake/particle toggle"
-      polish item).
+- [x] **`prefers-reduced-motion` support** — shipped v1.10.0. A `reduceMotion()`
+      helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the **screen-shake**
+      translate in `draw()` **and** thins particle bursts in `addExplosion()`
+      (count ×0.3, velocity ×0.5). OS "reduce motion" → no shake, no spray. The only
+      remaining piece is an *in-game* toggle for users who want it without the OS flag
+      — tracked separately under the "shake/particle toggle" settings item below.
 - [ ] **Gamepad support** — `navigator.getGamepads()` polling for tower select /
       ability fire / cursor movement. Lower priority than touch.
 - [ ] **Colorblind-safe palette option** — enemy kinds and combo tiers lean on

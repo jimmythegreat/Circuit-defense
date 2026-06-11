@@ -4,6 +4,10 @@ let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters,
 let livesLostThisRun = false;
 let waveActive, spawnQueue, spawnTimer, selectedShop, selectedTower, gameOver, victory, started;
 let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
+// Restore the game-speed preference (1x/2x/3x) — persisted like cd_mute so a refresh
+// (and resuming a run) keeps your chosen speed instead of silently dropping to 1x,
+// which made every tower appear to fire at its base cadence after a reload.
+{ const _sp = +localStorage.getItem('cd_speed'); if (_sp === 2 || _sp === 3) speed = _sp; }
 // Kill-streak combo (run-only, never saved): consecutive kills within COMBO_WINDOW seconds
 let comboCount = 0, comboTimer = 0, comboBest = 0, comboFlash = 0;
 const COMBO_WINDOW = 2.0;

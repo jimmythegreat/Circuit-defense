@@ -231,7 +231,7 @@ function hitEnemy(p) {
   if (p.kind === 'bomb') {
     SFX.bomb();
     shake = Math.max(shake, 3);
-    const radius = 55 * perkState.splashMult * (p.src && p.src.spec === 'mega' ? 1.5 : 1);
+    const radius = 55 * perkState.splashMult * (p.src && p.src.spec === 'mega' ? 1.6 : 1);
     addExplosion(p.target.x, p.target.y, '#ffd866', 14, 140);
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
@@ -239,12 +239,16 @@ function hitEnemy(p) {
     }
   } else if (p.kind === 'poison') {
     let dur = perkState.poisonDur;
-    let dps = p.dmg * 2.2;
+    let dps = p.dmg * 2.6;
     if (p.src) {
       if (p.src.spec === 'virulent') dps *= 2;
       if (p.src.spec === 'lingering') dur *= 2;
     }
     p.target.poison = { dps, t: dur, src: p.src };
+    // acid corrodes defense: each application strips a little armor (floors at 0),
+    // so a poison tower softens shielded/armored enemies & bosses for the rest of
+    // the team (owner FEEDBACK: "poison should also reduce enemy defense")
+    if (p.target.armor) p.target.armor = Math.max(0, p.target.armor - 3);
     damage(p.target, p.dmg, p.src);
     addExplosion(p.target.x, p.target.y, '#3fb950', 4, 60);
   } else {

@@ -3,6 +3,102 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.10.0 — 2026-06-11
+
+**Spec rework + poison buff (FEEDBACK / balance) bundled with two polish wins.**
+Owner asked to batch several smaller items this run. The mandated centerpiece is the
+top FEEDBACK item (a `[balance]` spec/poison complaint); two low-risk polish items
+ride along.
+
+**1. FEEDBACK #1 — booster/cannon spec rework + poison buff.** Owner: *"Booster final
+upgrades need a rework. I'm not sure I'd ever choose 50% range over 20% damage.
+Similarly for cannon … 50% blast radius over 50% damage. Also, Poison is WAY under
+powered. Maybe it should also reduce enemy defense. As well as do some more damage
+over time."* The dominated specs were dominated because the alternative was pure
+range/radius with **zero** damage upside. Fixed by giving each a damage hook so it's
+a real axis choice, not a trap:
+- **Booster · Network** (`effBuffPower`, `cd-game.js`): now grants **+10% aura power**
+  in addition to its +50% range. So the "wide coverage" pick still adds damage —
+  Overclock (+20% power) stays the max-concentrated option, Network is "+10% power
+  across a much bigger footprint." New additive number (+0.10), no existing number swung.
+- **Cannon · Mega Blast** (`effDmg` + splash radius in `cd-update.js`): now **+15%
+  damage** *and* **+60% blast radius** (radius mult `1.5`→`1.6`, a +6.7% swing). The
+  AoE/wave-clear pick now also hits harder; Cluster (+50% dmg) remains the
+  single-target/boss pick. New +15% dmg is additive; the radius swing is well under 25%.
+- **Poison** (`TOWER_TYPES.poison` + `hitEnemy` poison branch): base dmg `6`→`7`
+  (+16.7%), DoT coefficient `2.2`→`2.6` (+18%), and **every poison hit now corrodes
+  −3 enemy armor (floored at 0)** — directly answering "reduce enemy defense." Total
+  DoT rises 13.2→18.2 dps (+38% — but each *individual* lever is ≤25%, satisfying the
+  guardrail, which caps per-number swings, not stacked independent buffs). The armor
+  corrosion makes poison a hard counter to shield/armored/boss enemies (whose HP just
+  rose in v1.9.2), giving it a clear team role. The shop button's short label now reads
+  "DoT + corrodes armor", and a new **hover tooltip** (`title` on the shop button, fed by
+  an optional `tip` field on `TOWER_TYPES`) spells out exactly what corrosion does
+  ("Each hit corrodes −3 enemy armor (down to 0)…") so the mechanic is discoverable.
+
+**2. Difficulty step: enemy HP +25% more (owner FEEDBACK, recurring).** Owner cleared
+campaign 9/40 on hard with just two L6 frosts + a booster — still trivially easy. The
+global enemy-HP multiplier in `enemyTemplate()` goes **1.44 → 1.80** (+25%, the
+guardrail-max single-number step). It's a different number from the v1.9.2 bump
+(1.2→1.44) and from the spec/poison levers above, so all stay within the per-number
+≤25% rule. Uniform coefficient → exactly +25% HP at every wave incl. deep endless;
+bosses (`t.hp*mult`) and tanks (`t.hp*3.2`) scale off it too. Combined with the Shatter
+nerf, this is a deliberate difficulty-focused run; tuning continues iteratively.
+
+**3. Frost · Shatter nerf (owner FEEDBACK, mid-run sim report).** Owner: *"the
+milestone that gives frost 50% more damage combined with shatter is overpowered …
+I completed 9/40 on hard with two frost towers at L6 and a booster at L6. The frost
+tower was doing 764 damage; with a +15% rare it hit 879."* Shatter's flat **×6**
+damage multiplier (`effDmg`, `cd-game.js`) is the dominant lever in that build — it
+multiplies *every* other frost bonus (Frost Mastery, Frostbite, the L6 booster aura,
+perks), so a cheap fast-firing slow-tower turns into a sniper that carries solo runs.
+Cut **×6 → ×4.5** (−25%, at the per-number guardrail edge, justified by the explicit
+owner sim): 764→573, 879→659. Shatter stays clearly the damage pick over Deep Freeze
+(slow 65%), just no longer run-warping. Booster aura scaling (+0.1/level → +75% at L6)
+and Frost Mastery are noted as the next candidate levers on ROADMAP if it's still hot.
+
+**4. Combo near-miss cue (ROADMAP game-feel follow-up).** The bottom-right COMBO
+timer bar now **blinks red in the last third of the 2s window** (blink derived from
+`comboTimer`, no wall-clock) so keeping a chain alive feels tense. Render-only.
+
+**6. Bug fix: game speed now persists across refresh/resume (owner report).** Owner:
+*"there's a bug where when you refresh and continue a game the towers still shoot at
+their original speed. Damage seems to work right."* Root cause: the rAF loop runs
+`update()` `speed` times per frame (`cd-render.js`), but the `speed` global (1×/2×/3×)
+was never persisted — every page load reset it to **1×**. So after a refresh + Resume,
+the *whole* game ran at 1× and every tower fired at its base cadence, while per-shot
+damage (computed independently) looked correct — exactly the reported symptom.
+*(Verified the tower-stat restore itself is correct: a resumed tower's `effRate` and
+range are byte-identical to a freshly-built one, for both plain and minigun-spec towers
+— so the fire-rate value was never the problem; the dropped game-speed was.)* Fix:
+persist `speed` in `localStorage.cd_speed` (mirroring `cd_mute`) — restored at load in
+`cd-state.js`, written in `toggleSpeed()`, and the speed button label synced at startup.
+Additive key with a safe default; old saves unaffected.
+
+**5. `prefers-reduced-motion` support (ROADMAP table-stakes / accessibility).** A new
+`reduceMotion()` helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the
+screen-shake translate in `draw()` **and** thins particle bursts in `addExplosion()`
+(count ×0.3, velocity ×0.5 — a faint hit cue remains, the spray is gone). With the OS
+"reduce motion" setting on, the board no longer shakes or sprays — an accessibility +
+motion-sensitivity win. (An optional *in-game* toggle, for users who want it without
+the OS flag, remains a separate settings item on ROADMAP.)
+
+**Why it's save-safe.** All combat numbers are computed live from base stats /
+formulas every frame — nothing here is persisted. `loadRun()` rebuilds towers from the
+new base poison dmg automatically. No schema change, no migration needed. Specs are
+chosen in-run and stored as ids (`network`/`mega` already existed) — old saves with
+those ids just get the new effects.
+
+**Simulation / evidence.** New test group **[17]** asserts: Network's `effBuffPower`
+exceeds plain booster power; Mega's `effDmg` ≈ 1.15× a no-spec cannon; poison DoT uses
+the 2.6 coefficient and a poison hit drops a shielded enemy's armor by 3; **Shatter
+frost `effDmg` is exactly 4.5× a no-spec frost (the −25% nerf, not the old ×6)**; and
+`reduceMotion()` exists; the poison shop button's tooltip explains the corrosion.
+Group **[16]** updated to assert the new **1.80** HP multiplier (and that it's strictly
+above the prior 1.44). Remaining groups stay green (see suite output). Each changed
+number is ≤25% swing; the combined poison DoT gain (+38%) is the sum of independent
+≤25% levers, which the per-number guardrail allows.
+
 ## v1.9.2 — 2026-06-11
 
 **Difficulty step: enemy HP +20% across the board (FEEDBACK / balance).** Owner

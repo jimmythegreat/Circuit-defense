@@ -3,10 +3,18 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
+// Accessibility: honour the OS "reduce motion" setting — when on, the render loop
+// skips screen-shake (the most motion-sensitive effect). Read live so toggling the
+// OS setting takes effect without a reload; guarded for environments w/o matchMedia.
+let _rmQuery = (typeof window !== 'undefined' && window.matchMedia)
+  ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+function reduceMotion() { return !!(_rmQuery && _rmQuery.matches); }
+
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.9.2';
+const GAME_VERSION = 'v1.10.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.10.0', date: '2026-06-11', body: "Spec & poison rework (your feedback) plus polish. Booster's Network now adds +10% aura power on top of its +50% range, so wider coverage no longer means giving up damage. Cannon's Mega Blast gains +15% damage alongside a bigger +60% blast — a real crowd-clear pick vs Cluster's single-target punch. Poison got a serious glow-up: stronger damage-over-time AND its acid now corrodes enemy armor on every hit, melting shielded foes and bosses for the whole team. Frost's Shatter spec was dialed back (×6 → ×4.5 damage) — paired with Frost Mastery it was carrying whole runs solo. Enemies are also tougher: another +25% health on top of last update's bump (still too easy, per your runs). Bug fix: your game-speed setting (1×/2×/3×) now sticks across a refresh/resume — before, reloading silently dropped you to 1×, which made every tower look like it was firing at its base speed. Also: the COMBO timer bar now flashes red as your streak is about to lapse, and the game respects your OS 'reduce motion' setting (skips screen-shake, thins particle bursts)." },
   { v: 'v1.9.2', date: '2026-06-11', body: "Difficulty bump (your feedback — \"the game is still too easy\"): every enemy now has 20% more health, bosses and tanks included. It's a deliberately modest, across-the-board step — towers still clear the early waves comfortably, but a coasting defense will start to feel the squeeze in the mid-to-late game. More tuning to come as the curve gets dialed in." },
   { v: 'v1.9.1', date: '2026-06-11', body: "Tidier tower menu (your feedback): clicking a tower used to pop its upgrade/sell menu right where you clicked, often covering enemies and the action on the path. The menu now sits pinned in the bottom-left corner of the board instead — out of the way of live combat, in the same spot every time. It grows upward so the spec choice at level 5 never gets cut off." },
   { v: 'v1.9.0', date: '2026-06-11', body: "New enemy — the 👻 Phantom! From wave 13 on, ghostly teal blinkers join the line. Every couple of seconds a phantom flickers and teleports a short hop forward — and while it's mid-blink it's intangible, so shots pass right through it. Slow, single-target towers get punished; quick-firing and area towers shine. Listen for the whoosh." },

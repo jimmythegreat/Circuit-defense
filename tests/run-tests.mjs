@@ -857,24 +857,24 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 16: enemy HP difficulty scaling (v1.9.2, +20% uniform) ----
+  // ---- Test 16: enemy HP difficulty scaling (1.80 multiplier as of v1.10.0) ----
   console.log('\n[16] Enemy HP difficulty scaling');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
       campLevel = 1;
-      // enemyTemplate uses the live formula; assert the +20% multiplier (1.44)
-      // is applied uniformly across waves. Expected = (18 + w*7 + w^1.9) * 1.44
+      // enemyTemplate uses the live formula; assert the 1.80 multiplier is applied
+      // uniformly across waves. Expected = (18 + w*7 + w^1.9) * 1.80
       // * DIFFS.normal.hp (campScale=1 in quick mode).
       const dh = DIFFS['normal'].hp;
-      const expect = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * dh;
-      // oldBaseline(w) = the pre-v1.9.2 formula (1.2 multiplier). The live value
-      // must be strictly above it (it's now 1.44), so a revert to 1.2 would fail.
-      const oldBaseline = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.2 * dh;
+      const expect = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.80 * dh;
+      // prevBaseline(w) = the v1.9.2 formula (1.44 multiplier). The live value must
+      // be strictly above it (it's now 1.80), so a revert to 1.44 would fail.
+      const prevBaseline = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * dh;
       const samples = [1, 5, 10, 20, 30].map(w => {
         const got = enemyTemplate(w).hp;
-        return { w, got, exp: expect(w), old: oldBaseline(w), ok: Math.abs(got - expect(w)) < 1e-6 };
+        return { w, got, exp: expect(w), old: prevBaseline(w), ok: Math.abs(got - expect(w)) < 1e-6 };
       });
       // A boss (wave 5) scales off the same template HP, so it's tougher too.
       const tmpl = enemyTemplate(5);
@@ -882,15 +882,100 @@ async function main() {
       return { samples, tmplHp5: tmpl.hp };
     });
     for (const s of r.samples) {
-      check(`enemy HP at wave ${s.w} matches +20% formula`, s.ok,
+      check(`enemy HP at wave ${s.w} matches the 1.80 formula`, s.ok,
         `got=${s.got.toFixed(1)} exp=${s.exp.toFixed(1)}`);
     }
-    // Regression guard: HP must be the buffed value, i.e. clearly above the old
-    // 1.2 baseline (old wave-10 normal HP was 1.2*dh*(...); new is 1.44*dh*(...)).
-    check('wave-10 HP is the buffed (1.44) value, strictly above the old 1.2 baseline',
+    // Regression guard: HP must be the latest value, i.e. clearly above the prior
+    // 1.44 baseline (a revert to 1.44 or 1.2 would fail this).
+    check('wave-10 HP is the 1.80 value, strictly above the prior 1.44 baseline',
       r.samples[2].got > r.samples[2].old + 1e-6,
-      `hp=${r.samples[2].got.toFixed(1)} oldBaseline=${r.samples[2].old.toFixed(1)}`);
+      `hp=${r.samples[2].got.toFixed(1)} prevBaseline=${r.samples[2].old.toFixed(1)}`);
     check('no console errors during HP-scaling tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // ---- Test 17: spec rework + poison buff (FEEDBACK balance, v1.10.0) ----
+  console.log('\n[17] Spec rework + poison buff');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      const mk = (type, spec) => ({
+        type, x: 200, y: 200, range: TOWER_TYPES[type].range, dmg: TOWER_TYPES[type].dmg,
+        rate: TOWER_TYPES[type].rate, cd: 0, level: 1, baseCost: 50, invested: 50,
+        angle: 0, mode: 'first', spec, dealt: 0, kills: 0, buffPower: 0.25, flash: 0
+      });
+      // Booster: Network now adds +10% power on top of its range (was range-only).
+      const plain = effBuffPower(mk('buff', null));
+      const net   = effBuffPower(mk('buff', 'network'));
+      const over  = effBuffPower(mk('buff', 'overclock'));
+      // Cannon: Mega Blast now also +15% dmg (was radius-only).
+      const canPlain = effDmg(mk('cannon', null));
+      const canMega  = effDmg(mk('cannon', 'mega'));
+      // Frost: Shatter nerfed ×6 -> ×4.5 (run-warping solo carry, owner FEEDBACK).
+      const frostPlain   = effDmg(mk('frost', null));
+      const frostShatter = effDmg(mk('frost', 'shatter'));
+      // Poison: base dmg bumped 6→7; DoT coefficient 2.6; armor corrosion −3/hit.
+      const poisonBaseDmg = TOWER_TYPES.poison.dmg;
+      const src = mk('poison', null);
+      const foe = { kind:'shield', hp: 5000, x:200, y:200, r:13, armor: 10, dead:false,
+                    blinkInvuln:0, flash:0, poison:null, slow:0, frozen:0 };
+      const armorBefore = foe.armor;
+      hitEnemy({ kind:'poison', target: foe, dmg: src.dmg, src, color:'#3fb950' });
+      const armorAfter = foe.armor;
+      const dotDps = foe.poison ? foe.poison.dps : 0;
+      const hasReduceMotion = typeof reduceMotion === 'function';
+      // Shop tooltip: the poison button's title should explain the armor corrosion.
+      renderShop();
+      const shopBtns = [...document.getElementById('shop').children];
+      const poisonBtn = shopBtns.find(b => b.title && b.title.startsWith('Poison'));
+      const poisonTip = poisonBtn ? poisonBtn.title : '';
+      backToMenu();
+      return { plain, net, over, canPlain, canMega, frostPlain, frostShatter,
+               poisonBaseDmg, armorBefore, armorAfter, dotDps, hasReduceMotion, poisonTip };
+    });
+    check('Booster Network adds aura power (not range-only anymore)', r.net > r.plain + 1e-9,
+      `plain=${r.plain.toFixed(3)} network=${r.net.toFixed(3)}`);
+    check('Booster Overclock still the higher-power pick', r.over > r.net,
+      `overclock=${r.over.toFixed(3)} network=${r.net.toFixed(3)}`);
+    check('Cannon Mega Blast now adds ~15% damage', Math.abs(r.canMega - r.canPlain * 1.15) < 1e-6,
+      `plain=${r.canPlain.toFixed(2)} mega=${r.canMega.toFixed(2)}`);
+    check('Poison base damage buffed to 7', r.poisonBaseDmg === 7, `got ${r.poisonBaseDmg}`);
+    check('Poison DoT uses the 2.6 coefficient', Math.abs(r.dotDps - r.poisonBaseDmg * 2.6) < 1e-6,
+      `dps=${r.dotDps} expected=${(r.poisonBaseDmg * 2.6).toFixed(2)}`);
+    check('Poison corrodes 3 armor per hit', r.armorBefore - r.armorAfter === 3,
+      `before=${r.armorBefore} after=${r.armorAfter}`);
+    check('Frost Shatter nerfed to exactly 4.5× (not the old ×6)',
+      Math.abs(r.frostShatter - r.frostPlain * 4.5) < 1e-6,
+      `plain=${r.frostPlain.toFixed(2)} shatter=${r.frostShatter.toFixed(2)}`);
+    check('reduceMotion() helper exists (prefers-reduced-motion support)', r.hasReduceMotion);
+    check('poison shop tooltip explains the armor corrosion', /corrod/i.test(r.poisonTip) && /armor/i.test(r.poisonTip),
+      `tip="${r.poisonTip}"`);
+    check('no console errors during spec/poison tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // ---- Test 18: game-speed preference persists across reload (bug fix, v1.10.0) ----
+  console.log('\n[18] Game-speed preference persists');
+  {
+    // Set the speed pref, then load a FRESH page and confirm `speed` restored to 3×
+    // (regression for: refresh/resume silently dropped to 1×, so towers appeared to
+    // fire at their base cadence — "shoot at original speed" owner bug report).
+    const page = await browser.newPage();
+    await page.addInitScript(() => { try { localStorage.setItem('cd_mute', '1'); localStorage.setItem('cd_speed', '3'); } catch (e) {} });
+    await page.goto(GAME_URL, { waitUntil: 'load' });
+    const r = await page.evaluate(() => {
+      const restored = { speed, btn: document.getElementById('speedBtn').textContent };
+      toggleSpeed(); // 3 -> 1, should persist
+      const afterToggle = { speed, stored: localStorage.getItem('cd_speed'), btn: document.getElementById('speedBtn').textContent };
+      try { localStorage.removeItem('cd_speed'); } catch (e) {}
+      return { restored, afterToggle };
+    });
+    check('speed restores to 3× from cd_speed on load', r.restored.speed === 3, `speed=${r.restored.speed}`);
+    check('speed button label reflects the restored value', r.restored.btn.includes('3x'), `btn="${r.restored.btn}"`);
+    check('toggling speed persists the new value to cd_speed', r.afterToggle.stored === '1',
+      `stored=${r.afterToggle.stored}`);
     await page.close();
   }
 
