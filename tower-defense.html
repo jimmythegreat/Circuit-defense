@@ -970,7 +970,7 @@ function backToMenu() {
 function enemyTemplate(w) {
   const d = DIFFS[diffKey];
   const campScale = gameMode === 'campaign' ? 1 + (campLevel - 1) * 0.04 : 1;
-  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * d.hp * campScale;
+  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.2 * d.hp * campScale;
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
 }
 function buildWave(w) {
