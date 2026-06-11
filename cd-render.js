@@ -1,0 +1,449 @@
+'use strict';
+// ================= Render =================
+function draw() {
+  ctx.save();
+  if (shake > 0) {
+    ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+  }
+  ctx.clearRect(-20, -20, W+40, H+40);
+
+  // background gradient + stars
+  const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 600);
+  grad.addColorStop(0, '#0d1420');
+  grad.addColorStop(1, '#070a10');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+  const now = performance.now() / 1000;
+  for (const s of stars) {
+    const tw = 0.3 + 0.7 * Math.abs(Math.sin(now * s.sp + s.ph));
+    ctx.globalAlpha = tw * 0.6;
+    ctx.fillStyle = '#9ecbff';
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+
+  // grid
+  ctx.strokeStyle = 'rgba(88,166,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // path with depth bevel + glow
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#04060a'; ctx.lineWidth = 46;
+  ctx.beginPath();
+  ctx.moveTo(waypoints[0][0], waypoints[0][1] + 6);
+  for (const [x,y] of waypoints) ctx.lineTo(x, y + 6);
+  ctx.stroke();
+  ctx.shadowColor = 'rgba(88,166,255,0.4)';
+  ctx.shadowBlur = 18;
+  ctx.strokeStyle = '#1c2533'; ctx.lineWidth = 42;
+  ctx.beginPath();
+  ctx.moveTo(waypoints[0][0], waypoints[0][1]);
+  for (const [x,y] of waypoints) ctx.lineTo(x, y);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#243044'; ctx.lineWidth = 34;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(88,166,255,0.25)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 20]);
+  ctx.lineDashOffset = -performance.now()/40;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // exit marker
+  const exitPt = waypoints[waypoints.length-1];
+  ctx.font = '22px sans-serif';
+  ctx.fillText('🏠', Math.min(W-30, exitPt[0]-14), exitPt[1]+8);
+
+  // run perks display
+  if (runPerks.length && started) {
+    ctx.font = '15px sans-serif';
+    let px = 12;
+    for (const p of runPerks) {
+      ctx.fillText(p.icon, px, 22);
+      px += 22;
+    }
+  }
+
+  // meteor target reticle
+  if (armedAbility === 'meteor' && mouseX > 0) {
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, 95, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,123,66,0.1)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,123,66,0.6)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('☄️', mouseX, mouseY + 7);
+    ctx.textAlign = 'left';
+  }
+
+  // placement preview
+  if (selectedShop && mouseX > 0 && !gameOver && started && !paused && armedAbility !== 'meteor') {
+    const def = TOWER_TYPES[selectedShop];
+    const ok = canPlace(mouseX, mouseY);
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, def.range, 0, Math.PI*2);
+    ctx.fillStyle = ok ? (selectedShop==='buff' ? 'rgba(240,136,62,0.1)' : 'rgba(88,166,255,0.08)') : 'rgba(248,81,73,0.08)';
+    ctx.fill();
+    ctx.strokeStyle = ok ? 'rgba(88,166,255,0.4)' : 'rgba(248,81,73,0.5)';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, 13, 0, Math.PI*2);
+    ctx.fillStyle = ok ? def.color : '#f85149';
+    ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+  }
+
+  // towers
+  for (const t of towers) {
+    const def = TOWER_TYPES[t.type];
+    const buffed = t.type !== 'buff' && buffMultFor(t) > 1;
+    if (t === selectedTower) {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.type === 'buff' ? effBuffRange(t) : effRange(t), 0, Math.PI*2);
+      ctx.fillStyle = t.type==='buff' ? 'rgba(240,136,62,0.08)' : 'rgba(88,166,255,0.07)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(88,166,255,0.35)';
+      ctx.stroke();
+    }
+    if (t.type === 'buff') {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, effBuffRange(t), 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(240,136,62,0.18)';
+      ctx.setLineDash([4, 8]);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // buffed glow ring
+    if (buffed) {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 17, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(240,136,62,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    // ground shadow
+    ctx.beginPath();
+    ctx.ellipse(t.x + 3, t.y + 10, 15, 6, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fill();
+    // cylinder body
+    const bodyG = ctx.createLinearGradient(t.x - 14, 0, t.x + 14, 0);
+    bodyG.addColorStop(0, shade(def.color, -100));
+    bodyG.addColorStop(0.45, shade(def.color, -35));
+    bodyG.addColorStop(1, shade(def.color, -120));
+    ctx.fillStyle = bodyG;
+    ctx.fillRect(t.x - 13, t.y - 6, 26, 13);
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y + 7, 13, 5.5, 0, 0, Math.PI*2);
+    ctx.fillStyle = shade(def.color, -110);
+    ctx.fill();
+    // lit top face
+    const topG = ctx.createRadialGradient(t.x - 4, t.y - 9, 2, t.x, t.y - 6, 15);
+    topG.addColorStop(0, shade(def.color, 55));
+    topG.addColorStop(1, shade(def.color, -45));
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y - 6, 13, 5.5, 0, 0, Math.PI*2);
+    ctx.fillStyle = topG;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    if (t.type !== 'buff') {
+      // turret barrel with metallic gradient
+      ctx.save();
+      ctx.translate(t.x, t.y - 7);
+      ctx.rotate(t.angle);
+      const barG = ctx.createLinearGradient(0, -4, 0, 4);
+      barG.addColorStop(0, shade(def.color, 45));
+      barG.addColorStop(0.5, def.color);
+      barG.addColorStop(1, shade(def.color, -70));
+      ctx.fillStyle = barG;
+      ctx.fillRect(3, -3.5, 17, 7);
+      if (t.flash > 0) {
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(22, 0, 4.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      ctx.restore();
+      // dome
+      ctx.beginPath();
+      ctx.arc(t.x, t.y - 8, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = shade(def.color, 70);
+      ctx.fill();
+    } else {
+      // rotating radar dish on top
+      ctx.save();
+      ctx.translate(t.x, t.y - 8);
+      ctx.rotate(performance.now()/600);
+      ctx.strokeStyle = shade(def.color, 40);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 9, -0.65, 0.65);
+      ctx.stroke();
+      ctx.fillStyle = shade(def.color, 70);
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+    // spec star
+    if (t.spec) {
+      ctx.fillStyle = '#d2a8ff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('★', t.x, t.y - 22);
+      ctx.textAlign = 'left';
+    }
+    ctx.fillStyle = '#ffd866';
+    for (let i = 0; i < t.level - 1; i++) {
+      ctx.fillRect(t.x - 13 + i*4.5, t.y + 15, 3.2, 3.2);
+    }
+  }
+
+  // enemies
+  let bossAlive = null;
+  for (const e of enemies) {
+    if (e.x === undefined) continue;
+    if (e.kind === 'boss') bossAlive = e;
+    // motion streak for fast enemies
+    if (e.kind === 'fast' && e.px) {
+      ctx.strokeStyle = 'rgba(210,168,255,0.3)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(e.px - (e.x-e.px)*3, e.py - (e.y-e.py)*3);
+      ctx.lineTo(e.x, e.y);
+      ctx.stroke();
+    }
+    if (e.slow > 0 && e.frozen <= 0) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 4, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(121,192,255,0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    if (e.poison && e.poison.t > 0) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(63,185,80,0.6)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    if (e.kind === 'heal') {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 70, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(86,211,100,0.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // ground shadow
+    ctx.beginPath();
+    ctx.ellipse(e.x + 2, e.y + e.r * 0.85, e.r * 0.9, e.r * 0.35, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fill();
+    // shaded sphere
+    const ecol = e.flash > 0 ? '#ffffff' : (e.frozen > 0 ? '#9be8ff' : e.color);
+    const sphereG = ctx.createRadialGradient(e.x - e.r*0.35, e.y - e.r*0.4, e.r*0.15, e.x, e.y, e.r);
+    sphereG.addColorStop(0, shade(ecol, 85));
+    sphereG.addColorStop(0.6, ecol);
+    sphereG.addColorStop(1, shade(ecol, -85));
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+    ctx.fillStyle = sphereG;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    if (e.frozen > 0) { ctx.font = '10px sans-serif'; ctx.fillText('❄', e.x, e.y + 4); }
+    else if (e.kind === 'boss') { ctx.font = 'bold 16px sans-serif'; ctx.fillText('☠', e.x, e.y + 6); }
+    else if (e.kind === 'heal') { ctx.font = 'bold 12px sans-serif'; ctx.fillText('+', e.x, e.y + 4); }
+    else if (e.kind === 'shield') { ctx.font = '10px sans-serif'; ctx.fillText('🛡', e.x, e.y + 4); }
+    else if (e.kind === 'split') { ctx.font = 'bold 11px sans-serif'; ctx.fillText('✂', e.x, e.y + 4); }
+    ctx.textAlign = 'left';
+    const w = e.r * 2.2;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(e.x - w/2, e.y - e.r - 9, w, 4);
+    ctx.fillStyle = e.hp/e.maxHp > 0.4 ? '#3fb950' : '#f85149';
+    ctx.fillRect(e.x - w/2, e.y - e.r - 9, w * Math.max(0, e.hp/e.maxHp), 4);
+  }
+
+  // boss bar
+  if (bossAlive) {
+    const bw = 320, bx = (W-bw)/2, by = 14;
+    ctx.fillStyle = 'rgba(13,17,23,0.8)';
+    ctx.fillRect(bx-6, by-6, bw+12, 24);
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx-6, by-6, bw+12, 24);
+    ctx.fillStyle = 'rgba(248,81,73,0.25)';
+    ctx.fillRect(bx, by, bw, 12);
+    ctx.fillStyle = '#f85149';
+    ctx.fillRect(bx, by, bw * Math.max(0, bossAlive.hp/bossAlive.maxHp), 12);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`☠ OVERLORD — WAVE ${wave}`, W/2, by + 10);
+    ctx.textAlign = 'left';
+  }
+
+  // beams
+  for (const b of beams) {
+    ctx.globalAlpha = Math.min(1, b.life * 10);
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(b.x1, b.y1);
+    const mx = (b.x1+b.x2)/2 + (Math.random()-0.5)*16;
+    const my = (b.y1+b.y2)/2 + (Math.random()-0.5)*16;
+    ctx.lineTo(mx, my);
+    ctx.lineTo(b.x2, b.y2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
+  // projectiles with motion trails
+  for (const p of projectiles) {
+    const pdx = p.target.x - p.x, pdy = p.target.y - p.y;
+    const pdd = Math.hypot(pdx, pdy) || 1;
+    const trailLen = p.kind === 'bomb' ? 18 : 13;
+    const tx = p.x - pdx/pdd * trailLen, ty = p.y - pdy/pdd * trailLen;
+    const tg = ctx.createLinearGradient(tx, ty, p.x, p.y);
+    tg.addColorStop(0, 'rgba(0,0,0,0)');
+    tg.addColorStop(1, p.color);
+    ctx.strokeStyle = tg;
+    ctx.lineWidth = p.kind === 'bomb' ? 5 : 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.kind === 'bomb' ? 6 : 3.5, 0, Math.PI*2);
+    const pg = ctx.createRadialGradient(p.x - 1.5, p.y - 1.5, 0.5, p.x, p.y, p.kind === 'bomb' ? 6 : 3.5);
+    pg.addColorStop(0, '#fff');
+    pg.addColorStop(1, p.color);
+    ctx.fillStyle = pg;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // particles
+  for (const pt of particles) {
+    ctx.globalAlpha = Math.max(0, pt.life * 2);
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+
+  // floaters
+  for (const f of floaters) {
+    ctx.globalAlpha = Math.min(1, f.life);
+    ctx.fillStyle = f.color;
+    ctx.font = `bold ${f.size}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
+
+  // wave preview
+  if (!waveActive && !gameOver && started && wave >= 0 && wave < victoryWave()) {
+    ctx.fillStyle = 'rgba(139,148,158,0.85)';
+    ctx.font = '13px sans-serif';
+    ctx.fillText(`Next: ${waveDesc(wave+1)}`, 12, H - 12);
+    if (isMayhem() && wave > 0 && wave % 5 === 0) {
+      ctx.fillStyle = 'rgba(210,168,255,0.9)';
+      ctx.fillText('🌀 The world will shift when the next wave begins!', 12, H - 30);
+    }
+  }
+  // active mayhem modifier
+  if (waveActive && waveMod) {
+    ctx.fillStyle = 'rgba(255,216,102,0.95)';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`${waveMod.icon} ${waveMod.name} — ${waveMod.desc}`, 12, H - 12);
+  }
+
+  // kill-streak combo meter (top-left — clear of the top-right ability bar and
+  // the centered boss bar): grows + glows hotter with the streak
+  if (comboCount >= 2 && comboTimer > 0 && started && !gameOver) {
+    const cc = comboColor(comboCount);
+    const frac = Math.max(0, comboTimer / COMBO_WINDOW);
+    const pulse = 1 + comboFlash * 0.22;
+    ctx.save();
+    ctx.translate(16, 38);
+    ctx.scale(pulse, pulse);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = cc;
+    ctx.shadowColor = cc; ctx.shadowBlur = 12;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(`${comboCount}×`, 0, 0);
+    ctx.shadowBlur = 0;
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillStyle = 'rgba(230,237,243,0.85)';
+    ctx.fillText('COMBO', 1, 15);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(16, 48, 80, 4);
+    ctx.fillStyle = cc;
+    ctx.fillRect(16, 48, 80 * frac, 4);
+    ctx.textAlign = 'left';
+  }
+
+  // vignette for depth
+  const vg = ctx.createRadialGradient(W/2, H/2, H*0.42, W/2, H/2, W*0.7);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.38)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
+
+  // paused banner
+  if (paused && started && !gameOver) {
+    ctx.fillStyle = 'rgba(13,17,23,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#58a6ff';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⏸ PAUSED', W/2, H/2);
+    ctx.font = '15px sans-serif';
+    ctx.fillStyle = '#8b949e';
+    ctx.fillText('Press P to resume', W/2, H/2 + 32);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
+// ================= Loop =================
+let last = performance.now();
+function loop(now) {
+  let dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  for (let i = 0; i < speed; i++) update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+started = false;
+loadMeta();
+buildPath();
+renderStartScreen();
+resetState();
+setActiveUI();
+initWhatsNew();
+requestAnimationFrame(loop);

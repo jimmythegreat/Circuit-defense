@@ -1,6 +1,18 @@
 # Circuit Defense
 
-A browser tower defense game. **The game is three self-contained files (v1.8.1): `tower-defense.html` (markup) + `tower-defense.css` (styles) + `tower-defense.js` (all code, ~2118 lines).** They're wired with classic `<link rel="stylesheet">` and `<script src="tower-defense.js">` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise). (`tower-defense.js` is still over the ~1500-line guideline — domain-splitting it further is a queued follow-up; see FEEDBACK.md / ROADMAP.md.)
+A browser tower defense game. **The game is `tower-defense.html` (markup) + `tower-defense.css` (styles) + seven domain-split JS files (v1.8.2).** Everything is wired with classic `<link rel="stylesheet">` and `<script src>` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
+
+**JS load order (classic scripts share one global scope, so order = dependency order — do not reorder, and keep the startup-init block last in `cd-render.js`):**
+
+1. `cd-core.js` — canvas refs (`cv`/`ctx`/`W`/`H`), `GAME_VERSION`/`CHANGELOG_ENTRIES` + What's-New panel, audio (`tone`/`noise`/`SFX`)
+2. `cd-maps.js` — `MAPS`/`genPathWith`/`buildPath`/`pointAt`, mayhem `WAVE_MODS`, stars, difficulty
+3. `cd-defs.js` — `TALENTS`/`loadMeta`/meta, `TOWER_TYPES`/`MODES`/`SPECS`, `ABILITIES`, `PERKS`/`REPEATABLE`/`openDraft`
+4. `cd-state.js` — run state globals, kill-combo vars, `saveRun`/`loadRun`/`resetState`
+5. `cd-game.js` — start screen/`beginGame`, enemies/`startWave`, shop, upgrade panel, `eff*` stats, input listeners
+6. `cd-update.js` — `update()`, `ACHIEVEMENTS`/`grantAchievements`, `recordBest`/`applyRecordFlourish`, `endGame`/`winGame`
+7. `cd-render.js` — `draw()`, the rAF `loop`, and the startup init calls (`loadMeta`/`buildPath`/`renderStartScreen`/`resetState`/`setActiveUI`/`initWhatsNew`/`requestAnimationFrame(loop)`)
+
+When adding code, drop it in the file whose domain it matches; new globals are visible everywhere as long as the file defining them loads before any top-level code that runs them (function bodies are fine anywhere — they resolve at call time).
 
 ## Running / testing
 
@@ -15,7 +27,7 @@ A browser tower defense game. **The game is three self-contained files (v1.8.1):
 - Synthetic canvas clicks must set real `clientX/clientY` relative to `cv.getBoundingClientRect()` — the click handler recomputes coords from the event.
 - **Always clean up test data afterwards**: remove localStorage keys `cd_save`, `cd_meta`, `cd_campaign`, `cd_best_easy/normal/hard`, reset `meta = {chips:0, talents:{}}; loadMeta()`, and call `backToMenu()` so the user starts fresh.
 
-## Architecture (all code in `tower-defense.js`)
+## Architecture (code split across the seven `cd-*.js` files above)
 
 Rough section order in the file:
 

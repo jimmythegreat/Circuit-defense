@@ -103,6 +103,14 @@
 </aside>
 </div><!-- /appRow -->
 
-<script src="tower-defense.js"></script>
+<!-- Game code, split by domain. Classic scripts (NOT modules) loaded in
+     dependency order — they share global scope, so order matters. -->
+<script src="cd-core.js"></script>
+<script src="cd-maps.js"></script>
+<script src="cd-defs.js"></script>
+<script src="cd-state.js"></script>
+<script src="cd-game.js"></script>
+<script src="cd-update.js"></script>
+<script src="cd-render.js"></script>
 </body>
 </html>

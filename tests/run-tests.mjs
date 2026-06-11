@@ -621,21 +621,34 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 12: external-file split (html/css/js) is wired & loads over file:// ----
+  // ---- Test 12: domain-split files (html/css + ordered js modules) wired & load over file:// ----
   // The game ships as separate files linked with classic <link>/<script src> tags
-  // (NOT ES modules — those break on file://). This guards against re-inlining or a
-  // broken reference, and confirms the external CSS/JS actually load when the page is
-  // opened by double-click (file://), which is exactly how Playwright loads it here.
-  console.log('\n[12] External-file split (html/css/js)');
+  // (NOT ES modules — those break on file://). The JS is split by domain into
+  // ordered classic scripts that share global scope, so load order is load-bearing.
+  // This guards against re-inlining, a broken reference, a dropped script, or an
+  // accidental module tag, and confirms everything loads over file:// (= double-click).
+  console.log('\n[12] Domain-split files (html/css/js)');
   {
     const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
+    // The ordered JS domain files (load order is dependency order — do not reorder).
+    const JS_FILES = ['cd-core.js', 'cd-maps.js', 'cd-defs.js', 'cd-state.js',
+                      'cd-game.js', 'cd-update.js', 'cd-render.js'];
     check('tower-defense.css file exists', existsSync(resolve(ROOT, 'tower-defense.css')));
-    check('tower-defense.js file exists', existsSync(resolve(ROOT, 'tower-defense.js')));
+    check('old monolithic tower-defense.js is gone', !existsSync(resolve(ROOT, 'tower-defense.js')));
+    for (const f of JS_FILES) {
+      check(`${f} file exists`, existsSync(resolve(ROOT, f)));
+      check(`${f} starts with a 'use strict' directive`,
+        /^\s*['"]use strict['"];/.test(readFileSync(resolve(ROOT, f), 'utf8')));
+    }
     check('HTML links the external stylesheet',
       /<link[^>]+href=["']tower-defense\.css["']/.test(html));
-    check('HTML loads the external script via classic <script src>',
-      /<script[^>]+src=["']tower-defense\.js["']/.test(html));
-    check('script tag is NOT an ES module (would break on file://)',
+    // Every domain file is referenced via a classic <script src>, in the right order.
+    const srcOrder = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]);
+    check('all domain JS files referenced via <script src>',
+      JS_FILES.every(f => srcOrder.includes(f)), `found=${srcOrder.join(',')}`);
+    check('domain JS files load in dependency order',
+      JSON.stringify(srcOrder) === JSON.stringify(JS_FILES), `order=${srcOrder.join(',')}`);
+    check('no script tag is an ES module (would break on file://)',
       !/<script[^>]+type=["']module["']/.test(html));
     check('HTML has no leftover inline <style> block', !/<style[\s>]/.test(html));
     // An inline <script> with a body (not a src include) would mean code was re-inlined.
@@ -650,10 +663,12 @@ async function main() {
     const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     check('external stylesheet loaded & applied (body bg from css)',
       bodyBg === 'rgb(13, 17, 23)', `bodyBg=${bodyBg}`);
-    // External script actually ran (core globals present — redundant with [1] but
-    // here it specifically proves the *separate* file executed over file://).
-    const jsRan = await page.evaluate(() => typeof beginGame === 'function' && typeof draw === 'function');
-    check('external script executed (game globals defined)', jsRan);
+    // Globals from DIFFERENT domain files are present, proving they all executed and
+    // share one global scope: beginGame lives in cd-game.js, draw in cd-render.js,
+    // SFX in cd-core.js, TOWER_TYPES in cd-defs.js.
+    const jsRan = await page.evaluate(() => typeof beginGame === 'function' &&
+      typeof draw === 'function' && typeof SFX === 'object' && typeof TOWER_TYPES === 'object');
+    check('all domain scripts executed & share global scope', jsRan);
     check('no console errors with split files', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

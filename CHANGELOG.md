@@ -3,6 +3,43 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.2 — 2026-06-11
+
+**Refactor: domain-split `tower-defense.js` into seven ordered files (the "etc."
+follow-up to v1.8.1; queued in FEEDBACK.md / ROADMAP.md).**
+
+The 2118-line `tower-defense.js` exceeded the ~1500-line-per-file guideline, so
+it's now seven classic `<script src>` files loaded in dependency order:
+
+| File | Lines | Domain |
+| --- | --- | --- |
+| `cd-core.js` | 164 | canvas refs, version / What's-New panel, audio (`tone`/`noise`/`SFX`) |
+| `cd-maps.js` | 153 | maps & paths, mayhem mode, stars, difficulty |
+| `cd-defs.js` | 298 | talents/meta (`loadMeta`), towers, specs, abilities, perks (`openDraft`) |
+| `cd-state.js` | 104 | run state, kill-combo vars, save/resume |
+| `cd-game.js` | 443 | start screen, `beginGame`, enemies, `startWave`, shop, upgrade panel, effective stats, input |
+| `cd-update.js` | 514 | `update()`, game-end, achievements, records, `endGame`/`winGame` |
+| `cd-render.js` | 449 | `draw()`, main rAF loop, startup init |
+
+**Zero behaviour change, proven mechanically.** The files were sliced strictly
+at existing section boundaries with **no reordering**, so concatenating all
+seven (minus the per-file `'use strict';` directive added to each) is
+**byte-identical to the pre-split `tower-defense.js`** — the slicer asserted this
+(`REBUILD MATCHES ORIGINAL: true`). Classic scripts share one global scope, so
+load order = dependency order (the only top-level execution dependencies are the
+`cv/ctx` canvas refs first and the startup init block last; everything between is
+function/const declarations). **No ES modules** (they break `file://`); still
+plays by double-clicking the HTML. Each file is independently strict, matching
+the original single strict script. Saves untouched, no balance/feature edits.
+
+**Tests:** suite stayed green across the change (the [12] block was rewritten to
+assert all seven files exist, each begins with `'use strict'`, they're wired via
+classic `<script src>` in the exact dependency order, no ES-module/inline-code
+leaks, and cross-file globals from four different files all resolve over
+`file://`). Full suite now **112/0 green**. Verified live in the browser preview
+over `http://` too (v1.8.2, all 7 scripts load in order, globals resolve, zero
+console errors).
+
 ## v1.8.1 — 2026-06-11
 
 **Refactor: split the single `tower-defense.html` into html + css + js files

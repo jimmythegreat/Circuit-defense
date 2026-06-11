@@ -1,0 +1,443 @@
+'use strict';
+// ================= Start screen =================
+function renderStartScreen() {
+  document.getElementById('chipsBtn').textContent = meta.chips;
+  document.getElementById('achBtn').textContent = `${achDone()}/${ACHIEVEMENTS.length}`;
+  document.getElementById('verTag').textContent = GAME_VERSION;
+  let hasSave = false;
+  try { const s = JSON.parse(localStorage.getItem('cd_save')); hasSave = !!(s && s.wave > 0); } catch(e) {}
+  document.getElementById('resumeBtn').style.display = hasSave ? 'inline-block' : 'none';
+  if (hasSave) {
+    try {
+      const s = JSON.parse(localStorage.getItem('cd_save'));
+      const whereLbl = s.gameMode === 'campaign' ? `Campaign ${s.campLevel}` : MAPS[s.mapKey].name;
+      document.getElementById('resumeBtn').textContent = `⏯ Resume (wave ${s.wave}, ${whereLbl})`;
+    } catch(e) {}
+  }
+  // mode selector
+  const modeRow = document.getElementById('modeRow');
+  modeRow.innerHTML = '';
+  const modes = [
+    { id:'quick', name:'Quick Play', desc:'Pick a map, survive 30 waves' },
+    { id:'campaign', name:'🏔️ Campaign', desc:`${campaignDone()}/${CAMPAIGN_LEVELS} levels cleared` },
+  ];
+  for (const m of modes) {
+    const b = document.createElement('button');
+    b.className = 'optBtn' + (gameMode === m.id ? ' sel' : '');
+    b.innerHTML = `${m.name}<small>${m.desc}</small>`;
+    b.onclick = () => { gameMode = m.id; renderStartScreen(); };
+    modeRow.appendChild(b);
+  }
+  const mapRow = document.getElementById('mapRow');
+  mapRow.innerHTML = '';
+  if (gameMode === 'quick') {
+    document.getElementById('mapLabel').textContent = 'MAP';
+    for (const k of Object.keys(MAPS)) {
+      const b = document.createElement('button');
+      b.className = 'optBtn' + (mapKey===k ? ' sel' : '');
+      b.innerHTML = `${MAPS[k].name}<small>${MAPS[k].desc}</small>`;
+      b.onclick = () => { mapKey = k; renderStartScreen(); buildPath(); };
+      mapRow.appendChild(b);
+    }
+  } else {
+    document.getElementById('mapLabel').textContent = `LEVEL — waves to clear: ${14 + campLevel}, random map each attempt`;
+    const done = campaignDone();
+    if (campLevel > done + 1) campLevel = done + 1;
+    for (let i = 1; i <= CAMPAIGN_LEVELS; i++) {
+      const b = document.createElement('button');
+      const locked = i > done + 1;
+      b.className = 'lvlBtn' + (campLevel === i ? ' sel' : '') + (i <= done ? ' done' : '') + (locked ? ' locked' : '');
+      b.innerHTML = i <= done ? `${i}<small>✓</small>` : locked ? `🔒<small>${i}</small>` : `${i}<small>${14 + i}w</small>`;
+      if (!locked) b.onclick = () => { campLevel = i; renderStartScreen(); };
+      mapRow.appendChild(b);
+    }
+  }
+  const diffRow = document.getElementById('diffRow');
+  diffRow.innerHTML = '';
+  for (const k of Object.keys(DIFFS)) {
+    const b = document.createElement('button');
+    b.className = 'optBtn' + (diffKey===k ? ' sel' : '');
+    const bw = +(localStorage.getItem('cd_best_' + k) || 0);
+    b.innerHTML = `${DIFFS[k].name}<small>${DIFFS[k].desc}${bw ? ' · best: '+bw : ''} · ${DIFFS[k].chipMult}× 🪙</small>`;
+    b.onclick = () => { diffKey = k; renderStartScreen(); };
+    diffRow.appendChild(b);
+  }
+}
+// Dim the in-game chrome (stats HUD, tower shop, wave controls, hotkey hint)
+// when no game is active so the start screen reads as the only live surface.
+function setActiveUI() {
+  const col = document.getElementById('gameCol');
+  if (col) col.classList.toggle('idle', !started);
+}
+function beginGame() {
+  clearRun();
+  started = true;
+  document.getElementById('startScreen').style.display = 'none';
+  resetState();
+  setActiveUI();
+  SFX.wave();
+}
+function backToMenu() {
+  started = false;
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+  renderStartScreen();
+  resetState();
+  setActiveUI();
+}
+
+// ================= Enemies =================
+function enemyTemplate(w) {
+  const d = DIFFS[diffKey];
+  const campScale = gameMode === 'campaign' ? 1 + (campLevel - 1) * 0.04 : 1;
+  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.2 * d.hp * campScale;
+  return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
+}
+function buildWave(w) {
+  const q = [];
+  let count = 8 + Math.floor(w*1.7);
+  if (modIs('swarm')) count = Math.floor(count * 1.6);
+  const t = enemyTemplate(w);
+  for (let i = 0; i < count; i++) {
+    let e = { kind:'norm', hp:t.hp, spd:t.speed, r:11, bounty:t.bounty, color:'#3fb950', armor:0, gap:0.8 };
+    if (w >= 3 && i % 5 === 4)  e = { kind:'fast', hp:t.hp*0.55, spd:t.speed*1.8, r:8,  bounty:Math.ceil(t.bounty*1.2), color:'#d2a8ff', armor:0, gap:0.45 };
+    if (w >= 5 && i % 7 === 6)  e = { kind:'tank', hp:t.hp*3.2,  spd:t.speed*0.6, r:16, bounty:Math.ceil(t.bounty*2),   color:'#f0883e', armor:0, gap:0.8 };
+    if (w >= 7 && i % 9 === 8)  e = { kind:'heal', hp:t.hp*1.4,  spd:t.speed*0.8, r:12, bounty:Math.ceil(t.bounty*2.2), color:'#56d364', armor:0, gap:0.9 };
+    if (w >= 9 && i % 8 === 7)  e = { kind:'shield', hp:t.hp*1.8, spd:t.speed*0.75, r:13, bounty:Math.ceil(t.bounty*2), color:'#8b949e', armor: 3 + w*0.5, gap:0.85 };
+    if (w >= 11 && i % 10 === 9) e = { kind:'split', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*1.5), color:'#e3b341', armor:0, gap:0.9 };
+    if (modIs('swarm'))  e.hp *= 0.65;
+    if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
+    if (modIs('frenzy')) e.spd *= 1.35;
+    if (modIs('goldrush')) e.bounty *= 2;
+    e.maxHp = e.hp;
+    q.push(e);
+  }
+  if (w % 5 === 0 && w > 0) {
+    const mult = 14 + w*0.5;
+    const boss = { kind:'boss', hp:t.hp*mult, maxHp:t.hp*mult, spd:t.speed*0.45, r:24, bounty:t.bounty*12, color:'#f85149', armor: w*0.4, gap:1.5 };
+    if (modIs('titans')) { boss.hp *= 1.5; boss.bounty = Math.ceil(boss.bounty * 1.5); }
+    if (modIs('goldrush')) boss.bounty *= 2;
+    if (modIs('frenzy')) boss.spd *= 1.35;
+    boss.maxHp = boss.hp;
+    q.push(boss);
+  }
+  return q;
+}
+function waveDesc(w) {
+  const parts = [`${8 + Math.floor(w*1.7)} enemies`];
+  if (w >= 3) parts.push('fast');
+  if (w >= 5) parts.push('tanks');
+  if (w >= 7) parts.push('healers');
+  if (w >= 9) parts.push('armored');
+  if (w >= 11) parts.push('splitters');
+  if (w % 5 === 0 && w > 0) parts.push('BOSS ☠');
+  return parts.join(' · ');
+}
+
+function startWave() {
+  if (waveActive || gameOver || !started || draftOpen) return;
+  if (autoStartTimer > 0.5 && wave > 0) {
+    const bonus = Math.floor(autoStartTimer * 4);
+    gold += bonus;
+    addFloater(W/2, 70, `Early call! +${bonus}💰`, '#3fb950', 16);
+  }
+  wave++;
+  if (isMayhem() && wave > 1 && (wave - 1) % 5 === 0) shiftWorld();
+  rollWaveMod();
+  spawnQueue = buildWave(wave);
+  spawnTimer = 0;
+  waveActive = true;
+  autoStartTimer = -1;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').textContent = `🌊 Wave ${wave}...`;
+  SFX.wave();
+  updateHud();
+}
+
+function endWave() {
+  waveActive = false;
+  waveMod = null;
+  if (wave >= victoryWave() && !victory) { winGame(); return; }
+  const interestCap = 30 + 10 * tRank('banking');
+  const interest = Math.floor(Math.min(gold * 0.05, interestCap));
+  const bonus = Math.floor((25 + wave*5) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
+  gold += bonus;
+  addFloater(W/2, 50, `Wave clear! +${bonus}💰${interest ? ` (incl. ${interest} interest)` : ''}`, '#ffd866', 18);
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtn').textContent = `▶ Start Wave ${wave+1}`;
+  if (wave % 5 === 0 && wave < victoryWave()) {
+    openDraft();
+  } else if (autoWave) {
+    autoStartTimer = 6;
+  }
+  saveRun();
+  updateHud();
+}
+
+// ================= Helpers =================
+function updateHud() {
+  document.getElementById('gold').textContent = Math.floor(gold);
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('wave').textContent = wave;
+  document.getElementById('waveGoal').textContent = victory ? '∞' : victoryWave();
+  document.getElementById('kills').textContent = kills;
+  document.getElementById('chips').textContent = meta.chips;
+  document.getElementById('best').textContent = best;
+  renderShop();
+  maybeRefreshUpgrade();
+}
+function addFloater(x, y, text, color, size=14) {
+  floaters.push({x, y, text, color, size, life: 1.2});
+}
+function shade(col, amt) {
+  if (col[0] !== '#') return col;
+  const n = parseInt(col.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + amt));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+  const b = Math.max(0, Math.min(255, (n & 255) + amt));
+  return `rgb(${r},${g},${b})`;
+}
+function addExplosion(x, y, color, n=10, spd=120) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random()*Math.PI*2, v = (0.3+Math.random()*0.7)*spd;
+    particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: 0.4+Math.random()*0.3, color});
+  }
+}
+
+// ================= Shop =================
+function renderShop() {
+  const shop = document.getElementById('shop');
+  shop.innerHTML = '';
+  TYPE_KEYS.forEach((key, i) => {
+    const t = TOWER_TYPES[key];
+    const cost = costOf(key);
+    const btn = document.createElement('div');
+    btn.className = 'towerBtn' + (selectedShop===key ? ' selected' : '') + (gold < cost ? ' cant' : '');
+    btn.innerHTML = `<span class="key">${i+1}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
+    btn.onclick = () => {
+      if (gold < cost) return;
+      selectedShop = selectedShop === key ? null : key;
+      selectedTower = null; hideUpgrade();
+      armedAbility = null; refreshAbilityBar();
+      renderShop();
+    };
+    shop.appendChild(btn);
+  });
+}
+
+// ================= Upgrade panel =================
+const upPanel = document.getElementById('upgradePanel');
+let upPanelKey = '';
+function upgradeKey(t) {
+  const upCost = Math.floor(costOf(t.type) * 0.8 * t.level);
+  const stat = t.type === 'buff'
+    ? Math.round(effBuffPower(t) * 100) + '|' + Math.round(effBuffRange(t))
+    : Math.round(effDmg(t)) + '|' + effRate(t).toFixed(3);
+  return [t.level, t.spec, gold >= upCost, Math.floor(t.invested * sellRatio()), t.mode, Math.floor(t.dealt / 500), stat].join('|');
+}
+function maybeRefreshUpgrade() {
+  if (!selectedTower || upPanel.style.display !== 'block') return;
+  if (upgradeKey(selectedTower) !== upPanelKey) showUpgrade(selectedTower);
+}
+function showUpgrade(t) {
+  selectedTower = t;
+  upPanelKey = upgradeKey(t);
+  const lvl = t.level;
+  const upCost = Math.floor(costOf(t.type) * 0.8 * lvl);
+  const sellVal = Math.floor(t.invested * sellRatio());
+  const maxed = lvl >= maxTowerLevel();
+  const def = TOWER_TYPES[t.type];
+  const isBuff = t.type === 'buff';
+  const spec = specOf(t);
+  let specHtml = '';
+  if (lvl >= 5 && !t.spec) {
+    specHtml = SPECS[t.type].map((s, i) =>
+      `<button class="spec" onclick="chooseSpec(${i})">★ ${s.name}<br><small>${s.desc}</small></button>`).join('');
+  } else if (spec) {
+    specHtml = `<div class="specTag">★ ${spec.name}</div>`;
+  }
+  upPanel.innerHTML = `
+    <b>${def.icon} ${def.name} Lv.${lvl}</b><br>
+    ${isBuff
+      ? `<span class="statline">aura +${Math.round(effBuffPower(t)*100)}% dmg · range ${Math.round(effBuffRange(t))}</span><br>
+         <span class="statline">auras don't stack — strongest applies</span>`
+      : `<span class="statline">dmg ${Math.round(effDmg(t))} · range ${Math.round(t.range)} · ${(1/effRate(t)).toFixed(1)}/s</span><br>
+         <span class="statline">dealt: ${fmtNum(t.dealt)} · kills: ${t.kills}</span>`}
+    ${specHtml}
+    ${!isBuff ? `<button class="mode" onclick="cycleMode()">${MODE_ICON[t.mode]}</button>` : ''}
+    <button ${maxed || gold < upCost ? 'disabled' : ''} onclick="upgradeTower()">${maxed ? 'MAX LEVEL' : `⬆ Upgrade ${upCost}💰`}</button>
+    <button class="sell" onclick="sellTower()">💸 Sell ${sellVal}💰</button>`;
+  upPanel.style.display = 'block';
+  const left = Math.min(W - 200, Math.max(0, t.x + 20));
+  const top = Math.min(H - 200, Math.max(0, t.y - 70));
+  upPanel.style.left = left + 'px';
+  upPanel.style.top = top + 'px';
+}
+function chooseSpec(i) {
+  const t = selectedTower;
+  if (!t || t.spec || t.level < 5) return;
+  t.spec = SPECS[t.type][i].id;
+  addFloater(t.x, t.y - 24, `★ ${SPECS[t.type][i].name}!`, '#d2a8ff', 16);
+  addExplosion(t.x, t.y, '#d2a8ff', 16, 100);
+  SFX.upgrade();
+  saveRun();
+  showUpgrade(t);
+}
+function fmtNum(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'k';
+  return Math.round(n);
+}
+function hideUpgrade() { upPanel.style.display = 'none'; selectedTower = null; }
+function cycleMode() {
+  const t = selectedTower;
+  if (!t) return;
+  t.mode = MODES[(MODES.indexOf(t.mode) + 1) % MODES.length];
+  showUpgrade(t);
+}
+function upgradeTower() {
+  const t = selectedTower;
+  if (!t || t.level >= maxTowerLevel()) return;
+  const cost = Math.floor(costOf(t.type) * 0.8 * t.level);
+  if (gold < cost) return;
+  gold -= cost;
+  t.invested += cost;
+  t.level++;
+  t.dmg *= 1.45;
+  t.range *= 1.08;
+  t.rate *= 0.88;
+  if (t.type === 'buff') t.buffPower += 0.1;
+  addFloater(t.x, t.y - 20, 'LEVEL UP!', '#3fb950', 14);
+  addExplosion(t.x, t.y, '#3fb950', 12, 80);
+  SFX.upgrade();
+  updateHud();
+  showUpgrade(t);
+}
+function sellTower() {
+  const t = selectedTower;
+  if (!t) return;
+  const refund = Math.floor(t.invested * sellRatio());
+  gold += refund;
+  towers = towers.filter(x => x !== t);
+  addFloater(t.x, t.y, `+${refund}💰`, '#ffd866');
+  SFX.sell();
+  hideUpgrade();
+  updateHud();
+}
+
+// ================= Effective stats =================
+function effDmg(t) {
+  let d = t.dmg * metaDmgMult() * buffMultFor(t) * (perkState.typeDmg[t.type] || 1) * perkState.dmgMult;
+  d *= 1 + 0.06 * tRank('mastery_' + t.type);
+  if (t.spec === 'ap') d *= 1.25;
+  if (t.spec === 'shatter') d *= 6;
+  if (t.spec === 'cluster') d *= 1.5;
+  if (modIs('surge')) d *= 1.3;
+  return d;
+}
+function effRate(t) {
+  let r = t.rate * perkState.rateMult;
+  if (t.spec === 'minigun') r *= 0.55;
+  return r;
+}
+function effRange(t) {
+  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1);
+}
+function effBuffPower(t) {
+  return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + 0.03 * tRank('mastery_buff');
+}
+function effBuffRange(t) {
+  return t.range * (t.spec === 'network' ? 1.5 : 1) * (1 + 0.02 * tRank('mastery_buff'));
+}
+function buffMultFor(t) {
+  if (t.type === 'buff') return 1;
+  let m = 0;
+  for (const b of towers) {
+    if (b.type !== 'buff') continue;
+    if (Math.hypot(b.x-t.x, b.y-t.y) <= effBuffRange(b)) m = Math.max(m, effBuffPower(b));
+  }
+  return 1 + m;
+}
+
+// ================= Input =================
+let mouseX = -100, mouseY = -100;
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect();
+  mouseX = (e.clientX - r.left) * (W / r.width);
+  mouseY = (e.clientY - r.top) * (H / r.height);
+});
+cv.addEventListener('pointerleave', () => { mouseX = -100; mouseY = -100; });
+cv.addEventListener('click', e => {
+  if (gameOver || !started || draftOpen) return;
+  const r = cv.getBoundingClientRect();
+  mouseX = (e.clientX - r.left) * (W / r.width);
+  mouseY = (e.clientY - r.top) * (H / r.height);
+  if (armedAbility === 'meteor' && !paused) {
+    castMeteor(mouseX, mouseY);
+    return;
+  }
+  const hit = towers.find(t => Math.hypot(t.x-mouseX, t.y-mouseY) < 18);
+  if (hit) { selectedShop = null; renderShop(); showUpgrade(hit); return; }
+  hideUpgrade();
+  if (!selectedShop) return;
+  const cost = costOf(selectedShop);
+  if (gold < cost) return;
+  if (!canPlace(mouseX, mouseY)) return;
+  const def = TOWER_TYPES[selectedShop];
+  gold -= cost;
+  towers.push({
+    type: selectedShop, x: mouseX, y: mouseY,
+    range: def.range, dmg: def.dmg, rate: def.rate,
+    cd: 0, level: 1, baseCost: def.cost, invested: cost, angle: 0,
+    mode: 'first', spec: null, dealt: 0, kills: 0, buffPower: 0.25, flash: 0
+  });
+  addExplosion(mouseX, mouseY, def.color, 8, 60);
+  SFX.place();
+  if (gold < cost) selectedShop = null;
+  updateHud();
+});
+function canPlace(x, y) {
+  if (x < 14 || x > W-14 || y < 14 || y > H-14) return false;
+  if (distToPath(x, y) < 34) return false;
+  return !towers.some(t => Math.hypot(t.x-x, t.y-y) < 32);
+}
+document.addEventListener('keydown', e => {
+  if (!started) return;
+  if (e.key === ' ') { e.preventDefault(); if (!waveActive && !paused && !draftOpen) startWave(); }
+  if (e.key === 'p' || e.key === 'P') togglePause();
+  if (e.key === 'm' || e.key === 'M') toggleMute();
+  if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
+  if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
+  if (e.key === 'e' || e.key === 'E') triggerAbility('rush');
+  const idx = parseInt(e.key) - 1;
+  if (idx >= 0 && idx < TYPE_KEYS.length) {
+    const key = TYPE_KEYS[idx];
+    if (gold >= costOf(key)) {
+      selectedShop = selectedShop === key ? null : key;
+      hideUpgrade(); renderShop();
+    }
+  }
+  if (e.key === 'Escape') { selectedShop = null; armedAbility = null; refreshAbilityBar(); hideUpgrade(); renderShop(); }
+});
+
+function toggleSpeed() {
+  speed = speed === 1 ? 2 : speed === 2 ? 3 : 1;
+  document.getElementById('speedBtn').textContent = `⏩ ${speed}x`;
+}
+function togglePause() {
+  if (gameOver || !started) return;
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? '▶ Resume' : '⏸ Pause';
+}
+function toggleAuto() {
+  autoWave = !autoWave;
+  document.getElementById('autoBtn').textContent = `🔁 Auto-wave: ${autoWave ? 'ON' : 'OFF'}`;
+  document.getElementById('autoBtn').classList.toggle('off', !autoWave);
+  if (!autoWave) {
+    autoStartTimer = -1;
+    if (!waveActive && started && !gameOver) document.getElementById('startBtn').textContent = `▶ Start Wave ${wave+1}`;
+  } else if (!waveActive && started && !gameOver && wave > 0 && !draftOpen) {
+    autoStartTimer = 6;
+  }
+}
+
