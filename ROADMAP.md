@@ -44,6 +44,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Tower range preview on hover** in the shop (before placing).
 - [ ] **Wave preview** — show the composition of the next wave (icons) so players
       can plan purchases.
+- [ ] **What's New flush polish** — since v1.4.1 the panel butts against the
+      `#gameCol` right edge, which is ~21px wider than the canvas (driven by the
+      `.hint` margins). Minor cosmetic gap between the canvas and the panel; could
+      tighten by constraining the column width to the canvas.
 
 ## Balance (simulate before/after, ≤25% per number per run)
 

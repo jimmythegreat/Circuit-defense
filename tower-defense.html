@@ -106,7 +106,11 @@
   }
   #overlay, #draftModal, #talentPanel { display: none; }
   #talentPanel { z-index: 20; }
-  #stage { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; }
+  /* appRow = the whole game (gameCol) + the What's New side panel, side by side.
+     The panel floats beside the ENTIRE game, so opening it never shifts only the canvas. */
+  #appRow { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; width: 100%; }
+  #gameCol { display: flex; flex-direction: column; align-items: center; }
+  #stage { display: flex; justify-content: center; max-width: 100vw; }
   #startScreen { display: flex; }
   #overlay h2 { font-size: 38px; margin-bottom: 6px; }
   #overlay p, #startScreen p { font-size: 15px; margin-bottom: 12px; color: #8b949e; white-space: pre-line; max-width: 800px; }
@@ -188,10 +192,10 @@
   #upgradePanel button.spec { background: #6e40c9; font-size: 12px; }
   #upgradePanel button.spec:hover { background: #8957e5; }
   #upgradePanel button:disabled { background: #21262d; color: #8b949e; cursor: not-allowed; }
-  /* what's new — side panel beside the game */
+  /* what's new — side panel that floats beside the ENTIRE game column */
   #whatsnew {
     display: none; flex-direction: column;
-    width: 280px; align-self: stretch; max-height: 562px;
+    width: 280px; align-self: stretch; max-height: 88vh;
     background: #0f1420; border: 1px solid #30363d; border-left: none;
     border-radius: 0 8px 8px 0;
     overflow: hidden;
@@ -220,6 +224,7 @@
 </style>
 </head>
 <body>
+<div id="appRow"><div id="gameCol">
 <h1>⚡ CIRCUIT DEFENSE</h1>
 <div id="hud">
   <span>💰 <b id="gold">120</b></span>
@@ -276,13 +281,6 @@
     </div>
   </div>
 </div>
-<aside id="whatsnew">
-  <div id="wnHead">
-    <span>✨ WHAT'S NEW</span>
-    <button id="wnClose" onclick="closeWhatsNew()" title="Hide">✕</button>
-  </div>
-  <div id="wnList"></div>
-</aside>
 </div>
 <div id="shop"></div>
 <div id="controls">
@@ -294,6 +292,15 @@
   <button class="ctl gray" id="quitBtn" onclick="quitRun()">🚪 Quit</button>
 </div>
 <div class="hint">Hotkeys: <b>1–7</b> towers · <b>Q/W/E</b> abilities · <b>Space</b> wave · <b>P</b> pause · <b>M</b> mute · <b>Esc</b> cancel. Max-level towers unlock a specialization. Every 5 waves: pick a run perk. Survive waves to earn 🪙 chips for permanent talents.</div>
+</div><!-- /gameCol -->
+<aside id="whatsnew">
+  <div id="wnHead">
+    <span>✨ WHAT'S NEW</span>
+    <button id="wnClose" onclick="closeWhatsNew()" title="Hide">✕</button>
+  </div>
+  <div id="wnList"></div>
+</aside>
+</div><!-- /appRow -->
 
 <script>
 'use strict';
@@ -302,9 +309,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.4.0';
+const GAME_VERSION = 'v1.4.1';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.4.1', date: '2026-06-10', body: "What's New now floats beside the ENTIRE game — opening it shifts the whole layout (title, HUD, towers, controls) together instead of only sliding the canvas over. On narrow screens it still tucks below." },
   { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it opens by default, sits flush beside the game, and scrolls; ✕ to hide) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
   { v: 'v1.3.x', date: '2026-06', body: 'Removed the Scrapper perk and dropped rare-draft chance from 26% to 14% to make legendary perks feel special again.' },
   { v: 'v1.3.x', date: '2026-06', body: 'Increased enemy HP 20% across all modes and lengthened campaign waves (15 at level 1 up to 54 at level 40).' },

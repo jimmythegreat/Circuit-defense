@@ -3,6 +3,26 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.4.1 — 2026-06-10
+
+**Fixed: What's New panel now floats beside the ENTIRE game (owner feedback).**
+
+- Previously the panel lived inside the `#stage` flex row beside only the canvas,
+  so opening it slid the canvas over while the title/HUD (top) and towers/controls/
+  hotkeys (bottom) stayed put — the game looked misaligned. Per owner FEEDBACK, the
+  change log should float next to the *whole* game.
+- **Layout restructure (pure CSS/DOM, zero behavior change):** the whole game now
+  lives in a `#gameCol` column (title, HUD, `#stage`/canvas, shop, controls, hint),
+  and `#whatsnew` is its sibling inside a new outer `#appRow` flex row. Opening the
+  panel shifts the entire column together; on narrow viewports the panel still wraps
+  below. Height cap changed from a fixed `562px` to `88vh` so it spans the taller
+  full-game column and scrolls internally.
+- **Tests:** updated section [6] geometry assertions to measure against `#gameCol`
+  instead of `#gameWrap`, and added a new check — *"opening the panel shifts the
+  WHOLE game together, not just the canvas"* (canvas stays centered relative to the
+  HUD whether the panel is open or closed). Full suite green: **35 passed, 0 failed**.
+- No save-schema, balance, or gameplay changes. Guardrail review: PASS on all five.
+
 ## v1.4.0 — 2026-06-10
 
 **Added: in-game "What's New" panel + headless test harness.**

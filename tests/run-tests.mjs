@@ -196,24 +196,39 @@ async function main() {
     const r = await page.evaluate(() => {
       const panel = document.getElementById('whatsnew');
       const list = document.getElementById('wnList');
+      const col = document.getElementById('gameCol');
       // Open by default on load — no click required.
       const openByDefault = panel.style.display === 'flex';
       const entries = list.children.length;
-      // Side panel is a sibling of #gameWrap inside #stage — NOT a descendant overlay.
-      const insideGame = !!document.getElementById('gameWrap').querySelector('#whatsnew');
-      const wrap = document.getElementById('gameWrap').getBoundingClientRect();
+      // Side panel is a sibling of #gameCol inside #appRow — NOT a descendant overlay.
+      const insideGame = !!col.querySelector('#whatsnew');
+      // The panel now floats beside the ENTIRE game column, top-aligned with it.
+      const cr = col.getBoundingClientRect();
       const pr = panel.getBoundingClientRect();
-      const beside = pr.left >= wrap.right - 2 && Math.abs(pr.top - wrap.top) < 6;
-      const flush = Math.abs(pr.left - wrap.right) <= 2; // no gap — attached to the game
-      const capped = pr.height <= wrap.height + 4;        // scrolls internally
-      return { openByDefault, entries, total: CHANGELOG_ENTRIES.length, insideGame, beside, flush, capped };
+      const beside = pr.left >= cr.right - 2 && Math.abs(pr.top - cr.top) < 6;
+      const flush = Math.abs(pr.left - cr.right) <= 2; // no gap — attached to the game column
+      const capped = pr.height <= cr.height + 4;        // scrolls internally, never taller than the game
+      // The fix: opening the panel shifts the WHOLE game together, so the canvas stays
+      // centered relative to the HUD whether the panel is open or closed (it used to
+      // slide only the canvas over, knocking it out of line with the title/HUD/controls).
+      const offset = () => {
+        const c = document.getElementById('game').getBoundingClientRect();
+        const h = document.getElementById('hud').getBoundingClientRect();
+        return (c.left + c.width / 2) - (h.left + h.width / 2);
+      };
+      openWhatsNew(); const openDelta = offset();
+      closeWhatsNew(); const closedDelta = offset();
+      openWhatsNew();
+      const shiftsTogether = Math.abs(openDelta - closedDelta) < 2;
+      return { openByDefault, entries, total: CHANGELOG_ENTRIES.length, insideGame, beside, flush, capped, shiftsTogether };
     });
     check('panel is OPEN by default (no click needed)', r.openByDefault);
     check('lists ALL changelog entries', r.entries >= 1 && r.entries === r.total, `${r.entries}/${r.total}`);
     check('panel is a side panel, not a game overlay', !r.insideGame);
-    check('panel sits beside the game (same top, to the right)', r.beside);
-    check('panel is flush against the game (no gap)', r.flush);
+    check('panel sits beside the whole game (same top, to the right)', r.beside);
+    check('panel is flush against the game column (no gap)', r.flush);
     check('panel height capped to game (scrolls internally)', r.capped);
+    check('opening the panel shifts the WHOLE game together, not just the canvas', r.shiftsTogether);
 
     // Closing persists, and survives a reload.
     const closed = await page.evaluate(() => {
