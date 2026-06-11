@@ -13,9 +13,9 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
-[low priority] milestone bonuses should have a mouse hover that lets you know what they do.
-
 ## DONE
+
+- **2026-06-11 · v1.12.1** — "[low priority] milestone bonuses should have a mouse hover that lets you know what they do." → The "milestone bonuses" are the run-perks drafted every 5 waves (icon row, top-left of the board). They're canvas-drawn, so the render loop now detects a mouse hover over a perk icon and draws a `drawPerkTooltip()` box — name (rarity-coloured), rarity label, and description (looked up from `PERKS` by id, so it works for resumed runs too). Render-only. New test group [21].
 
 - **2026-06-11 · v1.12.0** — "[Low priority] I should be able to start a new wave even if the current wave is going. This would let me spawn more than one wave AT THE SAME TIME." → The single spawn queue became an array of parallel `spawners` (one per in-flight wave, ticking independently), so up to **3 waves spawn simultaneously**. The Start button reads ➕ Add Wave while a wave runs (Spacebar too); at the cap it shows 🌊 Wave N… disabled. `endWave()` fires only on a full field-clear and then settles every bundled wave — summing each clear bonus and deferring a draft for each multiple-of-5 crossed (`pendingDrafts`) — so rushing never loses gold or perks. Save-safe (spawn state isn't persisted; mid-rush quit resumes at the last settled wave). New test group [20].
 

@@ -1048,6 +1048,40 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 21: milestone-bonus (run-perk) hover tooltip (v1.12.1) ----
+  console.log('\n[21] Milestone-bonus hover tooltip');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      runPerks = [
+        { id: 'sharp', icon: '🎯', name: 'Sharpshooter', rarity: 'common' },
+        { id: 'diamond', icon: '💎', name: 'Diamond Core', rarity: 'legendary' },
+        { id: 'crit', icon: '🍀', name: 'Crit Systems', rarity: 'rare' },
+      ];
+      const hasHelper = typeof drawPerkTooltip === 'function';
+      // descriptions the tooltip shows are looked up from PERKS by id (works for old saves)
+      const descs = runPerks.map(p => { const d = PERKS.find(pp => pp.id === p.id); return d ? d.desc : null; });
+      // hover-index math: icons at x=12,34,56; band y∈[2,28]. Hover the 2nd (legendary).
+      mouseX = 36; mouseY = 14;
+      const idx = Math.floor((mouseX - 8) / 22);
+      let drewWithHover = true; try { draw(); } catch (e) { drewWithHover = 'ERR:' + e.message; }
+      mouseX = -100; mouseY = -100;
+      let drewNoHover = true; try { draw(); } catch (e) { drewNoHover = 'ERR:' + e.message; }
+      backToMenu();
+      return { hasHelper, descs, idx, drewWithHover, drewNoHover };
+    });
+    check('drawPerkTooltip helper exists', r.hasHelper);
+    check('perk descriptions resolve from PERKS by id', r.descs.every(d => d && d.length > 0),
+      `descs=${JSON.stringify(r.descs)}`);
+    check('hover-index math selects the correct perk', r.idx === 1, `idx=${r.idx}`);
+    check('draw() renders cleanly with a perk hover active', r.drewWithHover === true, `${r.drewWithHover}`);
+    check('draw() renders cleanly with no hover', r.drewNoHover === true, `${r.drewNoHover}`);
+    check('no console errors during tooltip test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

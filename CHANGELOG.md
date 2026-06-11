@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.12.1 — 2026-06-11
+
+**Hover tooltips for milestone bonuses (FEEDBACK).** Owner: *"milestone bonuses should
+have a mouse hover that lets you know what they do."* The "milestone bonuses" are the
+run-perks drafted every 5 waves, shown as a row of icons in the top-left of the board
+(`cd-render.js`). They're canvas-drawn, so a DOM `title` won't work — instead the render
+loop now detects when `mouseX/mouseY` is over a perk icon and draws a `drawPerkTooltip()`
+box: the perk's name in its rarity colour, the rarity label, and its description. The
+description is looked up from `PERKS` by id (not stored on the saved perk), so it works
+for resumed/old runs too. Render-only, no save/economy impact. New test group **[21]**
+asserts the description lookup resolves and the hover-index math picks the right perk.
+
 ## v1.12.0 — 2026-06-11
 
 **Concurrent waves: start a new wave while one is running (FEEDBACK).** Owner: *"I

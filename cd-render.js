@@ -1,5 +1,39 @@
 'use strict';
 // ================= Render =================
+const RARITY_TIP_COL = { common: '#c9d1d9', rare: '#58a6ff', legendary: '#e3b341' };
+// Tooltip for a hovered run-perk icon: name (in rarity colour) + what it does.
+// Description is looked up from PERKS by id so it works for old saves too.
+function drawPerkTooltip(iconX, p) {
+  const def = (typeof PERKS !== 'undefined') ? PERKS.find(pp => pp.id === p.id) : null;
+  const desc = def ? def.desc : '';
+  const rarity = (p.rarity ? p.rarity[0].toUpperCase() + p.rarity.slice(1) : '');
+  const title = `${p.icon} ${p.name}`;
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 13px sans-serif';
+  const tw = ctx.measureText(title).width;
+  ctx.font = '12px sans-serif';
+  const dw = ctx.measureText(desc).width;
+  const rw = rarity ? ctx.measureText(rarity).width : 0;
+  const boxW = Math.min(W - 16, Math.max(tw, dw, rw) + 20);
+  const boxH = 52;
+  let bx = Math.max(8, Math.min(iconX - 4, W - boxW - 8));
+  const by = 30;
+  ctx.fillStyle = 'rgba(13,20,32,0.95)';
+  ctx.strokeStyle = RARITY_TIP_COL[p.rarity] || '#30363d';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(bx, by, boxW, boxH, 6); else ctx.rect(bx, by, boxW, boxH);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = RARITY_TIP_COL[p.rarity] || '#c9d1d9';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(title, bx + 10, by + 18);
+  if (rarity) { ctx.font = '10px sans-serif'; ctx.fillStyle = '#8b949e'; ctx.fillText(rarity.toUpperCase(), bx + 10, by + 31); }
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#c9d1d9';
+  ctx.fillText(desc, bx + 10, by + 45);
+  ctx.restore();
+}
 function draw() {
   ctx.save();
   if (shake > 0 && !reduceMotion()) {
@@ -57,14 +91,20 @@ function draw() {
   ctx.font = '22px sans-serif';
   ctx.fillText('🏠', Math.min(W-30, exitPt[0]-14), exitPt[1]+8);
 
-  // run perks display
+  // run perks display (the "milestone bonuses" drafted every 5 waves) — hover an
+  // icon to see what it does (canvas-drawn, so we detect the hover + draw a tooltip)
   if (runPerks.length && started) {
     ctx.font = '15px sans-serif';
+    ctx.textAlign = 'left';
+    const slots = [];
     let px = 12;
-    for (const p of runPerks) {
-      ctx.fillText(p.icon, px, 22);
-      px += 22;
+    for (const p of runPerks) { ctx.fillText(p.icon, px, 22); slots.push(px); px += 22; }
+    let hovered = -1;
+    if (mouseY >= 2 && mouseY <= 28 && mouseX >= 8) {
+      const idx = Math.floor((mouseX - 8) / 22);
+      if (idx >= 0 && idx < runPerks.length && mouseX <= slots[idx] + 20) hovered = idx;
     }
+    if (hovered >= 0) drawPerkTooltip(slots[hovered], runPerks[hovered]);
   }
 
   // meteor target reticle
