@@ -12,9 +12,11 @@
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, resolve } from 'path';
+import { readFileSync, existsSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GAME_URL = pathToFileURL(resolve(__dirname, '..', 'tower-defense.html')).href;
+const ROOT = resolve(__dirname, '..');
+const GAME_URL = pathToFileURL(resolve(ROOT, 'tower-defense.html')).href;
 
 let passed = 0, failed = 0;
 const failures = [];
@@ -616,6 +618,43 @@ async function main() {
 
     await page.evaluate(() => { localStorage.removeItem('cd_save'); });
     check('no console errors during combo tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // ---- Test 12: external-file split (html/css/js) is wired & loads over file:// ----
+  // The game ships as separate files linked with classic <link>/<script src> tags
+  // (NOT ES modules — those break on file://). This guards against re-inlining or a
+  // broken reference, and confirms the external CSS/JS actually load when the page is
+  // opened by double-click (file://), which is exactly how Playwright loads it here.
+  console.log('\n[12] External-file split (html/css/js)');
+  {
+    const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
+    check('tower-defense.css file exists', existsSync(resolve(ROOT, 'tower-defense.css')));
+    check('tower-defense.js file exists', existsSync(resolve(ROOT, 'tower-defense.js')));
+    check('HTML links the external stylesheet',
+      /<link[^>]+href=["']tower-defense\.css["']/.test(html));
+    check('HTML loads the external script via classic <script src>',
+      /<script[^>]+src=["']tower-defense\.js["']/.test(html));
+    check('script tag is NOT an ES module (would break on file://)',
+      !/<script[^>]+type=["']module["']/.test(html));
+    check('HTML has no leftover inline <style> block', !/<style[\s>]/.test(html));
+    // An inline <script> with a body (not a src include) would mean code was re-inlined.
+    const inlineScript = /<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?\S[\s\S]*?<\/script>/.test(html);
+    check('HTML has no leftover inline <script> code block', !inlineScript);
+
+    const { page, consoleErrors } = await newPage(browser);
+    // External stylesheet actually applied. NOTE: reading cssRules off a file://
+    // stylesheet throws SecurityError, so instead assert a computed style the sheet
+    // sets — the body background (#0d1117 = rgb(13,17,23)). If the link were broken
+    // the UA default (rgba(0,0,0,0) / white) would show instead.
+    const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    check('external stylesheet loaded & applied (body bg from css)',
+      bodyBg === 'rgb(13, 17, 23)', `bodyBg=${bodyBg}`);
+    // External script actually ran (core globals present — redundant with [1] but
+    // here it specifically proves the *separate* file executed over file://).
+    const jsRan = await page.evaluate(() => typeof beginGame === 'function' && typeof draw === 'function');
+    check('external script executed (game globals defined)', jsRan);
+    check('no console errors with split files', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

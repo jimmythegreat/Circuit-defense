@@ -90,6 +90,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Tech / tooling
 
+- [x] **Split the single HTML file** — shipped v1.8.1. `tower-defense.html` →
+      html + css (`tower-defense.css`) + js (`tower-defense.js`), classic
+      `<link>`/`<script src>` tags (never ES modules). Zero behaviour change,
+      87/0→97/0 green. Follow-up below.
+- [ ] **Domain-split `tower-defense.js`** (~2118 lines, over the ~1500 guideline)
+      into ordered classic `<script src>` files: audio → maps/paths → towers/
+      enemies → perks/talents → rendering → ui → save. Own zero-behaviour-change
+      run; re-verify double-click `file://` play; update CLAUDE.md + harness.
 - [ ] **GitHub Actions CI** running `tests/` on push (dev-only; never affects the
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec

@@ -1,11 +1,11 @@
 # Circuit Defense
 
-A browser tower defense game. **Everything lives in one self-contained file: `tower-defense.html`** — no build step, no dependencies, no assets. Open it in any browser to play. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
+A browser tower defense game. **The game is three self-contained files (v1.8.1): `tower-defense.html` (markup) + `tower-defense.css` (styles) + `tower-defense.js` (all code, ~2118 lines).** They're wired with classic `<link rel="stylesheet">` and `<script src="tower-defense.js">` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise). (`tower-defense.js` is still over the ~1500-line guideline — domain-splitting it further is a queued follow-up; see FEEDBACK.md / ROADMAP.md.)
 
 ## Running / testing
 
 - Dev server: `.claude/launch.json` defines a `game` config (`python -m http.server 8123`). Use the preview tools and navigate to `/tower-defense.html`. (Note: `preview_screenshot` tends to time out because the rAF render loop keeps the page busy — verify state with `preview_eval`/`preview_snapshot` instead.)
-- **Automated test harness lives in `tests/`** (Node + Playwright, dev-only — the shipped game is still the single HTML file, no build step). Run with `cd tests && npm install && npx playwright install chromium && npm test`; exit code 0 = green. It drives the real `tower-defense.html` headlessly via an injected in-page driver: `__cdGodTowers(n)` pushes near-invincible towers, `__cdDrive({maxWave, cap})` runs the sim with `update(1/60)` to a wave boundary or game end, auto-picking drafts. Use the `check(...)` helper for assertions; add one whenever you add behavior. Before committing, spawn a subagent to run `npm test`.
+- **Automated test harness lives in `tests/`** (Node + Playwright, dev-only — the shipped game is just the three raw files, no build step). Run with `cd tests && npm install && npx playwright install chromium && npm test`; exit code 0 = green. It drives the real `tower-defense.html` headlessly via an injected in-page driver: `__cdGodTowers(n)` pushes near-invincible towers, `__cdDrive({maxWave, cap})` runs the sim with `update(1/60)` to a wave boundary or game end, auto-picking drafts. Use the `check(...)` helper for assertions; add one whenever you add behavior. Before committing, spawn a subagent to run `npm test`.
 - **The game loop runs on `requestAnimationFrame`, so it pauses when the tab is hidden.** Headless testing through preview_eval must drive the simulation manually: call `update(1/60)` in a loop instead of waiting wall-clock time.
 - Standard test recipe (via preview_eval):
   1. `beginGame()` (set `gameMode`/`mapKey`/`diffKey` first), give `gold`, push tower objects directly into `towers`
@@ -15,7 +15,7 @@ A browser tower defense game. **Everything lives in one self-contained file: `to
 - Synthetic canvas clicks must set real `clientX/clientY` relative to `cv.getBoundingClientRect()` — the click handler recomputes coords from the event.
 - **Always clean up test data afterwards**: remove localStorage keys `cd_save`, `cd_meta`, `cd_campaign`, `cd_best_easy/normal/hard`, reset `meta = {chips:0, talents:{}}; loadMeta()`, and call `backToMenu()` so the user starts fresh.
 
-## Architecture (single `<script>` in tower-defense.html)
+## Architecture (all code in `tower-defense.js`)
 
 Rough section order in the file:
 

@@ -3,6 +3,43 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.1 — 2026-06-11
+
+**Refactor: split the single `tower-defense.html` into html + css + js files
+(FEEDBACK item: "split it out into its own files").**
+
+`tower-defense.html` had grown to ~2480 lines with the whole game inlined in one
+`<style>` and one `<script>`. It is now three files:
+
+- `tower-defense.html` (109 lines) — markup only.
+- `tower-defense.css` (255 lines) — the styles, extracted verbatim from the old
+  inline `<style>`, linked via a classic `<link rel="stylesheet">`.
+- `tower-defense.js` (2118 lines) — the code, extracted verbatim from the old
+  inline `<script>`, loaded via a classic `<script src="tower-defense.js">` at
+  the end of `<body>` (same execution position as before).
+
+**Zero behaviour change.** The CSS/JS bodies are byte-identical to what was
+inlined; the only code edit is the version bump + this changelog entry. **No ES
+modules** — classic `<link>`/`<script src>` tags so the game still plays by
+double-clicking `tower-defense.html` from Explorer over `file://` (ES modules
+break on `file://` due to CORS). No build step, no network deps, saves
+untouched.
+
+Why: maintainability — a 2.5k-line monolith is hard to navigate and edit.
+Separating markup/styles/code is the first slice; further domain-splitting of
+the 2118-line JS (audio / maps / towers / rendering / ui / save) is noted as a
+follow-up in FEEDBACK.md since it exceeds the ~1500-line-per-file guideline.
+
+**Tests:** baseline 87/0 green *before* the split; identical 87/0 green *after*,
+proving zero behaviour change. Added test block **[12] External-file split** —
+asserts both external files exist, are wired via classic (non-module) tags, the
+HTML has no leftover inline `<style>`/`<script>` code, and the external CSS+JS
+actually load and run over `file://` (body bg = `rgb(13,17,23)` from the sheet,
+game globals defined, zero console errors). Full suite now **97/0 green**. Also
+verified live in the browser preview over `http://` (v1.8.1 renders, external
+files load, no console errors). Two subagents independently re-ran the suite and
+byte-audited the diff for guardrail compliance — both clean.
+
 ## v1.8.0 — 2026-06-11
 
 **Feature: "Combo Master" achievement + lifetime best-combo stat (ROADMAP
