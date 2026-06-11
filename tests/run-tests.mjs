@@ -1257,6 +1257,36 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 27: What's New entries show time alongside date (v1.13.7) ----
+  console.log("\n[27] What's New date + time");
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      openWhatsNew();
+      const list = document.getElementById('wnList');
+      const first = CHANGELOG_ENTRIES[0];
+      const firstRow = list.children[0];
+      const firstDateTxt = firstRow.querySelector('.wndate').textContent;
+      // The newest entry carries a time and the rendered date cell includes it.
+      const newestHasTime = !!first.time;
+      const showsTime = newestHasTime && firstDateTxt.includes(first.date) && firstDateTxt.includes(first.time);
+      // An older entry without a time renders just its date (graceful — no "undefined").
+      const older = CHANGELOG_ENTRIES.find(e => !e.time);
+      const olderIdx = CHANGELOG_ENTRIES.indexOf(older);
+      const olderTxt = older ? list.children[olderIdx].querySelector('.wndate').textContent.trim() : '';
+      const olderDateOnly = older ? (olderTxt === older.date) : true;
+      const noUndefined = !firstDateTxt.includes('undefined') && !olderTxt.includes('undefined');
+      document.getElementById('whatsnew').style.display = 'none';
+      return { newestHasTime, showsTime, olderDateOnly, noUndefined };
+    });
+    check('newest entry has a time field', r.newestHasTime);
+    check('date cell shows both date and time for timestamped entry', r.showsTime);
+    check('older (timeless) entry still shows just its date', r.olderDateOnly);
+    check('no "undefined" leaks into the date cell', r.noUndefined);
+    check('no console errors during date+time test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

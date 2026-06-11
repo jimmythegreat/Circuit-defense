@@ -20,10 +20,11 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.13.6';
+const GAME_VERSION = 'v1.13.7';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.13.7', date: '2026-06-11', time: '18:51 EDT', body: "What's New entries now show the TIME alongside the date (your request) — so when several updates land on the same day you can see the order at a glance. New entries are timestamped going forward; older entries (before this change) just show their date, since no time was recorded for them." },
   { v: 'v1.13.6', date: '2026-06-11', body: "A few fixes you asked for: the ✨ What's New button now also CLOSES the panel if it's already open (it toggles), and the ⚙ Settings button toggles the same way. And difficulty got rebalanced for fresh runs — Easy is now genuinely very easy (lots of gold & lives, much weaker enemies), and Normal is a little gentler too, so the early waves aren't a wall." },
   { v: 'v1.13.5', date: '2026-06-11', body: "What's New now shows the FULL update history again (your request) — the previous version had trimmed it to just the 10 most-recent entries, but you'd rather see everything. The panel scrolls, so the whole list is here to browse top to bottom." },
   { v: 'v1.13.4', date: '2026-06-11', body: "🩺 Health check (every-6th-run maintenance pass): full test suite green (200/0, zero console errors), all code files comfortably within size limits, every documented formula re-verified against the code, and old saves confirmed to still load via the migration defaults. Double-click play (file://) re-checked. No gameplay changes. Also tidied this What's New list back to its intended ~10 most-recent entries (the complete history is still in CHANGELOG.md), and refreshed the roadmap's table-stakes audit (touch controls remain the top mobile gap)." },
@@ -65,7 +66,8 @@ function renderWnList() {
   for (const e of CHANGELOG_ENTRIES) {
     const d = document.createElement('div');
     d.className = 'wnEntry';
-    d.innerHTML = `<span class="wnver">${e.v}</span><span class="wndate">${e.date}</span><div class="wnbody">${e.body}</div>`;
+    const when = e.time ? `${e.date} · ${e.time}` : e.date;
+    d.innerHTML = `<span class="wnver">${e.v}</span><span class="wndate">${when}</span><div class="wnbody">${e.body}</div>`;
     list.appendChild(d);
   }
 }

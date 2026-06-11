@@ -5,8 +5,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[high priority] You should list the time as well as the date for the whats new.
-
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
@@ -16,6 +14,8 @@ When it completes an item it moves it to DONE below with the date and version.
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
 ## DONE
+
+- **2026-06-11 · v1.13.7** — "[high priority] You should list the time as well as the date for the whats new." → `CHANGELOG_ENTRIES` entries gained an optional `time` field; `renderWnList()` now shows `date · time` when present (falling back to date-only for older, timeless entries). New entries are timestamped going forward. Display-only, no save impact. New test group [27].
 
 - **2026-06-11 · v1.12.1** — "[low priority] milestone bonuses should have a mouse hover that lets you know what they do." → The "milestone bonuses" are the run-perks drafted every 5 waves (icon row, top-left of the board). They're canvas-drawn, so the render loop now detects a mouse hover over a perk icon and draws a `drawPerkTooltip()` box — name (rarity-coloured), rarity label, and description (looked up from `PERKS` by id, so it works for resumed runs too). Render-only. New test group [21].
 

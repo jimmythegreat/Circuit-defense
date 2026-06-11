@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.7 — 2026-06-11
+
+**What's New entries now show the time alongside the date (FEEDBACK, high priority).**
+Owner: *"You should list the time as well as the date for the whats new."*
+
+- `CHANGELOG_ENTRIES` (`cd-core.js`) entries gained an optional `time` field. `renderWnList()`
+  now renders `${date} · ${time}` when a `time` is present, falling back to just the date
+  otherwise — so the same-day flood of updates can be ordered at a glance.
+- New entries are timestamped going forward (this one: `18:51 EDT`). Historical entries have
+  no recorded wall-clock time, so they keep showing date only rather than fabricating one.
+  Display-data only — no gameplay/save/economy impact.
+- **Convention note added to CLAUDE.md:** every new `CHANGELOG_ENTRIES` entry should carry a
+  `time` field (local time, e.g. `'18:51 EDT'`).
+
+New test group **[27]**: the newest entry has a `time`, its rendered date cell shows both
+date and time, an older timeless entry still shows just its date, and no `undefined` leaks
+into the cell. Suite green.
+
 ## v1.13.6 — 2026-06-11
 
 **Panel-toggle fixes + difficulty rebalance for fresh runs (FEEDBACK).** Three owner
