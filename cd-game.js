@@ -90,11 +90,15 @@ function backToMenu() {
 function enemyTemplate(w) {
   const d = DIFFS[diffKey];
   const campScale = gameMode === 'campaign' ? 1 + (campLevel - 1) * 0.04 : 1;
-  // Enemy HP multiplier, raised iteratively per recurring owner "too easy" FEEDBACK:
-  // 1.2 -> 1.44 (v1.9.2, +20%) -> 1.80 (v1.10.0, +25% more). Uniform coefficient so
-  // the swing is exactly +25% at ALL waves (incl. deep endless); bosses/tanks scale
-  // off this too. Each step stays within the ≤25%/number/run guardrail.
-  const hpBase = (18 + w*7 + Math.pow(w, 1.9)) * 1.80 * d.hp * campScale;
+  // Enemy HP, tuned iteratively per recurring owner "too easy" FEEDBACK:
+  //  • global multiplier 1.2 -> 1.44 (v1.9.2) -> 1.80 (v1.10.0): uniform up-shift.
+  //  • v1.13.3: the SUPERLINEAR term `w^1.9` gets a ×1.25 coefficient to STEEPEN the
+  //    per-wave ramp (owner: early waves are now hard but it plateaus after ~w10).
+  //    Because it scales only the dominant-at-high-w term, the HP swing is tiny early
+  //    (~+7% at w5, +12% at w10) and grows toward — but never exceeds — +25% as the
+  //    term dominates (asymptote = 1.25), so it stays inside the ≤25%/number guardrail
+  //    at EVERY wave incl. deep endless, while making each later wave a bigger jump.
+  const hpBase = (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * d.hp * campScale;
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
 }
 function buildWave(w) {

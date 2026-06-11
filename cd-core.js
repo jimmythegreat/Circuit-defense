@@ -20,9 +20,10 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.13.2';
+const GAME_VERSION = 'v1.13.3';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.13.3', date: '2026-06-11', body: "Difficulty curve steepened (your feedback — early waves are hard now but it plateaus). Enemy health now ramps faster the deeper you go: barely changed in the first ~10 waves (so the strong early game stays), then progressively tougher — roughly +12% by wave 10, +18% by wave 30, climbing toward +25% in deep endless. Each later wave is now a bigger jump than before." },
   { v: 'v1.13.2', date: '2026-06-11', body: "The ⚙ Settings panel now has a 🔊 Volume slider — set the master volume anywhere from 0 to 100% instead of just on/off mute. It scales all the game's sound and saves on your device. (Mute still works as a quick toggle.)" },
   { v: 'v1.13.1', date: '2026-06-11', body: "Hovering a tower in the shop now previews its range — a dashed ring (with the tower's name and range) appears on the board so you can compare coverage before you even pick it up. The shop tooltips show the range number too. (Once you select a tower, the range still follows your cursor as you place it, like before.)" },
   { v: 'v1.13.0', date: '2026-06-11', body: "New ⚙ Settings panel on the start screen. Toggle screen shake on/off, and set particle effects to Full / Reduced / Off — great for lower-end devices or if you just prefer a calmer board. Both save on your device. (These stack with your OS 'reduce motion' setting, which already minimises both.)" },

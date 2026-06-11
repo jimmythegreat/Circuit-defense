@@ -3,6 +3,31 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.3 — 2026-06-11
+
+**Difficulty curve steepened — harder *per wave* at higher waves (FEEDBACK / balance).**
+Owner (after resetting their save): *"the game is much harder but only for about the
+first 10 levels of classic normal. I think we need to increase the difficulty per wave
+more."*
+
+- **Root cause:** every prior difficulty step (1.2→1.44→1.80) was a *uniform* multiplier
+  — it shifts the whole HP curve up but doesn't change its **shape**, so the per-wave
+  ramp plateaued exactly as the owner described.
+- **Fix:** the superlinear term in `enemyTemplate()` (`cd-game.js`) goes
+  `w^1.9` → **`1.25 * w^1.9`**. Because that term is negligible early and dominant late,
+  the boost *grows with wave*: ~+1% at w1, +7% at w5, +12% at w10, +16% at w20, +18% at
+  w30, +21% at w50, +23.6% at w200 — asymptoting toward **+25% but never reaching it**
+  (the ratio's supremum as w→∞ is exactly 1.25, strictly never attained). So the strong
+  early game the owner just praised is barely touched, while later waves get
+  progressively harder and each wave-to-wave jump is bigger.
+- **Guardrail:** scaling one term by a bounded ≤1.25 coefficient keeps the HP swing
+  under 25% at *every* wave incl. deep endless — unlike an exponent bump, which would be
+  unbounded. Simulated before/after across waves 1–200 (boost monotonically increasing:
+  +1% → +24% over w1→w200, supremum 1.25 never reached). Bosses/tanks scale off the same template, so they steepen too.
+- **No save/economy/theme impact** — HP is computed live from the formula; nothing
+  persisted. Test group **[16]** updated to assert the steepened formula, that the boost
+  grows with wave, and that it stays ≤25% at every sampled wave.
+
 ## v1.13.2 — 2026-06-11
 
 **Volume slider (ROADMAP table-stakes).** Settings persisted only mute (`cd_mute`)

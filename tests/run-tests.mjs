@@ -857,39 +857,41 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 16: enemy HP difficulty scaling (1.80 multiplier as of v1.10.0) ----
+  // ---- Test 16: enemy HP difficulty scaling (steepened curve as of v1.13.3) ----
   console.log('\n[16] Enemy HP difficulty scaling');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
       campLevel = 1;
-      // enemyTemplate uses the live formula; assert the 1.80 multiplier is applied
-      // uniformly across waves. Expected = (18 + w*7 + w^1.9) * 1.80
-      // * DIFFS.normal.hp (campScale=1 in quick mode).
+      // Live formula = (18 + w*7 + 1.25*w^1.9) * 1.80 * DIFFS.normal.hp (campScale=1).
+      // The 1.25 on the superlinear term steepens the curve (v1.13.3).
       const dh = DIFFS['normal'].hp;
-      const expect = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.80 * dh;
-      // prevBaseline(w) = the v1.9.2 formula (1.44 multiplier). The live value must
-      // be strictly above it (it's now 1.80), so a revert to 1.44 would fail.
-      const prevBaseline = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.44 * dh;
-      const samples = [1, 5, 10, 20, 30].map(w => {
+      const expect = (w) => (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * dh;
+      // prevBaseline = the v1.10.0 formula (no 1.25 on w^1.9). Live must be above it,
+      // and the gap must GROW with wave (steeper curve), while staying <25% everywhere.
+      const prevBaseline = (w) => (18 + w*7 + Math.pow(w, 1.9)) * 1.80 * dh;
+      const samples = [1, 5, 10, 20, 30, 50].map(w => {
         const got = enemyTemplate(w).hp;
-        return { w, got, exp: expect(w), old: prevBaseline(w), ok: Math.abs(got - expect(w)) < 1e-6 };
+        return { w, got, exp: expect(w), prev: prevBaseline(w),
+                 ok: Math.abs(got - expect(w)) < 1e-6, pct: (got / prevBaseline(w) - 1) * 100 };
       });
-      // A boss (wave 5) scales off the same template HP, so it's tougher too.
       const tmpl = enemyTemplate(5);
       backToMenu();
       return { samples, tmplHp5: tmpl.hp };
     });
     for (const s of r.samples) {
-      check(`enemy HP at wave ${s.w} matches the 1.80 formula`, s.ok,
+      check(`enemy HP at wave ${s.w} matches the steepened (1.25·w^1.9) formula`, s.ok,
         `got=${s.got.toFixed(1)} exp=${s.exp.toFixed(1)}`);
     }
-    // Regression guard: HP must be the latest value, i.e. clearly above the prior
-    // 1.44 baseline (a revert to 1.44 or 1.2 would fail this).
-    check('wave-10 HP is the 1.80 value, strictly above the prior 1.44 baseline',
-      r.samples[2].got > r.samples[2].old + 1e-6,
-      `hp=${r.samples[2].got.toFixed(1)} prevBaseline=${r.samples[2].old.toFixed(1)}`);
+    // The boost over the prior curve must GROW with wave (later waves harder) ...
+    const pcts = r.samples.map(s => s.pct);
+    const monotonic = pcts.every((p, i) => i === 0 || p >= pcts[i - 1] - 1e-9);
+    check('the HP boost over the prior curve grows with wave (steeper ramp)', monotonic,
+      `pcts=${pcts.map(p => p.toFixed(1)).join(',')}`);
+    // ... yet never exceed the ≤25%/number guardrail at any sampled wave.
+    check('boost stays within the ≤25% guardrail at every wave', pcts.every(p => p <= 25 + 1e-6),
+      `max=${Math.max(...pcts).toFixed(1)}%`);
     check('no console errors during HP-scaling tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

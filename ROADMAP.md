@@ -110,12 +110,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
 ## Balance (simulate before/after, ≤25% per number per run)
 
 - [~] **Overall difficulty too easy** (owner FEEDBACK, recurring) — being raised
-      iteratively, ≤25%/run. Enemy HP multiplier (`enemyTemplate`): `1.2`→`1.44`
-      (v1.9.2, +20%)→`1.80` (v1.10.0, +25% more). The owner still cleared campaign
-      9/40 on hard with 2 frosts + a booster, so keep ratcheting: next candidate
-      levers — another HP step, slower economy snowball (trim early interest/
-      wave-clear bonus/bounty), the Frost/booster snowball item below, or stronger
-      late bosses. Don't exceed 25% on any one number per run; simulate before/after.
+      iteratively, ≤25%/run. Enemy HP: global multiplier `1.2`→`1.44` (v1.9.2)→`1.80`
+      (v1.10.0) were uniform up-shifts; v1.13.3 added a `1.25` coeff on the `w^1.9`
+      term to **steepen the curve** (owner: early game now hard but plateaus after
+      ~w10) — boost grows with wave, asymptotes <25%. After a fresh-save reset the
+      early game now feels right; the plateau was the gap. Next candidate levers if
+      still too easy late — another `w^1.9`-coeff step (toward ~1.55 over a couple
+      runs), slower economy snowball (trim early interest/wave-clear bonus/bounty),
+      the Frost/booster snowball item below, or stronger late bosses (`14 + w*0.5`
+      → `+w*0.6`, bounded +20%). Simulate before/after; ≤25% per number per run.
 - [ ] **Frost/booster damage snowball** (owner FEEDBACK, v1.10.0) — Shatter was cut
       ×6→×4.5, but the underlying multiplicative stack is still strong: a single L6
       **booster** aura is +75% (`buffPower` +0.1/level off a 0.25 base) and **Frost
