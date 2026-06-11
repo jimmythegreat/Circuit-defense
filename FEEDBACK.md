@@ -9,7 +9,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
 
-[Low priority] Mayhem should be a random map every time.
+[Low priority] When I click on a tower the menu pops up to sell/upgrade. This sometimes overlaps things happening on the game. I think it would be better if this was positioned in the lower left corner and now hovering where I clicked.
+
+[Low priority] All the maps look the same. We should add random colors and textures to them. In the classic mode it should always pick the same theme. In mayham it should be while (things on fire, wild colors, etc). In campain mode it should be random but not crazy like mayham. Also Mayhem should be a random map every time.
+
+[Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds.
 
 ## DONE
 
