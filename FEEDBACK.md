@@ -6,7 +6,7 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-The stats bar (bar below the game name) and the tower, wave options, and hotkeys should not be shown if you're not currently in an active game.
+The stats bar (bar below the game name) and the tower, wave options, and hotkeys should not be shown or maybe the are dark like the current level is if you're not currently in an active game
 
 What's new should not grow past the game. It should instead convert to a scrollable window.
 
