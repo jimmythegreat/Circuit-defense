@@ -3,6 +3,29 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.5.1 — 2026-06-11
+
+**UX polish: dim the in-game chrome on the start screen (FEEDBACK item).**
+
+Owner feedback: *"The stats bar (bar below the game name) and the tower, wave
+options, and hotkeys should not be shown or maybe they are dark like the current
+level is if you're not currently in an active game."*
+
+- When no game is active (start screen), the stats HUD (`#hud`), tower shop
+  (`#shop`), wave controls (`#controls`) and hotkey hint (`.hint`) now dim to
+  30% opacity with a grayscale tint and go `pointer-events:none`, so the start
+  menu reads as the only live surface. They light back up (with a .25s fade) the
+  instant you hit **Play** or **Resume**, and re-dim on return to the menu.
+- Implementation: a single `.idle` class toggled on `#gameCol` by a new
+  `setActiveUI()` helper, wired into `beginGame()`, `loadRun()`, `backToMenu()`
+  and startup. Chrome stays lit during the game-over overlay (still an active
+  session); re-dims only when the player hits Main Menu. No new localStorage
+  keys; pure CSS + one helper — fully save-compatible.
+- **Tests:** added Test 8 (9 assertions) verifying the chrome dims on the start
+  screen, is non-interactive, lights up at full opacity during play, and re-dims
+  after `backToMenu()` — reading opacity with transitions disabled so the fade
+  can't race the assertion. Full suite **54 passed, 0 failed**.
+
 ## v1.5.0 — 2026-06-10
 
 **Added: Achievements — 8 permanent, account-wide badges (top ROADMAP item).**

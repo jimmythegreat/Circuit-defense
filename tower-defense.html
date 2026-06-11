@@ -228,6 +228,17 @@
   #verTag { color: #8b949e; font-size: 12px; letter-spacing: 1px; cursor: pointer; }
   #verTag:hover { color: #3fb950; }
   .hint { color: #8b949e; font-size: 11.5px; margin: 6px 12px; text-align: center; max-width: 920px; }
+  /* When no game is active (start screen), dim the in-game chrome so it reads as inactive */
+  #hud, #shop, #controls, .hint { transition: opacity .25s ease, filter .25s ease; }
+  #gameCol.idle #hud,
+  #gameCol.idle #shop,
+  #gameCol.idle #controls,
+  #gameCol.idle .hint {
+    opacity: 0.3;
+    filter: grayscale(0.65);
+    pointer-events: none;
+    user-select: none;
+  }
   .statline { color: #8b949e; font-size: 11.5px; }
   .specTag { color: #d2a8ff; font-size: 11px; font-weight: bold; }
 </style>
@@ -327,9 +338,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.5.0';
+const GAME_VERSION = 'v1.5.1';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.5.1', date: '2026-06-11', body: "Cleaner start screen — when no game is running, the stats bar, tower shop, wave controls and hotkey hint now dim out and go non-interactive so the start menu is the only live surface. They light back up the moment you hit Play or resume a run." },
   { v: 'v1.5.0', date: '2026-06-10', body: "Achievements! Earn 8 permanent badges across all your runs — First Victory, Flawless (win without losing a life), No Mercy (win on Hard), Mountaineer (Campaign L10), Conqueror (finish the campaign), Endless (reach wave 50), Megadamage (1M lifetime damage) and Veteran (25 runs). A new 🏅 Achievements button on the start screen shows your progress; unlocks pop on the end-of-run screen." },
   { v: 'v1.4.1', date: '2026-06-10', body: "What's New now floats beside the ENTIRE game — opening it shifts the whole layout (title, HUD, towers, controls) together instead of only sliding the canvas over. On narrow screens it still tucks below." },
   { v: 'v1.4.0', date: '2026-06-10', body: "Added a What's New side panel (this list — it opens by default, sits flush beside the game, and scrolls; ✕ to hide) plus a version tag on the start screen. Established a headless Playwright test harness so future updates are verified automatically." },
@@ -970,6 +982,7 @@ function loadRun() {
   campLevel = Math.max(1, Math.min(CAMPAIGN_LEVELS, s.campLevel || 1));
   started = true;
   document.getElementById('startScreen').style.display = 'none';
+  setActiveUI();
   resetState();
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
   livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
@@ -1065,11 +1078,18 @@ function renderStartScreen() {
     diffRow.appendChild(b);
   }
 }
+// Dim the in-game chrome (stats HUD, tower shop, wave controls, hotkey hint)
+// when no game is active so the start screen reads as the only live surface.
+function setActiveUI() {
+  const col = document.getElementById('gameCol');
+  if (col) col.classList.toggle('idle', !started);
+}
 function beginGame() {
   clearRun();
   started = true;
   document.getElementById('startScreen').style.display = 'none';
   resetState();
+  setActiveUI();
   SFX.wave();
 }
 function backToMenu() {
@@ -1078,6 +1098,7 @@ function backToMenu() {
   document.getElementById('startScreen').style.display = 'flex';
   renderStartScreen();
   resetState();
+  setActiveUI();
 }
 
 // ================= Enemies =================
@@ -2281,6 +2302,7 @@ loadMeta();
 buildPath();
 renderStartScreen();
 resetState();
+setActiveUI();
 initWhatsNew();
 requestAnimationFrame(loop);
 </script>

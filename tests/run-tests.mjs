@@ -318,6 +318,50 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 8: in-game chrome dims on the start screen, lights up when playing ----
+  console.log('\n[8] Idle chrome dimming (start screen vs active game)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    // Reads opacity with transitions disabled so the CSS animation can't race the assertion.
+    const probe = await page.evaluate(() => {
+      const col = document.getElementById('gameCol');
+      const ids = ['hud', 'shop', 'controls'];
+      const els = ids.map(i => document.getElementById(i)).concat([document.querySelector('.hint')]);
+      const read = () => {
+        const saved = els.map(e => e.style.transition);
+        els.forEach(e => e.style.transition = 'none');
+        const r = {
+          idle: col.classList.contains('idle'),
+          opacity: getComputedStyle(els[0]).opacity,
+          pointer: getComputedStyle(els[0]).pointerEvents,
+          hintOpacity: getComputedStyle(els[3]).opacity,
+        };
+        els.forEach((e, i) => e.style.transition = saved[i]);
+        return r;
+      };
+      // On the start screen (no game started yet)
+      const menu = read();
+      // Active game
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      const playing = read();
+      // Back to the menu
+      backToMenu();
+      const back = read();
+      return { menu, playing, back };
+    });
+    check('start screen: gameCol has .idle', probe.menu.idle === true, JSON.stringify(probe.menu));
+    check('start screen: chrome dimmed (opacity < 0.5)', parseFloat(probe.menu.opacity) < 0.5, probe.menu.opacity);
+    check('start screen: chrome non-interactive (pointer-events none)', probe.menu.pointer === 'none', probe.menu.pointer);
+    check('start screen: hotkey hint also dimmed', parseFloat(probe.menu.hintOpacity) < 0.5, probe.menu.hintOpacity);
+    check('active game: .idle removed', probe.playing.idle === false, JSON.stringify(probe.playing));
+    check('active game: chrome full opacity', parseFloat(probe.playing.opacity) === 1, probe.playing.opacity);
+    check('active game: chrome interactive again', probe.playing.pointer === 'auto', probe.playing.pointer);
+    check('back to menu: re-dims', probe.back.idle === true && parseFloat(probe.back.opacity) < 0.5, JSON.stringify(probe.back));
+    check('no console errors during idle-chrome tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

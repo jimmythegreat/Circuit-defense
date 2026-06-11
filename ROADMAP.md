@@ -45,6 +45,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).
 - [ ] **Tower range preview on hover** in the shop (before placing).
+- [ ] **Idle start-screen sheen** — now that the chrome dims on the menu (v1.5.1),
+      consider a subtle animated glow or pulse on the PLAY button to draw the eye
+      to the one live surface, reinforcing the new focus.
 - [ ] **Wave preview** — show the composition of the next wave (icons) so players
       can plan purchases.
 - [ ] **What's New flush polish** — since v1.4.1 the panel butts against the
