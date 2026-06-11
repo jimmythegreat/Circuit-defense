@@ -97,7 +97,7 @@ function resetAllData() {
   // reset the in-memory persistent state to factory defaults
   meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
   loadMeta();
-  speed = 1; best = 0; muted = false;
+  speed = 1; best = 0; muted = false; shakeEnabled = true; particleDensity = 1;
   if (btn) { btn.textContent = '🗑 Reset All'; btn.classList.remove('danger'); }
   document.getElementById('speedBtn').textContent = '⏩ 1x';
   document.getElementById('muteBtn').textContent = '🔊 Sound';

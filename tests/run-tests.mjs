@@ -1118,6 +1118,41 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 23: Settings panel — shake/particle prefs persist & apply (v1.13.0) ----
+  console.log('\n[23] Settings (shake / particle density)');
+  {
+    // Use an init script so cd_shake/cd_particles are present at module-load time.
+    const page = await browser.newPage();
+    const consoleErrors = [];
+    page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+    page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
+    await page.addInitScript(() => { try { localStorage.setItem('cd_mute', '1'); localStorage.setItem('cd_shake', '0'); localStorage.setItem('cd_particles', '0.5'); } catch (e) {} });
+    await page.goto(GAME_URL, { waitUntil: 'load' });
+    await page.evaluate(INSTALL_DRIVER);
+    const r = await page.evaluate(() => {
+      const restored = { shakeEnabled, particleDensity };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      // particle density scaling
+      setParticles(0); particles.length = 0; addExplosion(0, 0, '#fff', 20, 100); const off = particles.length;
+      setParticles(0.5); particles.length = 0; addExplosion(0, 0, '#fff', 20, 100); const half = particles.length;
+      setParticles(1); particles.length = 0; addExplosion(0, 0, '#fff', 20, 100); const full = particles.length;
+      // shake gate: with shake disabled, draw() must not throw
+      setShake(false); shake = 20; let drew = true; try { draw(); } catch (e) { drew = 'ERR:' + e.message; }
+      const persisted = { cd_shake: localStorage.getItem('cd_shake'), cd_particles: localStorage.getItem('cd_particles') };
+      backToMenu();
+      return { restored, off, half, full, drew, persisted };
+    });
+    check('shake/particle prefs restore from localStorage on load', r.restored.shakeEnabled === false && r.restored.particleDensity === 0.5,
+      `restored=${JSON.stringify(r.restored)}`);
+    check('particle density scales Off/Reduced/Full', r.off === 0 && r.half === 10 && r.full === 20,
+      `off=${r.off} half=${r.half} full=${r.full}`);
+    check('toggles persist to localStorage', r.persisted.cd_shake === '0' && r.persisted.cd_particles === '1',
+      `persisted=${JSON.stringify(r.persisted)}`);
+    check('draw() renders cleanly with shake disabled', r.drew === true, `${r.drew}`);
+    check('no console errors during settings test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

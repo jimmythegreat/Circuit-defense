@@ -409,6 +409,30 @@ function applyRecordFlourish(rec) {
 }
 function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; }
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
+
+// ----- Settings panel (performance / accessibility prefs, persisted on device) -----
+function openSettings() { renderSettings(); document.getElementById('settingsPanel').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; renderStartScreen(); }
+function setShake(on) { shakeEnabled = !!on; try { localStorage.setItem('cd_shake', on ? '1' : '0'); } catch(e) {} renderSettings(); }
+function setParticles(d) { particleDensity = +d; try { localStorage.setItem('cd_particles', String(+d)); } catch(e) {} renderSettings(); }
+function renderSettings() {
+  const rows = [
+    { name: '📳 Screen shake', fn: 'setShake', cur: shakeEnabled, opts: [['On', true], ['Off', false]] },
+    { name: '✨ Particle effects', fn: 'setParticles', cur: particleDensity, opts: [['Full', 1], ['Reduced', 0.5], ['Off', 0]] },
+  ];
+  let html = '<div class="setList">';
+  for (const r of rows) {
+    html += `<div class="setRow"><span class="setName">${r.name}</span><span class="setOpts">`;
+    for (const [lbl, val] of r.opts) {
+      const active = r.cur === val ? ' active' : '';
+      html += `<button class="setBtn${active}" onclick="${r.fn}(${JSON.stringify(val)})">${lbl}</button>`;
+    }
+    html += '</span></div>';
+  }
+  html += '</div>';
+  if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
+  document.getElementById('settingsBody').innerHTML = html;
+}
 function renderBests() {
   const diffs = Object.keys(DIFFS), maps = Object.keys(MAPS);
   let html = '<table class="bestTbl"><thead><tr><th>Map</th>';

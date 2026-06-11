@@ -78,8 +78,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [x] **Damage-number aggregation** — shipped v1.12.2. `addFloater()` takes an
       optional `{merge,value,prefix,suffix,radius}` group; nearby same-group floaters
       fold into one growing number. Applied to per-kill +gold and CRIT hits. Test [22].
-- [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
-      (persist in localStorage).
+- [x] **Settings: particle density / screen-shake toggle** — shipped v1.13.0. ⚙
+      Settings start-screen panel: screen-shake On/Off (`cd_shake`) + particle effects
+      Full/Reduced/Off (`cd_particles`), persisted, stacking with OS reduce-motion.
+      Test [23]. (Volume slider lives in the same panel — see Table-stakes below.)
 - [ ] **Tower range preview on hover** in the shop (before placing).
 - [ ] **Idle start-screen sheen** — now that the chrome dims on the menu (v1.5.1),
       consider a subtle animated glow or pulse on the PLAY button to draw the eye

@@ -71,6 +71,14 @@
       <button class="ctl blue" onclick="closeBests()">Done</button>
     </div>
   </div>
+  <div id="settingsPanel">
+    <h2 style="color:#8b949e">⚙ SETTINGS</h2>
+    <p style="color:#8b949e; margin:2px 0 0">Performance &amp; accessibility · saved on this device</p>
+    <div id="settingsBody"></div>
+    <div style="display:flex; gap:10px;">
+      <button class="ctl blue" onclick="closeSettings()">Done</button>
+    </div>
+  </div>
   <div id="startScreen">
     <h2>⚡ CIRCUIT DEFENSE</h2>
     <p>Survive 30 waves. Build. Upgrade. Don't let them through.</p>
@@ -88,6 +96,7 @@
       <button class="ctl" style="font-size:17px; padding: 11px 20px; background:#9e6a00;" onclick="openAchievements()">🏅 Achievements (<span id="achBtn">0/0</span>)</button>
       <button class="ctl" style="font-size:17px; padding: 11px 20px; background:#1f6feb;" onclick="openBests()">🏆 Records</button>
       <button class="ctl gray" style="font-size:17px; padding: 11px 20px;" onclick="openWhatsNew()">✨ What's New</button>
+      <button class="ctl gray" style="font-size:17px; padding: 11px 20px;" onclick="openSettings()">⚙ Settings</button>
       <button class="ctl gray" id="resetBtn" style="font-size:17px; padding: 11px 20px;" title="Erase ALL saved data — chips, talents, achievements, records, and your current run — and start completely fresh." onclick="resetAllData()">🗑 Reset All</button>
     </div>
   </div>

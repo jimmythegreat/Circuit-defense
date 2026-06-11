@@ -36,7 +36,7 @@ function drawPerkTooltip(iconX, p) {
 }
 function draw() {
   ctx.save();
-  if (shake > 0 && !reduceMotion()) {
+  if (shake > 0 && shakeEnabled && !reduceMotion()) {
     ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
   }
   ctx.clearRect(-20, -20, W+40, H+40);

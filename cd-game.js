@@ -239,8 +239,10 @@ function shade(col, amt) {
   return `rgb(${r},${g},${b})`;
 }
 function addExplosion(x, y, color, n=10, spd=120) {
-  // reduced-motion: thin out the burst (keep a faint hit cue, drop the spray)
-  if (reduceMotion()) { n = Math.max(1, Math.ceil(n * 0.3)); spd *= 0.5; }
+  n = Math.round(n * particleDensity);                  // user Settings: Full/Reduced/Off
+  // reduced-motion: thin out the burst further (keep a faint hit cue, drop the spray)
+  if (reduceMotion() && n > 0) { n = Math.max(1, Math.ceil(n * 0.3)); spd *= 0.5; }
+  if (n <= 0) return;
   for (let i = 0; i < n; i++) {
     const a = Math.random()*Math.PI*2, v = (0.3+Math.random()*0.7)*spd;
     particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: 0.4+Math.random()*0.3, color});

@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.0 — 2026-06-11
+
+**Settings panel: screen-shake & particle-density controls (ROADMAP table-stakes).**
+A new ⚙ **Settings** start-screen button opens `#settingsPanel` (mirrors the
+Achievements/Records modals). Two prefs, persisted on the device and independent of the
+OS reduce-motion gate:
+- **Screen shake** On/Off (`cd_shake`) — gates the shake translate in `draw()`
+  (`shake > 0 && shakeEnabled && !reduceMotion()`).
+- **Particle effects** Full / Reduced / Off (`cd_particles` = 1 / 0.5 / 0) — scales
+  burst counts in `addExplosion()` (`n = round(n * particleDensity)`, Off → no
+  particles). Reduce-motion still thins further on top.
+
+`openSettings`/`closeSettings`/`renderSettings` + `setShake`/`setParticles` setters
+(`cd-update.js`); globals `shakeEnabled`/`particleDensity` read at load in `cd-core.js`.
+The panel notes when the OS reduce-motion flag is active. `resetAllData()` restores both
+to defaults. Additive localStorage keys (safe defaults; old saves unaffected). New test
+group **[23]** verifies the toggles persist and scale particles Full/Reduced/Off.
+
 ## v1.12.2 — 2026-06-11
 
 **Damage-number aggregation (ROADMAP polish).** Floaters spammed during mass-kill
