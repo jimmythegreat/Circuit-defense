@@ -1219,6 +1219,44 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 26: difficulty rebalance + What's New / Settings toggles (v1.13.6) ----
+  console.log('\n[26] Difficulty rebalance + panel toggles');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const d = {
+        easyHp: DIFFS.easy.hp, easyLives: DIFFS.easy.lives, easyGold: DIFFS.easy.gold,
+        normalHp: DIFFS.normal.hp, normalLives: DIFFS.normal.lives, hardHp: DIFFS.hard.hp,
+      };
+      // What's New toggle: open-by-default -> close -> open
+      const wn = document.getElementById('whatsnew');
+      const wn0 = getComputedStyle(wn).display;
+      toggleWhatsNew(); const wn1 = getComputedStyle(wn).display;
+      toggleWhatsNew(); const wn2 = getComputedStyle(wn).display;
+      // Settings toggle: force closed -> open (body filled) -> close
+      const sp = document.getElementById('settingsPanel');
+      sp.style.display = 'none';
+      toggleSettings(); const set1 = getComputedStyle(sp).display; const filled = document.getElementById('settingsBody').innerHTML.length > 0;
+      toggleSettings(); const set2 = getComputedStyle(sp).display;
+      document.getElementById('whatsnew').style.display = 'none';
+      backToMenu();
+      return { d, wn0, wn1, wn2, set1, filled, set2 };
+    });
+    check('Easy is now very easy (hp 0.6, +gold/+lives)', r.d.easyHp === 0.6 && r.d.easyGold === 190 && r.d.easyLives === 36,
+      `hp=${r.d.easyHp} gold=${r.d.easyGold} lives=${r.d.easyLives}`);
+    check('Normal eased a touch (hp 0.85, lives 22)', r.d.normalHp === 0.85 && r.d.normalLives === 22,
+      `hp=${r.d.normalHp} lives=${r.d.normalLives}`);
+    check('difficulty stays ordered easy < normal < hard (hp)', r.d.easyHp < r.d.normalHp && r.d.normalHp < r.d.hardHp,
+      `${r.d.easyHp} / ${r.d.normalHp} / ${r.d.hardHp}`);
+    check("What's New button toggles (open→close→open)", r.wn0 !== 'none' && r.wn1 === 'none' && r.wn2 !== 'none',
+      `${r.wn0} -> ${r.wn1} -> ${r.wn2}`);
+    check('Settings button toggles open (panel shows + body renders)', r.set1 === 'flex' && r.filled === true,
+      `display=${r.set1} filled=${r.filled}`);
+    check('Settings button toggles closed on second click', r.set2 === 'none', `display=${r.set2}`);
+    check('no console errors during toggle/difficulty test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

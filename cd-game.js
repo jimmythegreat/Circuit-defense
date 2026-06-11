@@ -461,6 +461,14 @@ function canPlace(x, y) {
   if (distToPath(x, y) < 34) return false;
   return !towers.some(t => Math.hypot(t.x-x, t.y-y) < 32);
 }
+// Start-screen ✨ button: toggle the What's New panel (close it if it's open) — owner
+// FEEDBACK. (Defined here, not cd-core.js, to stay out of a concurrently-edited file;
+// openWhatsNew/closeWhatsNew resolve at call time.)
+function toggleWhatsNew() {
+  const wn = document.getElementById('whatsnew');
+  if (wn && getComputedStyle(wn).display !== 'none') closeWhatsNew();
+  else openWhatsNew();
+}
 document.addEventListener('keydown', e => {
   if (!started) return;
   if (e.key === ' ') { e.preventDefault(); if (!paused && !draftOpen) startWave(); }  // start/add a wave (startWave self-guards on the concurrent cap)

@@ -3,6 +3,33 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.6 — 2026-06-11
+
+**Panel-toggle fixes + difficulty rebalance for fresh runs (FEEDBACK).** Three owner
+requests in one commit (coordinated alongside a concurrent edit, so this touches only
+`cd-maps.js`/`cd-game.js`/`cd-update.js`/`tower-defense.html` plus the version/changelog).
+
+- **What's New button now toggles.** It only ever opened the panel; owner: *"What's New
+  button should close What's New if it's open."* New `toggleWhatsNew()` (in `cd-game.js`,
+  kept out of the concurrently-edited `cd-core.js`) closes the panel when it's showing,
+  opens it otherwise. The start-screen ✨ button calls it.
+- **Settings button toggles too.** Owner: *"Settings button doesn't open when clicked."*
+  The handler is correct (verified the panel opens via the real click handler, z-index
+  20 above the start screen) — couldn't reproduce a hard failure, most likely a stale
+  cached build. Made the ⚙ button a clean `toggleSettings()` (open if closed, close if
+  open), which is robust against any open-then-reclick edge and matches What's New.
+  `openSettings()` also now guards a missing panel element.
+- **Difficulty rebalanced (owner failed wave 5 of classic-normal on a fresh, no-talent
+  save).** `DIFFS` (`cd-maps.js`): **Easy** made *very* easy — `hp 0.8 → 0.6` (−25%),
+  `lives 30 → 36`, `gold 160 → 190`; **Normal** eased a touch — `hp 1.0 → 0.85` (−15%),
+  `lives 20 → 22`. Hard untouched. Each number ≤25% swing. This reduces HP at *all* waves
+  uniformly (it's the `d.hp` multiplier), so it dials back the fresh-player early wall
+  while the v1.13.3 late-wave steepening still applies on top. Difficulty stays ordered
+  easy < normal < hard. (`enemyTemplate` reads `DIFFS[diffKey].hp` live — no save impact.)
+
+New test group **[26]**: the rebalanced values, the easy<normal<hard ordering, and both
+button toggles (open→close→open / open+render→close). Suite green.
+
 ## v1.13.5 — 2026-06-11
 
 **What's New shows the full history again (owner request — reverses a v1.13.4 cleanup).**

@@ -144,8 +144,11 @@ for (let i = 0; i < 90; i++) {
 
 // ================= Difficulty =================
 const DIFFS = {
-  easy:   { name:'Easy',   desc:'+gold, +lives',       hp:0.8,  gold:160, lives:30, bounty:1.15, chipMult:0.5 },
-  normal: { name:'Normal', desc:'The way it should be', hp:1,   gold:120, lives:20, bounty:1,    chipMult:1 },
+  // easy made VERY easy (owner FEEDBACK): hp 0.8→0.6, +gold/+lives bumped. normal eased
+  // a touch (hp 1→0.85, lives 20→22) — owner failed at wave 5 of classic-normal on a
+  // fresh (no-talent) save. Each number ≤25% swing; hard left for veterans.
+  easy:   { name:'Easy',   desc:'Very easy · lots of gold & lives', hp:0.6,  gold:190, lives:36, bounty:1.15, chipMult:0.5 },
+  normal: { name:'Normal', desc:'The way it should be', hp:0.85, gold:120, lives:22, bounty:1,    chipMult:1 },
   hard:   { name:'Hard',   desc:'For veterans',         hp:1.3, gold:100, lives:10, bounty:0.9,  chipMult:1.6 },
 };
 let diffKey = 'normal';

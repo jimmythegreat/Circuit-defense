@@ -411,8 +411,16 @@ function openBests() { renderBests(); document.getElementById('bestPanel').style
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
 
 // ----- Settings panel (performance / accessibility prefs, persisted on device) -----
-function openSettings() { renderSettings(); document.getElementById('settingsPanel').style.display = 'flex'; }
+function openSettings() { const p = document.getElementById('settingsPanel'); if (!p) return; renderSettings(); p.style.display = 'flex'; }
 function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; renderStartScreen(); }
+// Start-screen ⚙ button toggles the panel (open if closed, close if open) — owner
+// FEEDBACK ("Settings button doesn't open"). A clean toggle is robust against any
+// open-then-immediately-reclick edge and matches the What's New button's behaviour.
+function toggleSettings() {
+  const p = document.getElementById('settingsPanel');
+  if (p && getComputedStyle(p).display !== 'none') closeSettings();
+  else openSettings();
+}
 function setShake(on) { shakeEnabled = !!on; try { localStorage.setItem('cd_shake', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setParticles(d) { particleDensity = +d; try { localStorage.setItem('cd_particles', String(+d)); } catch(e) {} renderSettings(); }
 function renderSettings() {
