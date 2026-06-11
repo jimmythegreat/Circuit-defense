@@ -373,7 +373,7 @@ const CAMPAIGN_LEVELS = 40;
 let waypoints, segs, pathLen;
 const isMayhem = () => gameMode === 'quick' && mapKey === 'mayhem';
 function campaignDone() { return +(localStorage.getItem('cd_campaign') || 0); }
-function victoryWave() { return gameMode === 'campaign' ? Math.min(30, 8 + campLevel) : 30; }
+function victoryWave() { return gameMode === 'campaign' ? 14 + campLevel : 30; }
 function genPathWith(rnd) {
   const pts = [];
   let y = 90 + rnd() * 380;
@@ -928,14 +928,14 @@ function renderStartScreen() {
       mapRow.appendChild(b);
     }
   } else {
-    document.getElementById('mapLabel').textContent = `LEVEL — waves to clear: ${Math.min(30, 8 + campLevel)}, random map each attempt`;
+    document.getElementById('mapLabel').textContent = `LEVEL — waves to clear: ${14 + campLevel}, random map each attempt`;
     const done = campaignDone();
     if (campLevel > done + 1) campLevel = done + 1;
     for (let i = 1; i <= CAMPAIGN_LEVELS; i++) {
       const b = document.createElement('button');
       const locked = i > done + 1;
       b.className = 'lvlBtn' + (campLevel === i ? ' sel' : '') + (i <= done ? ' done' : '') + (locked ? ' locked' : '');
-      b.innerHTML = i <= done ? `${i}<small>✓</small>` : locked ? `🔒<small>${i}</small>` : `${i}<small>${Math.min(30, 8 + i)}w</small>`;
+      b.innerHTML = i <= done ? `${i}<small>✓</small>` : locked ? `🔒<small>${i}</small>` : `${i}<small>${14 + i}w</small>`;
       if (!locked) b.onclick = () => { campLevel = i; renderStartScreen(); };
       mapRow.appendChild(b);
     }
