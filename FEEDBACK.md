@@ -11,7 +11,7 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] Mayhem should be a random map every time.
 
-[bug] The newly added combo meter overlaps the round completion bonuses display and the bar overlaps the word 'combo'
+[Low priority] The newly added combo meter overlaps the round completion bonuses display and the bar overlaps the word 'combo'
 
 ## DONE
 
