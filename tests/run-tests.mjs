@@ -387,6 +387,77 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 9: Records panel records per-map best & surfaces it ----
+  console.log('\n[9] Records / personal bests panel');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Panel + button + render fn exist.
+    const defs = await page.evaluate(() => ({
+      panel: !!document.getElementById('bestPanel'),
+      openFn: typeof openBests === 'function',
+      recFn: typeof recordBest === 'function',
+    }));
+    check('records panel exists', defs.panel);
+    check('openBests/recordBest functions exist', defs.openFn && defs.recFn);
+
+    // A finished quick run logs BOTH the legacy per-difficulty best and a new
+    // per-map+difficulty best. Defeat at wave W on spiral/normal records W.
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_spiral_normal');
+      localStorage.removeItem('cd_best_normal');
+      gameMode = 'quick'; mapKey = 'spiral'; diffKey = 'normal';
+      beginGame();
+      best = 0; wave = 12; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_spiral_normal') || 0);
+      const diffBest = +(localStorage.getItem('cd_best_normal') || 0);
+      backToMenu();
+      return { mapBest, diffBest };
+    });
+    check('per-map+difficulty best recorded (spiral/normal = 12)', rec.mapBest === 12, JSON.stringify(rec));
+    check('legacy per-difficulty best still recorded (normal = 12)', rec.diffBest === 12, JSON.stringify(rec));
+
+    // Panel renders a cell for that map×difficulty showing the recorded value,
+    // and an "Any map" summary row from the legacy keys.
+    const render = await page.evaluate(() => {
+      openBests();
+      const open = document.getElementById('bestPanel').style.display === 'flex';
+      const html = document.getElementById('bestBody').innerHTML;
+      const hasTable = !!document.querySelector('.bestTbl');
+      const hasAnyRow = !!document.querySelector('.bestTbl tr.anyrow');
+      const shows12 = />12</.test(html);
+      const hasStats = /Lifetime dmg/.test(html) && /Campaign/.test(html);
+      closeBests();
+      return { open, hasTable, hasAnyRow, shows12, hasStats };
+    });
+    check('openBests shows the panel', render.open);
+    check('panel renders a bests table with an "Any map" row', render.hasTable && render.hasAnyRow);
+    check('recorded best (12) appears in the table', render.shows12);
+    check('panel shows campaign + lifetime stats', render.hasStats);
+
+    // Campaign runs do NOT pollute per-map keys (maps are random per attempt).
+    const camp = await page.evaluate(() => {
+      const keysBefore = Object.keys(localStorage).filter(k => /^cd_best_[a-z]+_/.test(k)).length;
+      gameMode = 'campaign'; mapKey = 'classic'; diffKey = 'easy'; campLevel = 1;
+      beginGame();
+      best = 0; wave = 8; lives = 0;
+      endGame();
+      const keysAfter = Object.keys(localStorage).filter(k => /^cd_best_[a-z]+_/.test(k)).length;
+      backToMenu();
+      return { keysBefore, keysAfter };
+    });
+    check('campaign defeat does not add a per-map best key', camp.keysAfter === camp.keysBefore,
+      JSON.stringify(camp));
+
+    // Cleanup test keys.
+    await page.evaluate(() => {
+      ['cd_best_spiral_normal', 'cd_best_normal', 'cd_best_easy', 'cd_save'].forEach(k => localStorage.removeItem(k));
+    });
+    check('no console errors during records tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

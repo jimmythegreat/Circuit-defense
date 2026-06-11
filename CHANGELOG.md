@@ -3,6 +3,31 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.6.0 — 2026-06-11
+
+**Feature: Records / personal-bests panel (ROADMAP "Next up" item).**
+
+A new 🏆 **Records** button on the start screen (beside Achievements) opens a
+panel showing your highest wave reached on every quick-mode **map × difficulty**,
+plus an **"★ Any map"** summary row, your **campaign progress**, **lifetime
+damage**, **total runs** and **chips**.
+
+- Quick-mode runs now log a best-wave **per map** (`cd_best_<map>_<diff>`), not
+  just the legacy per-difficulty key (`cd_best_<diff>`). A new `recordBest()`
+  helper writes both and replaced the two inline `if (wave > best)…` lines in
+  `endGame()`/`winGame()` (identical behavior for the end-of-run "Best:" line).
+- New keys are additive and read with a `|| 0` fallback — old saves are
+  untouched. Map keys (classic/spiral/serpent/mayhem) can never collide with diff
+  keys (easy/normal/hard), so `cd_best_classic_easy` ≠ legacy `cd_best_easy`.
+- Campaign defeats/wins do **not** write per-map keys (campaign maps are random
+  per attempt — a recorded design decision), so the matrix stays meaningful.
+- The "Any map" row surfaces players' existing historical bests from the legacy
+  keys immediately, so the panel isn't empty on first open.
+- **Test evidence:** `tests/` green (68 checks, exit 0). New **Test 9** asserts
+  per-map + legacy keys are both recorded on a quick defeat, the panel renders a
+  table with the "Any map" row and the recorded value, the stats footer shows,
+  and a campaign defeat adds **no** per-map key.
+
 ## v1.5.2 — 2026-06-11
 
 **Fix: What's New panel no longer grows past the game (FEEDBACK item).**

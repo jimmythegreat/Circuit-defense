@@ -15,8 +15,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       start-screen panel and end-of-run unlock toasts. Follow-ups: *toast/sound when
       a badge unlocks mid-menu*, more badges (no-ability win, all-one-tower-type,
       speedrun), and a per-achievement chip reward.
-- [ ] **Endless-mode leaderboard / personal bests panel** — show best wave per
-      map+difficulty on the start screen (data already in `cd_best_*`).
+- [x] **Endless-mode leaderboard / personal bests panel** — shipped v1.6.0. A
+      🏆 Records start-screen panel shows highest wave per quick-mode map ×
+      difficulty (new additive `cd_best_<map>_<diff>` keys), an "Any map" row from
+      the legacy per-diff bests, plus campaign progress, lifetime damage, runs and
+      chips. Follow-ups: *"new record!" flourish on the end-of-run screen when a
+      cell is beaten*, and highlight the player's single all-time best in the grid.
 - [ ] **New enemy type: "phantom"** — periodically dodges/blinks forward,
       punishing slow single-target towers. Introduce around wave 13+.
 - [ ] **New tower: "arc/chain" or "mortar"** — a 7th/8th tower with a distinct
@@ -59,6 +63,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the game height (v1.5.2), highlight entries newer than the last-seen version
       (persist `cd_wnseen`) with a dot/badge so players notice fresh changelog
       items, and auto-scroll the list to the top on open.
+- [ ] **"New record!" end-of-run flourish** — now that Records (v1.6.0) track a
+      best per map × difficulty, detect when a finished run *beat* its cell's prior
+      value and celebrate it on the game-over/victory overlay (a 🏆 line + a chunky
+      sound/particle burst). Pairs well with surfacing the old→new wave delta.
 
 ## Balance (simulate before/after, ≤25% per number per run)
 
