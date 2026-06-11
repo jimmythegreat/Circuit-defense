@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.9.1 — 2026-06-11
+
+**Tower upgrade/sell menu pinned to the lower-left corner (FEEDBACK).** Owner
+report: *"When I click on a tower the menu pops up to sell/upgrade. This sometimes
+overlaps things happening on the game. I think it would be better if this was
+positioned in the lower left corner and not hovering where I clicked."* (All five
+PENDING items are `[Low priority]`, so this run was free to pick; this is the
+cleanest, most concrete owner-described item and sits in the same UX-relocation
+class as the recent combo-meter work.)
+
+**What changed.** In `showUpgrade()` (`cd-game.js`) the panel was positioned at
+`t.x + 20, t.y - 70` — i.e. floating at the clicked tower, exactly where it could
+cover enemies on the path. It is now pinned to a fixed spot in the **lower-left
+corner** (`left:10px`) and **bottom-anchored** (`top:auto; bottom:10px`) so taller
+panels (the spec choice at level 5) grow upward and never clip off the canvas
+bottom. Same place every time, independent of where you clicked.
+
+**Why it's safe.** Render/DOM-only — one positioning block changed, no gameplay,
+economy, save schema, or `eff*` helper touched. The faint between-wave "Next: …"
+preview shares the bottom-left corner, but it only shows while no wave is active,
+so the panel covers it only while you're inspecting a tower (planning) — never
+during live combat, which was the actual complaint.
+
+**Test evidence.** New test group **[15]** asserts the panel opens on tower
+select, hugs the left edge (`offsetLeft ≤ 20`), sits at the bottom (small bottom
+gap), is bottom-anchored (`top` cleared / `bottom` set), and — placing the tower
+in the upper-right then moving it — that its position is **independent of the
+tower location**. Full suite **139/0 green** (was 133/0; +6 new checks). Verified
+live in-preview: with a tower at the upper-right, the panel renders at `left:10px`
+with a 10px bottom gap, zero console errors.
+
 ## v1.9.0 — 2026-06-11
 
 **👻 New enemy: the Phantom** — a blinking, intangible harasser that joins waves

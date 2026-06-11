@@ -270,10 +270,14 @@ function showUpgrade(t) {
     <button ${maxed || gold < upCost ? 'disabled' : ''} onclick="upgradeTower()">${maxed ? 'MAX LEVEL' : `⬆ Upgrade ${upCost}💰`}</button>
     <button class="sell" onclick="sellTower()">💸 Sell ${sellVal}💰</button>`;
   upPanel.style.display = 'block';
-  const left = Math.min(W - 200, Math.max(0, t.x + 20));
-  const top = Math.min(H - 200, Math.max(0, t.y - 70));
-  upPanel.style.left = left + 'px';
-  upPanel.style.top = top + 'px';
+  // Pinned to the lower-left corner (owner request) instead of hovering at the
+  // clicked tower, so the menu never covers live combat on the path. Bottom-
+  // anchored so a taller panel (spec choice at L5) grows upward and never clips
+  // off the canvas bottom. The faint between-wave "Next:" preview shares this
+  // corner but only shows while no wave is active, so the overlap is minimal.
+  upPanel.style.left = '10px';
+  upPanel.style.top = 'auto';
+  upPanel.style.bottom = '10px';
 }
 function chooseSpec(i) {
   const t = selectedTower;

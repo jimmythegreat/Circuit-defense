@@ -9,13 +9,13 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
 
-[Low priority] When I click on a tower the menu pops up to sell/upgrade. This sometimes overlaps things happening on the game. I think it would be better if this was positioned in the lower left corner and now hovering where I clicked.
-
 [Low priority] All the maps look the same. We should add random colors and textures to them. In the classic mode it should always pick the same theme. In mayham it should be while (things on fire, wild colors, etc). In campain mode it should be random but not crazy like mayham. Also Mayhem should be a random map every time.
 
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds.
 
 ## DONE
+
+- **2026-06-11 · v1.9.1** — "[Low priority] When I click on a tower the menu pops up to sell/upgrade. This sometimes overlaps things happening on the game. I think it would be better if this was positioned in the lower left corner and now hovering where I clicked." → The upgrade/sell panel no longer floats at the clicked tower (`t.x+20, t.y-70`); it's now **pinned to the lower-left corner** of the board (`left:10px`, bottom-anchored `top:auto; bottom:10px` so the level-5 spec choice grows upward and never clips off-canvas). Render/DOM-only — no gameplay/economy/save impact. New test group [15] (opens on select, hugs left edge, sits at bottom, bottom-anchored, position independent of tower location); suite 139/0 green. Verified in-preview: panel at `left:10px` / 10px bottom gap with a tower placed upper-right.
 
 - **2026-06-11 · v1.8.5** — Owner suggestion on the same thread: *"would it be easier to move the milestones or the combo meter to the bottom right? Then we don't have to worry about the overlap."* Done — the persistent COMBO meter moved to the **bottom-right corner** (`ax=W-16`, baseline `H-26`; number right-aligned, "COMBO" to its left, timer bar in its own lane below draining toward the corner). This also fixes the top-edge **clipping** the owner screenshotted (the number's top was at `y≈11`, so "9×" read like "g×"). Verified by reading actual canvas pixels: `9×` occupies x817–883/y511–547, purple `100×` x754–883/y511–547 — both fully on-canvas, no clipping. The `🔥 N× COMBO!` milestone pop stays center-board (v1.8.4), clear of both the top band and the new corner meter. Render-only; Test 11 rewritten (bar-vs-label, on-canvas fit for 9×/100×, floater clears top band + meter); suite green.
 

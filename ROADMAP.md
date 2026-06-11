@@ -67,6 +67,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       relayout v1.8.3 → pop to center v1.8.4 → meter to bottom-right v1.8.5.)
       Render-only; Test 11 verifies bar-vs-label, on-canvas fit for 9×/100×, and
       the pop clearing both the top band and the corner meter.
+- [x] **Tower menu position** — shipped v1.9.1 (owner FEEDBACK). The upgrade/sell
+      panel no longer hovers at the clicked tower (where it covered combat); it's
+      pinned to the lower-left corner, bottom-anchored. Test group [15]. Follow-up:
+      *hide/dim the faint between-wave `Next:` preview while the panel is open* so
+      the corner never double-stacks, and a small slide-in animation for game feel.
 - [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).

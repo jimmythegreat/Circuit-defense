@@ -819,6 +819,44 @@ async function main() {
     await page.close();
   }
 
+  console.log('\n[15] Upgrade panel pinned to lower-left corner');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 99999;
+      const wrap = document.getElementById('gameWrap');
+      // Place a tower well away from the lower-left (upper-right quadrant) and
+      // open its menu — the panel must NOT track the tower's position.
+      const t = { type:'gun', x: W - 60, y: 60, range:120, dmg:10, rate:0.5,
+                  cd:0, level:1, baseCost:50, invested:50, angle:0, mode:'first',
+                  spec:null, dealt:0, kills:0, buffPower:0, flash:0 };
+      towers.push(t);
+      showUpgrade(t);
+      const up = document.getElementById('upgradePanel');
+      const open = up.style.display === 'block';
+      const left = up.offsetLeft;
+      const bottomGap = wrap.offsetHeight - (up.offsetTop + up.offsetHeight);
+      // bottom-anchored: clearing `top` keeps tall panels (spec choice) on-canvas
+      const bottomAnchored = up.style.top === 'auto' && up.style.bottom !== '';
+      // independence: move the tower far and reopen — panel stays put
+      t.x = 40; t.y = H - 40; showUpgrade(t);
+      const leftAgain = up.offsetLeft, bottomGapAgain = wrap.offsetHeight - (up.offsetTop + up.offsetHeight);
+      hideUpgrade();
+      backToMenu();
+      localStorage.removeItem('cd_save');
+      return { open, left, bottomGap, bottomAnchored, leftAgain, bottomGapAgain, wrapH: wrap.offsetHeight };
+    });
+    check('panel opens on tower select', r.open);
+    check('panel hugs the left edge (offsetLeft small)', r.left <= 20, 'left=' + r.left);
+    check('panel sits at the bottom (small bottom gap)', r.bottomGap >= 0 && r.bottomGap <= 20, 'gap=' + r.bottomGap);
+    check('panel is bottom-anchored (top cleared, bottom set)', r.bottomAnchored);
+    check('panel position is independent of tower location', r.leftAgain === r.left && r.bottomGapAgain === r.bottomGap,
+      `left ${r.left}->${r.leftAgain}, gap ${r.bottomGap}->${r.bottomGapAgain}`);
+    check('no console errors during panel-position tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
