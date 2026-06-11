@@ -616,9 +616,10 @@ async function main() {
     check('combo lapses to 0 after its window with no kills',
       lapse.count === 0 && lapse.timer === 0, JSON.stringify(lapse));
 
-    // v1.8.3 layout fix: the meter's timer bar must not overlap the "COMBO"
-    // label, and the milestone burst/floater must stay in the top-left combo
-    // column (clear of the centered "Wave clear! +bonus" round-clear text).
+    // v1.8.3 layout fix: (a) the meter's timer bar must not overlap the "COMBO"
+    // label, and (b) the milestone burst/floater must clear the WHOLE top HUD
+    // band — the top-left combo meter, the centered round-clear bonus text, and
+    // the centered boss HP bar — so it never lands on any of them.
     const layout = await page.evaluate(() => {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
       beginGame();
@@ -635,23 +636,26 @@ async function main() {
       const labelBottom = labelBaseY + lbl.actualBoundingBoxDescent;
       const bar = { top: 44, bottom: 48 };
       const barOverlapsLabel = !(bar.bottom <= labelTop || bar.top >= labelBottom);
-      // milestone floater anchoring + centered round-clear bonus footprint
+      // milestone floater: center board (W/2, 132). It must sit BELOW the whole
+      // top HUD band (meter bottom ~48, round-clear bonus ~y90, boss bar ~y32).
       ctx.font = 'bold 22px sans-serif';
-      const fw = ctx.measureText('🔥 28× COMBO!').width;
-      const floater = { left: 120 - fw / 2, right: 120 + fw / 2 };
-      ctx.font = 'bold 18px sans-serif';
-      const bw = ctx.measureText('Wave clear! +325💰 (incl. 30 interest)').width;
-      const bonusLeft = 450 - bw / 2;
+      const fMet = ctx.measureText('🔥 28× COMBO!');
+      const floaterTop = 132 - fMet.actualBoundingBoxAscent;
+      const floaterBottom = 132 + fMet.actualBoundingBoxDescent;
+      const meterBottom = 48;            // bar lane bottom
+      const bonusBottom = 90;            // lowest round-clear/early-call floater band
+      const bossBarBottom = 32;          // boss HP bar box bottom (by-6+24, by=14)
       ctx.restore();
       return {
         barOverlapsLabel,
-        floaterOnCanvas: floater.left >= 0 && floater.right <= 900,
-        floaterClearOfBonus: floater.right < bonusLeft,
+        floaterTop, floaterBottom,
+        floaterBelowHud: floaterTop > meterBottom && floaterTop > bonusBottom && floaterTop > bossBarBottom,
+        floaterOnCanvas: floaterBottom <= 560,
       };
     });
     check('timer bar does not overlap the COMBO label', !layout.barOverlapsLabel, JSON.stringify(layout));
-    check('milestone combo floater stays top-left, clear of round-clear bonus',
-      layout.floaterOnCanvas && layout.floaterClearOfBonus, JSON.stringify(layout));
+    check('milestone combo floater clears the top HUD band (meter / bonus / boss bar)',
+      layout.floaterBelowHud && layout.floaterOnCanvas, JSON.stringify(layout));
     await page.evaluate(() => { backToMenu(); });
 
     await page.evaluate(() => { localStorage.removeItem('cd_save'); });

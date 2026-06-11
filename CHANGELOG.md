@@ -3,6 +3,33 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.8.4 — 2026-06-11
+
+**Fix: combo milestone pop was overlapping the meter (owner follow-up to v1.8.3).**
+
+Owner report after v1.8.3: *"The combo meter still overlaps the milestone
+[upgrades] in the top left corner."* v1.8.3 had moved the `🔥 N× COMBO!`
+milestone burst/floater **into** the top-left corner to clear the centered
+"Wave clear! +bonus" text — but that corner is exactly where the persistent
+COMBO meter lives, so the pop landed on the meter instead. Traded one overlap
+for another.
+
+- The milestone burst + floater now fire on the **center board, below the whole
+  top HUD band** (`W/2, 114` / `W/2, 132`) — clear of the top-left meter (bottom
+  ~y48), the centered round-clear bonus text (~y36–90), **and** the centered
+  boss HP bar (~y8–32). Measured in-browser: with the meter, the round-clear
+  bonus, and the milestone pop all on screen at once, the floater (y113–136)
+  sits 65px below the meter and 59px below the bonus — no collision with any of
+  the three.
+- The v1.8.3 meter relayout (COMBO label to the right of the multiplier, timer
+  bar in its own lane below) is unchanged and still correct.
+
+**Render-only, no balance/economy/save impact** — combo stays cosmetic and
+run-only. **Tests:** suite **114/0 green**; the Test 11 layout assertion was
+updated to verify the milestone floater clears the entire top HUD band (meter /
+bonus / boss bar) vertically rather than the now-obsolete top-left anchoring.
+Zero console errors.
+
 ## v1.8.3 — 2026-06-11
 
 **Fix: combo-meter overlap (owner FEEDBACK / ROADMAP "Combo meter layout bug").**

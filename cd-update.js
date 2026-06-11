@@ -263,10 +263,11 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
       const cc = comboColor(comboCount);
       SFX.combo(comboCount);
       shake = Math.max(shake, Math.min(13, 4 + comboCount * 0.16));
-      // Anchor the milestone burst + floater to the top-left combo column so it
-      // never lands on the centered round-clear "Wave clear! +bonus" text.
-      addExplosion(96, 40, cc, 14, 150);
-      addFloater(120, 74, `🔥 ${comboCount}× COMBO!`, cc, 22);
+      // Celebrate on the center board, BELOW the whole top HUD band — clear of
+      // the top-left combo meter (y~11-48), the centered round-clear
+      // "Wave clear! +bonus" text (y~36-90), and the centered boss bar (y~8-32).
+      addExplosion(W/2, 114, cc, 14, 150);
+      addFloater(W/2, 132, `🔥 ${comboCount}× COMBO!`, cc, 22);
     }
     let bounty = e.bounty + perkState.bountyAdd;
     const luck = 0.08 * tRank('fortune');
