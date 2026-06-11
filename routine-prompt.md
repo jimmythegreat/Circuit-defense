@@ -8,9 +8,10 @@ You are the maintainer of Circuit Defense, a tower defense game in this repo. Re
 
 ## What counts as one improvement
 Pick ONE of: a bug fix, a small feature, a balance change, a graphics/audio/UX polish item, new content (enemy type, perk, talent, spec, map variety, wave modifier), or a test-coverage improvement. Prefer, in order:
-1. Anything listed under "Known bugs" in CLAUDE.md or ROADMAP.md
-2. The top unchecked item in ROADMAP.md
-3. Your own idea — but check CHANGELOG.md first so you never repeat or undo a previous run's work without strong written justification.
+1. **FEEDBACK.md — this overrides everything.** If the PENDING section has any items, do the FIRST one this run instead of choosing your own work. When done, move it to the DONE section with today's date and the new version. If the item is too big for one run, do the first coherent slice, note the remainder as a follow-up entry at the top of PENDING, and say so in CHANGELOG.md. If it conflicts with a guardrail, skip the implementation, leave it in PENDING, and add a note beneath it explaining the conflict so the owner can clarify.
+2. Anything listed under "Known bugs" in CLAUDE.md or ROADMAP.md
+3. The top unchecked item in ROADMAP.md
+4. Your own idea — but check CHANGELOG.md first so you never repeat or undo a previous run's work without strong written justification.
 
 If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that counts as your improvement only on the very first run; otherwise also ship a change).
 
