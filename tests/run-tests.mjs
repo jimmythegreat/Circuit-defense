@@ -525,6 +525,68 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 11: kill-streak combo builds, escalates, and lapses ----
+  console.log('\n[11] Kill-streak combo');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    const defs = await page.evaluate(() => ({
+      colorFn: typeof comboColor === 'function',
+      sfx: typeof SFX.combo === 'function',
+      hasVars: typeof comboCount !== 'undefined' && typeof comboBest !== 'undefined' &&
+               typeof comboTimer !== 'undefined' && typeof COMBO_WINDOW !== 'undefined',
+    }));
+    check('comboColor + SFX.combo exist', defs.colorFn && defs.sfx);
+    check('combo state vars defined', defs.hasVars);
+
+    // Color escalates from green through to purple as the streak climbs.
+    const colors = await page.evaluate(() => ({
+      lo: comboColor(3), mid: comboColor(12), hot: comboColor(35), top: comboColor(55),
+    }));
+    check('combo color escalates by tier',
+      colors.lo === '#3fb950' && colors.mid === '#ffd866' && colors.hot === '#f85149' && colors.top === '#d2a8ff',
+      JSON.stringify(colors));
+
+    // Driving real waves of kills builds a streak; comboBest records the peak.
+    const built = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 6 });
+      return { wave: res.wave, comboBest, alive: !res.gameOver || res.victory };
+    });
+    check('clearing waves builds a combo streak (peak >= 5)', built.comboBest >= 5, JSON.stringify(built));
+
+    // resetState() (via beginGame) zeroes the streak for a fresh run.
+    const fresh = await page.evaluate(() => {
+      backToMenu();
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      const out = { count: comboCount, timer: comboTimer, best: comboBest };
+      backToMenu();
+      return out;
+    });
+    check('a fresh run starts with a zeroed combo',
+      fresh.count === 0 && fresh.best === 0 && fresh.timer === 0, JSON.stringify(fresh));
+
+    // With no further kills the streak lapses to 0 after COMBO_WINDOW seconds.
+    const lapse = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      comboCount = 7; comboTimer = COMBO_WINDOW;     // simulate a live streak
+      for (let i = 0; i < 200; i++) update(1 / 60);  // ~3.3s, no kills → past the 2s window
+      const out = { count: comboCount, timer: comboTimer };
+      backToMenu();
+      return out;
+    });
+    check('combo lapses to 0 after its window with no kills',
+      lapse.count === 0 && lapse.timer === 0, JSON.stringify(lapse));
+
+    await page.evaluate(() => { localStorage.removeItem('cd_save'); });
+    check('no console errors during combo tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

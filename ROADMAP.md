@@ -43,8 +43,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
-- [ ] **Combo / kill-streak feedback** — escalating sound + particles for rapid
-      kills; small score flourish.
+- [x] **Combo / kill-streak feedback** — shipped v1.7.0. Chaining kills within a
+      2s window builds a top-right COMBO meter that glows hotter (green→gold→
+      orange→red→purple); milestones (5, then every 10) fire a rising `SFX.combo`
+      chirp + shake + particle burst + floater. Cosmetic only — no gold/save
+      impact. Follow-ups: *combo-gated cosmetic flourishes (e.g. a brief board
+      tint at huge streaks)*, a **best-combo** stat on the Records panel, and an
+      optional **"Combo Master" achievement** (e.g. reach a 30× streak).
 - [ ] **Damage-number aggregation** — floaters can spam; merge nearby numbers.
 - [ ] **Settings: particle density / screen-shake toggle** for lower-end devices
       (persist in localStorage).

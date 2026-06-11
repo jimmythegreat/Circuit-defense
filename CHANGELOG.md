@@ -3,6 +3,34 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.7.0 — 2026-06-11
+
+**Feature: kill-streak combo system (ROADMAP "Game feel / polish" — combo /
+kill-streak feedback).**
+
+Chunky reward for clearing enemies fast. Consecutive kills within a 2-second
+window now build a **combo streak** with escalating game-feel:
+
+- A **COMBO meter** appears at the top-right of the board (`× N` + a "COMBO"
+  label and a draining timer bar). It pops on each kill and **glows hotter** as
+  the streak climbs — green → gold → orange → red → purple
+  (`comboColor(n)` thresholds at 10 / 20 / 30 / 50).
+- Every **milestone** (5, then every 10) fires a new `SFX.combo(n)` rising chirp
+  whose pitch climbs with the tier, plus a screen-shake and a golden/colored
+  particle burst at the top of the board and a `🔥 N× COMBO!` floater — so
+  wiping a packed wave feels punchy.
+- The streak **lapses to 0** if no kill lands within `COMBO_WINDOW` (2s); a
+  per-run peak is tracked in `comboBest`.
+- **Purely cosmetic — zero balance/economy/save impact.** Combo state
+  (`comboCount` / `comboTimer` / `comboBest` / `comboFlash`) is run-only, never
+  written to localStorage, and grants no gold. Resets cleanly in `resetState()`
+  so fresh and resumed runs both start at 0.
+- **Test evidence:** `tests/` green (83 checks, exit 0). New **Test 11** asserts
+  `comboColor`/`SFX.combo`/the combo vars exist, the color escalates by tier,
+  clearing real waves builds a streak (peak ≥ 5), a fresh run zeroes the combo,
+  and the streak lapses to 0 after its window with no kills. Verified in-browser:
+  the meter renders without console errors at a live 22× (orange) streak.
+
 ## v1.6.1 — 2026-06-11
 
 **Feature: "New record!" end-of-run flourish (ROADMAP "Game feel / polish" +

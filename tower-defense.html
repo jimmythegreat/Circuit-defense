@@ -366,9 +366,10 @@ const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.6.1';
+const GAME_VERSION = 'v1.7.0';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.7.0', date: '2026-06-11', body: "Kill streaks! Chain kills within 2 seconds to build a COMBO meter (top-right of the board) that glows hotter as it climbs — green → gold → orange → red → purple. Every milestone (5, then every 10) fires a rising chirp, a screen-shake and a particle burst, so wiping out a packed wave feels chunky. Purely cosmetic — no effect on gold or saves." },
   { v: 'v1.6.1', date: '2026-06-11', body: "New record! flourish — when a quick-mode run beats your best wave for that map × difficulty (your Records cell), the game-over/victory screen now celebrates with a golden banner showing the old→new wave delta, a triumphant fanfare, and a screen-shake + particle burst. First-ever entries record quietly; only beating a real best fires the party." },
   { v: 'v1.6.0', date: '2026-06-11', body: "Records! A new 🏆 Records button on the start screen shows your highest wave reached on every map × difficulty, plus an 'Any map' row of your all-time bests, your campaign progress, lifetime damage, total runs and chips. Quick-mode runs now log a best-wave per map (not just per difficulty)." },
   { v: 'v1.5.2', date: '2026-06-11', body: "What's New no longer grows taller than the game on big screens — the panel is now capped to the game's height and scrolls internally, so it stays a tidy window flush beside the board instead of overhanging the bottom." },
@@ -488,6 +489,10 @@ const SFX = {
   poison()  { tone(280, 0.1, 'triangle', 0.045, -140); tone(190, 0.12, 'triangle', 0.035, -90);
               setTimeout(()=>tone(150, 0.08, 'triangle', 0.03, -60), 70); },
   death()   { tone(300, 0.15, 'triangle', 0.07, -200); },
+  // Kill-streak milestone: a bright rising chirp that climbs with the streak tier
+  combo(n)  { const tier = Math.min(9, Math.floor(n/10)); const base = 540 + tier*70;
+              tone(base, 0.07, 'square', 0.06, 140); tone(base*1.5, 0.06, 'sine', 0.03, 90);
+              if (n >= 30) tone(base*2, 0.05, 'sine', 0.02, 120); },
   bossDeath(){ tone(70, 0.6, 'sine', 0.2, -35); noise(0.7, 0.2, 'lowpass', 600, -520);
                tone(160, 0.4, 'square', 0.07, -80); noise(0.1, 0.12, 'highpass', 1800); },
   life()    { tone(200, 0.3, 'square', 0.1, -120); },
@@ -969,6 +974,12 @@ let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters,
 let livesLostThisRun = false;
 let waveActive, spawnQueue, spawnTimer, selectedShop, selectedTower, gameOver, victory, started;
 let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
+// Kill-streak combo (run-only, never saved): consecutive kills within COMBO_WINDOW seconds
+let comboCount = 0, comboTimer = 0, comboBest = 0, comboFlash = 0;
+const COMBO_WINDOW = 2.0;
+function comboColor(n) {
+  return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
+}
 let bestKey = () => 'cd_best_' + diffKey;
 let best = 0;
 
@@ -991,6 +1002,7 @@ function resetState() {
   armedAbility = null;
   livesLostThisRun = false;
   waveMod = null; meteorRainTimer = 0;
+  comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   if (isMayhem()) MAPS.mayhem.pts = genMayhemPath();
   best = +(localStorage.getItem(bestKey()) || 0);
   buildPath();
@@ -1657,6 +1669,10 @@ function update(dt) {
 
   shake = Math.max(0, shake - 40*dt);
 
+  // combo decay: streak lapses if no kill within the window
+  if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) { comboTimer = 0; comboCount = 0; } }
+  if (comboFlash > 0) comboFlash = Math.max(0, comboFlash - dt*3);
+
   if (waveActive && !spawnQueue.length && !enemies.length && !pendingSpawns.length) endWave();
 }
 
@@ -1753,6 +1769,18 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
     e.dead = true;
     kills++;
     if (src) src.kills++;
+    // kill-streak combo: count this death, refresh the window, celebrate milestones
+    comboCount++;
+    comboTimer = COMBO_WINDOW;
+    comboFlash = 1;
+    if (comboCount > comboBest) comboBest = comboCount;
+    if (comboCount === 5 || (comboCount >= 10 && comboCount % 10 === 0)) {
+      const cc = comboColor(comboCount);
+      SFX.combo(comboCount);
+      shake = Math.max(shake, Math.min(13, 4 + comboCount * 0.16));
+      addExplosion(W/2, 66, cc, 14, 150);
+      addFloater(W/2, 84, `🔥 ${comboCount}× COMBO!`, cc, 22);
+    }
     let bounty = e.bounty + perkState.bountyAdd;
     const luck = 0.08 * tRank('fortune');
     if (luck > 0 && Math.random() < luck) {
@@ -2373,6 +2401,31 @@ function draw() {
     ctx.fillStyle = 'rgba(255,216,102,0.95)';
     ctx.font = 'bold 14px sans-serif';
     ctx.fillText(`${waveMod.icon} ${waveMod.name} — ${waveMod.desc}`, 12, H - 12);
+  }
+
+  // kill-streak combo meter (top-right): grows + glows hotter with the streak
+  if (comboCount >= 2 && comboTimer > 0 && started && !gameOver) {
+    const cc = comboColor(comboCount);
+    const frac = Math.max(0, comboTimer / COMBO_WINDOW);
+    const pulse = 1 + comboFlash * 0.22;
+    ctx.save();
+    ctx.translate(W - 16, 36);
+    ctx.scale(pulse, pulse);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = cc;
+    ctx.shadowColor = cc; ctx.shadowBlur = 12;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(`${comboCount}×`, 0, 0);
+    ctx.shadowBlur = 0;
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillStyle = 'rgba(230,237,243,0.85)';
+    ctx.fillText('COMBO', 0, 15);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(W - 96, 46, 80, 4);
+    ctx.fillStyle = cc;
+    ctx.fillRect(W - 96, 46, 80 * frac, 4);
+    ctx.textAlign = 'left';
   }
 
   // vignette for depth
