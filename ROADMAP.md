@@ -82,7 +82,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Settings start-screen panel: screen-shake On/Off (`cd_shake`) + particle effects
       Full/Reduced/Off (`cd_particles`), persisted, stacking with OS reduce-motion.
       Test [23]. (Volume slider lives in the same panel — see Table-stakes below.)
-- [ ] **Tower range preview on hover** in the shop (before placing).
+- [x] **Tower range preview on hover** in the shop — shipped v1.13.1. Hovering a shop
+      button draws a dashed range ring + label at board centre (`hoveredShop`); tooltips
+      show the range number. (Placement preview still follows the cursor once selected.)
+      Test [24].
 - [ ] **Idle start-screen sheen** — now that the chrome dims on the menu (v1.5.1),
       consider a subtle animated glow or pulse on the PLAY button to draw the eye
       to the one live surface, reinforcing the new focus.

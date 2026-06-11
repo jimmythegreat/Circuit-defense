@@ -258,7 +258,7 @@ function renderShop() {
     const cost = costOf(key);
     const btn = document.createElement('div');
     btn.className = 'towerBtn' + (selectedShop===key ? ' selected' : '') + (gold < cost ? ' cant' : '');
-    btn.title = `${t.name} — ${t.tip || t.desc}`;  // hover tooltip (fuller text for towers w/ a tip)
+    btn.title = `${t.name} — ${t.tip || t.desc} · range ${Math.round(t.range)}`;  // hover tooltip
     btn.innerHTML = `<span class="key">${i+1}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
     btn.onclick = () => {
       if (gold < cost) return;
@@ -267,6 +267,10 @@ function renderShop() {
       armedAbility = null; refreshAbilityBar();
       renderShop();
     };
+    // hovering a shop button previews that tower's range ring on the board (before
+    // you select/place) so you can compare coverage at a glance
+    btn.onpointerenter = () => { hoveredShop = key; };
+    btn.onpointerleave = () => { if (hoveredShop === key) hoveredShop = null; };
     shop.appendChild(btn);
   });
 }
@@ -412,6 +416,7 @@ function buffMultFor(t) {
 
 // ================= Input =================
 let mouseX = -100, mouseY = -100;
+let hoveredShop = null;  // which shop tower is being hovered (for the range preview)
 cv.addEventListener('pointermove', e => {
   const r = cv.getBoundingClientRect();
   mouseX = (e.clientX - r.left) * (W / r.width);

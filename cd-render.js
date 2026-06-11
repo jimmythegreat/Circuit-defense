@@ -140,6 +140,31 @@ function draw() {
     ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
   }
 
+  // shop hover: preview a tower's range at board centre before you select/place it,
+  // so you can compare coverage. (The placement preview above follows the cursor once
+  // a tower is actually selected.)
+  if (hoveredShop && !selectedShop && started && !gameOver && TOWER_TYPES[hoveredShop]) {
+    const def = TOWER_TYPES[hoveredShop];
+    const cx = W / 2, cy = H / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, def.range, 0, Math.PI * 2);
+    ctx.fillStyle = def.proj === 'none' ? 'rgba(240,136,62,0.06)' : 'rgba(88,166,255,0.05)';
+    ctx.fill();
+    ctx.setLineDash([5, 7]);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = def.color;
+    ctx.globalAlpha = 0.6;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = def.color;
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${def.icon} ${def.name} · range ${Math.round(def.range)}`, cx, cy - def.range - 8);
+    ctx.restore();
+  }
+
   // towers
   for (const t of towers) {
     const def = TOWER_TYPES[t.type];

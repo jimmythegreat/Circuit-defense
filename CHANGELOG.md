@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.1 — 2026-06-11
+
+**Tower range preview on shop hover (ROADMAP polish).** The board already showed a
+range ring once a tower was *selected* (placement preview follows the cursor). The gap
+was previewing range *before* picking one. Now hovering a shop button sets `hoveredShop`
+(via `onpointerenter`/`onpointerleave` on each button) and `draw()` renders a dashed
+range ring + label (`icon name · range N`) at board centre while `hoveredShop && !
+selectedShop`, in the tower's colour. The shop button `title` tooltips also now include
+the range number. Render/DOM-only — no gameplay or save impact. New test group **[24]**
+asserts the hover handlers set/clear `hoveredShop`, the title shows the range, and
+`draw()` renders cleanly with a hover active.
+
 ## v1.13.0 — 2026-06-11
 
 **Settings panel: screen-shake & particle-density controls (ROADMAP table-stakes).**

@@ -20,9 +20,10 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.13.0';
+const GAME_VERSION = 'v1.13.1';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.13.1', date: '2026-06-11', body: "Hovering a tower in the shop now previews its range — a dashed ring (with the tower's name and range) appears on the board so you can compare coverage before you even pick it up. The shop tooltips show the range number too. (Once you select a tower, the range still follows your cursor as you place it, like before.)" },
   { v: 'v1.13.0', date: '2026-06-11', body: "New ⚙ Settings panel on the start screen. Toggle screen shake on/off, and set particle effects to Full / Reduced / Off — great for lower-end devices or if you just prefer a calmer board. Both save on your device. (These stack with your OS 'reduce motion' setting, which already minimises both.)" },
   { v: 'v1.12.2', date: '2026-06-11', body: "Cleaner game feel: when a bunch of enemies die together (splash, meteor, a fat combo), the floating +gold and CRIT numbers no longer pile up into an unreadable confetti — nearby ones now merge into a single growing number (e.g. +25 instead of +5 +7 +3 +10). Easier to read, less visual noise." },
   { v: 'v1.12.1', date: '2026-06-11', body: "The perk icons in the top-left of the board (the milestone bonuses you draft every 5 waves) now have a hover tooltip — mouse over any one to see its name and exactly what it does, colour-coded by rarity. No more forgetting which legendary you grabbed three waves ago." },

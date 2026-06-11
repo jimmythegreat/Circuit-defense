@@ -1153,6 +1153,33 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 24: tower range preview on shop hover (v1.13.1) ----
+  console.log('\n[24] Shop range preview on hover');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      renderShop();
+      const btn = [...document.getElementById('shop').children].find(b => b.title && b.title.startsWith('Sniper'));
+      const hasHandlers = typeof btn.onpointerenter === 'function' && typeof btn.onpointerleave === 'function';
+      const titleHasRange = /range \d+/.test(btn.title);
+      btn.onpointerenter(); const afterEnter = hoveredShop;
+      // draw with a shop hover active (no selection) must not throw
+      selectedShop = null; let drewHover = true; try { draw(); } catch (e) { drewHover = 'ERR:' + e.message; }
+      btn.onpointerleave(); const afterLeave = hoveredShop;
+      backToMenu();
+      return { hasHandlers, titleHasRange, afterEnter, afterLeave, drewHover };
+    });
+    check('shop buttons have pointer-enter/leave handlers', r.hasHandlers);
+    check('shop tooltip includes the tower range', r.titleHasRange);
+    check('hovering sets hoveredShop, leaving clears it', r.afterEnter === 'sniper' && r.afterLeave === null,
+      `enter=${r.afterEnter} leave=${r.afterLeave}`);
+    check('draw() renders cleanly with a shop hover active', r.drewHover === true, `${r.drewHover}`);
+    check('no console errors during shop-hover test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
