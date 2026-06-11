@@ -154,8 +154,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
       service worker so the game is installable and offline-cacheable when *hosted*
       (it's already offline via `file://`). No build step required. Note: a service
       worker does nothing on `file://`, so this only helps the hosted case.
-- [ ] **Volume slider** — settings currently persist only mute (`cd_mute`). Add a
-      0–100 volume level (scale the WebAudio gain), persisted in localStorage.
+- [x] **Volume slider** — shipped v1.13.2. 0–100 master Volume in the ⚙ Settings panel;
+      all audio routes through a master GainNode (`masterGain()`), `setVolume()` scales it
+      and persists `cd_vol` (default 0.7). Independent of mute. Test [25].
 
 ## Tech / tooling
 

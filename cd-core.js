@@ -20,9 +20,10 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.13.1';
+const GAME_VERSION = 'v1.13.2';
 // Most recent first; keep ~10. Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.13.2', date: '2026-06-11', body: "The ⚙ Settings panel now has a 🔊 Volume slider — set the master volume anywhere from 0 to 100% instead of just on/off mute. It scales all the game's sound and saves on your device. (Mute still works as a quick toggle.)" },
   { v: 'v1.13.1', date: '2026-06-11', body: "Hovering a tower in the shop now previews its range — a dashed ring (with the tower's name and range) appears on the board so you can compare coverage before you even pick it up. The shop tooltips show the range number too. (Once you select a tower, the range still follows your cursor as you place it, like before.)" },
   { v: 'v1.13.0', date: '2026-06-11', body: "New ⚙ Settings panel on the start screen. Toggle screen shake on/off, and set particle effects to Full / Reduced / Off — great for lower-end devices or if you just prefer a calmer board. Both save on your device. (These stack with your OS 'reduce motion' setting, which already minimises both.)" },
   { v: 'v1.12.2', date: '2026-06-11', body: "Cleaner game feel: when a bunch of enemies die together (splash, meteor, a fat combo), the floating +gold and CRIT numbers no longer pile up into an unreadable confetti — nearby ones now merge into a single growing number (e.g. +25 instead of +5 +7 +3 +10). Easier to read, less visual noise." },
@@ -96,9 +97,23 @@ window.addEventListener('resize', syncWhatsNewHeight);
 let audioCtx = null;
 let muted = localStorage.getItem('cd_mute') === '1';
 let lastShootSfx = 0;
+// Master volume (0..1), persisted as cd_vol (Settings panel, v1.13.2). All tone()/
+// noise() output routes through a single master GainNode so the slider scales everything.
+let masterVol = (() => { const v = localStorage.getItem('cd_vol'); return v === null ? 0.7 : Math.max(0, Math.min(1, +v || 0)); })();
+let _masterGain = null;
 function ac() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
+}
+function masterGain() {
+  const a = ac();
+  if (!_masterGain) { _masterGain = a.createGain(); _masterGain.gain.value = masterVol; _masterGain.connect(a.destination); }
+  return _masterGain;
+}
+function setVolume(pct) {   // pct is 0..100 from the slider
+  masterVol = Math.max(0, Math.min(1, (+pct || 0) / 100));
+  try { localStorage.setItem('cd_vol', String(masterVol)); } catch(e) {}
+  if (_masterGain) _masterGain.gain.value = masterVol;
 }
 function tone(freq, dur, type='square', vol=0.08, slide=0) {
   if (muted) return;
@@ -109,7 +124,7 @@ function tone(freq, dur, type='square', vol=0.08, slide=0) {
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq+slide), a.currentTime + dur);
     g.gain.setValueAtTime(vol, a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
-    o.connect(g); g.connect(a.destination);
+    o.connect(g); g.connect(masterGain());
     o.start(); o.stop(a.currentTime + dur);
   } catch(e) {}
 }
@@ -133,7 +148,7 @@ function noise(dur, vol, filterType='lowpass', freq=1000, slide=0, Q=1, delay=0)
     const g = a.createGain();
     g.gain.setValueAtTime(vol, t0);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.connect(f); f.connect(g); g.connect(masterGain());
     src.start(t0); src.stop(t0 + dur);
   } catch(e) {}
 }

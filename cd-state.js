@@ -98,6 +98,7 @@ function resetAllData() {
   meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
   loadMeta();
   speed = 1; best = 0; muted = false; shakeEnabled = true; particleDensity = 1;
+  masterVol = 0.7; if (_masterGain) _masterGain.gain.value = 0.7;
   if (btn) { btn.textContent = '🗑 Reset All'; btn.classList.remove('danger'); }
   document.getElementById('speedBtn').textContent = '⏩ 1x';
   document.getElementById('muteBtn').textContent = '🔊 Sound';

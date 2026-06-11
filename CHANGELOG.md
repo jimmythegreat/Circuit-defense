@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.2 — 2026-06-11
+
+**Volume slider (ROADMAP table-stakes).** Settings persisted only mute (`cd_mute`)
+on/off. Added a 0–100 master **Volume** slider to the ⚙ Settings panel. All audio now
+routes through a single master `GainNode` (`masterGain()` in `cd-core.js`) — `tone()`
+and `noise()` connect to it instead of `a.destination` — and `setVolume(pct)` scales its
+gain and persists `cd_vol` (0..1, default 0.7). The slider's `oninput` updates the live
+gain + `%` label without re-rendering (smooth dragging); `onchange` plays a sample tone
+at the new level. Independent of mute (mute still hard-skips all sound). `resetAllData()`
+restores the default. Additive key, safe default — old saves unaffected. New test group
+**[25]** verifies the gain routing, persistence, and 0/30/100 scaling.
+
 ## v1.13.1 — 2026-06-11
 
 **Tower range preview on shop hover (ROADMAP polish).** The board already showed a

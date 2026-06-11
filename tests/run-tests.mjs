@@ -1180,6 +1180,43 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 25: master volume slider (v1.13.2) ----
+  console.log('\n[25] Volume slider');
+  {
+    const page = await browser.newPage();
+    const consoleErrors = [];
+    page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+    page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
+    // start muted=0 so the gain node gets created; preset a non-default cd_vol
+    await page.addInitScript(() => { try { localStorage.setItem('cd_mute', '0'); localStorage.setItem('cd_vol', '0.45'); } catch (e) {} });
+    await page.goto(GAME_URL, { waitUntil: 'load' });
+    await page.evaluate(INSTALL_DRIVER);
+    const r = await page.evaluate(() => {
+      muted = false;                       // INSTALL_DRIVER sets muted=true; undo for this test
+      const restored = masterVol;          // expect 0.45 from cd_vol
+      tone(440, 0.02, 'square', 0.01);     // create the master gain node
+      const gainAtRestore = _masterGain ? +_masterGain.gain.value.toFixed(3) : null;
+      setVolume(0); const g0 = +_masterGain.gain.value.toFixed(3);
+      setVolume(30); const g30 = +_masterGain.gain.value.toFixed(3); const persisted = localStorage.getItem('cd_vol');
+      setVolume(100); const g100 = +_masterGain.gain.value.toFixed(3);
+      // the Settings panel renders a volume slider
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      openSettings();
+      const hasSlider = !!document.querySelector('#settingsBody input.setSlider[type=range]');
+      closeSettings();
+      backToMenu();
+      return { restored, gainAtRestore, g0, g30, g100, persisted, hasSlider };
+    });
+    check('volume restores from cd_vol on load', Math.abs(r.restored - 0.45) < 1e-6, `restored=${r.restored}`);
+    check('master gain node initialises at the restored volume', r.gainAtRestore === 0.45, `gain=${r.gainAtRestore}`);
+    check('setVolume scales the master gain 0/30/100', r.g0 === 0 && r.g30 === 0.3 && r.g100 === 1,
+      `g0=${r.g0} g30=${r.g30} g100=${r.g100}`);
+    check('setVolume persists cd_vol', r.persisted === '0.3', `cd_vol=${r.persisted}`);
+    check('Settings panel renders a volume slider', r.hasSlider);
+    check('no console errors during volume test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

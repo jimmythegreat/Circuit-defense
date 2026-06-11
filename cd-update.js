@@ -421,6 +421,15 @@ function renderSettings() {
     { name: '✨ Particle effects', fn: 'setParticles', cur: particleDensity, opts: [['Full', 1], ['Reduced', 0.5], ['Off', 0]] },
   ];
   let html = '<div class="setList">';
+  // Volume slider (0..100). oninput scales the live gain + updates the % label without
+  // re-rendering (so dragging stays smooth); onchange plays a sample tone at the new level.
+  const volPct = Math.round(masterVol * 100);
+  html += `<div class="setRow"><span class="setName">🔊 Volume</span><span class="setOpts">`
+    + `<input class="setSlider" type="range" min="0" max="100" value="${volPct}" `
+    + `oninput="setVolume(+this.value); document.getElementById('volVal').textContent=this.value+'%'" `
+    + `onchange="if(!muted) tone(640,0.09,'square',0.09)">`
+    + `<span id="volVal" style="color:#8b949e;min-width:42px;display:inline-block;text-align:right">${volPct}%</span>`
+    + `</span></div>`;
   for (const r of rows) {
     html += `<div class="setRow"><span class="setName">${r.name}</span><span class="setOpts">`;
     for (const [lbl, val] of r.opts) {
