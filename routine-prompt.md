@@ -38,7 +38,7 @@ If ROADMAP.md doesn't exist, create it this run with 15+ prioritized ideas (that
 
 ## Bookkeeping — every run
 - CHANGELOG.md: prepend an entry (date, what changed, why, test evidence).
-- ROADMAP.md: check off what you did; add any new ideas you had.
+- ROADMAP.md: check off what you did. ALWAYS add at least one brand-new idea before committing, so the backlog never runs dry — make it genuinely new (not already listed, not vetoed) and specific enough to act on. If you notice duplicate or stale ideas while you're in there, prune them so the list stays useful rather than just growing.
 - CLAUDE.md: update if architecture, conventions, or design decisions changed.
 - The in-game "What's New" panel (create it if missing — a small button on the start screen listing the last ~10 changelog entries): add your entry.
 - Version number: the game has a semver-ish version (e.g. v1.4.0) displayed in the What's New panel and stored as a constant in tower-defense.html. Bump it every run — patch for fixes/balance, minor for features/content — and use the same version in your CHANGELOG.md entry heading.
