@@ -1632,6 +1632,84 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 34: touch / pointer controls (v1.16.3) ----
+  console.log('\n[34] Touch / pointer controls (v1.16.3)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      gold = 1e9;
+      towers.length = 0;
+      selectedTower = null; selectedShop = null;
+      const hasCoarseFn = typeof coarsePointer === 'function';
+      const touchAction = getComputedStyle(cv).touchAction;
+
+      const rect = cv.getBoundingClientRect();
+      const tap = (x, y) => cv.dispatchEvent(new PointerEvent('pointerdown', {
+        clientX: rect.left + x * rect.width / W,
+        clientY: rect.top + y * rect.height / H,
+        button: 0, bubbles: true,
+      }));
+
+      // Find a placeable board point (off-path, in-bounds).
+      let pX = -1, pY = -1;
+      for (let yy = 40; yy < H - 40 && pX < 0; yy += 20)
+        for (let xx = 40; xx < W - 40; xx += 20) { if (canPlace(xx, yy)) { pX = xx; pY = yy; break; } }
+
+      // 1) A pointerdown (not a click) places a tower at the tapped point.
+      selectedShop = 'gun';
+      const before = towers.length;
+      tap(pX, pY);
+      const placed = towers.length === before + 1;
+      const t = towers[towers.length - 1];
+      const placedAt = placed ? { x: t.x, y: t.y } : null;
+
+      // 2) Tapping a placed tower selects it (opens the upgrade panel).
+      selectedShop = null; selectedTower = null;
+      tap(t.x, t.y);
+      const selectedExact = selectedTower === t;
+
+      // 3) Coarse pointer (finger): a 25px-off tap still selects (radius 30).
+      _cpQuery = { matches: true };
+      selectedTower = null; selectedShop = null;
+      tap(t.x + 25, t.y);
+      const coarseSelects = selectedTower === t;
+
+      // 4) Fine pointer (mouse): the same 25px-off tap does NOT select (radius 18).
+      _cpQuery = { matches: false };
+      selectedTower = null; selectedShop = null;
+      tap(t.x + 25, t.y);
+      const fineNoSelect = selectedTower === null;
+
+      // 5) Non-primary button (right/middle) is ignored.
+      selectedShop = 'gun'; selectedTower = null;
+      const beforeRight = towers.length;
+      cv.dispatchEvent(new PointerEvent('pointerdown', {
+        clientX: rect.left + (pX + 80) * rect.width / W,
+        clientY: rect.top + pY * rect.height / H, button: 2, bubbles: true,
+      }));
+      const rightIgnored = towers.length === beforeRight;
+
+      _cpQuery = (typeof window !== 'undefined' && window.matchMedia)
+        ? window.matchMedia('(pointer: coarse)') : null;   // restore live query
+      backToMenu();
+      localStorage.removeItem('cd_save');
+      return { hasCoarseFn, touchAction, placed, placedAt, pX, pY,
+               selectedExact, coarseSelects, fineNoSelect, rightIgnored };
+    });
+    check('coarsePointer() helper exists', r.hasCoarseFn);
+    check('canvas has touch-action:none (no scroll/zoom on board taps)', r.touchAction === 'none', r.touchAction);
+    check('pointerdown places a tower at the tapped point', r.placed &&
+      Math.abs(r.placedAt.x - r.pX) < 1 && Math.abs(r.placedAt.y - r.pY) < 1, JSON.stringify(r.placedAt));
+    check('tapping a tower selects it (upgrade opens)', r.selectedExact);
+    check('coarse pointer: 25px-off tap still selects (generous radius)', r.coarseSelects);
+    check('fine pointer: 25px-off tap does NOT select (precise radius)', r.fineNoSelect);
+    check('non-primary (right) button is ignored', r.rightIgnored);
+    check('no console errors during touch-controls test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

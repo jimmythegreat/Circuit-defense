@@ -10,6 +10,14 @@ let _rmQuery = (typeof window !== 'undefined' && window.matchMedia)
   ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
 function reduceMotion() { return !!(_rmQuery && _rmQuery.matches); }
 
+// Touch ergonomics (v1.16.3): detect a coarse pointer (finger) so the canvas tap
+// handler can use a more generous tower-tap radius — on a phone the board scales to
+// ~374px (logical 900), so an 18px logical hit radius is only ~7px on screen, making
+// towers hard to select. Read live (a 2-in-1 can switch), guarded for no-matchMedia.
+let _cpQuery = (typeof window !== 'undefined' && window.matchMedia)
+  ? window.matchMedia('(pointer: coarse)') : null;
+function coarsePointer() { return !!(_cpQuery && _cpQuery.matches); }
+
 // User render/performance prefs (Settings panel, v1.13.0) — persisted on this device,
 // independent of the OS reduce-motion gate. shakeEnabled gates screen-shake;
 // particleDensity (1=Full, 0.5=Reduced, 0=Off) scales burst particle counts.
@@ -20,10 +28,11 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.16.2';
+const GAME_VERSION = 'v1.16.3';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.16.3', date: '2026-06-12', time: '15:30 EDT', body: "Touch controls: tapping the board on a phone is now reliable. Two things were fighting you. First, the spot you tap to select a tower was sized for a mouse — on a phone the board is shrunk to fit, so an on-screen tower was only about a 7-pixel target, easy to miss. On touch devices the tap area around each tower is now much more forgiving (it still can't accidentally grab a tower when you meant to place a new one beside it). Second, the board now reacts the instant you press instead of waiting for the browser's tap-release (which some mobile browsers delay by a fraction of a second), so placing towers, aiming the meteor and opening the upgrade menu all feel snappier — on mouse and touch alike. The board also no longer scrolls or pinch-zooms the page out from under you while you're tapping on it. Desktop play is unchanged." },
   { v: 'v1.16.2', date: '2026-06-12', time: '14:05 EDT', body: "Balance: cooled the 'one maxed booster carries the whole run' problem (your campaign-6-on-hard note — beaten with a single gunner + a maxed booster). A booster's aura used to grow +10% damage per level (up to +75% at max); it now grows +8% per level instead. A low-level booster is completely unchanged — the trim only kicks in as you pour money into one, where a maxed booster now gives +65% instead of +75%, so a buffed tower does about 6% less at max. Small and deliberate (it shouldn't gut a real multi-tower build), just enough to make a single super-booster a bit less of an auto-win. A resumed run keeps the exact same booster power. More tower-power tuning to come if the solo-carry is still too strong." },
   { v: 'v1.16.1', date: '2026-06-12', time: '13:20 EDT', body: "Balance: trimmed the early gold snowball (your note that you can clear classic-normal on the money from just the first 10 rounds). Kills were paying ~70% of your early income, so per-kill bounty is now a touch lower — about 20% less on wave 1, fading to ~10% by wave 10 and barely anything in deep endless, so it bites where you over-build but doesn't starve long runs. The between-wave clear bonus was also cut ~20%. Net effect: your war chest after 10 clean waves drops ~13% (measured), so you can't quite afford a full army from the opening rounds. A modest, simulated step — more to come if it's still too easy." },
   { v: 'v1.16.0', date: '2026-06-11', time: '23:55 EDT', body: "The victory/defeat screen now has a SCORE and a letter grade (your request), and it's been restyled so it's no longer an overwhelming wall of text. Every run is scored on how far you got (waves + campaign depth), how clean it was (lives kept, big combos, and using FEWER towers), and how much gold you banked — all scaled by difficulty. You get a grade from F up to S (S = a flawless win with no lives lost), and the game tracks your all-time best score with a ★ celebration when you beat it. The old run-on summary is gone: now there's a big score + grade up top, a tidy stats grid (waves / kills / lives / gold / combo / towers), and your MVP towers, perks and any new achievements as their own clean lines." },

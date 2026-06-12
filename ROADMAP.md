@@ -173,25 +173,27 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.14.1 health check)
 
-_Still-unaddressed, in priority order: **touch/pointer controls** (in-game interaction —
-placement/upgrade/ability are mouse-click paths) → colorblind-safe palette → gamepad → PWA
+_Still-unaddressed, in priority order: **colorblind-safe palette** → gamepad → PWA
 install → **high-DPI canvas** → **menu keyboard a11y**. Done: document metadata (v1.8.6),
 reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive layout (v1.14.0)**, **mobile
-board sizing + What's New default-collapse (v1.15.0)** — the board now grows in landscape and
-What's New no longer buries it. v1.14.1 visual pass confirmed desktop & phone menus all render
-correctly; the remaining mobile gap is in-game touch ergonomics._
+board sizing + What's New default-collapse (v1.15.0)**, **touch/pointer controls (v1.16.3)** —
+canvas board interaction (place/select/aim) is now `pointerdown`-driven with a touch-generous
+tap radius + `touch-action:none`. v1.14.1 visual pass confirmed desktop & phone menus all render
+correctly; the remaining mobile polish is just bigger HTML button targets if wanted._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
       offline-safe), responsive `viewport` meta, meta description, `theme-color`,
       and Open Graph title/description/type. Head-only, zero gameplay impact.
-- [~] **Touch / pointer controls** — _responsive **layout** done v1.14.0; **board sizing +
-      landscape pass** done v1.15.0_ (rotate gives a bigger board; What's New no longer buries
-      it). **Remaining:** in-game *interaction* is still mouse-click driven (tower placement,
-      upgrade panel, ability targeting). Taps currently work only via the browser's synthesized
-      `click`; add explicit `pointerdown`/`touchstart` paths (pointer events unify mouse+touch)
-      and **bigger tap targets** so placing/upgrading/aiming on a phone is reliable, not
-      incidental. This is now the top remaining mobile gap.
+- [x] **Touch / pointer controls** — _responsive **layout** done v1.14.0; **board sizing +
+      landscape pass** done v1.15.0; **in-game interaction** done **v1.16.3**_. The canvas board
+      handler moved from `click` → **`pointerdown`** (`coarsePointer()` helper in `cd-core.js`,
+      primary-button guard), unifying mouse + touch and dropping the synthesized-click latency;
+      the tower-select radius is **30px on a finger** (18px on a mouse — 30 < the 32px placement
+      gap so it can't mis-grab), and `touch-action:none` stops board taps scrolling/zooming the
+      page. Test [34]. **Follow-up (optional):** bigger HTML tap targets for the shop / upgrade
+      buttons on small phones — currently sized by the v1.14.0/v1.15.0 mobile CSS, fine but could
+      be chunkier.
 - [x] **`prefers-reduced-motion` support** — shipped v1.10.0. A `reduceMotion()`
       helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the **screen-shake**
       translate in `draw()` **and** thins particle bursts in `addExplosion()`

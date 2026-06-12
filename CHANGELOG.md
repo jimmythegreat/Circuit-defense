@@ -3,6 +3,38 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.16.3 — 2026-06-12 — Touch / pointer controls: make tapping the board reliable on phones (ROADMAP table-stakes)
+
+**Why:** Mobile has been the owner's recurring theme (v1.14.0 layout, v1.15.0 board-sizing). The
+remaining gap — flagged on ROADMAP as *"the top remaining mobile gap"* — was **in-game touch
+ergonomics**: tower placement / selection / ability targeting all ran through the canvas `click`
+handler with a fixed **18px logical** hit radius. On a phone the 900-logical board scales to
+~374px, so 18px logical ≈ **7px on screen** — towers were genuinely hard to tap — and the action
+waited on the browser's synthesized click (a fractional delay on some mobile browsers).
+
+**Change (input layer only — no gameplay/economy/save impact):**
+- New `coarsePointer()` helper in `cd-core.js` (mirrors `reduceMotion()`): reads
+  `matchMedia('(pointer: coarse)')` live, guarded for no-`matchMedia` envs.
+- The canvas board handler moved from `click` → **`pointerdown`** (`cd-game.js`): one path unifies
+  mouse + touch, reacts on press (snappier), and sidesteps the synthesized-click latency. Guarded
+  to the **primary button** (`e.button > 0` returns) so right/middle clicks don't place towers,
+  matching the old click-only behaviour.
+- **Bigger tap target on a finger:** the tower-select radius is now **30px on coarse pointers**
+  (18px on a mouse — desktop unchanged). 30 < the 32px forbidden-placement gap, so the generous
+  radius can never steal a tap meant to place a tower beside an existing one.
+- `touch-action: none` on the canvas (`tower-defense.css`) so board taps place/aim instead of
+  scrolling or pinch-zooming the page out from under you.
+
+**Tests:** new group **[34]** — asserts the helper exists, `touch-action:none`, a real
+`pointerdown` places a tower at the exact tapped point, tap-to-select opens the upgrade panel, the
+coarse-radius (25px-off selects) vs fine-radius (25px-off does not) split, and that a non-primary
+button is ignored. Full suite **272/0** green, zero console errors. Verified in-preview: a
+dispatched `pointerdown` placed a tower at the tap point, the wave ran and the tower scored a
+kill, no console errors.
+
+**Remaining mobile follow-up:** even bigger HTML tap targets (shop/upgrade buttons) if the owner
+wants them; this run covers the canvas-interaction half (placement / selection / ability aim).
+
 ## v1.16.2 — 2026-06-12 — Booster aura taper: cool the maxed-booster solo-carry (FEEDBACK balance)
 
 **Owner FEEDBACK (PENDING, "still too easy"):** *"campaign 6 on hard can be completed with a

@@ -434,7 +434,12 @@ cv.addEventListener('pointermove', e => {
   mouseY = (e.clientY - r.top) * (H / r.height);
 });
 cv.addEventListener('pointerleave', () => { mouseX = -100; mouseY = -100; });
-cv.addEventListener('click', e => {
+// Board interaction fires on pointerdown (not click): it unifies mouse + touch in one
+// path, reacts on press (snappier game-feel), and sidesteps the ~300ms synthesized-click
+// latency some mobile browsers add. Guard to the primary button so right/middle clicks
+// don't place towers (matching the old click-only behaviour). v1.16.3.
+cv.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;                 // primary button / touch only
   if (gameOver || !started || draftOpen) return;
   const r = cv.getBoundingClientRect();
   mouseX = (e.clientX - r.left) * (W / r.width);
@@ -443,7 +448,10 @@ cv.addEventListener('click', e => {
     castMeteor(mouseX, mouseY);
     return;
   }
-  const hit = towers.find(t => Math.hypot(t.x-mouseX, t.y-mouseY) < 18);
+  // Bigger tap target on a finger: the forbidden placement gap is 32, so a 30px select
+  // radius still can't steal a tap meant to place an adjacent tower (desktop keeps 18).
+  const selectR = coarsePointer() ? 30 : 18;
+  const hit = towers.find(t => Math.hypot(t.x-mouseX, t.y-mouseY) < selectR);
   if (hit) { selectedShop = null; renderShop(); showUpgrade(hit); return; }
   hideUpgrade();
   if (!selectedShop) return;
