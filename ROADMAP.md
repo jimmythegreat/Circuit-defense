@@ -157,7 +157,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       campaign 9 on hard with just 2 frosts + 1 booster (and campaign 6 with a single
       gunner + maxed booster). **v1.16.2 took the booster slice:** tapered the per-level
       scaling **+0.1 → +0.08** (base/L1 unchanged; maxed booster +75%→+65%, ~−6% buffed-
-      tower dmg at L6 — sim: gunner 14.0→13.2). Test [33]. **Remaining levers** (≤25%
+      tower dmg at L6 — sim: gunner 14.0→13.2). Test [33]. **v1.20.1 also cut the aura
+      *range*** 90→68 (FEEDBACK slice 1, −43% coverage area) — a single booster now reaches
+      fewer towers, which hits the solo-carry from the coverage side (Test [39]; more range
+      cuts queued in FEEDBACK toward the owner's −50%). **Remaining power levers** (≤25%
       each, sim first): trim **Frost Mastery**'s per-rank dmg, or add a **booster aura
       soft-cap** if a single super-booster still solo-carries. Don't gut any single build.
 - [~] **Interest/economy curve review** — verify gold pacing across difficulties

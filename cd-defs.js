@@ -106,7 +106,7 @@ const TOWER_TYPES = {
   cannon: { name:'Cannon', icon:'💣', cost:150, range:130, dmg:26,  rate:1.2,  color:'#ffd866', proj:'bomb',   desc:'Splash damage' },
   tesla:  { name:'Tesla',  icon:'⚡', cost:200, range:120, dmg:14,  rate:0.7,  color:'#d2a8ff', proj:'chain',  desc:'Chains 3 targets' },
   poison: { name:'Poison', icon:'☣️', cost:90,  range:105, dmg:7,   rate:0.8,  color:'#3fb950', proj:'poison', desc:'DoT + corrodes armor', tip:'Stacking damage-over-time. Each hit also corrodes −3 enemy armor (down to 0), stripping shield/armored/boss defenses so your whole team hits harder.' },
-  buff:   { name:'Booster',icon:'📡', cost:100, range:90,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
+  buff:   { name:'Booster',icon:'📡', cost:100, range:68,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
 const MODES = ['first', 'last', 'strong', 'close'];

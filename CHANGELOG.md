@@ -3,6 +3,34 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.20.1 — 2026-06-12 — Booster aura-range cut, slice 1 (FEEDBACK balance)
+
+**What & why.** FEEDBACK PENDING item #1 (owner, low priority): *"Reduce the range of booster by 50%
+base."* The Booster's aura range is the radius within which it grants its +25% damage buff (`effBuffRange`
+in `cd-game.js`, keyed off `TOWER_TYPES.buff.range`). At 90 it covered a large patch of board, letting
+one booster blanket an entire defense — a contributor to the owner's separate *"single gunner + maxed
+booster carries campaign-6-hard"* complaint, since the booster's reach is what makes a one-tower build
+viable. Cutting it forces more deliberate placement (or a second booster for spread defenses).
+
+**Guardrail note — sliced.** The owner asked for −50% (90→45), but the project guardrail caps any single
+balance number at ~25%/run. Per the routine's big-FEEDBACK-item rule I shipped the **first coherent
+slice** this run: base range **90 → 68** (−24.4%, inside the cap). The remaining reduction toward the full
+−50% continues over the next couple of runs (noted at the top of FEEDBACK PENDING).
+
+**What changed.** One number: `TOWER_TYPES.buff.range` `90 → 68` (`cd-defs.js`). Everything downstream
+follows automatically — fresh placement (`cd-game.js`) and resume rebuild (`cd-state.js`) both read
+`def.range`, the Network spec still multiplies it ×1.5, and Booster Mastery still adds +2%/rank, all off
+the smaller base.
+
+**Simulation / evidence.** Aura *area* shrinks to `(68/90)² ≈ 0.57` of before — about **−43% coverage**.
+A tower 80px from a booster (inside the old 90 radius, outside the new 68) is **no longer buffed**; one at
+50px still is — both asserted in the new test. A maxed Network booster goes 135→102 radius; plain
+goes 90→68.
+
+**No save/economy-schema impact.** No new localStorage keys, no migration needed — a resumed booster
+simply rebuilds with the new radius. New **test group [39]** (base value, plain/Network aura range,
+buffed/un-buffed at the boundary). Full suite **319/0** green, zero console errors.
+
 ## v1.20.0 — 2026-06-12 — Draft (perk picker) keyboard accessibility (table-stakes, ROADMAP)
 
 **What & why.** Direct follow-up to v1.19.0 (flagged twice in ROADMAP: the Table-stakes summary and

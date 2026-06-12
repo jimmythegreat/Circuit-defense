@@ -1955,6 +1955,46 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 39: booster base-range reduction (FEEDBACK balance, slice 1) ----
+  console.log('\n[39] Booster base-range reduction (FEEDBACK)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const mk = (spec) => ({
+        type:'buff', x:200, y:200, range:TOWER_TYPES.buff.range, dmg:0,
+        rate:TOWER_TYPES.buff.rate, cd:0, level:1, baseCost:100, invested:100,
+        angle:0, mode:'first', spec, dealt:0, kills:0, buffPower:0.25, flash:0
+      });
+      const baseRange = TOWER_TYPES.buff.range;
+      const plainRange = effBuffRange(mk(null));
+      const netRange   = effBuffRange(mk('network'));   // ×1.5 spec
+      // A gunner just outside the new aura (between new 68 and old 90) must NOT be buffed.
+      const b = mk(null); b.x = 150; b.y = 150;
+      towers.push(b);
+      const farGun  = { type:'gun', x:150+80, y:150, level:1, spec:null };  // 80px away (>68, was <90)
+      const nearGun = { type:'gun', x:150+50, y:150, level:1, spec:null };  // 50px away (still inside)
+      const farMult  = buffMultFor(farGun);
+      const nearMult = buffMultFor(nearGun);
+      backToMenu();
+      return { baseRange, plainRange, netRange, farMult, nearMult };
+    });
+    check('booster base range reduced to 68 (was 90; FEEDBACK −50% slice 1)',
+      r.baseRange === 68, `got ${r.baseRange}`);
+    check('plain aura range follows the reduced base', Math.abs(r.plainRange - 68) < 1e-6,
+      `got ${r.plainRange}`);
+    check('Network spec still ×1.5 the (reduced) base', Math.abs(r.netRange - 68 * 1.5) < 1e-6,
+      `got ${r.netRange}`);
+    check('tower at 80px is no longer buffed (was inside old 90 range)', Math.abs(r.farMult - 1) < 1e-9,
+      `mult=${r.farMult}`);
+    check('tower at 50px is still buffed (inside reduced range)', r.nearMult > 1 + 1e-9,
+      `mult=${r.nearMult}`);
+    check('no console errors during booster-range test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

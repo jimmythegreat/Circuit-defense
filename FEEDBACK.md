@@ -5,6 +5,19 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[Low priority] Reduce the range of booster by 50% base. This helps make network better.
+
+  > _Progress (kept in PENDING — being cut gradually to respect the ≤25%/number/run guardrail):_
+  > - **v1.20.1 (2026-06-12)** — slice 1 of the −50%. Booster base aura range `90 → 68`
+  >   (−24.4%, inside the per-run balance cap; the full −50% would be 90→45). That's ~−43%
+  >   of the buffed *area*, so one booster reaches fewer towers — and the +50% **Network**
+  >   spec now matters more off the smaller base (your "makes network better" point). Also
+  >   chips at the "single tower + booster carries" complaint below. Save-safe (towers
+  >   rebuild range from base). Test [39]. See CHANGELOG v1.20.1.
+  > - **Still to do:** continue toward 45 over the next couple of runs (next step e.g.
+  >   68→52, then 52→45, each ≤25%). Or, owner: say the word and I'll do the full 90→45
+  >   in one run.
+
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
   > _Progress (kept in PENDING — recurring, iterative; ≤25%/number per run):_
