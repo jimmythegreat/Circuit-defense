@@ -930,6 +930,29 @@ async function main() {
       const armorAfter = foe.armor;
       const dotDps = foe.poison ? foe.poison.dps : 0;
       const hasReduceMotion = typeof reduceMotion === 'function';
+      // Sniper: Executioner buffed +60% → +90% vs tanks & bosses (v1.26.0). It was
+      // strictly dominated by Deadeye — Deadeye gives +60% EXPECTED dmg vs ALL targets
+      // (0.8×1 + 0.2×4 = 1.6×), while Executioner gave +60% vs tanks/bosses ONLY, so
+      // Deadeye matched it on bosses and beat it everywhere else. Now 1.9× makes
+      // Executioner the dedicated boss-killer (beats Deadeye's 1.6× on the big targets,
+      // guaranteed/no RNG) while Deadeye stays the all-rounder.
+      const execDesc = SPECS.sniper.find(s => s.id === 'executor').desc;
+      const snip = mk('sniper', 'executor');
+      snip.x = 850; snip.y = 40; snip.range = 9999;   // far from path so the shot can't land same-frame
+      const snBase = effDmg(snip);
+      const fireAt = (kind) => {
+        enemies.length = 0; projectiles.length = 0;
+        towers.length = 0; towers.push(snip);
+        spawners.length = 0; pendingSpawns.length = 0;
+        snip.cd = 0; waveActive = true;
+        enemies.push({ kind, hp: 1e6, maxHp: 1e6, x: 60, y: 300, dist: 50, spd: 1, r: 13,
+                       dead:false, blinkInvuln:0, flash:0, slow:0, slowF:0.6, frozen:0, poison:null, px:0, py:0 });
+        update(1/60);
+        return projectiles.length ? projectiles[0].dmg : -1;
+      };
+      const execBoss = fireAt('boss');
+      const execTank = fireAt('tank');
+      const execNorm = fireAt('norm');
       // Shop tooltip: the poison button's title should explain the armor corrosion.
       renderShop();
       const shopBtns = [...document.getElementById('shop').children];
@@ -937,7 +960,8 @@ async function main() {
       const poisonTip = poisonBtn ? poisonBtn.title : '';
       backToMenu();
       return { plain, net, over, canPlain, canMega, frostPlain, frostShatter,
-               poisonBaseDmg, armorBefore, armorAfter, dotDps, hasReduceMotion, poisonTip };
+               poisonBaseDmg, armorBefore, armorAfter, dotDps, hasReduceMotion, poisonTip,
+               execDesc, snBase, execBoss, execTank, execNorm };
     });
     check('Booster Network adds aura power (not range-only anymore)', r.net > r.plain + 1e-9,
       `plain=${r.plain.toFixed(3)} network=${r.net.toFixed(3)}`);
@@ -953,6 +977,16 @@ async function main() {
     check('Frost Shatter nerfed to exactly 4.5× (not the old ×6)',
       Math.abs(r.frostShatter - r.frostPlain * 4.5) < 1e-6,
       `plain=${r.frostPlain.toFixed(2)} shatter=${r.frostShatter.toFixed(2)}`);
+    check('Sniper Executioner desc now reads +90% vs tanks & bosses', /90%/.test(r.execDesc),
+      `desc="${r.execDesc}"`);
+    check('Executioner deals 1.9× vs bosses', Math.abs(r.execBoss - r.snBase * 1.9) < 1e-6,
+      `base=${r.snBase.toFixed(2)} boss=${r.execBoss.toFixed(2)}`);
+    check('Executioner deals 1.9× vs tanks', Math.abs(r.execTank - r.snBase * 1.9) < 1e-6,
+      `base=${r.snBase.toFixed(2)} tank=${r.execTank.toFixed(2)}`);
+    check('Executioner unchanged vs trash (1.0×)', Math.abs(r.execNorm - r.snBase) < 1e-6,
+      `base=${r.snBase.toFixed(2)} norm=${r.execNorm.toFixed(2)}`);
+    check('Executioner boss multiplier (1.9×) now exceeds Deadeye expected (1.6×) — no longer dominated',
+      r.snBase > 0 && r.execBoss / r.snBase > 1.6 + 1e-9, `ratio=${(r.execBoss / r.snBase).toFixed(3)}`);
     check('reduceMotion() helper exists (prefers-reduced-motion support)', r.hasReduceMotion);
     check('poison shop tooltip explains the armor corrosion', /corrod/i.test(r.poisonTip) && /armor/i.test(r.poisonTip),
       `tip="${r.poisonTip}"`);

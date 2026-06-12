@@ -166,7 +166,7 @@ function update(dt) {
       crit = true;
       dmg *= t.spec === 'deadeye' ? 4 : 2.5;
     }
-    if (t.spec === 'executor' && (target.kind === 'tank' || target.kind === 'boss')) dmg *= 1.6;
+    if (t.spec === 'executor' && (target.kind === 'tank' || target.kind === 'boss')) dmg *= 1.9;
     if (perkState.bossDmg > 1 && (target.kind === 'tank' || target.kind === 'boss')) dmg *= perkState.bossDmg;
     if (def.proj === 'chain') {
       fireChain(t, target, dmg);

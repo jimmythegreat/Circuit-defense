@@ -87,9 +87,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
-      a poison overhaul). Still to audit: sniper (Deadeye vs Executioner), frost
-      (Deep Freeze vs Shatter), tesla (Superconductor vs Overcharge), gun (Minigun
-      vs AP) — check none is strictly dominated.
+      a poison overhaul). **v1.26.0 fixed sniper:** Executioner was *strictly dominated*
+      by Deadeye (Deadeye = +60% expected vs ALL targets via 20%×4 crit; Executioner =
+      +60% vs tanks/bosses only → Deadeye matched it on bosses & beat it elsewhere).
+      Buffed Executioner `×1.6 → ×1.9` (+90% vs tanks & bosses) so it's the guaranteed
+      no-RNG boss-killer while Deadeye stays the all-rounder. Test [17]. Still to audit:
+      frost (Deep Freeze vs Shatter), tesla (Superconductor vs Overcharge), gun (Minigun
+      vs AP) — check none is strictly dominated. (Quick takes: **gun** Minigun ×1.8 DPS
+      vs AP +25%+armor-ignore is *situational* — AP wins vs heavy armor where flat-armor
+      subtraction guts the fast low-dmg gun, Minigun wins vs trash — looks healthy.
+      **frost** Deep Freeze (CC) vs Shatter (dmg) is a genuine axis. **tesla** super
+      [+chain targets] vs overcharge [no falloff] is swarm-vs-few — verify falloff math.)
 
 ## Game feel / polish
 

@@ -3,6 +3,32 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.26.0 — 2026-06-12 — 🎯 Executioner sniper spec un-dominated (+60% → +90% vs tanks & bosses)
+
+**Balance / meaningful-choice** (ROADMAP "Tower spec pass" — audit the 2 specs per tower for a
+strictly-dominated option and buff it). The Sniper's L5 choice was a trap: **Executioner** was
+strictly dominated by **Deadeye**.
+
+- **The domination:** Deadeye = `20% crit ×4`, i.e. an expected `0.8×1 + 0.2×4 = 1.6×` (+60%) vs
+  **all** targets (and it scales further with crit talents/perks). Executioner gave `×1.6` (+60%)
+  vs **tanks & bosses only**, `×1.0` vs everything else. So with zero crit investment Deadeye
+  *matched* Executioner on bosses (both 1.6× in expectation) and *beat* it on every other enemy —
+  there was no scenario where Executioner won.
+- **The fix:** Executioner `×1.6 → ×1.9` (`cd-update.js`, the inline tank/boss multiplier), desc
+  `+60% → +90% vs tanks & bosses` (`cd-defs.js`). Now Executioner is the **dedicated boss-killer**:
+  `1.9×` guaranteed (no crit RNG) vs tanks/bosses *beats* Deadeye's `1.6×` average on the targets
+  that matter, while Deadeye stays the consistent all-rounder (and the only one that helps vs trash
+  waves + scales with crit gear). Genuine trade-off, tied to your targeting strategy.
+- **Guardrail:** `1.9/1.6 = +18.75%` to the multiplier — inside the ≤25%/number/run limit. One
+  number changed; Deadeye, all other specs/towers, economy and save schema untouched. Kept distinct
+  from the **Titan Slayer** legendary (`+100%` vs tanks & bosses) — they stack multiplicatively
+  (Executioner sniper + Titan Slayer = `1.9 × 2.0 = 3.8×` vs a boss) for a satisfying boss-deletion
+  build. Synergizes with the recent boss-difficulty work (v1.24.4 tankier bosses, v1.25.0 archetypes):
+  tankier bosses make a boss-specialist spec more worthwhile.
+- **Tests:** group `[17]` extended — drives a real Executioner sniper shot at a boss / tank / norm
+  and asserts `1.9×` vs tanks & bosses, `1.0×` vs trash, the `+90%` description, and that the boss
+  multiplier now exceeds Deadeye's `1.6×` expectation (no longer dominated). Full suite green.
+
 ## v1.25.0 — 2026-06-12 — 👑 Boss archetypes (regen / bulwark / summoner)
 
 **Content + late-game difficulty** (ROADMAP "Boss variety", and serves the recurring FEEDBACK *"too easy"* —
