@@ -3,6 +3,51 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.24.2 — 2026-06-12 — 🩺 Health check
+
+**Every-6th-run maintenance pass** (resets the 5-run counter; 5 entries since the v1.20.2 health
+check — v1.21.0, v1.22.0, v1.23.0, v1.24.0, v1.24.1). Ships no new feature. `git pull` was clean;
+the recent owner `feedback` commit (`3664000`) only adds two lines to FEEDBACK.md — **not a revert**,
+so no new vetoes. No FEEDBACK `[bug]` items (both PENDING items are `[Low priority]` balance), so the
+normal health-check path ran.
+
+**1. Refactor audit.** All seven game files are well under the ~1500-line cap:
+`cd-core` 360, `cd-maps` 196, `cd-defs` 318, `cd-state` 156, `cd-game` 545, `cd-update` 676,
+`cd-render` 598 (CSS 407, HTML 138, index 12). No dead code, no `console.log`/debug remnants, no
+`TODO`/`FIXME`. `waveDesc` (replaced by `waveComposition` in v1.21.0) is fully gone. The booster
+`+0.08` taper is intentionally mirrored across three sites (cd-game/cd-defs/cd-state) and all three
+agree. **Finding:** the dev-only `tests/run-tests.mjs` has grown to 2294 lines in one file — logged
+to ROADMAP as a future split (does not affect the shipped game).
+
+**2. Docs coherence.** `GAME_VERSION` (v1.24.1 at audit time) matched the CHANGELOG top entry.
+Spot-checked every numeric claim in CLAUDE.md against the code — **no drift**: 8 towers
+(`TYPE_KEYS.length`), booster aura range 52, `buffPower` base 0.25 + 0.08/level, enemy-HP template
+`(18 + w·7 + 1.25·w^1.9) · 1.80 · d.hp · campScale`, perk rarity 78/14/8 (legendary `<0.08`, rare
+`<0.22`), 21 talents, `MAX_CONCURRENT_WAVES`. Test groups `[0]`–`[43]` are contiguous. FEEDBACK
+PENDING items left verbatim; ROADMAP vetoed section intact.
+
+**3. Table-stakes audit.** Still-unaddressed, in priority order (carried in ROADMAP):
+**gamepad support** → **PWA install (offline manifest)** → **bigger HTML tap targets on small phones**.
+Everything else a polished browser game expects is in place — favicon/meta/OG (v1.8.6), reduced-motion
+(v1.10.0), volume slider (v1.13.2), responsive + landscape layout (v1.14.0/v1.15.0), touch/pointer
+controls (v1.16.3), high-DPI canvas (v1.17.0), colorblind aid (v1.18.0), full keyboard a11y
+(v1.19.0 menus + v1.20.0 draft).
+
+**4. Integrity spot-checks.**
+- **Tests:** subagent ran `npm test` → **356 passed, 0 failed**, exit 0.
+- **`file://` playability:** HTML uses classic `<script src>` tags (cd-core→cd-render in order), an
+  inline-SVG-data-URI favicon, and a `<link>` stylesheet — no `type="module"`, no network deps.
+- **Old-save migration (verified in-browser):** a pre-achievements meta `{chips:12, talents:{firepower:2}}`
+  migrated cleanly (gained `achievements`/`stats` defaults, kept chips + talents); a minimal old
+  `cd_save` resumed (wave restored, tower rebuilt, `mapTheme`→`circuit` default, `perkState.lastStand`→false).
+- **Deploy:** `.github/workflows/pages.yml` still copies `index.html tower-defense.html tower-defense.css
+  cd-*.js` into `_site` — static, no build step.
+- A 1-wave quick-mode drive ran with zero console errors; injected test data cleaned up afterward.
+
+**Verdict:** healthy, no fixes needed. Findings → ROADMAP. Patch bump to v1.24.2.
+
+---
+
 ## v1.24.1 — 2026-06-12 — 🎯 Booster aura-range cut, slice 2 (68→52)
 
 **What & why.** FEEDBACK PENDING item #1 (first pending, owner: *"[Low priority] Reduce the range of
