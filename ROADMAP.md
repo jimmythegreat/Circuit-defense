@@ -174,7 +174,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
+## Table-stakes (polished-browser-game basics — re-audited v1.20.2 health check)
 
 _Still-unaddressed, in priority order: **gamepad** → PWA install → **bigger HTML tap targets on small phones**.
 Done: **draft keyboard a11y (v1.20.0)** — the mid-game perk picker's cards are now focusable
@@ -266,6 +266,12 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
+- [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card
+      `[0]`, and drafts are random, so any test that asserts a numeric bound on gold/dmg
+      *after* a draft can flake when a gold/power perk lands in slot 0. v1.20.2 fixed the
+      one in group [32] (Economy trim) by asserting the deterministic **pre-draft** economy
+      instead. Sweep the other run-driving groups for the same pattern and pin them to
+      pre-draft / perk-neutral measurements where a tight bound is asserted.
 
 ## Vetoed by owner — do not re-add
 

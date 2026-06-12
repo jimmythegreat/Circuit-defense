@@ -3,6 +3,56 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.20.2 — 2026-06-12 — 🩺 Health check
+
+**Every-6th-run maintenance pass** (5 version entries since the v1.16.4 health check: v1.17.0,
+v1.18.0, v1.19.0, v1.20.0, v1.20.1). Ships no new feature — confirms the project is still healthy
+and the docs still match the code. Both pending FEEDBACK items are "[Low priority]" (neither is a
+`[bug]`), so they did not override the health check.
+
+**1. Refactor audit.** All eight game files comfortably within the ~1500-line cap — counts:
+cd-update.js 637, cd-render.js 534, cd-game.js 517, cd-core.js 330, cd-defs.js 305, cd-maps.js 190,
+cd-state.js 151; plus tower-defense.css 407, tower-defense.html 137. No file near the cap, no dead
+code or out-of-domain functions found. The booster taper still lives in three sites
+(`upgradeTower`/`ascendTowers`/`loadRun` rebuild) by design, each with a "keep in sync" comment —
+intentional, not drift. **No `[refactor]` items needed.**
+
+**2. Docs coherence.** Re-verified the key CLAUDE.md formulas against the code — all matched:
+booster aura range `TOWER_TYPES.buff.range = 68` (v1.20.1), enemy-HP
+`(18 + w*7 + 1.25·w^1.9)·1.80·d.hp·campScale`, booster taper `0.25 + 0.08·(lvl-1)` (and `+= 0.08`
+at both upgrade sites), and poison DoT coefficient `2.6`. `GAME_VERSION` matched the latest
+CHANGELOG heading (was v1.20.1). No doc drift found this pass; ROADMAP table-stakes audit note
+refreshed to v1.20.2; vetoed section intact (still none recorded).
+
+**3. Table-stakes audit.** Walked the polished-browser-game list. Keyboard accessibility is now
+**complete** (start-screen menus v1.19.0 + the mid-game draft v1.20.0), joining reduced-motion,
+colourblind aid, high-DPI canvas, volume slider, responsive/mobile layout and touch/pointer
+controls. Still-open, unchanged: **gamepad support** and **PWA install (offline manifest)**, plus
+the optional *bigger HTML tap targets on small phones* — all already logged in ROADMAP, none
+regressed. **Strongest pick for the next normal run: gamepad support.** No new gaps found.
+
+**4. Integrity spot-checks.** Full suite **320/0 green** (39 groups), zero console errors.
+Old-format save migration verified live: a minimal old `cd_meta` (chips + talents only) loaded with
+`achievements`/`stats` defaulted (`bestCombo` → 0) and talents preserved, and an old `cd_save` with
+no `mapTheme`/`lastSettledWave` restored cleanly (towers rebuilt with full `dmg`/`range` stats,
+`mapTheme` resolved to a valid key, `livesLostThisRun` forced true). Double-click `file://` play
+re-verified (classic `<script src>` load order, no ES modules, inline SVG favicon). Test data
+cleaned up afterwards.
+
+**Flaky test fixed (small, safe).** Test group **[32] Economy trim** intermittently failed: it
+asserted a tight upper bound (`< 2900`) on the **10-wave** gold bank, but the harness auto-picks
+draft card `[0]` at waves 5 and 10 and the draft is **random** — a gold perk (interest/Midas/bounty)
+in slot 0 inflated the bank (measured 2613 typical, but 3013 on the failing run). The deterministic
+bounty-formula checks already prove the trim is wired; the war-chest bound was the only RNG-sensitive
+part. Fixed by asserting on the **pre-draft economy** instead — gold the instant the first draft
+opens (end of wave 5, before any perk), which is RNG-free and is exactly what the economy trim
+affects: measured a perfectly stable **875** across 6 runs vs the old pre-trim **≈1003** (the
+documented ~−13% trim). New checks: `pre-draft economy trimmed below the old baseline` (`< 950`) and
+`> 700`; the 10-wave total keeps only its loose `> 1500` floor (no flaky upper bound). Test-only
+change — no game code, balance or save impact.
+
+**Version bump:** v1.20.1 → **v1.20.2** (patch). This resets the 5-run health-check counter.
+
 ## v1.20.1 — 2026-06-12 — Booster aura-range cut, slice 1 (FEEDBACK balance)
 
 **What & why.** FEEDBACK PENDING item #1 (owner, low priority): *"Reduce the range of booster by 50%

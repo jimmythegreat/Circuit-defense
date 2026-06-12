@@ -1543,8 +1543,14 @@ async function main() {
         return { w, got, exp: bountyExp(w), prev,
                  ok: got === bountyExp(w), cutPct: (1 - got / prev) * 100 };
       });
-      // (2) Drive a clean 10-wave run with god towers; the wave-10 war chest must drop
-      //     vs the old economy, while staying a meaningful bank (sanity bounds).
+      // (2) Drive a clean 10-wave run with god towers and capture two figures:
+      //     • preDraftChest — gold the instant the FIRST draft opens (end of wave 5, before any
+      //       perk is picked). This is RNG-free: god towers collect every (deterministic) bounty,
+      //       and no random draft perk has applied yet — so it's the true economy-trim signal.
+      //       (Old pre-v1.16.1 economy ≈ 1003 here; trimmed to 875 — the documented ~−13%.)
+      //     • warChest — gold after wave 10. Used only as a loose sanity floor: it includes the
+      //       wave-5/10 auto-picked draft perks (card[0]), which can be gold perks, so its exact
+      //       value is non-deterministic — do NOT assert a tight upper bound on it (that flaked).
       beginGame();
       towers.length = 0;
       for (let gx = 80; gx <= 820; gx += 120)
@@ -1555,20 +1561,25 @@ async function main() {
                         level:1, baseCost:60, invested:60, angle:0, mode:'first', spec:null,
                         dealt:0, kills:0, buffPower:0.25, flash:0 });
         }
+      let preDraftChest = null;
+      const pickFirstCard = () => {
+        if (preDraftChest === null) preDraftChest = Math.floor(gold); // snapshot BEFORE the pick
+        const c = document.getElementById('draftCards'); if (c && c.children.length) c.children[0].click();
+      };
       for (let target = 1; target <= 10; target++) {
         startWave();
         let safety = 0;
         while ((waveActive || enemies.length ||
                (typeof pendingSpawns !== 'undefined' && pendingSpawns.length)) && safety < 20000) {
           update(1 / 60);
-          if (draftOpen) { const c = document.getElementById('draftCards'); if (c && c.children.length) c.children[0].click(); }
+          if (draftOpen) pickFirstCard();
           safety++;
         }
-        if (draftOpen) { const c = document.getElementById('draftCards'); if (c && c.children.length) c.children[0].click(); }
+        if (draftOpen) pickFirstCard();
       }
       const warChest = Math.floor(gold);
       backToMenu();
-      return { bountySamples, warChest };
+      return { bountySamples, warChest, preDraftChest };
     });
     for (const s of r.bountySamples)
       check(`wave ${s.w} bounty uses the trimmed (3 + w*0.6) flat term`, s.ok, `got=${s.got} exp=${s.exp}`);
@@ -1579,8 +1590,12 @@ async function main() {
     check('w1 bounty cut is the largest (front-loaded)',
       r.bountySamples[0].cutPct >= r.bountySamples[3].cutPct - 1e-9,
       `${r.bountySamples[0].cutPct.toFixed(1)} vs ${r.bountySamples[3].cutPct.toFixed(1)}`);
-    // War chest after 10 clean waves: trimmed below the old ~2950 baseline, but still a real bank.
-    check('10-wave war chest trimmed below the old baseline', r.warChest < 2900, String(r.warChest));
+    // Pre-draft economy (deterministic): the trim must put it below the old ~1003 baseline while
+    // keeping a real bank. (Asserting here instead of on the noisy 10-wave total, which folds in
+    // random draft perks and previously flaked when a gold perk landed in card[0].)
+    check('pre-draft economy trimmed below the old baseline', r.preDraftChest < 950, String(r.preDraftChest));
+    check('pre-draft economy stays a meaningful bank (>700)', r.preDraftChest > 700, String(r.preDraftChest));
+    // 10-wave total still completes and stays a real bank — loose floor only (no flaky upper bound).
     check('10-wave war chest stays a meaningful bank (>1500)', r.warChest > 1500, String(r.warChest));
     check('no console errors during economy-trim test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
