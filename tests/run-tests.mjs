@@ -2278,6 +2278,65 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 44: boss HP slope steepened 0.5 -> 0.6 (v1.24.4, "too easy" FEEDBACK) ----
+  console.log('\n[44] Boss HP slope (late-game difficulty)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      // Live boss mult must be 14 + 0.6w (was 14 + 0.5w). Measure mult = bossHp / template.
+      const waves = [5, 10, 15, 20, 30, 50];
+      const samples = waves.map(w => {
+        const boss = buildWave(w).find(e => e.kind === 'boss');
+        const tmpl = enemyTemplate(w).hp;
+        const mult = boss.hp / tmpl;
+        const oldMult = 14 + w * 0.5;
+        return { w, mult, expMult: 14 + w * 0.6,
+                 ok: Math.abs(mult - (14 + w * 0.6)) < 1e-6,
+                 pct: (boss.hp / (tmpl * oldMult) - 1) * 100 };  // swing vs the old 0.5 slope
+      });
+      backToMenu();
+      return { samples };
+    });
+    for (const s of r.samples) {
+      check(`boss HP at wave ${s.w} uses the 14+0.6w slope`, s.ok,
+        `mult=${s.mult.toFixed(3)} exp=${s.expMult.toFixed(3)}`);
+    }
+    // The steepening must grow with wave (later bosses relatively tankier) ...
+    const pcts = r.samples.map(s => s.pct);
+    const monotonic = pcts.every((p, i) => i === 0 || p >= pcts[i - 1] - 1e-9);
+    check('boss HP boost over the old 0.5 slope grows with wave', monotonic,
+      `pcts=${pcts.map(p => p.toFixed(1)).join(',')}`);
+    // ... but stay inside the ≤25%/number/run guardrail at every wave (asymptote = +20%).
+    check('boss HP boost stays within the ≤25% guardrail at every wave',
+      pcts.every(p => p <= 25 + 1e-6), `max=${Math.max(...pcts).toFixed(1)}%`);
+    // A boss-bearing wave still drives to a clean clear with god towers (beatable, no crash).
+    const beat = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const path = waypoints[Math.floor(waypoints.length / 2)] || { x: W/2, y: H/2 };
+      towers.push({ type:'gun', x:path.x, y:path.y, range:99999, dmg:1e9, rate:0.05, cd:0,
+        level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
+        buffPower:0.25, flash:0 });
+      wave = 4; lastSettledWave = 4;            // next startWave() => wave 5 (a boss wave)
+      startWave();
+      let guard = 0;
+      while ((spawners.length || enemies.length || (typeof pendingSpawns !== 'undefined' && pendingSpawns.length)) && guard < 20000) { update(1/60); guard++; }
+      const cleared = enemies.length === 0 && spawners.length === 0;
+      const r2 = { cleared, wave, lives, guard };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return r2;
+    });
+    check('boss wave 5 still clears with overwhelming towers (beatable)', beat.cleared,
+      `enemies left, guard=${beat.guard}`);
+    check('boss wave clear did not hit the sim guard / time out', beat.guard < 20000, `guard=${beat.guard}`);
+    check('lives survive the boss wave with overwhelming towers', beat.lives > 0, `lives=${beat.lives}`);
+    check('no console errors during boss-HP test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

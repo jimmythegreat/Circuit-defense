@@ -3,6 +3,36 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.24.4 — 2026-06-12 — 🐲 Tougher late-game bosses (boss HP slope 0.5 → 0.6)
+
+**Addresses the recurring FEEDBACK item** *"The game is still too easy."* (kept in PENDING — recurring,
+iterative, ≤25%/number/run). A boss spawns every 5th wave with HP = `enemyTemplate(w).hp × mult`, where
+`mult = 14 + w·0.5`. This run steepens the slope to **`14 + w·0.6`** (`cd-game.js`, `buildWave`), so bosses
+get relatively tankier the deeper the run goes — targeting the documented **mid-/late-game plateau** (the
+maintainer notes mark the early game as already feeling right; the plateau is the gap).
+
+- **Why bosses, not the regular HP curve:** the norm-enemy curve `(18 + 7w + 1.25·w^1.9)·1.80·d.hp` is already
+  at its design ceiling — test `[16]` enforces a **≤25% cumulative boost vs the v1.10.0 baseline** at *every*
+  wave, and the `1.25` coefficient already sits at that ceiling's asymptote. So the **boss multiplier** (not
+  covered by that invariant) is the open late-game lever. ROADMAP listed this exact step: *"stronger late
+  bosses (`14 + w*0.5` → `+w*0.6`, bounded +20%)."*
+- **Simulated swing (classic-normal, in-engine before/after):** boss HP **+3.0%** (w5) · **+5.3%** (w10) ·
+  **+7.0%** (w15) · **+8.3%** (w20) · **+10.3%** (w30) · **+12.8%** (w50) — the ratio `(14+0.6w)/(14+0.5w)` is
+  independent of `d.hp`/campScale, so these hold on every difficulty. The `+14` constant bounds the ratio
+  `(14+0.6w)/(14+0.5w)` to a **+20% asymptote** as `w→∞`, so the per-run swing stays inside the ≤25%/number
+  guardrail at *every* wave (incl. deep endless). The coefficient itself moves `0.5 → 0.6` = +20%.
+- **Scope:** one number. Specials/tanks/norms unchanged; campaign bosses inherit the same template×mult so they
+  scale with this too (the late-campaign "too easy" case — e.g. a campaign-L40 final boss at w50 is +12.8%).
+  Boss bounty (`t.bounty×12`), speed, armor (`w·0.4`) all unchanged. No economy/save-schema impact (boss HP is
+  computed at spawn, never persisted).
+- **Tests:** new group **[44]** — asserts the live `14+0.6w` slope at six waves, that the boost over the old
+  0.5 slope **grows with wave yet stays ≤25%** everywhere, and that a boss wave still clears with overwhelming
+  towers (beatable, no crash). Suite green.
+- **FEEDBACK note:** this is the "steepening late difficulty" half of the standing item; the **economy** half is
+  now near-exhausted (see ROADMAP — the 10-wave war chest is ~70% bounty, already trimmed in v1.16.1, so the
+  remaining interest/start-gold levers move it <2% each). Flagged the HP-invariant ↔ ROADMAP-"1.55" tension to
+  the owner in ROADMAP.
+
 ## v1.24.3 — 2026-06-12 — 🎯 Booster aura-range cut, final slice (52→45)
 
 **Closes the FEEDBACK item** *"Reduce the range of booster by 50% base. This helps make network better."*

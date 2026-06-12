@@ -173,11 +173,28 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (v1.10.0) were uniform up-shifts; v1.13.3 added a `1.25` coeff on the `w^1.9`
       term to **steepen the curve** (owner: early game now hard but plateaus after
       ~w10) — boost grows with wave, asymptotes <25%. After a fresh-save reset the
-      early game now feels right; the plateau was the gap. Next candidate levers if
-      still too easy late — another `w^1.9`-coeff step (toward ~1.55 over a couple
-      runs), slower economy snowball (trim early interest/wave-clear bonus/bounty),
-      the Frost/booster snowball item below, or stronger late bosses (`14 + w*0.5`
-      → `+w*0.6`, bounded +20%). Simulate before/after; ≤25% per number per run.
+      early game now feels right; the plateau was the gap. **v1.24.4 steepened the
+      BOSS HP slope** `14 + w*0.5 → 14 + w*0.6` (+3% at w5 → +10% at w30, bounded +20%
+      asymptote) — the open late-game lever, since the norm-HP curve is invariant-capped
+      (see ⚠ below). Next candidate levers if still too easy late — **step the boss
+      slope `0.6 → ~0.7`** next run, **boss mechanics** (regen/shield, see "Boss
+      variety") to harden late waves off the HP axis entirely, the Frost/booster
+      snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
+      before/after; ≤25% per number per run.
+      - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`
+        without owner sign-off.** Test `[16]` enforces a **≤25% cumulative HP boost vs
+        the v1.10.0 (coeff-1.0) baseline at EVERY wave**; the live `1.25` already sits
+        at that asymptote, so bumping toward the old ROADMAP target "~1.55" would push
+        the w30+ swing to +33–37% and **break that invariant** (and the ≤25% guardrail
+        as the comment defines it). The "toward 1.55" aspiration and the encoded
+        invariant are in tension — left for the owner to resolve (see "Prompt
+        suggestions"). Until then, late difficulty is raised via the **boss** and
+        **economy** levers, not the norm-HP coefficient.
+      - **Economy lever near-exhausted (measured v1.24.4):** 10-wave war chest
+        (god towers, no spend, classic-normal) = **2613 gold** ≈ 70% bounty (trimmed
+        v1.16.1) / 16% wave-bonus (trimmed) / 9% interest / 5% start gold. The two
+        untrimmed levers move the chest <2% each → low leverage. Prefer difficulty
+        (boss/late-HP) and tower-power levers over more economy trimming.
 - [~] **Frost/booster damage snowball** (owner FEEDBACK, v1.10.0) — Shatter was cut
       ×6→×4.5, but the underlying multiplicative stack is still strong: a single
       **booster** aura was +75% at L6 (`buffPower` +0.1/level off a 0.25 base) and

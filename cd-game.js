@@ -127,7 +127,14 @@ function buildWave(w) {
     q.push(e);
   }
   if (w % 5 === 0 && w > 0) {
-    const mult = 14 + w*0.5;
+    // Boss HP = template × mult. Slope steepened 0.5 -> 0.6 (v1.24.4) to make the
+    // climactic every-5th-wave threat harder LATE without touching early waves — the
+    // documented "too easy" plateau is mid-late (owner FEEDBACK), and the norm-enemy
+    // HP curve is already maxed against test [16]'s ≤25%-vs-baseline invariant, so the
+    // boss slope (untouched by that test) is the open late-game lever. The +14 constant
+    // bounds the swing: per-wave boss HP grows +3% (w5) → +10% (w30), asymptoting to +20%
+    // (= the coefficient change), inside the ≤25%/number/run guardrail at every wave.
+    const mult = 14 + w*0.6;
     const boss = { kind:'boss', hp:t.hp*mult, maxHp:t.hp*mult, spd:t.speed*0.45, r:24, bounty:t.bounty*12, color:'#f85149', armor: w*0.4, gap:1.5 };
     if (modIs('titans')) { boss.hp *= 1.5; boss.bounty = Math.ceil(boss.bounty * 1.5); }
     if (modIs('goldrush')) boss.bounty *= 2;
