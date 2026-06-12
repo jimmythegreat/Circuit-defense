@@ -45,12 +45,18 @@ let particleDensity = (() => {
   const v = localStorage.getItem('cd_particles');
   return v === null ? 1 : Math.max(0, Math.min(1, +v || 0));
 })();
+// Colorblind aid (Settings panel, v1.18.0) — when ON, the enemy kinds that are
+// currently distinguished by HUE ONLY (fast=purple, tank=orange) also render a
+// distinct symbol, so every kind reads as a unique glyph rather than a colour.
+// Persisted on this device, default OFF. See enemyGlyph() in cd-render.js.
+let colorblindAid = localStorage.getItem('cd_colorblind') === '1';
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.17.0';
+const GAME_VERSION = 'v1.18.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.18.0', date: '2026-06-12', time: '19:40 EDT', body: "Accessibility: a new ♿ Colorblind aid toggle in ⚙ Settings. Most enemy types already show a symbol (+ heal, 🛡 shield, ✂ split, 👻 phantom, ☠ boss), but the fast and tank enemies were told apart by COLOUR alone (purple vs orange), which is hard if you're colourblind. Turn the aid on and every enemy kind gets its own symbol too — » for the quick ones, ◆ for the heavy tanks — so you can read the board by shape, not just hue. Off by default, saves on your device, and zero effect on gameplay or balance." },
   { v: 'v1.17.0', date: '2026-06-12', time: '18:15 EDT', body: "Sharper graphics on high-resolution screens (Retina, 4K, and Windows display scaling like 125%/150%). The game board was drawn at a fixed resolution and then stretched to fit your screen, so on a high-DPI display the towers, enemies and text looked a little soft. It now draws at your screen's true pixel density (up to 2×), so everything is crisp — while staying exactly the same size and playing identically. No effect on gameplay, balance, controls or saves; on a standard 1× display nothing changes at all." },
   { v: 'v1.16.4', date: '2026-06-12', time: '16:45 EDT', body: "🩺 Health check (every-6th-run maintenance pass — no gameplay changes). Full test suite green (272/0, zero console errors); all eight code files comfortably within the size limit (largest is ~656 lines vs the ~1500 cap); every documented formula re-verified against the actual code (scoring, enemy-HP scaling, the economy trim, the booster-aura taper, the touch radius) — all matched. Old saves confirmed to still load via the migration defaults (an old meta with no achievements/stats and an old run with no map-theme both loaded cleanly), and double-click/offline play re-verified. Tidied the docs: the project's root redirect page (index.html → tower-defense.html, used by the hosted version) is now documented. The remaining 'polished-browser-game' gaps — colourblind-safe palette, gamepad support, high-DPI crispness and menu keyboard navigation — are still on the roadmap for future updates." },
   { v: 'v1.16.3', date: '2026-06-12', time: '15:30 EDT', body: "Touch controls: tapping the board on a phone is now reliable. Two things were fighting you. First, the spot you tap to select a tower was sized for a mouse — on a phone the board is shrunk to fit, so an on-screen tower was only about a 7-pixel target, easy to miss. On touch devices the tap area around each tower is now much more forgiving (it still can't accidentally grab a tower when you meant to place a new one beside it). Second, the board now reacts the instant you press instead of waiting for the browser's tap-release (which some mobile browsers delay by a fraction of a second), so placing towers, aiming the meteor and opening the upgrade menu all feel snappier — on mouse and touch alike. The board also no longer scrolls or pinch-zooms the page out from under you while you're tapping on it. Desktop play is unchanged." },

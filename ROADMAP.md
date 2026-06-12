@@ -173,17 +173,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
 
-_Still-unaddressed, in priority order: **colorblind-safe palette** → gamepad → PWA
-install → **menu keyboard a11y** (all confirmed still open at the v1.16.4 health check).
-Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2),
+_Still-unaddressed, in priority order: **gamepad** → PWA install → **menu keyboard a11y**.
+Done: **colorblind aid / shape-coded enemies (v1.18.0)**, document metadata (v1.8.6),
+reduced-motion (v1.10.0), volume slider (v1.13.2),
 **responsive layout (v1.14.0)**, **mobile board sizing + What's New default-collapse (v1.15.0)**,
 **touch/pointer controls (v1.16.3)** — canvas board interaction (place/select/aim) is now
 `pointerdown`-driven with a touch-generous tap radius + `touch-action:none` — and **high-DPI
 canvas scaling (v1.17.0)** — the backing store now scales with `devicePixelRatio` (capped 2×) so
 the board is crisp on Retina/4K/scaled displays. v1.14.1 visual pass confirmed desktop & phone
 menus all render correctly; the remaining mobile polish is just bigger HTML button targets if
-wanted. **Next normal run's strongest table-stakes pick: colorblind-safe palette** (enemy kinds &
-combo tiers lean on hue; add a shape/contrast-coded mode) or **menu keyboard a11y**._
+wanted. **Colorblind aid shipped v1.18.0** (enemy kinds now shape-coded — `enemyGlyph()`). **Next
+normal run's strongest table-stakes pick: menu keyboard a11y** (panels are mouse-only — no Esc-close,
+no focus trap/rings) or **gamepad support**._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
@@ -206,8 +207,14 @@ combo tiers lean on hue; add a shape/contrast-coded mode) or **menu keyboard a11
       — tracked separately under the "shake/particle toggle" settings item below.
 - [ ] **Gamepad support** — `navigator.getGamepads()` polling for tower select /
       ability fire / cursor movement. Lower priority than touch.
-- [ ] **Colorblind-safe palette option** — enemy kinds and combo tiers lean on
-      hue (green/gold/orange/red/purple). Add a high-contrast / shape-coded mode.
+- [x] **Colorblind-safe palette option** — shipped **v1.18.0**. A ♿ Colorblind aid
+      toggle in ⚙ Settings (`cd_colorblind`, default off) shape-codes the two enemy
+      kinds that were hue-only (`fast`→`»`, `tank`→`◆`); the rest already carried
+      glyphs (`+`/`🛡`/`✂`/`👻`/`☠`/`❄`), so every kind now reads as a unique symbol.
+      `enemyGlyph()` helper in `cd-render.js` is the single source of truth (byte-
+      identical rendering with the aid off). Test [36]. **Follow-ups:** *combo-tier
+      shape/label* (the meter already shows the `N×` number so it's readable, but the
+      colour ramp green→purple is still hue-only), and a *high-contrast path/grid mode*.
 - [ ] **PWA install (offline manifest)** — a `manifest.webmanifest` + minimal
       service worker so the game is installable and offline-cacheable when *hosted*
       (it's already offline via `file://`). No build step required. Note: a service

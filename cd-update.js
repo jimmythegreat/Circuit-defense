@@ -423,10 +423,12 @@ function toggleSettings() {
 }
 function setShake(on) { shakeEnabled = !!on; try { localStorage.setItem('cd_shake', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setParticles(d) { particleDensity = +d; try { localStorage.setItem('cd_particles', String(+d)); } catch(e) {} renderSettings(); }
+function setColorblind(on) { colorblindAid = !!on; try { localStorage.setItem('cd_colorblind', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function renderSettings() {
   const rows = [
     { name: '📳 Screen shake', fn: 'setShake', cur: shakeEnabled, opts: [['On', true], ['Off', false]] },
     { name: '✨ Particle effects', fn: 'setParticles', cur: particleDensity, opts: [['Full', 1], ['Reduced', 0.5], ['Off', 0]] },
+    { name: '♿ Colorblind aid', fn: 'setColorblind', cur: colorblindAid, opts: [['On', true], ['Off', false]] },
   ];
   let html = '<div class="setList">';
   // Volume slider (0..100). oninput scales the live gain + updates the % label without
@@ -447,6 +449,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

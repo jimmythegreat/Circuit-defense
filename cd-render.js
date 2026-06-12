@@ -1,6 +1,29 @@
 'use strict';
 // ================= Render =================
 const RARITY_TIP_COL = { common: '#c9d1d9', rare: '#58a6ff', legendary: '#e3b341' };
+// Canonical symbol drawn on an enemy sphere. Frozen always shows ❄; heal/shield/
+// split/phantom/boss are always shape-coded; fast/tank are hue-only by default and
+// only gain a symbol when the colorblind aid is on (v1.18.0). '' = no glyph (norm,
+// or fast/tank with the aid off). Single source of truth for draw() + tests.
+function enemyGlyph(e) {
+  if (e.frozen > 0) return '❄';
+  switch (e.kind) {
+    case 'boss': return '☠';
+    case 'heal': return '+';
+    case 'shield': return '🛡';
+    case 'split': return '✂';
+    case 'phantom': return '👻';
+    case 'fast': return colorblindAid ? '»' : '';
+    case 'tank': return colorblindAid ? '◆' : '';
+    default: return '';
+  }
+}
+// Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
+const GLYPH_FONT = {
+  '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
+  '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
+  '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif',
+};
 // Tooltip for a hovered run-perk icon: name (in rarity colour) + what it does.
 // Description is looked up from PERKS by id so it works for old saves too.
 function drawPerkTooltip(iconX, p) {
@@ -335,12 +358,11 @@ function draw() {
     ctx.stroke();
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
-    if (e.frozen > 0) { ctx.font = '10px sans-serif'; ctx.fillText('❄', e.x, e.y + 4); }
-    else if (e.kind === 'boss') { ctx.font = 'bold 16px sans-serif'; ctx.fillText('☠', e.x, e.y + 6); }
-    else if (e.kind === 'heal') { ctx.font = 'bold 12px sans-serif'; ctx.fillText('+', e.x, e.y + 4); }
-    else if (e.kind === 'shield') { ctx.font = '10px sans-serif'; ctx.fillText('🛡', e.x, e.y + 4); }
-    else if (e.kind === 'split') { ctx.font = 'bold 11px sans-serif'; ctx.fillText('✂', e.x, e.y + 4); }
-    else if (e.kind === 'phantom') { ctx.font = '11px sans-serif'; ctx.fillText('👻', e.x, e.y + 4); }
+    const gly = enemyGlyph(e);
+    if (gly) {
+      ctx.font = GLYPH_FONT[gly] || '11px sans-serif';
+      ctx.fillText(gly, e.x, e.y + (gly === '☠' ? 6 : 4));
+    }
     if (phantomA < 1) ctx.globalAlpha = 1;
     ctx.textAlign = 'left';
     const w = e.r * 2.2;

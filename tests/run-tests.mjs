@@ -1763,6 +1763,69 @@ async function main() {
     await ctx2.close();
   }
 
+  // ---- Test 36: Colorblind aid — shape-coded enemy kinds (v1.18.0) ----
+  console.log('\n[36] Colorblind aid (shape-coded enemies)');
+  {
+    // Preset cd_colorblind='1' so the restore-on-load path is exercised.
+    const page = await browser.newPage();
+    const consoleErrors = [];
+    page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+    page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
+    await page.addInitScript(() => { try { localStorage.setItem('cd_mute', '1'); localStorage.setItem('cd_colorblind', '1'); } catch (e) {} });
+    await page.goto(GAME_URL, { waitUntil: 'load' });
+    await page.evaluate(INSTALL_DRIVER);
+    const r = await page.evaluate(() => {
+      const restored = colorblindAid;                 // expect true from cd_colorblind='1'
+      const E = (kind, extra) => Object.assign({ kind, frozen: 0 }, extra || {});
+      // With the aid ON, fast/tank gain a unique glyph; the always-coded kinds keep theirs.
+      const on = {
+        norm: enemyGlyph(E('norm')), fast: enemyGlyph(E('fast')), tank: enemyGlyph(E('tank')),
+        heal: enemyGlyph(E('heal')), shield: enemyGlyph(E('shield')), split: enemyGlyph(E('split')),
+        phantom: enemyGlyph(E('phantom')), boss: enemyGlyph(E('boss')),
+        frozenTank: enemyGlyph(E('tank', { frozen: 1 })),
+      };
+      // glyphs must be distinct across all kinds (norm is the only intentionally-empty one)
+      const symbols = [on.fast, on.tank, on.heal, on.shield, on.split, on.phantom, on.boss];
+      const allDistinct = new Set(symbols).size === symbols.length && !symbols.includes('');
+      // Turn the aid OFF: fast/tank go back to no glyph, the rest are unchanged.
+      setColorblind(false);
+      const off = {
+        fast: enemyGlyph(E('fast')), tank: enemyGlyph(E('tank')),
+        heal: enemyGlyph(E('heal')), boss: enemyGlyph(E('boss')),
+      };
+      const persistedOff = localStorage.getItem('cd_colorblind');
+      setColorblind(true);
+      const persistedOn = localStorage.getItem('cd_colorblind');
+      // Settings panel renders a Colorblind aid row + legend when on.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      openSettings();
+      const hasRow = /Colorblind aid/.test(document.getElementById('settingsBody').innerHTML);
+      const hasLegend = /Enemy symbols:/.test(document.getElementById('settingsBody').innerHTML);
+      closeSettings();
+      // draw() with the aid on (enemies present) must not throw.
+      startWave();
+      let drew = true; try { for (let i = 0; i < 30; i++) update(1/60); draw(); } catch (e) { drew = 'ERR:' + e.message; }
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { restored, on, off, allDistinct, persistedOff, persistedOn, hasRow, hasLegend, drew };
+    });
+    check('colorblindAid restores from cd_colorblind on load', r.restored === true, `restored=${r.restored}`);
+    check('aid ON: fast/tank gain » and ◆ glyphs', r.on.fast === '»' && r.on.tank === '◆',
+      `fast=${r.on.fast} tank=${r.on.tank}`);
+    check('norm stays glyphless (baseline)', r.on.norm === '', `norm="${r.on.norm}"`);
+    check('always-coded kinds keep their glyphs', r.on.heal === '+' && r.on.shield === '🛡' && r.on.split === '✂' && r.on.phantom === '👻' && r.on.boss === '☠',
+      JSON.stringify(r.on));
+    check('frozen overrides kind glyph (❄)', r.on.frozenTank === '❄', `frozenTank=${r.on.frozenTank}`);
+    check('every enemy kind reads as a distinct symbol with the aid on', r.allDistinct);
+    check('aid OFF: fast/tank lose their glyph; others unchanged', r.off.fast === '' && r.off.tank === '' && r.off.heal === '+' && r.off.boss === '☠',
+      JSON.stringify(r.off));
+    check('setColorblind persists cd_colorblind (0/1)', r.persistedOff === '0' && r.persistedOn === '1',
+      `off=${r.persistedOff} on=${r.persistedOn}`);
+    check('Settings renders the Colorblind aid row + legend', r.hasRow && r.hasLegend);
+    check('draw() renders cleanly with the aid on and enemies present', r.drew === true, `${r.drew}`);
+    check('no console errors during colorblind test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

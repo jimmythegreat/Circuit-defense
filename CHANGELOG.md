@@ -3,6 +3,35 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.18.0 — 2026-06-12 — Colorblind aid: shape-coded enemy kinds (table-stakes, ROADMAP)
+
+**What & why.** The top open accessibility / table-stakes item (flagged in the v1.16.4 health-check
+audit as the "strongest next pick"): enemy kinds lean on **hue** to be told apart. Most kinds
+already carry a symbol (`+` heal, `🛡` shield, `✂` split, `👻` phantom, `☠` boss, `❄` frozen),
+but **fast** and **tank** were distinguished by **colour alone** (purple `#d2a8ff` vs orange
+`#f0883e`) — exactly the green/orange/purple axis that protan/deutan colourblind players struggle
+with. A new **♿ Colorblind aid** toggle in ⚙ Settings shape-codes them too: `»` for fast, `◆` for
+tank, so every enemy kind reads as a unique glyph rather than a colour.
+
+**How (self-contained, save-safe, no gameplay impact).**
+- `cd-core.js`: new `colorblindAid` pref, `localStorage.getItem('cd_colorblind') === '1'` (default
+  **OFF**). One additive key, read with a default — old saves unaffected.
+- `cd-render.js`: extracted the enemy-glyph decision into a single pure helper `enemyGlyph(e)`
+  (frozen → `❄`; heal/shield/split/phantom/boss always coded; **fast/tank coded only when the aid
+  is on**; norm stays glyphless as the baseline). A `GLYPH_FONT` map preserves each existing
+  glyph's exact font + offset, so with the aid **off** the rendering is **byte-identical** to
+  before (verified by the guardrail review). `draw()` now calls the helper.
+- `cd-update.js`: `setColorblind(on)` setter (persists `cd_colorblind`, re-renders) + a
+  `♿ Colorblind aid On/Off` row in `renderSettings()`, plus a legend line listing every symbol
+  when the aid is on.
+
+**Tests.** New group **[36]**: restore-on-load from `cd_colorblind='1'`; aid ON → fast=`»`/tank=`◆`
+and all kinds distinct; norm stays empty; always-coded kinds keep their glyphs; frozen overrides
+kind; aid OFF → fast/tank lose the glyph (others unchanged); `setColorblind` persists `0`/`1`;
+Settings renders the row + legend; `draw()` clean with the aid on and live enemies. Suite **294/0**
+green. Verified in-preview at v1.18.0: default off, glyphs correct, a 2-second live wave with the
+aid on renders with zero console errors.
+
 ## v1.17.0 — 2026-06-12 — High-DPI canvas scaling (table-stakes, ROADMAP)
 
 **What & why.** The strongest open table-stakes item (flagged in the v1.16.4 health-check
