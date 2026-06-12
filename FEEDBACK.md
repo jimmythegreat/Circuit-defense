@@ -7,6 +7,16 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
+  > _Progress (kept in PENDING — recurring, iterative; ≤25%/number per run):_
+  > - **v1.16.1 (2026-06-12)** — addressed the **"money from the first 10 rounds"** half: trimmed
+  >   the front-loaded gold snowball. Measured it first (kills = ~69% of early income), then cut
+  >   per-kill bounty `(4+w*0.6)→(3+w*0.6)` (−20% w1, fading late) and the wave-clear bonus
+  >   `(25+w*5)→(20+w*4)` (−20%). Net: 10-wave war chest **−13%** (2658→2312). See CHANGELOG v1.16.1.
+  > - **Still to do:** the **single-tower carry** (your campaign-6-hard "one gunner + max booster"
+  >   example) — that's a tower-power outlier, not economy. Candidate next slice: taper the booster
+  >   aura per-level scaling (ROADMAP "Frost/booster damage snowball"). And keep trimming the
+  >   economy / steepening late HP if classic-normal still falls to opening-round money.
+
 ## DONE
 
 - **2026-06-11 · v1.16.0** — "[Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc." **AND** "[Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled." → Done together (same surface). Every run now gets a **score + letter grade** on the end screen: `(wave×100 + kills×5 + lives×120 + gold + bestCombo×25 + campLevel×200 + 2500-if-won) × difficulty × efficiency`, where **efficiency rewards using fewer towers** (≤10 towers → up to +30%) and **remaining gold** feeds in directly — both straight from your cues. Grade runs **F→S** (S = a flawless win, no lives lost). An all-time **best score** is tracked (additive `cd_bestscore` key) with a ★ celebration when beaten. The **restyle** replaces the old run-on text blob with a clean layout: a big score + grade hero up top, a tidy stats grid (waves/kills/lives/gold/combo/towers), and MVP/perks/achievements as their own lines. Cosmetic + one additive key — no balance/economy/save impact. Test group [31]; suite 250/0; verified desktop + 375px mobile. (Note: there's no per-kill clock in the game, so "kill time" isn't wired in literally — "how far + how clean + how rich, scaled by difficulty" stands in for it. Say the word for a speed/time component.)

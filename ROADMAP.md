@@ -157,10 +157,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       campaign 9 on hard with just 2 frosts + 1 booster. Next candidate levers (≤25%
       each, sim first): taper booster per-level scaling (e.g. +0.08/level, or a soft
       cap), or trim Frost Mastery's per-rank dmg. Don't gut any single build.
-- [ ] **Interest/economy curve review** — verify gold pacing across difficulties
+- [~] **Interest/economy curve review** — verify gold pacing across difficulties
       with the harness. Tie to the difficulty work above: the owner's "money from
-      the first 10 rounds" line points at a front-loaded snowball — a modest cut to
-      early interest cap / wave-clear bonus is the cleanest next economy lever.
+      the first 10 rounds" line points at a front-loaded snowball. **v1.16.1 took the
+      first slice** (measured via god-tower sim: kills = ~69% of early income): trimmed
+      per-kill bounty `(4+w*0.6)→(3+w*0.6)` and the wave-clear bonus `(25+w*5)→(20+w*4)`,
+      cutting the 10-wave war chest ~13% (front-loaded, ≤20%/number). **Next levers if
+      still too rich:** trim the early interest cap (30→~25) or start gold (normal 120→100),
+      or another bounty/bonus step — each ≤25%, sim before/after. Test [32].
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 

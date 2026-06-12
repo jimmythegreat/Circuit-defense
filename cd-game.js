@@ -99,7 +99,12 @@ function enemyTemplate(w) {
   //    term dominates (asymptote = 1.25), so it stays inside the ≤25%/number guardrail
   //    at EVERY wave incl. deep endless, while making each later wave a bigger jump.
   const hpBase = (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * d.hp * campScale;
-  return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((4 + w*0.6) * d.bounty)) };
+  // Bounty per kill, trimmed v1.16.1 to cool the front-loaded gold snowball (owner FEEDBACK
+  // "I clear classic-normal with money from the first 10 rounds"). Kills are ~69% of early
+  // income; cutting the FLAT term 4->3 (slope w*0.6 kept) trims bounty ~20% at w1, fading to
+  // ~10% by w10 and ~6% by w20 — front-loaded where the over-build happens, barely touching
+  // deep endless. Specials/boss scale off this, so the trim propagates proportionally.
+  return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((3 + w*0.6) * d.bounty)) };
 }
 function buildWave(w) {
   const q = [];
@@ -181,7 +186,9 @@ function endWave() {
   const interestCap = 30 + 10 * tRank('banking');
   for (let w = from; w <= to; w++) {
     const interest = Math.floor(Math.min((gold + totalBonus) * 0.05, interestCap));
-    totalBonus += Math.floor((25 + w*5) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
+    // Wave-clear bonus, trimmed v1.16.1 (25->20 base, w*5->w*4 slope) — a flat ~20% cut to the
+    // second-largest early income source, part of the same front-loaded-snowball trim as bounty.
+    totalBonus += Math.floor((20 + w*4) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
     if (w % 5 === 0 && w < victoryWave()) drafts++;
   }
   gold += totalBonus;

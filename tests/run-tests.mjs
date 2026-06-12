@@ -1528,6 +1528,64 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 32: economy trim — front-loaded gold snowball (FEEDBACK balance, v1.16.1) ----
+  console.log('\n[32] Economy trim — front-loaded gold snowball (v1.16.1)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      // (1) Per-kill bounty now uses the trimmed flat term: (3 + w*0.6), not (4 + w*0.6).
+      const dB = DIFFS['normal'].bounty;
+      const bountyExp = (w) => Math.max(2, Math.round((3 + w * 0.6) * dB));
+      const bountySamples = [1, 5, 10, 20].map(w => {
+        const got = enemyTemplate(w).bounty;
+        const prev = Math.max(2, Math.round((4 + w * 0.6) * dB));   // pre-v1.16.1
+        return { w, got, exp: bountyExp(w), prev,
+                 ok: got === bountyExp(w), cutPct: (1 - got / prev) * 100 };
+      });
+      // (2) Drive a clean 10-wave run with god towers; the wave-10 war chest must drop
+      //     vs the old economy, while staying a meaningful bank (sanity bounds).
+      beginGame();
+      towers.length = 0;
+      for (let gx = 80; gx <= 820; gx += 120)
+        for (let gy = 60; gy <= 500; gy += 120) {
+          if (distToPath(gx, gy) < 34) continue;
+          if (towers.some(t => Math.hypot(t.x - gx, t.y - gy) < 32)) continue;
+          towers.push({ type:'gun', x:gx, y:gy, range:2000, dmg:100000, rate:0.05, cd:0,
+                        level:1, baseCost:60, invested:60, angle:0, mode:'first', spec:null,
+                        dealt:0, kills:0, buffPower:0.25, flash:0 });
+        }
+      for (let target = 1; target <= 10; target++) {
+        startWave();
+        let safety = 0;
+        while ((waveActive || enemies.length ||
+               (typeof pendingSpawns !== 'undefined' && pendingSpawns.length)) && safety < 20000) {
+          update(1 / 60);
+          if (draftOpen) { const c = document.getElementById('draftCards'); if (c && c.children.length) c.children[0].click(); }
+          safety++;
+        }
+        if (draftOpen) { const c = document.getElementById('draftCards'); if (c && c.children.length) c.children[0].click(); }
+      }
+      const warChest = Math.floor(gold);
+      backToMenu();
+      return { bountySamples, warChest };
+    });
+    for (const s of r.bountySamples)
+      check(`wave ${s.w} bounty uses the trimmed (3 + w*0.6) flat term`, s.ok, `got=${s.got} exp=${s.exp}`);
+    // The early trim is front-loaded: ~20% at w1, fading by w20 — every sample inside ≤25%.
+    check('bounty cut is front-loaded and within the ≤25% guardrail',
+      r.bountySamples.every(s => s.cutPct >= 0 && s.cutPct <= 25 + 1e-6),
+      `cuts=${r.bountySamples.map(s => s.cutPct.toFixed(1)).join(',')}`);
+    check('w1 bounty cut is the largest (front-loaded)',
+      r.bountySamples[0].cutPct >= r.bountySamples[3].cutPct - 1e-9,
+      `${r.bountySamples[0].cutPct.toFixed(1)} vs ${r.bountySamples[3].cutPct.toFixed(1)}`);
+    // War chest after 10 clean waves: trimmed below the old ~2950 baseline, but still a real bank.
+    check('10-wave war chest trimmed below the old baseline', r.warChest < 2900, String(r.warChest));
+    check('10-wave war chest stays a meaningful bank (>1500)', r.warChest > 1500, String(r.warChest));
+    check('no console errors during economy-trim test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

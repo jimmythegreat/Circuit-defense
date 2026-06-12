@@ -3,6 +3,35 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.16.1 — 2026-06-12 — Economy trim: cool the front-loaded gold snowball (FEEDBACK balance)
+
+**Owner FEEDBACK (PENDING, "still too easy"):** *"I'm able to clear classic-normal with money
+I got from the first 10 rounds."* This run takes the first iterative slice at the **economy**
+root the owner and ROADMAP both point at (HP has been bumped repeatedly; the gap is that you
+out-*economy* the difficulty and over-build).
+
+**What I measured first (real in-game sim, classic-normal, god towers, clean play to wave 10):**
+- War chest banked by wave 10 ≈ **2950 gold** — enough to field a full army.
+- Source breakdown over waves 1–10: **kill bounty ≈ 1838 (69%)**, wave-clear bonus 525 (20%),
+  interest 175 (7%), start 120. So the snowball is mostly *bounty*, then the *clear bonus*.
+
+**Change (two front-loaded sources, each ≤20% — inside the ≤25%/number guardrail):**
+- **Per-kill bounty** `(4 + w*0.6)` → `(3 + w*0.6)` (cut the flat term, kept the slope). Front-
+  loaded: **−20% at w1**, fading to ~−10% by w10 and ~−6% by w20 — it bites in the early
+  over-build window but barely touches deep endless. Specials/boss bounty scale off this, so the
+  trim propagates proportionally. (`cd-game.js` `enemyTemplate`.)
+- **Wave-clear bonus** `(25 + w*5)` → `(20 + w*4)` — a flat ~20% cut to the second-largest early
+  source. (`cd-game.js` `endWave`.)
+
+**Effect (re-simulated, analytic + harness):** wave-10 war chest **2658 → 2312 (−13%)** on the
+no-draft baseline (bounty 1838→1613, passive 700→579). You can no longer quite afford a full army
+off the opening rounds. Talent-chip economy is untouched (`chipsForRun`), and per-difficulty
+`d.bounty` ratios (easy 1.15 / normal 1 / hard 0.9) preserve relative difficulty.
+
+**Save-safe:** pure in-run number tweaks; no schema/key changes. **Tests:** new group **[32]**
+asserts the trimmed bounty formula at waves 1/5/10/20, that the cut is front-loaded and ≤25%, and
+that a real 10-wave god-tower run banks below the old baseline while staying a meaningful bank.
+
 ## v1.16.0 — 2026-06-11 — End-of-run scoring + restyled victory/defeat screen (FEEDBACK)
 
 **Owner FEEDBACK (two low-priority items, same area, done together):**
