@@ -3,6 +3,47 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.15.0 — 2026-06-11 — Mobile deep-dive #2: bigger board + What's New tucked away (FEEDBACK)
+
+**Owner FEEDBACK (high priority):** *"While the game technically works on phones it doesn't seem
+like it's built for it. The What's New is shown behind the game. When you start a game it's tiny.
+There are lots of issues with mobile. Take another deep dive."* This is the next slice after the
+v1.14.0 layout pass (menus/overlays). Grounded the work in `preview_inspect` measurements at
+390×844: the board scales to **374×233px** (the 900:560 board is *width-bound* in portrait, so it
+can't get taller there), and the What's New rail was **open by default, full-width at y=643**,
+dumping below the fold and burying the board — exactly the two complaints.
+
+**Two fixes (CSS media queries + minimal JS; desktop byte-identical, save-safe):**
+
+1. **What's New starts collapsed on phones/tablets (≤920px).** It used to stack full-width *below*
+   the board and bury it. `initWhatsNew()` now defaults it **closed** on small screens unless the
+   player has explicitly opened it before — tracked by a new additive `cd_wnopen` localStorage key
+   (set in `openWhatsNew()`, cleared in `closeWhatsNew()`). On desktop (`matchMedia('(max-width:920px)')`
+   is false) the logic collapses to the old `if (wnClosed)` — **unchanged**.
+2. **Real landscape layout for a bigger board.** Since portrait is width-bound, the genuine answer to
+   "it's tiny" is landscape. A new `@media (max-width:920px) and (orientation:landscape)` block sizes
+   the canvas off **viewport height** (`max-height: calc(100vh - 150px)` + `max-width` with auto
+   sizing, aspect preserved), compacts the H1/HUD/shop/controls, and hides the hotkey hint. Rotating a
+   390-wide phone takes the board from **374×233 → 433×270** (and larger on bigger phones / tablets),
+   with the **Start Wave** button still on-screen (verified `controls.bottom ≤ viewport`). A
+   portrait-only **"↻ Rotate your phone sideways for a bigger board"** hint (`#rotateHint`, hidden by
+   default, shown only in the ≤920px portrait block) points players at it.
+
+**Why CSS-first:** same approach as v1.14.0 — no markup/JS behavior change on desktop, so saves and
+desktop rendering are untouched. The canvas click handler already recomputes coords from
+`getBoundingClientRect()`, so any rendered size stays click-accurate.
+
+**Tests:** new group **[30]** drives real 390×844 (portrait) and 844×390 (landscape) Playwright
+viewports with reloads (the default-collapse is decided at load via `matchMedia`): asserts the rail
+starts hidden in portrait, the rotate hint shows, tapping opens + persists the opt-in, the landscape
+board is taller than the portrait board, the controls stay on-screen with no horizontal overflow, and
+**desktop still opens What's New by default**. Suite **239 passed / 0 failed**, zero console errors.
+Verified in-preview at 390×844, 844×390, 880×412, and 1280×860 (desktop unchanged).
+
+**Remaining mobile follow-up:** in-game *touch ergonomics* (bigger tap targets, `pointerdown`/
+`touchstart` paths for placement/upgrade/ability targeting) — still mouse-click-driven; tracked under
+ROADMAP "Touch / pointer controls".
+
 ## v1.14.1 — 2026-06-11 — 🩺 Health check
 
 **Every-6th-run maintenance pass** (5 entries since the v1.13.4 health check: v1.13.5–v1.14.0).

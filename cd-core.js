@@ -20,10 +20,11 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.14.1';
+const GAME_VERSION = 'v1.15.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.15.0', date: '2026-06-11', time: '23:30 EDT', body: "Mobile deep-dive #2 (your request — 'when you start a game it's tiny' and 'What's New is shown behind the game'). Two fixes: (1) On phones & tablets the What's New rail no longer opens by default — it used to stack full-width BELOW the board and bury it, so now it starts collapsed on small screens and only appears if you tap ✨ What's New (your choice is remembered). (2) The board is a wide landscape shape, so holding the phone upright squeezes it small — there's now a proper LANDSCAPE layout: rotate your phone sideways and the board grows to fill the screen height (much bigger), with the top bar and buttons compacted to give it room. A '↻ Rotate for a bigger board' hint shows in portrait so you know. Desktop is unchanged." },
   { v: 'v1.14.1', date: '2026-06-11', time: '22:40 EDT', body: "🩺 Health check (every-6th-run maintenance pass): full test suite green (230/0, zero console errors), all code files comfortably within the size limit, every documented formula re-verified against the code, no dead code, and old saves confirmed to still load via the migration defaults. New this time — at your request, the health check now also verifies the game VISUALLY on both a large display and a phone, not just via tests: every menu was opened at 1280px and 390px and confirmed on-screen, scrollable and playable. That pass surfaced the concrete phone problems behind your 'tiny game / What's New behind the game' note (measured: the board shrinks to 374×233px and the What's New rail dumps full-width below the fold) — logged in detail for the next update to fix. No gameplay changes." },
   { v: 'v1.14.0', date: '2026-06-11', time: '21:30 EDT', body: "Phones & tablets are now properly supported (your request — it 'looked terrible on phones'). The menu, talents, achievements, records, settings and every-5-waves draft used to be crammed into the small scaled-down game board with no way to scroll or reach them, and rows of buttons ran off the screen. On narrow screens (≤920px, covering phones and iPad-size tablets) those panels now fill the whole screen and scroll, button rows wrap, and the talent/achievement grids reflow to 2 columns (1 on small phones) — no more sideways scrolling or cut-off content. The game board itself already scaled to fit. (First slice — start screen, all overlays and in-game chrome. Fine-tuning of in-game touch ergonomics can follow.)" },
   { v: 'v1.13.8', date: '2026-06-11', time: '20:08 EDT', body: "The maps no longer all look the same (your request). Each Classic-mode map now has its own colour theme — Classic stays the blue circuit, Spiral runs emerald green, Serpent glows warm amber. Campaign rolls a different (but calm) colour scheme each attempt, and Mayhem now burns: its palette sweeps through wild, fiery hues that shift as you play. Purely visual — no effect on gameplay, and a resumed run keeps the colours it started with." },
@@ -87,17 +88,25 @@ function openWhatsNew() {
   renderWnList();
   wnClosed = false;
   localStorage.removeItem('cd_wnclosed');
+  localStorage.setItem('cd_wnopen', '1');   // explicit opt-in (drives the small-screen default below)
   document.getElementById('whatsnew').style.display = 'flex';
   syncWhatsNewHeight();
 }
 function closeWhatsNew() {
   wnClosed = true;
   localStorage.setItem('cd_wnclosed', '1');
+  localStorage.removeItem('cd_wnopen');
   document.getElementById('whatsnew').style.display = 'none';
 }
 // Show it on first load (and every load) unless the player closed it before.
+// On phones/small tablets (≤920px) the rail stacks full-width BELOW the board and
+// buries it ("What's New shown behind the game" — owner FEEDBACK), so there it
+// defaults to CLOSED unless the player has explicitly opened it (cd_wnopen). On
+// desktop `small` is false, so this is byte-identical to the old open-by-default.
 function initWhatsNew() {
-  if (wnClosed) document.getElementById('whatsnew').style.display = 'none';
+  const small = typeof matchMedia === 'function' && matchMedia('(max-width: 920px)').matches;
+  const optedIn = localStorage.getItem('cd_wnopen') === '1';
+  if (wnClosed || (small && !optedIn)) document.getElementById('whatsnew').style.display = 'none';
   else openWhatsNew();
 }
 // Keep the cap in sync as the viewport (and thus the game's height) changes.

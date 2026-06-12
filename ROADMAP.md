@@ -9,29 +9,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Next up (high value)
 
-- [ ] **Mobile deep-dive #2 (FEEDBACK item #1, high priority)** — v1.14.0 made the
-      menus/overlays fit & scroll on phones, but the *in-game experience* is still poor.
-      The v1.14.1 health-check visual pass measured the exact problems at **390×844**:
-      - **The board is tiny.** The canvas scales to **374×233px** (it keeps the 900:560
-        aspect, so width-constrained → 233px tall). On an 844px-tall phone the live board
-        is only ~28% of the screen height (y 96→329), with the shop (159px), controls
-        (72px) and the full-width What's New rail stacked below. The game *feels* like a
-        thumbnail. Candidate fixes: (a) a **landscape / rotate-to-play** hint + layout
-        that uses width for the board; (b) let the canvas grow to a target height (e.g.
-        `min(width-constraint, ~55vh)`) and reflow the shop into a compact grid beside/
-        below; (c) a portrait layout that gives the board more vertical room by shrinking
-        chrome. Keep desktop byte-identical (media-query-only, save-safe — same approach
-        as v1.14.0).
-      - **What's New "behind the game".** On phones the rail is open by default and renders
-        full-width *below* the board at y≈643 (off the first screen, and behind the fixed
-        start screen on load). It should probably be **collapsed by default on ≤920px**
-        (or moved into a toggle/modal) so it doesn't bury the board. Note `cd_wnclosed`
-        already gates default-open; a media-query-aware default would fix this cleanly.
-      - **Touch interaction still unverified** — see the Touch/pointer item under
-        Table-stakes (tower placement / upgrade / ability targeting are mouse-click paths;
-        add `pointerdown`/`touchstart`, bigger tap targets).
-      This is the next feature run. Do it as a coherent slice; media-query + minimal JS for
-      the default-collapse, no balance/feature smuggling.
+- [x] **Mobile deep-dive #2 (FEEDBACK item #1, high priority)** — shipped **v1.15.0**.
+      Addressed the two complaints measured at 390×844: **(1) What's New "behind the game"** —
+      the rail now starts **collapsed on ≤920px** (new additive `cd_wnopen` key gates an
+      explicit opt-in; `initWhatsNew()` guards on `matchMedia('(max-width:920px)')`, desktop
+      unchanged), so it no longer dumps full-width below the board. **(2) Tiny board** — since
+      the 900:560 board is *width-bound* in portrait (can't be taller there), a real
+      `@media (max-width:920px) and (orientation:landscape)` block sizes the canvas off
+      viewport **height** (`max-height: calc(100vh-150px)` + auto, aspect kept), compacts the
+      chrome, and a portrait-only "↻ Rotate for a bigger board" hint (`#rotateHint`) nudges
+      players. Board 374×233 → 433×270 on a 390-wide phone (bigger on larger devices), Start
+      Wave stays on-screen. Test [30]. **Follow-up remaining:** in-game **touch ergonomics**
+      (bigger tap targets, `pointerdown`/`touchstart` for placement/upgrade/ability targeting) —
+      still mouse-click paths; tracked under "Touch / pointer controls" below.
 - [x] **Achievements system** — shipped v1.5.0. 8 badges (First Victory, Flawless,
       No Mercy, Mountaineer L10, Conqueror L40, Endless w50, Megadamage 1M, Veteran
       25 runs), persisted in additive `meta.achievements`/`meta.stats`, with a 🏅
@@ -165,25 +155,25 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.14.1 health check)
 
-_Still-unaddressed, in priority order: **in-game mobile experience** (board too small +
-What's New buries it — see "Mobile deep-dive #2" above; this is now the top mobile gap, not
-just touch ergonomics) → **touch/pointer controls** (in-game interaction) → colorblind-safe
-palette → gamepad → PWA install → **high-DPI canvas** → **menu keyboard a11y**. Done:
-document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive
-layout (v1.14.0)**. v1.14.1 visual pass confirmed desktop & phone menus all render correctly
-and are reachable/scrollable; the remaining mobile gaps are in-game, not the menus._
+_Still-unaddressed, in priority order: **touch/pointer controls** (in-game interaction —
+placement/upgrade/ability are mouse-click paths) → colorblind-safe palette → gamepad → PWA
+install → **high-DPI canvas** → **menu keyboard a11y**. Done: document metadata (v1.8.6),
+reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive layout (v1.14.0)**, **mobile
+board sizing + What's New default-collapse (v1.15.0)** — the board now grows in landscape and
+What's New no longer buries it. v1.14.1 visual pass confirmed desktop & phone menus all render
+correctly; the remaining mobile gap is in-game touch ergonomics._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
       offline-safe), responsive `viewport` meta, meta description, `theme-color`,
       and Open Graph title/description/type. Head-only, zero gameplay impact.
-- [~] **Touch / pointer controls** — _responsive **layout** done v1.14.0_ (menus,
-      overlays, drafts and chrome now fit & scroll on phones/tablets — see CSS media
-      block). **Remaining:** in-game *interaction* is still mouse-click driven (tower
-      placement, upgrade panel, ability targeting). On touch devices there are no
-      handlers, so placing/upgrading towers by tap is unverified. Add
-      `pointerdown`/`touchstart` paths (pointer events unify mouse+touch), bigger touch
-      targets, and a landscape pass. Tracked as a follow-up at the top of FEEDBACK PENDING.
+- [~] **Touch / pointer controls** — _responsive **layout** done v1.14.0; **board sizing +
+      landscape pass** done v1.15.0_ (rotate gives a bigger board; What's New no longer buries
+      it). **Remaining:** in-game *interaction* is still mouse-click driven (tower placement,
+      upgrade panel, ability targeting). Taps currently work only via the browser's synthesized
+      `click`; add explicit `pointerdown`/`touchstart` paths (pointer events unify mouse+touch)
+      and **bigger tap targets** so placing/upgrading/aiming on a phone is reliable, not
+      incidental. This is now the top remaining mobile gap.
 - [x] **`prefers-reduced-motion` support** — shipped v1.10.0. A `reduceMotion()`
       helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the **screen-shake**
       translate in `draw()` **and** thins particle bursts in `addExplosion()`

@@ -1401,6 +1401,79 @@ async function main() {
     await page.close();
   }
 
+  console.log('\n[30] Mobile deep-dive #2 — board size + What\'s New default (v1.15.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const clearWn = () => page.evaluate(() => {
+      try { localStorage.removeItem('cd_wnopen'); localStorage.removeItem('cd_wnclosed'); } catch (e) {}
+    });
+    // --- Portrait phone: load FRESH at phone size so initWhatsNew() evaluates the
+    // small-screen default. The What's New rail used to open full-width below the
+    // board and bury it ("shown behind the game"); it must now start CLOSED.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await clearWn();
+    await page.reload({ waitUntil: 'load' });
+    const portrait = await page.evaluate(() => {
+      const disp = s => getComputedStyle(document.querySelector(s)).display;
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      const boardH = Math.round(document.querySelector('#game').getBoundingClientRect().height);
+      return { wnHidden: disp('#whatsnew') === 'none', rotateShown: disp('#rotateHint') === 'block', boardH };
+    });
+    // Tapping ✨ What's New opens it AND persists the opt-in (cd_wnopen) so a phone
+    // player who wants it keeps it across reloads.
+    const opensOnTap = await page.evaluate(() => {
+      openWhatsNew();
+      return getComputedStyle(document.querySelector('#whatsnew')).display !== 'none'
+        && localStorage.getItem('cd_wnopen') === '1';
+    });
+    await page.evaluate(() => backToMenu());
+
+    // --- Landscape phone: the canvas is sized off viewport HEIGHT, so the board
+    // grows; the chrome compacts so the controls (Start Wave) stay on-screen.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await clearWn();
+    await page.reload({ waitUntil: 'load' });
+    const land = await page.evaluate(() => {
+      const disp = s => getComputedStyle(document.querySelector(s)).display;
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      const boardH = Math.round(document.querySelector('#game').getBoundingClientRect().height);
+      const ctlBottom = document.querySelector('#controls').getBoundingClientRect().bottom;
+      return {
+        boardH,
+        rotateHidden: disp('#rotateHint') === 'none',
+        hintHidden: disp('.hint') === 'none',
+        wnHidden: disp('#whatsnew') === 'none',
+        ctlReachable: ctlBottom <= window.innerHeight + 1,
+        noOverflow: document.documentElement.scrollWidth <= window.innerWidth + 1,
+      };
+    });
+    await page.evaluate(() => backToMenu());
+
+    // --- Desktop: the default is unchanged — What's New opens, rotate hint hidden.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await clearWn();
+    await page.reload({ waitUntil: 'load' });
+    const desktop = await page.evaluate(() => {
+      const disp = s => getComputedStyle(document.querySelector(s)).display;
+      return { wnOpen: disp('#whatsnew') !== 'none', rotateHidden: disp('#rotateHint') === 'none' };
+    });
+
+    check('phone portrait: What\'s New starts collapsed (no longer buries the board)', portrait.wnHidden);
+    check('phone portrait: "rotate for a bigger board" hint is shown', portrait.rotateShown);
+    check('phone: tapping What\'s New opens it and persists the opt-in', opensOnTap);
+    check('phone landscape: board grows taller than the portrait board',
+          land.boardH > portrait.boardH, `landscape=${land.boardH} portrait=${portrait.boardH}`);
+    check('phone landscape: rotate hint + hotkey hint + What\'s New all hidden',
+          land.rotateHidden && land.hintHidden && land.wnHidden);
+    check('phone landscape: controls stay on-screen (Start Wave reachable)', land.ctlReachable);
+    check('phone landscape: no horizontal overflow', land.noOverflow);
+    check('desktop: What\'s New still opens by default; rotate hint hidden',
+          desktop.wnOpen && desktop.rotateHidden);
+    check('no console errors during mobile board/What\'s New test',
+          consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -255,6 +255,8 @@
   #verTag { color: #8b949e; font-size: 12px; letter-spacing: 1px; cursor: pointer; }
   #verTag:hover { color: #3fb950; }
   .hint { color: #8b949e; font-size: 11.5px; margin: 6px 12px; text-align: center; max-width: 920px; }
+  /* Portrait-only nudge toward the landscape layout (shown via media query below). */
+  #rotateHint { display: none; color: #58a6ff; font-size: 12px; text-align: center; margin: 7px 0 0; opacity: .85; }
   /* When no game is active (start screen), dim the in-game chrome so it reads as inactive */
   #hud, #shop, #controls, .hint { transition: opacity .25s ease, filter .25s ease; }
   #gameCol.idle #hud,
@@ -331,4 +333,36 @@
     #talentGrid, #achGrid { grid-template-columns: 1fr; }
     .perkCard { width: 100%; max-width: 260px; }
     #draftCards { flex-direction: column; align-items: center; }
+  }
+  /* ============================================================
+     Mobile deep-dive #2 (v1.15.0, FEEDBACK "when you start a game it's
+     tiny" / "What's New shown behind the game"). The 900×560 board is a
+     WIDE landscape shape, so a portrait phone is width-bound and squeezes
+     it to a thumbnail (~233px tall) — no amount of vertical room helps in
+     portrait. So: nudge toward landscape (portrait), and in LANDSCAPE drive
+     the canvas off viewport HEIGHT so the board fills the screen.
+     ============================================================ */
+  @media (max-width: 920px) and (orientation: portrait) {
+    /* Can't grow the board here (width-bound) — point the player at landscape. */
+    #rotateHint { display: block; }
+  }
+  @media (max-width: 920px) and (orientation: landscape) {
+    /* Compact the chrome and size the canvas by viewport height so the board
+       grows much larger. max-height + max-width with auto sizing preserves the
+       900:560 aspect; the click handler recomputes coords from
+       getBoundingClientRect(), so any rendered size stays click-accurate.
+       Desktop never matches (it's >920px wide), so desktop is byte-identical. */
+    h1 { font-size: 15px; margin: 2px 0; letter-spacing: 2px; }
+    #hud { font-size: 11px; padding: 3px 8px; gap: 3px 10px; margin-bottom: 4px; }
+    #rotateHint { display: none; }
+    #game { max-height: calc(100vh - 150px); max-width: calc(100vw - 12px); width: auto; height: auto; margin: 0 auto; }
+    /* Compact the shop into a tight single row so the controls (Start Wave) stay
+       on-screen alongside the now-tall board. */
+    #shop { margin-top: 4px; gap: 5px; }
+    .towerBtn { min-width: 60px; padding: 3px 5px; font-size: 9.5px; line-height: 1.2; }
+    .towerBtn .icon { font-size: 14px; }
+    .towerBtn .key { display: none; }
+    #controls { margin-top: 4px; }
+    button.ctl { padding: 6px 10px; font-size: 12px; }
+    .hint { display: none; }
   }
