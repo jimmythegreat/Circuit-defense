@@ -3,6 +3,47 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.14.1 — 2026-06-11 — 🩺 Health check
+
+**Every-6th-run maintenance pass** (5 entries since the v1.13.4 health check: v1.13.5–v1.14.0).
+No new gameplay; integrity + direction check. Findings → ROADMAP.
+
+- **Tests:** full suite **230 passed / 0 failed**, zero console errors.
+- **Refactor audit:** all nine source files well within the ~1500-line cap (largest is
+  `cd-update.js` at 588). A subagent scan found **no dead code, no duplicated logic, no
+  commented-out blocks** — every defined function is referenced.
+- **Docs coherence:** a subagent diffed CLAUDE.md's documented numbers against the code —
+  **zero drift**. Verified: JS load order & file map, poison base dmg 7, enemy-HP formula
+  `(18 + w*7 + 1.25*w^1.9) * 1.80 * d.hp * campScale`, `maxTowerLevel = 5 + overdrive`,
+  20 talents, 9 achievements, `victoryWave` 14+campLevel/30, `MAX_CONCURRENT_WAVES = 3`,
+  `COMBO_WINDOW = 2.0`. `GAME_VERSION` consistent with CHANGELOG. Vetoed section intact.
+- **Integrity spot-checks:** `file://` structure sound (classic `<script src>`, **zero**
+  `type="module"`, inline SVG favicon, no network). Old-format save migration confirmed:
+  a minimal `cd_meta` (no `achievements`/`stats`) gets defaults via `loadMeta()`, and an
+  old `cd_save` lacking `mapTheme`/`lastSettledWave` loads via `loadRun()` (mapTheme falls
+  back to `circuit`, tower/wave/gold/lives restored).
+- **Visual verification (NEW — owner FEEDBACK):** the owner asked that the health check
+  confirm the game *looks right and is playable* on both large displays and phones, not
+  only via tests. Done this run with the preview tools at **1280×860 (desktop)** and
+  **390×844 (phone)**. (`preview_screenshot` times out on this game — the rAF loop keeps
+  the page busy and suspending rAF doesn't help — so layout was verified with
+  `preview_inspect` bounding-box reads, which are more rigorous for overlap/overflow.)
+  Results: **desktop** — no horizontal overflow; start screen + all panels (talents/
+  achievements/records/settings) + What's New on-screen and correct; in-game chrome (HUD/
+  shop/controls) laid out; a driven wave advanced with no errors. **Phone** — no horizontal
+  overflow; all overlays `position:fixed`, full-viewport and scrollable (the v1.14.0 fix
+  holds); all menus reachable. **But** it reproduced the two complaints in FEEDBACK item #1:
+  (1) **"the game is tiny"** — the canvas scales to **374×233px**, so the live board uses
+  only the top ~28% of an 844px-tall phone while the shop/controls/What's-New stack below;
+  (2) **"What's New behind the game"** — on phones the rail is open by default and renders
+  full-width **below** the board at y≈643 (off-screen, and hidden behind the fixed start
+  screen on load). Both logged as precise ROADMAP entries for the next feature run (the
+  dedicated mobile deep-dive, FEEDBACK item #1).
+- **Process note:** I could not durably codify the visual-check step into the health-check
+  routine myself — editing my own scheduled-task instruction file is correctly blocked. The
+  exact step the owner can paste into the routine is in ROADMAP under **"Prompt suggestions
+  for the owner."** The verification itself was performed this run regardless.
+
 ## v1.14.0 — 2026-06-11
 
 **Responsive layout — the game is now usable on phones & tablets (FEEDBACK, important).**

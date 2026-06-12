@@ -9,6 +9,29 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Next up (high value)
 
+- [ ] **Mobile deep-dive #2 (FEEDBACK item #1, high priority)** — v1.14.0 made the
+      menus/overlays fit & scroll on phones, but the *in-game experience* is still poor.
+      The v1.14.1 health-check visual pass measured the exact problems at **390×844**:
+      - **The board is tiny.** The canvas scales to **374×233px** (it keeps the 900:560
+        aspect, so width-constrained → 233px tall). On an 844px-tall phone the live board
+        is only ~28% of the screen height (y 96→329), with the shop (159px), controls
+        (72px) and the full-width What's New rail stacked below. The game *feels* like a
+        thumbnail. Candidate fixes: (a) a **landscape / rotate-to-play** hint + layout
+        that uses width for the board; (b) let the canvas grow to a target height (e.g.
+        `min(width-constraint, ~55vh)`) and reflow the shop into a compact grid beside/
+        below; (c) a portrait layout that gives the board more vertical room by shrinking
+        chrome. Keep desktop byte-identical (media-query-only, save-safe — same approach
+        as v1.14.0).
+      - **What's New "behind the game".** On phones the rail is open by default and renders
+        full-width *below* the board at y≈643 (off the first screen, and behind the fixed
+        start screen on load). It should probably be **collapsed by default on ≤920px**
+        (or moved into a toggle/modal) so it doesn't bury the board. Note `cd_wnclosed`
+        already gates default-open; a media-query-aware default would fix this cleanly.
+      - **Touch interaction still unverified** — see the Touch/pointer item under
+        Table-stakes (tower placement / upgrade / ability targeting are mouse-click paths;
+        add `pointerdown`/`touchstart`, bigger tap targets).
+      This is the next feature run. Do it as a coherent slice; media-query + minimal JS for
+      the default-collapse, no balance/feature smuggling.
 - [x] **Achievements system** — shipped v1.5.0. 8 badges (First Victory, Flawless,
       No Mercy, Mountaineer L10, Conqueror L40, Endless w50, Megadamage 1M, Veteran
       25 runs), persisted in additive `meta.achievements`/`meta.stats`, with a 🏅
@@ -140,13 +163,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.13.4 health check)
+## Table-stakes (polished-browser-game basics — re-audited v1.14.1 health check)
 
-_Still-unaddressed, in priority order: **touch/pointer controls** (in-game interaction — the
-responsive *layout* shipped v1.14.0, so this is now just the in-game ergonomics) →
-colorblind-safe palette → gamepad → PWA install → **high-DPI canvas** → **menu keyboard
-a11y**. Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2),
-**responsive layout (v1.14.0)**._
+_Still-unaddressed, in priority order: **in-game mobile experience** (board too small +
+What's New buries it — see "Mobile deep-dive #2" above; this is now the top mobile gap, not
+just touch ergonomics) → **touch/pointer controls** (in-game interaction) → colorblind-safe
+palette → gamepad → PWA install → **high-DPI canvas** → **menu keyboard a11y**. Done:
+document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive
+layout (v1.14.0)**. v1.14.1 visual pass confirmed desktop & phone menus all render correctly
+and are reachable/scrollable; the remaining mobile gaps are in-game, not the menus._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
@@ -214,3 +239,26 @@ these or anything substantially similar without written owner request.)_
   draft chance to 14% — that was a routine balance commit by the maintainer, not
   an owner veto, but treat Scrapper's removal as intentional: don't re-add it
   without justification.)
+
+## Prompt suggestions for the owner
+
+_(The routine forbids the agent from editing its own scheduled-task instruction file,
+so process-change requests land here for the owner to paste in.)_
+
+- **Make visual verification a permanent health-check step (your FEEDBACK request,
+  addressed ad-hoc in v1.14.1).** You asked the health check to confirm the game *looks
+  right and is playable* on both large displays and phones, not just via tests. The agent
+  performed this in the v1.14.1 health check but can't durably codify it (editing the
+  scheduled-task SKILL.md is blocked). To make it permanent, add a step **5** to the
+  "Health check run" section of `circuit-defense-auto-improver/SKILL.md`, e.g.:
+
+  > 5. **Visual verification** — tests aren't enough; confirm the game *looks right and is
+  >    playable* on **both a large display (≥1280px) and a phone (≤430px)** using the
+  >    preview tools. Note `preview_screenshot` times out on this game (the rAF loop keeps
+  >    the page busy; suspending rAF doesn't help), so verify layout with `preview_inspect`
+  >    bounding-box / computed-style reads + `preview_eval` instead. At each size assert:
+  >    no horizontal page overflow; every menu (talents/achievements/records/settings/start/
+  >    overlay/draft) opens on-screen and scrolls; What's New sits where intended; and an
+  >    in-game quick run shows canvas + HUD + shop + controls within the viewport with a
+  >    board that isn't uselessly tiny. File precise px measurements to ROADMAP for anything
+  >    wrong; clean up test state afterwards.
