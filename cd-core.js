@@ -52,10 +52,11 @@ let particleDensity = (() => {
 let colorblindAid = localStorage.getItem('cd_colorblind') === '1';
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.19.0';
+const GAME_VERSION = 'v1.20.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.20.0', date: '2026-06-12', time: '21:30 EDT', body: "Accessibility: the mid-game upgrade picker (the 'Choose an upgrade' screen that pops up every 5 waves) is now keyboard-operable — the last menu in the game that was mouse-only. When it opens, your keyboard focus lands on the first perk card; Tab and Shift+Tab cycle through the three choices (and stay trapped inside the picker so you can't tab away to the paused board behind it); and Enter or Space picks the highlighted perk. The focused card lifts and shows a blue ring just like a mouse hover. Esc is intentionally still disabled here — you have to pick one. It's also tagged as a dialog for screen readers. Pure interface polish — no effect on gameplay, balance, the perks themselves or saves." },
   { v: 'v1.19.0', date: '2026-06-12', time: '06:13 EDT', body: "Accessibility: the start-screen menus (Talents, Achievements, Records, Settings, What's New) are now fully keyboard-navigable. Before, they could only be opened and closed with the mouse. Now: pressing Esc closes whichever panel is open; opening a panel moves your keyboard focus into it and Tab cycles through its buttons without escaping to the dimmed page behind; and closing a panel returns focus to the button you opened it from. Buttons and controls also show a clear blue focus ring when you're navigating by keyboard (it stays hidden for mouse clicks). Panels are tagged as dialogs for screen readers too. Pure interface polish — no effect on gameplay, balance or saves." },
   { v: 'v1.18.0', date: '2026-06-12', time: '19:40 EDT', body: "Accessibility: a new ♿ Colorblind aid toggle in ⚙ Settings. Most enemy types already show a symbol (+ heal, 🛡 shield, ✂ split, 👻 phantom, ☠ boss), but the fast and tank enemies were told apart by COLOUR alone (purple vs orange), which is hard if you're colourblind. Turn the aid on and every enemy kind gets its own symbol too — » for the quick ones, ◆ for the heavy tanks — so you can read the board by shape, not just hue. Off by default, saves on your device, and zero effect on gameplay or balance." },
   { v: 'v1.17.0', date: '2026-06-12', time: '18:15 EDT', body: "Sharper graphics on high-resolution screens (Retina, 4K, and Windows display scaling like 125%/150%). The game board was drawn at a fixed resolution and then stretched to fit your screen, so on a high-DPI display the towers, enemies and text looked a little soft. It now draws at your screen's true pixel density (up to 2×), so everything is crisp — while staying exactly the same size and playing identically. No effect on gameplay, balance, controls or saves; on a standard 1× display nothing changes at all." },
@@ -187,6 +188,11 @@ function focusPanel(id) {
   if (f.length) f[0].focus();
 }
 function _topTrapPanel() {          // highest-priority open panel that traps Tab (excludes the rail)
+  // The mid-game perk draft (v1.20.0) traps Tab too, but is deliberately absent
+  // from A11Y_PANELS so Esc can't close it (a pick is required). It's a forced
+  // modal during gameplay, so it outranks any start-screen panel when open.
+  const draft = document.getElementById('draftModal');
+  if (panelOpen(draft)) return draft;
   for (const p of A11Y_PANELS) { if (p.nontrap) continue; const el = document.getElementById(p.id); if (panelOpen(el)) return el; }
   return null;
 }

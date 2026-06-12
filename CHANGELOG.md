@@ -3,6 +3,38 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.20.0 — 2026-06-12 — Draft (perk picker) keyboard accessibility (table-stakes, ROADMAP)
+
+**What & why.** Direct follow-up to v1.19.0 (flagged twice in ROADMAP: the Table-stakes summary and
+the Menu-a11y item's own follow-up note). v1.19.0 made every **start-screen** panel keyboard-navigable
+but left one gap: the **mid-game perk draft** — the "⭐ Choose an upgrade" modal that pops up every 5
+waves — was the last mouse-only menu. Its three perk cards are plain `<div>`s with an `onclick`, so a
+keyboard or screen-reader player could not pick a perk without a mouse, even though the rest of the
+in-game flow has rich hotkeys. The draft is a **forced** modal (the game is paused until you choose),
+so it's exactly where being mouse-trapped hurts most.
+
+**What changed.** Each draft card is now keyboard-operable (`openDraft()` in `cd-defs.js`):
+- **Cards are focusable + operable**: `tabIndex = 0`, `role="button"`, and an `aria-label`
+  (`"{rarity} — {name}: {desc}"`) so screen readers announce each option. **Enter or Space picks** the
+  card (`onkeydown` → `pickPerk`). The handler calls `stopPropagation()` so Space doesn't also reach the
+  in-game `keydown` (which would otherwise `startWave()` the instant the pick closes the modal).
+- **Focus lands on the first card** when the draft opens, so a keyboard user is immediately on a choice.
+- **Tab is trapped inside the draft** (wraps last→first / Shift+Tab first→last). Reused the v1.19.0
+  trap: `_topTrapPanel()` in `cd-core.js` now returns `#draftModal` when it's open. The draft stays
+  **deliberately absent from `A11Y_PANELS`**, so the Esc handler still can't close it — a pick is
+  required (unchanged behaviour).
+- **Visible focus ring** via a `.perkCard:focus-visible` CSS rule: the focused card lifts (same as the
+  mouse-hover affordance) and shows the blue keyboard outline; hidden for mouse clicks.
+- **Screen-reader role**: `#draftModal` now carries `role="dialog" aria-modal="true" aria-label`.
+
+**No save/economy/gameplay impact.** Pure DOM/UX: no new localStorage keys, no balance numbers, no
+schema change, the perks/draft odds themselves untouched. Mouse-click picking is byte-identical.
+
+**Tests.** New group **[38]** (8 checks): the draft opens with ≥2 focusable `role=button` cards;
+opening it moves focus onto the first card; Tab/Shift+Tab wrap inside the draft (trap); **Esc does NOT
+close it** (a pick is required); the modal is `role=dialog`/`aria-modal=true`; **Enter** on a focused
+card picks it (closes the modal, applies exactly one perk); zero console errors. Suite **313/0** green.
+
 ## v1.19.0 — 2026-06-12 — Menu keyboard accessibility (table-stakes, ROADMAP)
 
 **What & why.** The strongest open accessibility / table-stakes item (flagged in the v1.16.4

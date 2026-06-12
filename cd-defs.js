@@ -277,11 +277,23 @@ function openDraft() {
   for (const p of opts) {
     const card = document.createElement('div');
     card.className = 'perkCard ' + p.rarity;
+    // Keyboard a11y (v1.20.0): the draft is the one mid-game modal; make each
+    // card focusable + operable so it isn't mouse-only. Enter/Space picks it.
+    // stopPropagation keeps Space from also reaching the in-game keydown
+    // (which would startWave the instant the pick closes the modal).
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `${RARITY_LABEL[p.rarity]} — ${p.name}: ${p.desc}`);
     card.innerHTML = `<span class="rarity">${RARITY_LABEL[p.rarity]}</span><span class="picon">${p.icon}</span><b>${p.name}</b><small>${p.desc}</small>`;
     card.onclick = () => pickPerk(p);
+    card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); pickPerk(p); } };
     cards.appendChild(card);
   }
   document.getElementById('draftModal').style.display = 'flex';
+  // Move focus into the modal so keyboard users land on a card (Tab is trapped
+  // here by _topTrapPanel() in cd-core.js; Esc stays disabled — a pick is required).
+  const firstCard = cards.firstElementChild;
+  if (firstCard) firstCard.focus();
 }
 function pickPerk(p) {
   p.apply(perkState);

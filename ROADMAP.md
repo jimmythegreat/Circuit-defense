@@ -174,7 +174,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
 ## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
 
 _Still-unaddressed, in priority order: **gamepad** → PWA install → **bigger HTML tap targets on small phones**.
-Done: **menu keyboard a11y (v1.19.0)** — Esc-close + focus trap/restore + `:focus-visible` rings +
+Done: **draft keyboard a11y (v1.20.0)** — the mid-game perk picker's cards are now focusable
+(`role=button`/`tabIndex`), Enter/Space-pickable, Tab-trapped (`_topTrapPanel()` returns `#draftModal`)
+and Esc-exempt; `:focus-visible` lift + `role=dialog` on the modal — closing the last mouse-only-menu gap.
+**menu keyboard a11y (v1.19.0)** — Esc-close + focus trap/restore + `:focus-visible` rings +
 `role=dialog`/`aria-modal` on the start-screen panels (`A11Y_PANELS`/`focusPanel()` in `cd-core.js`),
 **colorblind aid / shape-coded enemies (v1.18.0)**, document metadata (v1.8.6),
 reduced-motion (v1.10.0), volume slider (v1.13.2),
@@ -184,9 +187,8 @@ reduced-motion (v1.10.0), volume slider (v1.13.2),
 canvas scaling (v1.17.0)** — the backing store now scales with `devicePixelRatio` (capped 2×) so
 the board is crisp on Retina/4K/scaled displays. v1.14.1 visual pass confirmed desktop & phone
 menus all render correctly. **Next normal run's strongest table-stakes pick: gamepad support**, then
-PWA install (offline manifest, hosted-only). Menu keyboard a11y follow-up: the **draft cards** (mid-game
-perk picker) are still mouse-only `<div>`s — make them keyboard-focusable/operable + Tab-trapped (Esc
-stays disabled there since a pick is required)._
+PWA install (offline manifest, hosted-only). (Keyboard a11y is now complete — start-screen menus
+v1.19.0 + the mid-game draft cards v1.20.0.)_
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
@@ -242,8 +244,9 @@ stays disabled there since a pick is required)._
       `focusPanel()`/`_topAnyPanel()`/`_topTrapPanel()` + a document `keydown` listener in
       `cd-core.js`; `focusPanel(id)` called from each `open*()`. Panel-open is keyed off
       `getComputedStyle().display` (not `offsetParent`, which is null for the fixed mobile panels).
-      Test [37]. **Follow-up:** the mid-game **draft cards** are still mouse-only `<div>`s — make them
-      keyboard-focusable/operable + Tab-trapped (Esc stays disabled there since a pick is required).
+      Test [37]. **Follow-up done v1.20.0:** the mid-game **draft cards** are now keyboard-focusable
+      (`role=button`/`tabIndex`), Enter/Space-pickable and Tab-trapped (`_topTrapPanel()` returns
+      `#draftModal`); Esc stays disabled there since a pick is required. Test [38].
 
 ## Tech / tooling
 

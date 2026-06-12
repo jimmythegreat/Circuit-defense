@@ -206,6 +206,8 @@
     padding: 18px 12px; cursor: pointer; transition: all .15s; position: relative;
   }
   .perkCard:hover { border-color: #ffd866; transform: translateY(-4px); box-shadow: 0 8px 22px rgba(255,216,102,.25); }
+  /* Keyboard focus (v1.20.0 a11y): same lift as hover + the blue keyboard ring. */
+  .perkCard:focus-visible { border-color: #ffd866; transform: translateY(-4px); box-shadow: 0 8px 22px rgba(255,216,102,.25); outline: 2px solid #58a6ff; outline-offset: 2px; }
   .perkCard .picon { font-size: 34px; display: block; margin-bottom: 8px; }
   .perkCard b { color: #e6edf3; font-size: 14px; }
   .perkCard small { display: block; color: #8b949e; font-size: 12px; margin-top: 6px; }

@@ -1902,6 +1902,59 @@ async function main() {
     await page.close();
   }
 
+  console.log('\n[38] Draft (perk picker) keyboard a11y');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(async () => {
+      const fire = (el, key, shift = false) =>
+        el.dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey: shift, bubbles: true, cancelable: true }));
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      const modal = document.getElementById('draftModal');
+      const cardsBox = document.getElementById('draftCards');
+
+      // 1) Opening the draft populates focusable cards and lands focus on the first.
+      openDraft();
+      const cards = Array.from(cardsBox.children);
+      const haveCards = cards.length >= 2;
+      const allFocusable = cards.every(c => c.tabIndex === 0 && c.getAttribute('role') === 'button');
+      const focusOnFirst = document.activeElement === cards[0];
+
+      // 2) Tab is trapped inside the draft (last→first, Shift+Tab first→last).
+      const first = cards[0], last = cards[cards.length - 1];
+      last.focus(); fire(document, 'Tab');
+      const wrapForward = document.activeElement === first;
+      first.focus(); fire(document, 'Tab', true);
+      const wrapBackward = document.activeElement === last;
+
+      // 3) Esc does NOT close the draft — a pick is required.
+      fire(document, 'Escape');
+      const stillOpenAfterEsc = getComputedStyle(modal).display !== 'none' && draftOpen === true;
+
+      // 4) It's tagged as a dialog for screen readers.
+      const ariaOk = modal.getAttribute('role') === 'dialog' && modal.getAttribute('aria-modal') === 'true';
+
+      // 5) Enter on the focused card picks that perk and closes the draft.
+      const before = runPerks.length;
+      const target = cards[0];
+      target.focus();
+      fire(target, 'Enter');
+      const pickedAndClosed = draftOpen === false &&
+        getComputedStyle(modal).display === 'none' && runPerks.length === before + 1;
+
+      backToMenu();
+      return { haveCards, allFocusable, focusOnFirst, wrapForward, wrapBackward, stillOpenAfterEsc, ariaOk, pickedAndClosed };
+    });
+    check('draft opens with ≥2 focusable role=button cards', r.haveCards && r.allFocusable);
+    check('opening the draft moves focus onto the first card', r.focusOnFirst);
+    check('Tab wraps last→first inside the draft (trap)', r.wrapForward);
+    check('Shift+Tab wraps first→last inside the draft (trap)', r.wrapBackward);
+    check('Esc does NOT close the draft (a pick is required)', r.stillOpenAfterEsc);
+    check('draft modal is tagged role=dialog aria-modal=true', r.ariaOk);
+    check('Enter on a focused card picks it and closes the draft', r.pickedAndClosed);
+    check('no console errors during draft a11y test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
