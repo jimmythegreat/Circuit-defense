@@ -303,7 +303,9 @@ async function main() {
       livesLostThisRun = false;
       towers.push({ type: 'gun', dealt: 500, kills: 10 });
       winGame();
-      const txt = document.getElementById('ovText').textContent;
+      // v1.16.0: the unlock line moved from the run-on #ovText into a styled
+      // .ovSection.ach row inside #ovDetails — read the whole overlay body.
+      const txt = document.getElementById('overlay').textContent;
       const got = Object.keys(meta.achievements);
       backToMenu();
       return { got, achLine: txt.includes('Achievement') };
@@ -1471,6 +1473,58 @@ async function main() {
           desktop.wnOpen && desktop.rotateHidden);
     check('no console errors during mobile board/What\'s New test',
           consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // ---- Test 31: End-of-run scoring + restyled overlay (v1.16.0) ----
+  console.log('\n[31] End-of-run scoring + restyled overlay (v1.16.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      localStorage.removeItem('cd_bestscore');
+      // --- Defeat run: known state → deterministic score; check the restyled overlay.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      wave = 12; kills = 100; lives = 5; gold = 200; comboBest = 8; victory = false;
+      towers = [];                                  // 0 towers → effMult 1; normal chipMult 1
+      const sc = computeScore();
+      // raw = 12*100 + 100*5 + 5*120 + 200 + 8*25 = 1200+500+600+200+200 = 2700
+      const expected = 2700;
+      endGame();
+      const ov = document.getElementById('overlay');
+      const scored = ov.classList.contains('scored');
+      const grade = document.querySelector('.ovGrade').textContent;      // prog 12/30 = .4 → 'D'
+      const numText = document.querySelector('.ovScoreNum .num').textContent;
+      const gridCells = document.querySelectorAll('#ovDetails .scoreGrid .cell').length;
+      const bestPersisted = +localStorage.getItem('cd_bestscore');
+      const newBestShown = !!document.querySelector('.ovScoreNum .best.newbest');
+      backToMenu();
+
+      // --- Victory run: flawless (no life lost) → grade S, and a higher score → new best.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; beginGame();
+      wave = victoryWave(); kills = 500; lives = 10; gold = 400; comboBest = 20;
+      towers = [];
+      winGame();                                    // victory=true, livesLostThisRun=false → S
+      const winGrade = document.querySelector('.ovGrade').textContent;
+      const winNewBest = !!document.querySelector('.ovScoreNum .best.newbest');
+      const winBest = +localStorage.getItem('cd_bestscore');
+      backToMenu();
+      ['cd_bestscore', 'cd_best_classic_normal', 'cd_best_classic_hard',
+       'cd_best_normal', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      return { scOk: sc.score === expected, scScore: sc.score, expected, scored, grade,
+               numLen: numText.length, gridCells, bestPersisted, newBestShown,
+               winGrade, winNewBest, winBest };
+    });
+    check('computeScore() matches the documented formula', r.scOk, `got ${r.scScore}, want ${r.expected}`);
+    check('overlay gains the .scored class (score UI shown)', r.scored);
+    check('defeat at 40% of goal grades D', r.grade === 'D', r.grade);
+    check('score number renders in the hero', r.numLen > 0);
+    check('stats grid shows 6 cells', r.gridCells === 6, String(r.gridCells));
+    check('best score persisted to cd_bestscore', r.bestPersisted === r.expected, String(r.bestPersisted));
+    check('first run flags a new best score', r.newBestShown);
+    check('flawless victory grades S', r.winGrade === 'S', r.winGrade);
+    check('higher-scoring victory flags a new best', r.winNewBest);
+    check('best score updates to the higher victory score', r.winBest > r.expected, String(r.winBest));
+    check('no console errors during scoring test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

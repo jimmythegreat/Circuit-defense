@@ -507,6 +507,77 @@ function perkLine() {
   if (!runPerks.length) return '';
   return '\nPerks: ' + runPerks.map(p => `${p.icon} ${p.name}`).join(' · ');
 }
+// ----- End-of-run scoring (v1.16.0, owner FEEDBACK "a scoring system for the
+// final victory/defeat screen … kill time, remaining gold, using fewer towers").
+// One number rewarding how FAR (waves + campaign depth), how CLEAN (lives kept,
+// few towers, big combos) and how RICH (gold banked) the run was, scaled by
+// difficulty. Purely cosmetic + one additive all-time-best key (cd_bestscore) —
+// no economy or save-schema impact. -----
+function computeScore() {
+  const diffMult = DIFFS[diffKey].chipMult;              // easy .5 · normal 1 · hard 1.6
+  const nt = towers.length;
+  // Efficiency: a clean clear with few towers beats a 30-tower zerg. ≤10 towers → up to +30%.
+  const effMult = nt > 0 ? 1 + Math.max(0, 10 - nt) * 0.03 : 1;
+  const parts = {
+    wave: wave * 100,
+    kills: kills * 5,
+    lives: lives * 120,
+    gold: Math.floor(gold),
+    combo: comboBest * 25,
+    camp: gameMode === 'campaign' ? campLevel * 200 : 0,
+    victory: victory ? 2500 : 0,
+  };
+  const raw = parts.wave + parts.kills + parts.lives + parts.gold + parts.combo + parts.camp + parts.victory;
+  return { score: Math.max(0, Math.round(raw * diffMult * effMult)), parts, diffMult, effMult, nt };
+}
+// Letter grade off how much of the run's victory target was reached (S = flawless win).
+function scoreGrade() {
+  const goal = victoryWave();
+  const prog = goal > 0 ? wave / goal : 0;
+  if (victory && !livesLostThisRun) return { g: 'S', c: '#e3b341' };
+  if (victory) return { g: 'A', c: '#3fb950' };
+  if (prog >= 0.75) return { g: 'B', c: '#58a6ff' };
+  if (prog >= 0.5)  return { g: 'C', c: '#d29922' };
+  if (prog >= 0.25) return { g: 'D', c: '#db6d28' };
+  return { g: 'F', c: '#f85149' };
+}
+// Build the restyled end screen: score hero (grade badge + number + all-time best),
+// a one-line headline, a stats grid, and compact MVP/perks/achievement sections —
+// replacing the old single pre-line text blob (owner FEEDBACK "victory screen … overwhelming").
+function renderEndScreen(won, earned, newAch) {
+  const sc = computeScore(), gr = scoreGrade();
+  const prevBest = +(localStorage.getItem('cd_bestscore') || 0);
+  const isBest = sc.score > prevBest;
+  if (isBest) { try { localStorage.setItem('cd_bestscore', sc.score); } catch(e) {} }
+  const shownBest = Math.max(prevBest, sc.score);
+
+  document.getElementById('ovScore').innerHTML =
+    `<div class="ovGrade" style="color:${gr.c}">${gr.g}</div>`
+    + `<div class="ovScoreNum"><span class="lab">Score</span><span class="num">${fmtNum(sc.score)}</span>`
+    + `<span class="best${isBest ? ' newbest' : ''}">${isBest ? '★ New best score!' : 'Best: ' + fmtNum(shownBest)}</span></div>`;
+
+  const where = gameMode === 'campaign' ? `Campaign L${campLevel}` : MAPS[mapKey].name;
+  document.getElementById('ovText').textContent =
+    `${won ? 'Cleared' : 'Reached'} wave ${wave} · ${where} · ${DIFFS[diffKey].name}   ·   🪙 +${earned} chips (total ${meta.chips})`;
+
+  const cells = [
+    ['🌊', wave, 'Waves'],
+    ['💥', fmtNum(kills), 'Kills'],
+    ['❤️', lives, 'Lives'],
+    ['🪙', fmtNum(Math.floor(gold)), 'Gold'],
+    ['🔥', comboBest ? comboBest + '×' : '—', 'Combo'],
+    ['🗼', sc.nt, 'Towers'],
+  ];
+  let html = '<div class="scoreGrid">'
+    + cells.map(([ic, v, k]) => `<div class="cell"><div class="v">${ic} ${v}</div><div class="k">${k}</div></div>`).join('')
+    + '</div>';
+  const mvp = mvpLine().trim(), perk = perkLine().trim(), ach = achLine(newAch).trim();
+  if (mvp)  html += `<div class="ovSection">${mvp}</div>`;
+  if (perk) html += `<div class="ovSection">${perk}</div>`;
+  if (ach)  html += `<div class="ovSection ach">${ach}</div>`;
+  document.getElementById('ovDetails').innerHTML = html;
+  document.getElementById('overlay').classList.add('scored');
+}
 function endGame() {
   gameOver = true;
   SFX.over();
@@ -517,8 +588,7 @@ function endGame() {
   const newAch = grantAchievements(false);
   const rec = recordBest();
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
-  document.getElementById('ovText').textContent =
-    `You survived ${wave} waves with ${kills} kills on ${DIFFS[diffKey].name}. Best: ${best}\n🪙 +${earned} chips earned (total: ${meta.chips}) — spend them in Talents!` + mvpLine() + perkLine() + achLine(newAch);
+  renderEndScreen(false, earned, newAch);
   document.getElementById('ovContinue').style.display = 'none';
   document.getElementById('ovNext').style.display = 'none';
   document.getElementById('ovMain').textContent = 'Main Menu';
@@ -536,10 +606,8 @@ function winGame() {
   saveMeta();
   const newAch = grantAchievements(true);
   const rec = recordBest();
-  const where = gameMode === 'campaign' ? `Campaign level ${campLevel}` : DIFFS[diffKey].name;
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
-  document.getElementById('ovText').textContent =
-    `You beat all ${victoryWave()} waves (${where}, ${DIFFS[diffKey].name}) with ${kills} kills and ${lives} lives left!\n🪙 +${earned} chips earned (total: ${meta.chips})` + mvpLine() + perkLine() + achLine(newAch);
+  renderEndScreen(true, earned, newAch);
   if (gameMode === 'campaign') {
     if (campLevel > campaignDone()) localStorage.setItem('cd_campaign', campLevel);
     document.getElementById('ovNext').style.display = campLevel < CAMPAIGN_LEVELS ? 'inline-block' : 'none';

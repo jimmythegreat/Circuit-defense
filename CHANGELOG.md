@@ -3,6 +3,40 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.16.0 — 2026-06-11 — End-of-run scoring + restyled victory/defeat screen (FEEDBACK)
+
+**Owner FEEDBACK (two low-priority items, same area, done together):**
+1. *"A scoring system for the final victory/defeat screen. Based on stuff like kill time,
+   remaining gold, using fewer towers, etc."*
+2. *"The victory screen is getting a bit overwhelming. I think it just needs to be restyled."*
+
+Both touch the same surface — the `#overlay` end screen — so they shipped as one run.
+
+**Scoring.** New `computeScore()` (`cd-update.js`) turns each finished run into one number:
+`(wave×100 + kills×5 + lives×120 + gold + bestCombo×25 + campLevel×200[campaign] + 2500[victory])
+× difficulty × efficiency`, where **difficulty** reuses `DIFFS[diffKey].chipMult` (easy ×0.5 ·
+normal ×1 · hard ×1.6) and **efficiency** is `1 + max(0, 10−towers)×0.03` — clearing with ≤10
+towers is worth up to **+30%**, directly honouring the owner's "using fewer towers" and
+"remaining gold" cues. `scoreGrade()` assigns a letter from how much of `victoryWave()` was
+reached: **S** = flawless win (no life lost), **A** = any win, **B/C/D** at ≥75/50/25 % of the
+goal, **F** below. An all-time best is tracked in a new additive `cd_bestscore` key (read with
+`|| 0`, `try/catch` write — old saves unaffected) with a ★ "New best score!" celebration.
+
+**Restyle.** The old single run-on `#ovText` paragraph (survival line + chips + MVPs + perks +
+achievements crammed into one `white-space:pre-line` blob — the "overwhelming" complaint) is
+replaced by a structured `renderEndScreen()`: a **score hero** (grade badge + big number +
+best), a **one-line headline**, a **stats grid** (🌊 waves · 💥 kills · ❤️ lives · 🪙 gold ·
+🔥 combo · 🗼 towers), and **MVP / perks / achievement** lines as their own styled sections.
+
+Purely cosmetic + one additive key — no economy, balance, or save-schema impact (`computeScore`
+only *reads* run state). New CSS is scoped to `#ovScore`/`#ovDetails`/`.scoreGrid`/`.ovSection`;
+the overlay gains a `.scored` class to reveal the hero. **Tests:** new group **[31]** drives a
+defeat run (asserts the documented formula, grade D at 40 % of goal, the 6-cell grid, `.scored`,
+`cd_bestscore` persistence + new-best flag) and a flawless victory (grade S, higher score beats
+the best); the existing achievement test now reads the unlock line from `#overlay` (it moved out
+of `#ovText`). Suite **250/0** green, zero console errors. Verified in-preview at desktop & 375px
+mobile (overlay fixed + no horizontal overflow, grid wraps).
+
 ## v1.15.0 — 2026-06-11 — Mobile deep-dive #2: bigger board + What's New tucked away (FEEDBACK)
 
 **Owner FEEDBACK (high priority):** *"While the game technically works on phones it doesn't seem

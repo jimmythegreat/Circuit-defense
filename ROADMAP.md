@@ -71,6 +71,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [x] **End-of-run score + restyled victory/defeat screen** — shipped v1.16.0 (owner
+      FEEDBACK, two low-priority items done together: a *scoring system* + *"victory screen
+      … overwhelming, restyle it"*). `computeScore()`/`scoreGrade()` (`cd-update.js`) score each
+      run on distance (waves + campaign depth), cleanliness (lives kept, big combos, **fewer
+      towers** → up to +30%) and **gold banked**, scaled by difficulty; grade F→S (S = flawless
+      win). All-time best in additive `cd_bestscore` with a ★ celebration. `renderEndScreen()`
+      replaces the run-on `#ovText` blob with a score hero + stats grid + MVP/perks/ach sections.
+      Test [31]. **Follow-ups:** *show the best score on the 🏆 Records panel* (a `cd_bestscore`
+      row in `.bestStats`); *per-map or per-difficulty best scores*; *a score breakdown tooltip*
+      (each term's contribution); and *a "new high score" leaderboard-style flash* distinct from
+      the existing wave-record banner.
 - [x] **Combo / kill-streak feedback** — shipped v1.7.0. Chaining kills within a
       2s window builds a top-right COMBO meter that glows hotter (green→gold→
       orange→red→purple); milestones (5, then every 10) fire a rising `SFX.combo`

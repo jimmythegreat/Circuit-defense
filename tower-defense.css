@@ -141,6 +141,30 @@
   #overlay.record h2 { animation: recPulse 1.4s ease-out; }
   @keyframes recPop { 0%{transform:scale(.4);opacity:0} 60%{transform:scale(1.12)} 100%{transform:scale(1);opacity:1} }
   @keyframes recPulse { 0%,100%{text-shadow:0 0 20px rgba(88,166,255,.0)} 30%{text-shadow:0 0 28px rgba(227,179,65,.95)} }
+  /* End-of-run SCORE hero + structured breakdown (v1.16.0) — replaces the old run-on
+     pre-line text blob so the victory/defeat screen reads cleanly. */
+  #ovScore { display: none; align-items: center; gap: 16px; margin: 4px 0 10px; }
+  #overlay.scored #ovScore { display: flex; }
+  .ovGrade { font-size: 46px; font-weight: 900; line-height: 1; width: 74px; height: 74px;
+    display: flex; align-items: center; justify-content: center; border-radius: 14px;
+    border: 3px solid currentColor; box-shadow: 0 0 22px -4px currentColor; }
+  .ovScoreNum { display: flex; flex-direction: column; align-items: flex-start; }
+  .ovScoreNum .lab { font-size: 12px; letter-spacing: 2px; color: #8b949e; text-transform: uppercase; }
+  .ovScoreNum .num { font-size: 40px; font-weight: 800; color: #e6edf3; line-height: 1; }
+  .ovScoreNum .best { font-size: 13px; color: #8b949e; margin-top: 3px; }
+  .ovScoreNum .best.newbest { color: #e3b341; font-weight: bold; }
+  @keyframes scorePop { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+  #overlay.scored .ovGrade { animation: scorePop .5s cubic-bezier(.2,1.6,.4,1); }
+  #ovDetails { display: flex; flex-direction: column; align-items: center; gap: 10px;
+    margin-bottom: 14px; max-width: 720px; }
+  .scoreGrid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .scoreGrid .cell { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+    padding: 6px 12px; min-width: 76px; }
+  .scoreGrid .cell .v { font-size: 18px; font-weight: bold; color: #e6edf3; }
+  .scoreGrid .cell .k { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+  .ovSection { font-size: 13px; color: #8b949e; max-width: 700px; line-height: 1.5; }
+  .ovSection b { color: #c9d1d9; }
+  .ovSection.ach { color: #e3b341; font-weight: bold; font-size: 14px; }
   #startScreen h2 { font-size: 32px; margin-bottom: 4px; color: #58a6ff; text-shadow: 0 0 20px rgba(88,166,255,.6); }
   .optRow { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
   .lvlBtn {
