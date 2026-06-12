@@ -1343,6 +1343,64 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 29: Responsive / mobile layout (v1.14.0) ----
+  console.log('\n[29] Mobile layout');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    // Phone viewport — the media queries fire on real CSS px here (the live
+    // preview clamps width, so this Playwright run is the source of truth).
+    await page.setViewportSize({ width: 390, height: 844 });
+    const m = await page.evaluate(() => {
+      const innerW = window.innerWidth;
+      const ovf = () => document.documentElement.scrollWidth <= innerW + 1; // no horizontal scroll
+      const right = sel => Math.round(document.querySelector(sel).getBoundingClientRect().right);
+      const pos = sel => getComputedStyle(document.querySelector(sel)).position;
+      // Start screen: overlay detaches to a full-viewport fixed layer, button row wraps.
+      const startFixed = pos('#startScreen') === 'fixed';
+      const startBtnsInside = right('#startScreen > div:last-child') <= innerW;
+      const startNoOverflow = ovf();
+      // Talent panel: fixed + scrollable so all talents are reachable; no horizontal overflow.
+      openTalents();
+      const tp = document.getElementById('talentPanel');
+      const talentFixed = getComputedStyle(tp).position === 'fixed';
+      const talentScrolls = tp.scrollHeight > tp.clientHeight; // 20 talents > one phone screen
+      const talentNoOverflow = ovf();
+      closeTalents();
+      // In-game chrome stays within the viewport.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      const canvasInside = right('#game') <= innerW;
+      const hudInside = right('#hud') <= innerW;
+      const shopInside = right('#shop') <= innerW;
+      const ingameNoOverflow = ovf();
+      // Draft modal also detaches + fits.
+      openDraft();
+      const draftFixed = getComputedStyle(document.getElementById('draftModal')).position === 'fixed';
+      const draftNoOverflow = ovf();
+      const card = document.getElementById('draftCards').children[0];
+      if (card) card.click();
+      backToMenu();
+      return { startFixed, startBtnsInside, startNoOverflow, talentFixed, talentScrolls,
+               talentNoOverflow, canvasInside, hudInside, shopInside, ingameNoOverflow,
+               draftFixed, draftNoOverflow, innerW };
+    });
+    // Desktop: media queries must NOT apply — overlays stay canvas-bound (absolute).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => ({
+      startAbsolute: getComputedStyle(document.getElementById('startScreen')).position === 'absolute',
+    }));
+    check('phone: start screen detaches to a fixed full-viewport overlay', m.startFixed);
+    check('phone: start-screen button row wraps inside the viewport', m.startBtnsInside, `right=${m.innerW}`);
+    check('phone: no horizontal overflow on the start screen', m.startNoOverflow);
+    check('phone: talent panel is fixed and vertically scrollable', m.talentFixed && m.talentScrolls);
+    check('phone: no horizontal overflow with talents open', m.talentNoOverflow);
+    check('phone: canvas/HUD/shop stay within the viewport in-game', m.canvasInside && m.hudInside && m.shopInside);
+    check('phone: no horizontal overflow during gameplay', m.ingameNoOverflow);
+    check('phone: draft modal detaches (fixed) without overflow', m.draftFixed && m.draftNoOverflow);
+    check('desktop: overlays remain canvas-bound (absolute, media not applied)', d.startAbsolute);
+    check('no console errors during mobile-layout test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -268,3 +268,67 @@
   }
   .statline { color: #8b949e; font-size: 11.5px; }
   .specTag { color: #d2a8ff; font-size: 11px; font-weight: bold; }
+  /* ============================================================
+     Responsive — phones & small tablets (v1.14.0, FEEDBACK "looks
+     terrible on phones"). The canvas already scales (max-width:100vw),
+     but every modal overlay was absolutely positioned INSIDE the
+     scaled, canvas-sized #gameWrap, so on a phone its content crammed
+     into a ~230px box and overflowed with no way to scroll or reach it.
+     Below ~760px the overlays detach to a fixed, full-viewport,
+     scrollable layer, and the various button rows / grids / cards that
+     had no wrap stop overflowing the screen.
+     Breakpoint is 920px (not 760): the 900px-wide canvas starts scaling
+     down below ~916px (max-width:100vw-16), which is exactly when the
+     in-canvas overlays begin to cram — so this also covers tablets
+     (iPad portrait 768/810/834, etc.), not just phones.
+     ============================================================ */
+  @media (max-width: 920px) {
+    h1 { font-size: 20px; letter-spacing: 2px; margin: 6px 0 4px; }
+    #hud { gap: 8px 14px; font-size: 13px; padding: 6px 10px; }
+    #shop { gap: 6px; margin-top: 8px; }
+    .towerBtn { min-width: 72px; padding: 5px 7px; font-size: 11px; }
+    #controls { gap: 6px; margin-top: 8px; }
+    button.ctl { padding: 8px 13px; font-size: 13px; }
+    .hint { font-size: 11px; }
+    /* Modal overlays cover the whole viewport (not the scaled canvas) and
+       scroll vertically, so all their content is reachable on a phone.
+       Only position/scroll change here — JS still toggles display. */
+    #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #settingsPanel {
+      position: fixed; inset: 0;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding: 18px 10px;
+      border-radius: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Action-button rows (start screen, game-over) wrap instead of running off-screen. */
+    #startScreen > div, #overlay > div { flex-wrap: wrap; justify-content: center; }
+    /* Neutralise the inline 17px / 11px-36px sizing on the start-screen buttons so
+       eight of them fit a narrow column. */
+    #startScreen .ctl { font-size: 14px !important; padding: 9px 14px !important; }
+    #startScreen h2 { font-size: 26px; }
+    #overlay h2 { font-size: 30px; }
+    .optRow { gap: 7px; margin-bottom: 10px; }
+    .optBtn { padding: 8px 12px; font-size: 13px; }
+    .lvlBtn { width: 48px; font-size: 12px; }
+    /* Talent / achievement grids: 2 columns, cards fill their cell, the whole
+       (now full-screen) panel scrolls rather than a nested inner scroller. */
+    #talentGrid, #achGrid { grid-template-columns: repeat(2, 1fr); max-width: 100%; max-height: none; overflow: visible; }
+    .talentCard, .achCard { width: auto; }
+    /* Draft cards wrap & shrink. */
+    #draftCards { flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .perkCard { width: 140px; padding: 14px 10px; }
+    .setList { min-width: 0; width: 100%; max-width: 320px; }
+    .bestTbl th, .bestTbl td { padding: 6px 10px; font-size: 13px; }
+    /* What's New panel: full width, stacked under the game instead of a fixed 280px rail. */
+    #whatsnew { width: 100%; max-width: 100%; border-left: 1px solid #30363d; border-radius: 8px; margin-top: 10px; }
+  }
+  @media (max-width: 430px) {
+    #hud { gap: 5px 10px; font-size: 12px; }
+    #shop { gap: 5px; }
+    .towerBtn { min-width: 0; flex: 1 1 64px; padding: 5px 4px; font-size: 10px; }
+    .towerBtn .icon { font-size: 16px; }
+    #talentGrid, #achGrid { grid-template-columns: 1fr; }
+    .perkCard { width: 100%; max-width: 260px; }
+    #draftCards { flex-direction: column; align-items: center; }
+  }

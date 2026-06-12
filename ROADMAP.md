@@ -142,19 +142,23 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.13.4 health check)
 
-_Still-unaddressed, in priority order: **touch/pointer controls** (top mobile blocker) →
+_Still-unaddressed, in priority order: **touch/pointer controls** (in-game interaction — the
+responsive *layout* shipped v1.14.0, so this is now just the in-game ergonomics) →
 colorblind-safe palette → gamepad → PWA install → **high-DPI canvas** → **menu keyboard
-a11y**. Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2)._
+a11y**. Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2),
+**responsive layout (v1.14.0)**._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
       offline-safe), responsive `viewport` meta, meta description, `theme-color`,
       and Open Graph title/description/type. Head-only, zero gameplay impact.
-- [ ] **Touch / pointer controls** — the whole game is mouse-click driven (tower
+- [~] **Touch / pointer controls** — _responsive **layout** done v1.14.0_ (menus,
+      overlays, drafts and chrome now fit & scroll on phones/tablets — see CSS media
+      block). **Remaining:** in-game *interaction* is still mouse-click driven (tower
       placement, upgrade panel, ability targeting). On touch devices there are no
-      handlers, so it's effectively unplayable on phones/tablets. Add
-      `pointerdown`/`touchstart` paths (pointer events unify mouse+touch). The
-      `viewport` meta is now in place (v1.8.6), so this is the next mobile blocker.
+      handlers, so placing/upgrading towers by tap is unverified. Add
+      `pointerdown`/`touchstart` paths (pointer events unify mouse+touch), bigger touch
+      targets, and a landscape pass. Tracked as a follow-up at the top of FEEDBACK PENDING.
 - [x] **`prefers-reduced-motion` support** — shipped v1.10.0. A `reduceMotion()`
       helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the **screen-shake**
       translate in `draw()` **and** thins particle bursts in `addExplosion()`

@@ -3,6 +3,47 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.14.0 — 2026-06-11
+
+**Responsive layout — the game is now usable on phones & tablets (FEEDBACK, important).**
+Owner: *"This game looks terrible on phones. Pick various popular screen sizes and make it
+work on those."*
+
+The root problem: there were **zero media queries**. The canvas itself already scaled
+(`max-width:100vw`), but every modal overlay (`#startScreen`, game-over `#overlay`,
+`#draftModal`, talents, achievements, records, settings) was absolutely positioned **inside
+the scaled, canvas-sized `#gameWrap`** — so on a 390px phone they crammed into a ~230px box
+and their content overflowed with no way to scroll to it. Measured on a 390px viewport:
+the start-screen action-button row was **826px wide** (running ~225px off the left and off
+the right edge), and the menu content spilled out the bottom of an unscrollable box.
+
+Added a responsive block to `tower-defense.css` (CSS-only — no markup or JS change, so it's
+fully save-safe and desktop is byte-identical behaviour):
+
+- **`@media (max-width: 920px)`** — chosen because the 900px-wide canvas starts scaling down
+  below ~916px, which is exactly when the in-canvas overlays begin to cram; this also covers
+  iPad-portrait tablets (768 / 810 / 834). All modal overlays detach to a **fixed,
+  full-viewport, vertically-scrollable** layer (`position:fixed; inset:0; overflow-y:auto`),
+  so their content is always reachable. Button rows (`#startScreen`, `#overlay`) get
+  `flex-wrap`; the inline 17px/11-36px start-screen button sizing is neutralised so eight
+  buttons fit a narrow column. Talent/achievement grids reflow **4→2 columns** with
+  cell-filling cards and the whole panel scrolls (no nested scroller). Draft cards wrap;
+  the What's New rail goes full-width below the game.
+- **`@media (max-width: 430px)`** — phones: HUD/shop tighten further, tower buttons flex to
+  fill, grids go **single-column**, draft cards stack vertically.
+
+Verified live at 360 / 375 / 390 / 768px: **no horizontal overflow** in any state
+(`scrollWidth === innerWidth`), start/talent/records/settings/draft panels all full-width
+fixed and scrollable, in-game canvas/HUD/shop/controls within the viewport, zero console
+errors. New test group **[29]** drives a real 390px Playwright viewport (overlays fixed +
+scrollable, no horizontal overflow on the start screen / with talents open / in-game / with
+a draft open, chrome inside the viewport) and asserts desktop (1280px) keeps overlays
+canvas-bound (`position:absolute`) so the media block can't leak to desktop.
+
+**First coherent slice** of the mobile request (layout & reachability). Remaining follow-up
+(tracked under the "Touch / pointer controls" ROADMAP item, now marked partial): in-game
+**touch ergonomics** — bigger touch targets, tap-to-place tuning, and a landscape pass.
+
 ## v1.13.8 — 2026-06-11
 
 **Per-map visual themes — the maps no longer all look the same (FEEDBACK).**

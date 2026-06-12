@@ -20,10 +20,11 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.13.8';
+const GAME_VERSION = 'v1.14.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.14.0', date: '2026-06-11', time: '21:30 EDT', body: "Phones & tablets are now properly supported (your request — it 'looked terrible on phones'). The menu, talents, achievements, records, settings and every-5-waves draft used to be crammed into the small scaled-down game board with no way to scroll or reach them, and rows of buttons ran off the screen. On narrow screens (≤920px, covering phones and iPad-size tablets) those panels now fill the whole screen and scroll, button rows wrap, and the talent/achievement grids reflow to 2 columns (1 on small phones) — no more sideways scrolling or cut-off content. The game board itself already scaled to fit. (First slice — start screen, all overlays and in-game chrome. Fine-tuning of in-game touch ergonomics can follow.)" },
   { v: 'v1.13.8', date: '2026-06-11', time: '20:08 EDT', body: "The maps no longer all look the same (your request). Each Classic-mode map now has its own colour theme — Classic stays the blue circuit, Spiral runs emerald green, Serpent glows warm amber. Campaign rolls a different (but calm) colour scheme each attempt, and Mayhem now burns: its palette sweeps through wild, fiery hues that shift as you play. Purely visual — no effect on gameplay, and a resumed run keeps the colours it started with." },
   { v: 'v1.13.7', date: '2026-06-11', time: '18:51 EDT', body: "What's New entries now show the TIME alongside the date (your request) — so when several updates land on the same day you can see the order at a glance. New entries are timestamped going forward; older entries (before this change) just show their date, since no time was recorded for them." },
   { v: 'v1.13.6', date: '2026-06-11', body: "A few fixes you asked for: the ✨ What's New button now also CLOSES the panel if it's already open (it toggles), and the ⚙ Settings button toggles the same way. And difficulty got rebalanced for fresh runs — Easy is now genuinely very easy (lots of gold & lives, much weaker enemies), and Normal is a little gentler too, so the early waves aren't a wall." },

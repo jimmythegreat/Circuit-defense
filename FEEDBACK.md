@@ -5,8 +5,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[important] This game looks terrible on phones. Pick various popular screen sizes and make it work on those.
-
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
@@ -14,6 +12,8 @@ When it completes an item it moves it to DONE below with the date and version.
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
 ## DONE
+
+- **2026-06-11 · v1.14.0** — "[important] This game looks terrible on phones. Pick various popular screen sizes and make it work on those." → Added a responsive CSS block (no markup/JS change, so save-safe; desktop unchanged). There were **zero media queries** before: every modal overlay (start screen, game-over, draft, talents, achievements, records, settings) was absolutely positioned inside the scaled, canvas-sized `#gameWrap`, so on a 390px phone its content crammed into a ~230px box with no scroll, and the start-screen button row was 826px wide (off-screen both sides). Below **920px** (covers phones + iPad-portrait tablets — the 900px canvas starts scaling at ~916px) overlays detach to a **fixed, full-viewport, scrollable** layer, button rows wrap, talent/achievement grids reflow 4→2 cols (1 on ≤430px phones) and draft cards stack, and the What's New rail goes full-width. Verified at 360/375/390/768 — no horizontal overflow in any state, all panels reachable & scrollable, zero console errors. New test group [29]. **First slice** of the request (layout/reachability); in-game touch ergonomics tracked under the "Touch / pointer controls" ROADMAP item.
 
 - **2026-06-11 · v1.13.8** — "[low priority] All the maps look the same. We should add random colors and textures to them. In classic mode it should always pick the same theme. In mayhem it should be wild (things on fire, wild colors, etc). In campaign mode it should be random but not crazy like mayhem. Also Mayhem should be a random map every time." → Added a `THEMES` palette system (`cd-maps.js`). Each Classic-mode map has a **fixed** colour identity (Classic=blue circuit, Spiral=emerald, Serpent=amber); **Campaign** rolls a tame palette per attempt; **Mayhem** uses an **animated "chaos" palette** that sweeps wild fiery hues (static under OS reduce-motion). Palette drives the background gradient, stars, grid, and all path layers in `draw()`. (Mayhem already re-rolls its path every `beginGame()` via `resetState()` — verified — so this focused on the visual distinction the request was about.) Resolved theme key saved to `cd_save` + restored on resume so colours persist; old saves default cleanly. Cosmetic only, no gameplay/save impact. New test group [28].
 
