@@ -157,15 +157,27 @@ function draw() {
   // placement preview
   if (selectedShop && mouseX > 0 && !gameOver && started && !paused && armedAbility !== 'meteor') {
     const def = TOWER_TYPES[selectedShop];
-    const ok = canPlace(mouseX, mouseY);
+    // Snap the ghost to the grid so the preview lands exactly where the tower will (v1.24.0).
+    const p = placeCoord(mouseX, mouseY);
+    // Faint grid of slot dots while placing, so you can line towers up cleanly (owner FEEDBACK).
+    if (gridSnap) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(139,148,158,0.16)';
+      for (let gy = PLACE_GRID/2; gy < H; gy += PLACE_GRID)
+        for (let gx = PLACE_GRID/2; gx < W; gx += PLACE_GRID) {
+          ctx.beginPath(); ctx.arc(gx, gy, 1.1, 0, Math.PI*2); ctx.fill();
+        }
+      ctx.restore();
+    }
+    const ok = canPlace(p.x, p.y);
     ctx.beginPath();
-    ctx.arc(mouseX, mouseY, def.range, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, def.range, 0, Math.PI*2);
     ctx.fillStyle = ok ? (selectedShop==='buff' ? 'rgba(240,136,62,0.1)' : 'rgba(88,166,255,0.08)') : 'rgba(248,81,73,0.08)';
     ctx.fill();
     ctx.strokeStyle = ok ? 'rgba(88,166,255,0.4)' : 'rgba(248,81,73,0.5)';
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(mouseX, mouseY, 13, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, 13, 0, Math.PI*2);
     ctx.fillStyle = ok ? def.color : '#f85149';
     ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
   }

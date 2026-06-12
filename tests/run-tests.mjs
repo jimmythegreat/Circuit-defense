@@ -1657,6 +1657,7 @@ async function main() {
       gold = 1e9;
       towers.length = 0;
       selectedTower = null; selectedShop = null;
+      gridSnap = false;   // test exact pointer placement, not grid-snapped (v1.24.0)
       const hasCoarseFn = typeof coarsePointer === 'function';
       const touchAction = getComputedStyle(cv).touchAction;
 
@@ -2192,6 +2193,88 @@ async function main() {
     check('SFX.mortar launch sound exists', r.sfxOk);
     check('placed Mortar save/resume round-trips', r.roundTrips);
     check('no console errors during Mortar test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [43] Grid placement snapping (v1.24.0)
+  console.log('\n[43] Grid placement snapping (v1.24.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      gold = 1e9; towers.length = 0; selectedTower = null; selectedShop = null;
+
+      const hasHelpers = typeof placeCoord === 'function' && typeof snapGridCoord === 'function'
+        && typeof PLACE_GRID === 'number';
+      const settingFn = typeof setGridSnap === 'function';
+
+      const rect = cv.getBoundingClientRect();
+      const tap = (x, y) => cv.dispatchEvent(new PointerEvent('pointerdown', {
+        clientX: rect.left + x * rect.width / W,
+        clientY: rect.top + y * rect.height / H, button: 0, bubbles: true,
+      }));
+      // Centre of a cell + a small off-centre offset; both should land on the same snapped centre.
+      const onGrid = v => Math.floor(v / PLACE_GRID) * PLACE_GRID + PLACE_GRID / 2;
+
+      // Find an off-centre tap point whose SNAPPED cell is placeable, then place with snap ON.
+      gridSnap = true;
+      let pX = -1, pY = -1;
+      for (let yy = 67; yy < H - 60 && pX < 0; yy += 13)
+        for (let xx = 67; xx < W - 60; xx += 13) {
+          const sp = placeCoord(xx, yy);
+          // require the tap to be genuinely off the cell centre so snapping is observable
+          if ((xx !== sp.x || yy !== sp.y) && canPlace(sp.x, sp.y)) { pX = xx; pY = yy; break; }
+        }
+      selectedShop = 'gun';
+      const before = towers.length;
+      tap(pX, pY);
+      const placedT = towers[towers.length - 1];
+      const snappedPlace = towers.length === before + 1
+        && placedT.x === onGrid(pX) && placedT.y === onGrid(pY);
+      const onGridExactly = (placedT.x - PLACE_GRID/2) % PLACE_GRID === 0
+        && (placedT.y - PLACE_GRID/2) % PLACE_GRID === 0;
+
+      // Grid snap OFF: places at the raw tapped point (no snapping).
+      gridSnap = false; towers.length = 0; selectedShop = 'gun';
+      // pick a fresh placeable raw point
+      let qX = -1, qY = -1;
+      for (let yy = 70; yy < H - 70 && qX < 0; yy += 13)
+        for (let xx = 70; xx < W - 70; xx += 13) { if (canPlace(xx + 5, yy + 5)) { qX = xx + 5; qY = yy + 5; break; } }
+      tap(qX, qY);
+      const offT = towers[towers.length - 1];
+      const freePlace = offT && Math.abs(offT.x - qX) < 0.5 && Math.abs(offT.y - qY) < 0.5;
+
+      // setGridSnap persists.
+      setGridSnap(true);
+      const persisted = localStorage.getItem('cd_gridsnap') === '1' && gridSnap === true;
+
+      // PLACE_GRID === min placement gap (32) so a tower in the adjacent cell stays buildable.
+      gridSnap = true; towers.length = 0;
+      let adjacentBuildable = false;
+      for (let yy = 60; yy < H - 60 && !adjacentBuildable; yy += 13)
+        for (let xx = 60; xx < W - 120; xx += 13) {
+          const s1 = placeCoord(xx, yy), s2 = placeCoord(xx + PLACE_GRID, yy);
+          if (s2.x - s1.x !== PLACE_GRID) continue;               // genuinely adjacent cells
+          if (!canPlace(s1.x, s1.y) || !canPlace(s2.x, s2.y)) continue;
+          towers.push({ type:'gun', x:s1.x, y:s1.y });            // occupy cell 1
+          adjacentBuildable = canPlace(s2.x, s2.y);               // cell 2 still buildable beside it
+          towers.length = 0;
+          break;
+        }
+
+      gridSnap = true; try { localStorage.setItem('cd_gridsnap', '1'); } catch(e) {}
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasHelpers, settingFn, snappedPlace, onGridExactly, freePlace, persisted, adjacentBuildable };
+    });
+    check('grid helpers exist (placeCoord/snapGridCoord/PLACE_GRID)', r.hasHelpers);
+    check('setGridSnap setter exists', r.settingFn);
+    check('grid-snap ON: off-centre tap places on the cell centre', r.snappedPlace);
+    check('placed tower lands exactly on a grid node', r.onGridExactly);
+    check('grid-snap OFF: places at the raw tapped point', r.freePlace);
+    check('setGridSnap persists to cd_gridsnap', r.persisted);
+    check('adjacent grid cells are still buildable (grid == min gap)', r.adjacentBuildable);
+    check('no console errors during grid-placement test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

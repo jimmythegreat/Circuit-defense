@@ -5,8 +5,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[Low priority][external user] It would be cool if the spaces to place the turrets were more of a grid so you could line them up cleaner.
-
 [Low priority] Reduce the range of booster by 50% base. This helps make network better.
 
   > _Progress (kept in PENDING — being cut gradually to respect the ≤25%/number/run guardrail):_
@@ -39,6 +37,8 @@ When it completes an item it moves it to DONE below with the date and version.
   >   if classic-normal still falls to opening-round money.
 
 ## DONE
+
+- **2026-06-12 · v1.24.0** — "[Low priority][external user] It would be cool if the spaces to place the turrets were more of a grid so you could line them up cleaner." → Tower placement now **snaps to a 32px grid** (cell centres), so towers line up into tidy rows/columns instead of scattering wherever the cursor landed. A **faint grid of slot dots** fades in while placing so you can see the alignment, and the preview ring sits exactly where the tower will land. The grid size equals the existing 32px minimum tower spacing, so adjacent cells stay buildable — you can still pack a clean wall of towers. A new **▦ Grid snap** toggle in ⚙ Settings (default **On**) switches it off for free-hand placement (`cd_gridsnap`, device pref). Selection still uses the raw cursor; only the placement target snaps. Cosmetic/UX only — no damage/economy/save impact. New test group [43]; suite 356/0 green; verified in-preview (snap math, grid-overlay render, toggle persistence, zero console errors).
 
 - **2026-06-11 · v1.16.0** — "[Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc." **AND** "[Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled." → Done together (same surface). Every run now gets a **score + letter grade** on the end screen: `(wave×100 + kills×5 + lives×120 + gold + bestCombo×25 + campLevel×200 + 2500-if-won) × difficulty × efficiency`, where **efficiency rewards using fewer towers** (≤10 towers → up to +30%) and **remaining gold** feeds in directly — both straight from your cues. Grade runs **F→S** (S = a flawless win, no lives lost). An all-time **best score** is tracked (additive `cd_bestscore` key) with a ★ celebration when beaten. The **restyle** replaces the old run-on text blob with a clean layout: a big score + grade hero up top, a tidy stats grid (waves/kills/lives/gold/combo/towers), and MVP/perks/achievements as their own lines. Cosmetic + one additive key — no balance/economy/save impact. Test group [31]; suite 250/0; verified desktop + 375px mobile. (Note: there's no per-kill clock in the game, so "kill time" isn't wired in literally — "how far + how clean + how rich, scaled by difficulty" stands in for it. Say the word for a speed/time component.)
 

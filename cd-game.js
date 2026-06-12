@@ -471,16 +471,20 @@ cv.addEventListener('pointerdown', e => {
   if (!selectedShop) return;
   const cost = costOf(selectedShop);
   if (gold < cost) return;
-  if (!canPlace(mouseX, mouseY)) return;
+  // Snap to the placement grid when grid-snap is on (default), so towers line up cleanly
+  // (owner FEEDBACK, v1.24.0). canPlace runs on the snapped point so spacing/path checks
+  // match exactly where the tower lands.
+  const p = placeCoord(mouseX, mouseY);
+  if (!canPlace(p.x, p.y)) return;
   const def = TOWER_TYPES[selectedShop];
   gold -= cost;
   towers.push({
-    type: selectedShop, x: mouseX, y: mouseY,
+    type: selectedShop, x: p.x, y: p.y,
     range: def.range, dmg: def.dmg, rate: def.rate,
     cd: 0, level: 1, baseCost: def.cost, invested: cost, angle: 0,
     mode: 'first', spec: null, dealt: 0, kills: 0, buffPower: 0.25, flash: 0
   });
-  addExplosion(mouseX, mouseY, def.color, 8, 60);
+  addExplosion(p.x, p.y, def.color, 8, 60);
   SFX.place();
   if (gold < cost) selectedShop = null;
   updateHud();

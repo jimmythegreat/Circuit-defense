@@ -85,6 +85,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
+      place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
+      to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`
+      in `cd-core.js`; `cd-game.js` places at `placeCoord(mouseX,mouseY)`; `cd-render.js` snaps the ghost
+      + draws a faint slot-dot overlay while placing. 32 == the min placement gap, so adjacent cells stay
+      buildable. A ▦ Grid snap Settings toggle (`cd_gridsnap`, default On) opts out. Selection uses the raw
+      cursor; only the placement target snaps. No save/economy impact. Test [43]. **Follow-ups:** *optional
+      bigger/visible grid lines for the whole board (not just dots)*, and *a subtle "snap" tick sound on place*.
 - [x] **End-of-run score + restyled victory/defeat screen** — shipped v1.16.0 (owner
       FEEDBACK, two low-priority items done together: a *scoring system* + *"victory screen
       … overwhelming, restyle it"*). `computeScore()`/`scoreGrade()` (`cd-update.js`) score each

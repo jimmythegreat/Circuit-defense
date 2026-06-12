@@ -3,6 +3,39 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.24.0 — 2026-06-12 — ▦ Grid placement (line your towers up cleanly)
+
+**What & why.** Newest owner FEEDBACK (commit `3664000`, top of PENDING): *"[Low priority][external
+user] It would be cool if the spaces to place the turrets were more of a grid so you could line them up
+cleaner."* All current PENDING items are `[Low priority]`, so the routine leaves the choice open — this
+is the freshest, most concrete owner signal, so I took it. Tower placement now **snaps to a tidy grid**:
+when you go to place a tower, its spot rounds to the centre of a `PLACE_GRID` (32px) cell, so towers form
+neat rows/columns instead of landing wherever the cursor happened to be. A **faint grid of slot dots**
+fades in while you're placing (only when snapping is on) so you can see the alignment, and the placement
+preview ring sits exactly where the tower will land.
+
+**Sizing rationale.** `PLACE_GRID === 32`, which is exactly the existing minimum placement gap (`canPlace`
+forbids towers `< 32` apart). So cells in adjacent rows/columns are exactly 32 apart and **stay buildable** —
+you can still pack a clean solid wall of towers; the grid only tidies *where* each one sits. Cell centres are
+`floor(v/32)*32 + 16`, so the nearest cell-centre to the cursor.
+
+**Opt-out.** A new **▦ Grid snap** row in ⚙ Settings (default **On**, per the owner's request) toggles it;
+`setGridSnap()` persists `cd_gridsnap` (`'1'`/`'0'`) on the device, mirroring the other Settings prefs.
+With it **Off**, placement is byte-identical to before (free-hand at the raw cursor point).
+
+**Scope / safety.** Selection still uses the **raw** cursor (you click *on* a tower to open its panel); only
+the placement *target* snaps. Towers store their resolved `x`/`y` as before, so save/resume is unaffected and
+no migration is needed (the toggle is a device pref like `cd_shake`/`cd_colorblind`, not run state). Purely a
+placement-feel change — **no damage/economy/balance/save impact**.
+
+- **Files:** `cd-core.js` (`gridSnap` global + `PLACE_GRID`/`snapGridCoord()`/`placeCoord()` helpers, version
+  bump + changelog entry), `cd-game.js` (pointerdown places at `placeCoord(mouseX,mouseY)`), `cd-render.js`
+  (ghost + range ring snap; faint slot-dot overlay while placing), `cd-update.js` (`setGridSnap()` + Settings row).
+- **Tests:** new group **[43]** (helpers exist; off-centre tap lands on the cell centre; tower sits exactly on a
+  grid node; snap-OFF places at the raw point; `setGridSnap` persists; adjacent grid cells stay buildable).
+  Group [34] (touch/pointer) sets `gridSnap=false` so it keeps asserting exact pointer placement. **356/0 green.**
+  Verified in-preview: snap math, grid-overlay `draw()` clean, toggle persists, zero console errors.
+
 ## v1.23.0 — 2026-06-12 — 🎇 New tower: Mortar (long-range armor-ignoring siege)
 
 **What & why.** ROADMAP "Next up (high value) → New tower: arc/chain or mortar — a 7th/8th tower with

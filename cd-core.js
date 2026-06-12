@@ -51,11 +51,24 @@ let particleDensity = (() => {
 // Persisted on this device, default OFF. See enemyGlyph() in cd-render.js.
 let colorblindAid = localStorage.getItem('cd_colorblind') === '1';
 
+// Grid placement (Settings panel, v1.24.0 — owner FEEDBACK "the spaces to place the
+// turrets were more of a grid so you could line them up cleaner"). When ON, a tower's
+// placement point snaps to the centre of a PLACE_GRID cell, so towers align into tidy
+// rows/columns. PLACE_GRID === the 32px minimum placement gap, so cells in adjacent rows/
+// columns are exactly 32 apart and stay placeable (canPlace forbids < 32). Persisted on
+// this device, default ON (the owner asked for it). Selection still uses the raw cursor;
+// only the placement target snaps. Cosmetic/UX only — no economy/save impact.
+let gridSnap = localStorage.getItem('cd_gridsnap') !== '0';   // default ON
+const PLACE_GRID = 32;
+function snapGridCoord(v) { return Math.floor(v / PLACE_GRID) * PLACE_GRID + PLACE_GRID / 2; }
+function placeCoord(x, y) { return gridSnap ? { x: snapGridCoord(x), y: snapGridCoord(y) } : { x, y }; }
+
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.23.0';
+const GAME_VERSION = 'v1.24.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.24.0', date: '2026-06-12', time: '13:20 EDT', body: "Grid placement — line your towers up cleanly! When you go to place a tower, its spot now snaps to a tidy grid so rows and columns stay neat instead of scattered wherever the cursor happened to be. A faint grid of dots fades in while you're placing to show where the slots are, and the placement preview ring sits exactly where the tower will land. The grid is sized to the minimum tower spacing, so neighbouring slots are still buildable — you can pack a clean wall of towers. Prefer free-hand placement? There's a new ▦ Grid snap toggle in ⚙ Settings (default on) to switch it off. Purely a placement-feel change — no effect on damage, economy, or existing saves." },
   { v: 'v1.23.0', date: '2026-06-12', time: '12:15 EDT', body: "New tower — 🎇 Mortar! An eighth tower joins the shop (hotkey 8): a long-range, slow-firing siege piece that lobs an explosive shell which detonates in an area AND completely ignores enemy armor. That makes it a dedicated counter to the heavily-armored crowd — shield enemies, tanks and bosses — which normally shrug off a chunk of every hit; the Mortar's blast lands its full damage on them from clear across the board. The trade-off is a slow reload, so it's about heavy single shots rather than rapid fire, and against ordinary unarmored enemies a Cannon still out-damages it — it's a specialist, not an upgrade. At max level pick a specialization: Demolisher (+35% damage) for raw punch, or Saturation (+55% blast radius) to blanket a bigger group. There's also a new Mortar Mastery talent (+6% damage & +2% range per rank) so you can invest in it permanently like the other towers. No effect on existing saves — a resumed run that never built a Mortar plays exactly as before." },
   { v: 'v1.22.0', date: '2026-06-12', time: '12:30 EDT', body: "New legendary perk — 🩸 Last Stand. A comeback power-up that gets stronger the more lives you've lost in the run: ALL your towers deal +3% damage for every life that has leaked past your defenses, up to a maximum of +60% (reached at 20 lives lost). If you're cruising through a run without losing a single life it does nothing at all — it only kicks in when you're under pressure, turning a near-loss into a dramatic rally. Rolls in the every-5-waves upgrade draft at the rare legendary tier, alongside Diamond Core, Midas Touch and the rest. Designed deliberately so it can't make an already-easy run any easier (a flawless player gets zero benefit) — it's purely a rubber-band for when the boss waves start breaking through. No effect on saves; an in-progress run that picks it up keeps its life-loss tally." },
   { v: 'v1.21.0', date: '2026-06-12', time: '11:05 EDT', body: "Wave preview, upgraded: the between-waves 'Next:' line at the bottom-left of the board now shows the EXACT make-up of the wave you're about to start — a little coloured dot for each enemy kind with how many of them are coming (e.g. ● ×13, » ×3 fast, ◆ ×4 tanks, 🛡 shield, 👻 phantom, ☠ ×1 boss), instead of just listing the kinds by name. Now you can see at a glance whether the next wave is a tank-heavy push or has a boss, and buy/upgrade towers accordingly. The dots use each enemy's own colour and carry the same shape symbols the colourblind aid uses, so it's readable by shape too. Purely a display improvement — no effect on gameplay, balance or saves." },
