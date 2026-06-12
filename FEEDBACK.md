@@ -5,6 +5,10 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[high priority] While the game technically works on phones it doesn't seem like its built for it. The what's new is shown behind the game. When you start a game its tiny. There are lots of issues with mobile. Take another deep dive.
+
+[high priority] This is not a task for the game but it is a task for the framework to keep the game updated. The health check should ensure all features work, not only via tests but also checking visually. It should check all the features on both large format displays and phones. It should make sure all the menus show up correctly and it is playable.
+
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
