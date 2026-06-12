@@ -1987,25 +1987,25 @@ async function main() {
       const baseRange = TOWER_TYPES.buff.range;
       const plainRange = effBuffRange(mk(null));
       const netRange   = effBuffRange(mk('network'));   // ×1.5 spec
-      // A gunner just outside the new aura (between new 52 and old 68) must NOT be buffed.
+      // A gunner just outside the new aura (between new 45 and old 52) must NOT be buffed.
       const b = mk(null); b.x = 150; b.y = 150;
       towers.push(b);
-      const farGun  = { type:'gun', x:150+60, y:150, level:1, spec:null };  // 60px away (>52, was <68)
-      const nearGun = { type:'gun', x:150+45, y:150, level:1, spec:null };  // 45px away (still inside)
+      const farGun  = { type:'gun', x:150+48, y:150, level:1, spec:null };  // 48px away (>45, was <52)
+      const nearGun = { type:'gun', x:150+40, y:150, level:1, spec:null };  // 40px away (still inside)
       const farMult  = buffMultFor(farGun);
       const nearMult = buffMultFor(nearGun);
       backToMenu();
       return { baseRange, plainRange, netRange, farMult, nearMult };
     });
-    check('booster base range reduced to 52 (was 68; FEEDBACK −50% slice 2)',
-      r.baseRange === 52, `got ${r.baseRange}`);
-    check('plain aura range follows the reduced base', Math.abs(r.plainRange - 52) < 1e-6,
+    check('booster base range reduced to 45 (was 52; FEEDBACK −50% final slice, 90→45)',
+      r.baseRange === 45, `got ${r.baseRange}`);
+    check('plain aura range follows the reduced base', Math.abs(r.plainRange - 45) < 1e-6,
       `got ${r.plainRange}`);
-    check('Network spec still ×1.5 the (reduced) base', Math.abs(r.netRange - 52 * 1.5) < 1e-6,
+    check('Network spec still ×1.5 the (reduced) base', Math.abs(r.netRange - 45 * 1.5) < 1e-6,
       `got ${r.netRange}`);
-    check('tower at 60px is no longer buffed (was inside old 68 range)', Math.abs(r.farMult - 1) < 1e-9,
+    check('tower at 48px is no longer buffed (was inside old 52 range)', Math.abs(r.farMult - 1) < 1e-9,
       `mult=${r.farMult}`);
-    check('tower at 45px is still buffed (inside reduced range)', r.nearMult > 1 + 1e-9,
+    check('tower at 40px is still buffed (inside reduced range)', r.nearMult > 1 + 1e-9,
       `mult=${r.nearMult}`);
     check('no console errors during booster-range test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();

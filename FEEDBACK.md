@@ -5,22 +5,6 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[Low priority] Reduce the range of booster by 50% base. This helps make network better.
-
-  > _Progress (kept in PENDING — being cut gradually to respect the ≤25%/number/run guardrail):_
-  > - **v1.20.1 (2026-06-12)** — slice 1 of the −50%. Booster base aura range `90 → 68`
-  >   (−24.4%, inside the per-run balance cap; the full −50% would be 90→45). That's ~−43%
-  >   of the buffed *area*, so one booster reaches fewer towers — and the +50% **Network**
-  >   spec now matters more off the smaller base (your "makes network better" point). Also
-  >   chips at the "single tower + booster carries" complaint below. Save-safe (towers
-  >   rebuild range from base). Test [39]. See CHANGELOG v1.20.1.
-  > - **v1.24.1 (2026-06-12)** — slice 2 of the −50%. Booster base aura range `68 → 52`
-  >   (−23.5%, inside the per-run cap; ~−41% more area). Cumulative `90→68→52` leaves coverage
-  >   area at ~33% of the original (52²/90²) — already well under half. Network (+50% range) and
-  >   Booster Mastery now matter more off the smaller base. Save-safe. Test [39]. CHANGELOG v1.24.1.
-  > - **Still to do:** one more step `52 → ~45` lands the literal full −50% base (≤25%, sim/test).
-  >   Or, owner: say the word and I'll do the final `52→45` in one run.
-
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
   > _Progress (kept in PENDING — recurring, iterative; ≤25%/number per run):_
@@ -40,6 +24,8 @@ When it completes an item it moves it to DONE below with the date and version.
   >   if classic-normal still falls to opening-round money.
 
 ## DONE
+
+- **2026-06-12 · v1.24.3** — "[Low priority] Reduce the range of booster by 50% base. This helps make network better." → **Complete.** Done in three small slices to respect the ≤25%/number/run balance guardrail: booster base aura range `90 → 68` (v1.20.1) → `52` (v1.24.1) → **`45`** (v1.24.3, this run, −13.5%). `45 = 90 × 0.5` — the literal halving. Cumulative coverage **area** is now `45²/90² = 25%` of the original, so a single booster reaches roughly a quarter of the towers it used to — and the +50% **Network** spec (plus Booster Mastery) is a bigger relative jump off the smaller base, which was your stated goal ("makes network better"). Also chips at the "single gunner + maxed booster solo-carries" outlier from the coverage side (complements the v1.16.2 aura-power taper +75%→+65%). Save-safe (towers rebuild range from base; pure base-stat number, no economy/schema impact). Test [39] updated (base 45, plain/Network ranges, 48px-no-longer-buffed / 40px-still-buffed); suite green. See CHANGELOG v1.24.3.
 
 - **2026-06-12 · v1.24.0** — "[Low priority][external user] It would be cool if the spaces to place the turrets were more of a grid so you could line them up cleaner." → Tower placement now **snaps to a 32px grid** (cell centres), so towers line up into tidy rows/columns instead of scattering wherever the cursor landed. A **faint grid of slot dots** fades in while placing so you can see the alignment, and the preview ring sits exactly where the tower will land. The grid size equals the existing 32px minimum tower spacing, so adjacent cells stay buildable — you can still pack a clean wall of towers. A new **▦ Grid snap** toggle in ⚙ Settings (default **On**) switches it off for free-hand placement (`cd_gridsnap`, device pref). Selection still uses the raw cursor; only the placement target snaps. Cosmetic/UX only — no damage/economy/save impact. New test group [43]; suite 356/0 green; verified in-preview (snap math, grid-overlay render, toggle persistence, zero console errors).
 

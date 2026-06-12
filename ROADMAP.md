@@ -187,9 +187,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       scaling **+0.1 → +0.08** (base/L1 unchanged; maxed booster +75%→+65%, ~−6% buffed-
       tower dmg at L6 — sim: gunner 14.0→13.2). Test [33]. **The aura *range* is being cut
       toward the owner's −50%:** `90→68` (v1.20.1, slice 1) then `68→52` (v1.24.1, slice 2) —
-      cumulative coverage area now ~33% of the original (52²/90²), so a single booster reaches
-      far fewer towers, hitting the solo-carry from the coverage side (Test [39]; final step
-      `52→45` queued in FEEDBACK lands the literal halving). **Remaining power levers** (≤25%
+      then `52→45` (v1.24.3, final slice) — `45 = 90×0.5`, the **literal halving complete**;
+      cumulative coverage area is now 25% of the original (45²/90²), so a single booster reaches
+      far fewer towers, hitting the solo-carry from the coverage side (Test [39]; FEEDBACK item
+      now closed). **Remaining power levers** (≤25%
       each, sim first): trim **Frost Mastery**'s per-rank dmg, or add a **booster aura
       soft-cap** if a single super-booster still solo-carries. Don't gut any single build.
 - [~] **Interest/economy curve review** — verify gold pacing across difficulties

@@ -3,6 +3,30 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.24.3 — 2026-06-12 — 🎯 Booster aura-range cut, final slice (52→45)
+
+**Closes the FEEDBACK item** *"Reduce the range of booster by 50% base. This helps make network better."*
+The Booster's aura is the circle within which it grants its +25% damage buff (`effBuffRange`); cutting its
+radius makes one booster reach fewer towers, so the +50% **Network** spec (and Booster Mastery) matter more
+off the smaller base — exactly the owner's goal.
+
+- **Change:** `TOWER_TYPES.buff.range` **52 → 45** (`cd-defs.js`). −13.5% this run (inside the ≤25%/number/run
+  cap). This is the **third and final slice** of the −50% request: across the three runs the base has gone
+  **90 → 68 (v1.20.1) → 52 (v1.24.1) → 45 (this run)** — `45 = 90 × 0.5`, the literal halving.
+- **Cumulative effect:** coverage **area** is now `45²/90² = 25%` of the original — a single booster blankets
+  roughly a quarter of the towers it used to, chipping the "one gunner + maxed booster solo-carries" outlier
+  from the coverage side (complements the v1.16.2 aura-*power* taper +75%→+65%).
+- **`effBuffRange(t) = t.range × (network?1.5:1) × (1 + 0.02·mastery_buff)`** — unchanged; only the base shrank.
+  Network now reaches `45×1.5 = 67.5` (vs the plain `45`), so the spec is a bigger relative jump than ever.
+- **Save-safe:** fresh placement (`cd-game.js`) and the `loadRun` rebuild (`cd-state.js`) both read `def.range`,
+  so resumed boosters just adopt the new radius. No economy/schema impact (pure base-stat number).
+- **Files:** `cd-defs.js` (`buff.range` 52→45), `cd-core.js` (version + changelog entry).
+- **Tests:** group **[39]** updated — base is now 45, plain/Network aura ranges follow, a tower at **48px**
+  (inside the old 52 aura, outside the new 45) is no longer buffed, and one at **40px** still is. Subagent
+  ran the suite → green. FEEDBACK item moved to DONE.
+
+---
+
 ## v1.24.2 — 2026-06-12 — 🩺 Health check
 
 **Every-6th-run maintenance pass** (resets the 5-run counter; 5 entries since the v1.20.2 health
