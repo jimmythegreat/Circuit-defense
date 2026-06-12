@@ -174,15 +174,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
 ## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
 
 _Still-unaddressed, in priority order: **colorblind-safe palette** → gamepad → PWA
-install → **high-DPI canvas** → **menu keyboard a11y** (all confirmed still open at the
-v1.16.4 health check — none regressed, none newly closed since v1.15.0). Done: document
-metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive layout
-(v1.14.0)**, **mobile board sizing + What's New default-collapse (v1.15.0)**, **touch/pointer
-controls (v1.16.3)** — canvas board interaction (place/select/aim) is now `pointerdown`-driven
-with a touch-generous tap radius + `touch-action:none`. v1.14.1 visual pass confirmed desktop &
-phone menus all render correctly; the remaining mobile polish is just bigger HTML button targets
-if wanted. **Next normal run's strongest table-stakes pick: high-DPI canvas scaling** (pure
-rendering crispness, no save/gameplay impact, self-contained) or **colorblind-safe palette**._
+install → **menu keyboard a11y** (all confirmed still open at the v1.16.4 health check).
+Done: document metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2),
+**responsive layout (v1.14.0)**, **mobile board sizing + What's New default-collapse (v1.15.0)**,
+**touch/pointer controls (v1.16.3)** — canvas board interaction (place/select/aim) is now
+`pointerdown`-driven with a touch-generous tap radius + `touch-action:none` — and **high-DPI
+canvas scaling (v1.17.0)** — the backing store now scales with `devicePixelRatio` (capped 2×) so
+the board is crisp on Retina/4K/scaled displays. v1.14.1 visual pass confirmed desktop & phone
+menus all render correctly; the remaining mobile polish is just bigger HTML button targets if
+wanted. **Next normal run's strongest table-stakes pick: colorblind-safe palette** (enemy kinds &
+combo tiers lean on hue; add a shape/contrast-coded mode) or **menu keyboard a11y**._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
@@ -214,13 +215,16 @@ rendering crispness, no save/gameplay impact, self-contained) or **colorblind-sa
 - [x] **Volume slider** — shipped v1.13.2. 0–100 master Volume in the ⚙ Settings panel;
       all audio routes through a master GainNode (`masterGain()`), `setVolume()` scales it
       and persists `cd_vol` (default 0.7). Independent of mute. Test [25].
-- [ ] **High-DPI (devicePixelRatio) canvas scaling** (new, v1.13.4 audit) — the canvas is a
-      fixed 900×560 backing store; on Retina / 4K / 150%-scaled Windows displays the browser
-      upsamples it, so towers/text render slightly blurry. Standard fix: size the backing
-      store to `cssW*dpr × cssH*dpr`, keep the CSS box at 900×560, and `ctx.scale(dpr,dpr)`
-      once. Must re-derive click coords from `getBoundingClientRect()` (already does) so input
-      stays correct, and guard `dpr=1` fallback. Pure rendering crispness — no gameplay/save
-      impact. Watch perf on huge dpr (cap at ~2).
+- [x] **High-DPI (devicePixelRatio) canvas scaling** — shipped **v1.17.0**. `cd-core.js`
+      captures logical `W`/`H` (900×560) from the canvas attributes *before* resizing, then
+      `DPR = clamp(devicePixelRatio,1,2)` and `if (DPR>1) { cv.width=W·DPR; cv.height=H·DPR;
+      ctx.scale(DPR,DPR) }` once at load — the scale persists (draw() never resets the transform).
+      CSS `canvas { width:900px }` pins the displayed box to logical size so the bigger backing
+      store doesn't enlarge the canvas (`height:auto` keeps the ratio; landscape `#game{width:auto}`
+      overrides). Input derives from `getBoundingClientRect()` so it stays correct; dpr=1 skips the
+      block entirely (byte-identical on standard displays + headless tests). Test [35]. Follow-up:
+      *re-render-on-dpr-change* if a window is dragged between monitors of different scale (rare;
+      the page would need a reload today).
 - [ ] **Menu / panel keyboard accessibility** (new, v1.13.4 audit) — gameplay has rich
       hotkeys, but the start-screen panels (Talents, Achievements, Records, Settings, What's
       New, draft cards) are mouse-only: no focus trapping, no Esc-to-close on the panels, no

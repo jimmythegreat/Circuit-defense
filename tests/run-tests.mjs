@@ -1710,6 +1710,59 @@ async function main() {
     await page.close();
   }
 
+  console.log('\n[35] High-DPI canvas scaling (v1.17.0)');
+  {
+    // Standard 1× display: backing store stays logical, behaviour byte-identical.
+    const { page, consoleErrors } = await newPage(browser);
+    const one = await page.evaluate(() => ({
+      dpr: window.devicePixelRatio, DPR, W, H,
+      cvW: cv.width, cvH: cv.height,
+      // a known transform-sensitive draw: scale identity at dpr=1
+      a: ctx.getTransform().a, d: ctx.getTransform().d,
+      cssWidth: getComputedStyle(cv).width,
+    }));
+    check('1× display: DPR resolves to 1', one.DPR === 1, JSON.stringify(one));
+    check('1× display: backing store stays logical W×H', one.cvW === one.W && one.cvH === one.H,
+      `${one.cvW}×${one.cvH}`);
+    check('1× display: context transform is unscaled (a=d=1)', one.a === 1 && one.d === 1);
+    check('no console errors on 1× display', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+
+    // 2× (Retina-class) display: backing store doubles, context scaled, CSS box
+    // unchanged, game still drives a wave with no errors.
+    const ctx2 = await browser.newContext({ deviceScaleFactor: 2 });
+    const hdErrors = [];
+    const page2 = await ctx2.newPage();
+    page2.on('console', (msg) => { if (msg.type() === 'error') hdErrors.push(msg.text()); });
+    page2.on('pageerror', (err) => hdErrors.push('pageerror: ' + err.message));
+    await page2.addInitScript(() => { try { localStorage.setItem('cd_mute', '1'); } catch (e) {} });
+    await page2.goto(GAME_URL, { waitUntil: 'load' });
+    await page2.evaluate(INSTALL_DRIVER);
+    const two = await page2.evaluate(() => {
+      const t = ctx.getTransform();
+      const cssBox = { w: getComputedStyle(cv).width, h: getComputedStyle(cv).height };
+      // Logical coords must be intact (paths/clicks use W/H, not cv.width).
+      const logicalOK = W === 900 && H === 560;
+      // Drive a quick wave to prove the scaled context renders without throwing.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; campLevel = 1;
+      beginGame(); gold = 1e9; __cdGodTowers(6);
+      const res = __cdDrive({ maxWave: 3 });
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { dpr: window.devicePixelRatio, DPR, cvW: cv.width, cvH: cv.height,
+               ta: t.a, td: t.d, cssBox, logicalOK, wave: res.wave };
+    });
+    check('2× display: DPR caps at 2', two.DPR === 2, JSON.stringify(two));
+    check('2× display: backing store is W·dpr × H·dpr', two.cvW === 1800 && two.cvH === 1120,
+      `${two.cvW}×${two.cvH}`);
+    check('2× display: context scaled by dpr (a=d=2)', two.ta === 2 && two.td === 2);
+    check('2× display: CSS display box stays logical 900px', two.cssBox.w === '900px', two.cssBox.w);
+    check('2× display: logical W/H untouched at 900×560', two.logicalOK);
+    check('2× display: game still drives waves on scaled context', two.wave >= 3, `wave=${two.wave}`);
+    check('no console errors on 2× display', hdErrors.length === 0, hdErrors.join(' | '));
+    await page2.close();
+    await ctx2.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

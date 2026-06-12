@@ -3,6 +3,34 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.17.0 — 2026-06-12 — High-DPI canvas scaling (table-stakes, ROADMAP)
+
+**What & why.** The strongest open table-stakes item (flagged in the v1.16.4 health-check
+audit): the canvas was a fixed 900×560 backing store, so on Retina / 4K / 150%-scaled Windows
+displays the browser upsamples it and towers/text/enemies render slightly soft. Now the backing
+store is sized to `W·dpr × H·dpr` (dpr capped at 2) and the 2D context is scaled once at
+load, so every existing draw call keeps using logical `0..900 / 0..560` coords while the pixels
+are crisp.
+
+**How (self-contained, save-safe, no gameplay impact).**
+- `cd-core.js`: `W`/`H` are captured from the canvas attributes (900×560) **before** any resize,
+  so they stay the logical coordinate space regardless of dpr. A new `DPR = clamp(devicePixelRatio,1,2)`
+  guards `if (DPR > 1) { cv.width = W·DPR; cv.height = H·DPR; ctx.scale(DPR,DPR); }`. The scale
+  persists across frames — `draw()` wraps everything in `ctx.save()/restore()` and never resets
+  the transform, so the base scale is preserved. At **dpr=1 the block is skipped entirely**, so
+  standard displays (and the headless test harness) are byte-identical.
+- `tower-defense.css`: the `canvas` rule gains `width: 900px` so the **displayed** box stays the
+  logical size even when the backing store doubles (`height:auto` keeps the 900:560 ratio,
+  `max-width` still scales it on phones, and the landscape `#game { width:auto }` rule overrides it
+  for the height-bound landscape layout).
+- **Input unaffected:** pointer/click coords are derived from `getBoundingClientRect()`, which
+  reflects the displayed CSS box (still 900-logical), not the backing store.
+
+**Tests.** New group **[35]**: a 1× page (backing store stays 900×560, transform unscaled) and a
+real `deviceScaleFactor: 2` context (backing store 1800×1120, context `a=d=2`, CSS box still
+`900px`, logical `W/H` untouched, a 3-wave run drives without throwing). Suite **283/0** green.
+Verified in-preview: v1.17.0 loads, a 10-second update+draw run produces no console errors.
+
 ## v1.16.4 — 2026-06-12 — 🩺 Health check
 
 **Every-6th-run maintenance pass** (5 version entries since the v1.14.1 health check: v1.15.0,

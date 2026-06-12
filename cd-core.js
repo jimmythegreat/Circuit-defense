@@ -1,7 +1,26 @@
 'use strict';
 const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
+// Logical board size — captured from the HTML attributes (900×560) BEFORE any
+// high-DPI resize below, so all game logic (paths, coords, clicks) stays in this
+// fixed logical space no matter the device pixel ratio.
 const W = cv.width, H = cv.height;
+
+// High-DPI canvas (v1.17.0): the backing store defaults to the logical W×H, so on
+// Retina / 4K / 150%-scaled Windows displays the browser upsamples it and towers /
+// text render slightly soft. Size the backing store to W·dpr × H·dpr and scale the
+// context once, so every draw call keeps using logical 0..W / 0..H coords while the
+// pixels are crisp. The CSS pins the display box to the logical size (canvas rule
+// `width:900px; height:auto`), so this never changes layout. dpr is capped at 2 to
+// bound the fill cost on huge ratios, and skipped entirely at dpr=1 (standard
+// displays + the headless test harness → byte-identical behaviour). Input is
+// unaffected: pointer/click coords are derived from getBoundingClientRect().
+const DPR = Math.max(1, Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1));
+if (DPR > 1) {
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  ctx.scale(DPR, DPR);   // persists across frames — draw() never resets the transform
+}
 
 // Accessibility: honour the OS "reduce motion" setting — when on, the render loop
 // skips screen-shake (the most motion-sensitive effect). Read live so toggling the
@@ -28,10 +47,11 @@ let particleDensity = (() => {
 })();
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.16.4';
+const GAME_VERSION = 'v1.17.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.17.0', date: '2026-06-12', time: '18:15 EDT', body: "Sharper graphics on high-resolution screens (Retina, 4K, and Windows display scaling like 125%/150%). The game board was drawn at a fixed resolution and then stretched to fit your screen, so on a high-DPI display the towers, enemies and text looked a little soft. It now draws at your screen's true pixel density (up to 2×), so everything is crisp — while staying exactly the same size and playing identically. No effect on gameplay, balance, controls or saves; on a standard 1× display nothing changes at all." },
   { v: 'v1.16.4', date: '2026-06-12', time: '16:45 EDT', body: "🩺 Health check (every-6th-run maintenance pass — no gameplay changes). Full test suite green (272/0, zero console errors); all eight code files comfortably within the size limit (largest is ~656 lines vs the ~1500 cap); every documented formula re-verified against the actual code (scoring, enemy-HP scaling, the economy trim, the booster-aura taper, the touch radius) — all matched. Old saves confirmed to still load via the migration defaults (an old meta with no achievements/stats and an old run with no map-theme both loaded cleanly), and double-click/offline play re-verified. Tidied the docs: the project's root redirect page (index.html → tower-defense.html, used by the hosted version) is now documented. The remaining 'polished-browser-game' gaps — colourblind-safe palette, gamepad support, high-DPI crispness and menu keyboard navigation — are still on the roadmap for future updates." },
   { v: 'v1.16.3', date: '2026-06-12', time: '15:30 EDT', body: "Touch controls: tapping the board on a phone is now reliable. Two things were fighting you. First, the spot you tap to select a tower was sized for a mouse — on a phone the board is shrunk to fit, so an on-screen tower was only about a 7-pixel target, easy to miss. On touch devices the tap area around each tower is now much more forgiving (it still can't accidentally grab a tower when you meant to place a new one beside it). Second, the board now reacts the instant you press instead of waiting for the browser's tap-release (which some mobile browsers delay by a fraction of a second), so placing towers, aiming the meteor and opening the upgrade menu all feel snappier — on mouse and touch alike. The board also no longer scrolls or pinch-zooms the page out from under you while you're tapping on it. Desktop play is unchanged." },
   { v: 'v1.16.2', date: '2026-06-12', time: '14:05 EDT', body: "Balance: cooled the 'one maxed booster carries the whole run' problem (your campaign-6-on-hard note — beaten with a single gunner + a maxed booster). A booster's aura used to grow +10% damage per level (up to +75% at max); it now grows +8% per level instead. A low-level booster is completely unchanged — the trim only kicks in as you pour money into one, where a maxed booster now gives +65% instead of +75%, so a buffed tower does about 6% less at max. Small and deliberate (it shouldn't gut a real multi-tower build), just enough to make a single super-booster a bit less of an auto-win. A resumed run keeps the exact same booster power. More tower-power tuning to come if the solo-carry is still too strong." },

@@ -40,6 +40,12 @@
     border-radius: 8px;
     display: block;
     cursor: crosshair;
+    /* Pin the display box to the logical board size. With high-DPI the JS sizes the
+       backing store to 900·dpr × 560·dpr (v1.17.0); this keeps the on-screen box at
+       900px (height:auto preserves the 900:560 backing aspect ratio), so a 2× backing
+       store doesn't render the canvas at double size. Responsive max-width still caps
+       it on phones, and the landscape #game rule (width:auto) overrides this. */
+    width: 900px;
     max-width: calc(100vw - 16px);
     height: auto;
     touch-action: none;   /* board taps place/aim — don't let them scroll or pinch-zoom the page (v1.16.3) */
