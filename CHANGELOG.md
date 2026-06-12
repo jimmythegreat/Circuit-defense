@@ -3,6 +3,43 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.23.0 — 2026-06-12 — 🎇 New tower: Mortar (long-range armor-ignoring siege)
+
+**What & why.** ROADMAP "Next up (high value) → New tower: arc/chain or mortar — a 7th/8th tower with
+a distinct role" (the top unchecked high-value item). Added the **Mortar** (🎇), the 8th tower: a
+**long-range, slow-firing lobbed AoE that completely ignores enemy armor**. It fills a clear gap —
+a dedicated siege/anti-armor piece distinct from the Cannon (mid-range, faster, armor-respecting
+direct splash) and Sniper (single-target). Its niche is the heavily-armored crowd (shield/tank/boss),
+which normally shrugs off part of every hit; the Mortar lands full damage on them from across the board.
+
+**Balance stance (re: recurring "too easy" feedback).** Deliberately a **side-grade, not power creep**.
+Stats: cost 175, range 225, dmg 28, rate 2.0 → ~14 DPS — *lower* than the Cannon's ~22 DPS, so against
+ordinary unarmored enemies a Cannon still out-damages it. The Mortar only pulls ahead on armored targets
+(where it bypasses the reduction). The slow reload is the balancing lever — it favours heavy single shots
+over sustained fire. No existing number changed (new content, not a swing), so it stays inside the
+≤25%/number guardrail trivially.
+
+**How.**
+- `cd-defs.js`: `TOWER_TYPES.mortar` (proj `'mortar'`); `SPECS.mortar` = **Demolisher** (+35% dmg) /
+  **Saturation** (+55% blast radius); `TALENTS.mastery_mortar` (+6% dmg & +2% range/rank, like the other
+  per-tower masteries — auto-wires via `effDmg`/`effRange`'s `mastery_<type>` lookup).
+- `cd-game.js` `effDmg()`: Demolisher `+35%` (`t.spec === 'demo'`).
+- `cd-update.js`: firing sets `ignoreArmor: … || t.type === 'mortar'` and a slow lob speed (200 vs bomb 260);
+  new `hitEnemy` branch — armor-ignoring blast (radius 46 × Saturation 1.55 × `splashMult`), sandy burst +
+  reused boom; `SFX.mortar()` launch sound.
+- `cd-render.js`: heavy shells (`bomb`|`mortar`) draw the chunkier trail/orb.
+- `cd-core.js`: `SFX.mortar()` (hollow tube thunk + rising whistle; impact reuses `bomb()`).
+- `tower-defense.html`: hotkey hint `1–7` → `1–8` (shop/hotkeys/placement/spec/save all auto-generate
+  from `TYPE_KEYS`/`TOWER_TYPES`).
+
+**Save-safe.** Fully additive — `loadRun()` rebuilds any tower generically from `TOWER_TYPES[type]` and skips
+unknown types, `loadMeta()` defaults the new `mastery_mortar` talent to 0. An old save with no Mortar loads
+byte-identically.
+
+**Tests.** New group **[42]** — definition/specs/mastery wired, Mortar button auto-renders in the shop,
+Demolisher = +35% via `effDmg`, blast ignores armor (full dmg vs an armored target vs a reduced bullet),
+AoE hits a cluster, `SFX.mortar` exists, and a placed Mortar (level/spec/mode) save→resume round-trips.
+
 ## v1.22.0 — 2026-06-12 — 🩸 New legendary perk: Last Stand (comeback damage)
 
 **What & why.** ROADMAP "Content & variety → A secret / easter-egg legendary perk with a quirky

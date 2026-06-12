@@ -40,8 +40,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       its blink clock. Render-translucent with a 👻 glyph + `SFX.blink` whoosh.
       Test group [14]. Follow-ups: *a phantom-heavy Mayhem wave modifier*, and a
       tower spec tuned to counter blinkers (e.g. predictive lead-shot).
-- [ ] **New tower: "arc/chain" or "mortar"** — a 7th/8th tower with a distinct
-      role (chain-lightning bounce, or lobbed AoE that ignores armor).
+- [x] **New tower: "mortar"** — shipped **v1.23.0**. The 🎇 **Mortar** (8th tower, hotkey 8):
+      a long-range (225), slow-firing (rate 2.0), lobbed **AoE that ignores armor** — a back-line
+      siege/anti-armor piece distinct from the Cannon (mid-range armor-respecting splash). Deliberately
+      a side-grade vs power creep: ~14 DPS (< Cannon's ~22), so it only out-performs on *armored*
+      targets — keeping the "too easy" feedback in mind. Specs at L5: **Demolisher** (+35% dmg) /
+      **Saturation** (+55% blast radius); plus a **Mortar Mastery** talent (auto-wires via the
+      `mastery_<type>` lookup). Save-safe (additive; `loadRun` rebuilds any type generically).
+      Test [42]. **Follow-ups:** the **arc/chain** tower is still open (chain-lightning that bounces —
+      a swarm counter, distinct from Tesla's fixed chain); and a *visual arc* for the lobbed shell
+      (currently homes straight like the bomb) would sell the artillery feel.
 - [ ] **Daily challenge seed** — a deterministic map+modifier set keyed off the
       date, with its own best-score key. (Offline-safe: derive from local date.)
 

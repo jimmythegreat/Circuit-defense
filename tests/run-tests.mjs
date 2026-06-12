@@ -2110,6 +2110,91 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 42: Mortar tower (new 8th tower — long-range armor-ignoring AoE) ----
+  console.log('\n[42] Mortar tower');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // definitions present & wired
+      const def = TOWER_TYPES.mortar;
+      const defOk = !!def && def.proj === 'mortar' && def.range > 200 && def.dmg > 0;
+      const specsOk = Array.isArray(SPECS.mortar) && SPECS.mortar.length === 2
+        && SPECS.mortar.some(s => s.id === 'demo') && SPECS.mortar.some(s => s.id === 'saturate');
+      const masteryOk = !!TALENTS.mastery_mortar && TALENTS.mastery_mortar.sect === 'TOWER MASTERY';
+      const inShopKeys = TYPE_KEYS.includes('mortar');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      // shop renders a mortar button (auto-generated from TYPE_KEYS)
+      const shopHasMortar = !!document.querySelector('#shop') &&
+        Array.prototype.some.call(document.querySelectorAll('.towerBtn'), b => /Mortar/.test(b.textContent));
+
+      // Demolisher spec adds +35% damage via effDmg
+      const m = { type:'mortar', x:300, y:300, level:1, spec:null, dmg:100, rate:2, range:225,
+                  dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0 };
+      const dBase = effDmg(m);
+      m.spec = 'demo';
+      const dDemo = effDmg(m);
+      const demoOk = Math.abs(dDemo - dBase * 1.35) < 1e-6;
+      m.spec = null;
+
+      // Armored enemy takes FULL mortar damage (armor ignored). Compare a mortar blast
+      // vs a plain bullet of identical raw dmg against the same armored target.
+      towers.length = 0; towers.push(m);
+      const mkArmored = () => ({ x:300, y:300, r:12, hp:1000, maxHp:1000, armor:50, dead:false,
+                                 flash:0, kind:'shield', blinkInvuln:0, bounty:1 });
+      const arm1 = mkArmored(); enemies.length = 0; enemies.push(arm1);
+      // mortar projectile (ignoreArmor forced true at hitEnemy)
+      hitEnemy({ target: arm1, dmg: 100, kind:'mortar', src: m, crit:false, ignoreArmor:true, color:def.color });
+      const mortarDealt = 1000 - arm1.hp;     // expect ~100 (armor bypassed)
+      const arm2 = mkArmored(); enemies.length = 0; enemies.push(arm2);
+      // a normal bullet of the same dmg against armor 50 → heavily reduced
+      hitEnemy({ target: arm2, dmg: 100, kind:'bullet', src: m, crit:false, ignoreArmor:false, color:'#58a6ff' });
+      const bulletDealt = 1000 - arm2.hp;
+      const ignoresArmor = mortarDealt > bulletDealt + 1 && Math.abs(mortarDealt - 100) < 1;
+
+      // AoE: a single mortar blast hits multiple clustered enemies
+      enemies.length = 0;
+      const cluster = [];
+      for (let i = 0; i < 3; i++) { const e = { x:300 + i*12, y:300, r:11, hp:500, maxHp:500, armor:0,
+        dead:false, flash:0, kind:'norm', blinkInvuln:0, bounty:1 }; cluster.push(e); enemies.push(e); }
+      hitEnemy({ target: cluster[0], dmg: 60, kind:'mortar', src: m, crit:false, ignoreArmor:true, color:def.color });
+      const splashHits = cluster.filter(e => e.hp < 500).length;
+
+      // SFX hook exists
+      const sfxOk = typeof SFX.mortar === 'function';
+
+      // save/resume round-trips a placed mortar (rebuilt generically from TOWER_TYPES)
+      towers.length = 0;
+      towers.push({ type:'mortar', x:250, y:250, level:3, spec:'saturate', mode:'last',
+        invested:300, dealt:42, kills:2, range:def.range*Math.pow(1.08,2), dmg:def.dmg*Math.pow(1.45,2),
+        rate:def.rate*Math.pow(0.88,2), cd:0, baseCost:def.cost, angle:0, buffPower:0.25, flash:0 });
+      wave = 2; lives = 20; gold = 100; waveActive = false;
+      saveRun();
+      towers.length = 0;
+      const loaded = loadRun();
+      const rt = towers.find(t => t.type === 'mortar');
+      const roundTrips = loaded === true && !!rt && rt.level === 3 && rt.spec === 'saturate' && rt.mode === 'last';
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { defOk, specsOk, masteryOk, inShopKeys, shopHasMortar, demoOk,
+               mortarDealt, bulletDealt, ignoresArmor, splashHits, sfxOk, roundTrips };
+    });
+    check('Mortar definition wired (proj/range/dmg)', r.defOk);
+    check('Mortar has 2 specs (Demolisher + Saturation)', r.specsOk);
+    check('Mortar Mastery talent exists', r.masteryOk);
+    check('Mortar is in the shop tower keys', r.inShopKeys);
+    check('Mortar button rendered in the shop', r.shopHasMortar);
+    check('Demolisher spec = +35% damage', r.demoOk);
+    check('Mortar blast ignores armor (full dmg vs armored)', r.ignoresArmor,
+      `mortar=${r.mortarDealt} bullet=${r.bulletDealt}`);
+    check('Mortar blast is AoE (hits clustered enemies)', r.splashHits >= 2, `hits=${r.splashHits}`);
+    check('SFX.mortar launch sound exists', r.sfxOk);
+    check('placed Mortar save/resume round-trips', r.roundTrips);
+    check('no console errors during Mortar test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

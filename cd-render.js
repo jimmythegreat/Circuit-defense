@@ -417,23 +417,24 @@ function draw() {
 
   // projectiles with motion trails
   for (const p of projectiles) {
+    const big = p.kind === 'bomb' || p.kind === 'mortar';   // heavy shells draw a chunkier trail/orb
     const pdx = p.target.x - p.x, pdy = p.target.y - p.y;
     const pdd = Math.hypot(pdx, pdy) || 1;
-    const trailLen = p.kind === 'bomb' ? 18 : 13;
+    const trailLen = big ? 18 : 13;
     const tx = p.x - pdx/pdd * trailLen, ty = p.y - pdy/pdd * trailLen;
     const tg = ctx.createLinearGradient(tx, ty, p.x, p.y);
     tg.addColorStop(0, 'rgba(0,0,0,0)');
     tg.addColorStop(1, p.color);
     ctx.strokeStyle = tg;
-    ctx.lineWidth = p.kind === 'bomb' ? 5 : 3;
+    ctx.lineWidth = big ? 5 : 3;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(tx, ty);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.kind === 'bomb' ? 6 : 3.5, 0, Math.PI*2);
-    const pg = ctx.createRadialGradient(p.x - 1.5, p.y - 1.5, 0.5, p.x, p.y, p.kind === 'bomb' ? 6 : 3.5);
+    ctx.arc(p.x, p.y, big ? 6 : 3.5, 0, Math.PI*2);
+    const pg = ctx.createRadialGradient(p.x - 1.5, p.y - 1.5, 0.5, p.x, p.y, big ? 6 : 3.5);
     pg.addColorStop(0, '#fff');
     pg.addColorStop(1, p.color);
     ctx.fillStyle = pg;

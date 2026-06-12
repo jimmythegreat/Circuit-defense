@@ -22,6 +22,7 @@ const TALENTS = {
   mastery_cannon: { sect:'TOWER MASTERY', name:'Cannon Mastery', icon:'💣', max:5, cost: r => 4 + r*4, desc: r => `Cannons +${6*r}% dmg, +${2*r}% range` },
   mastery_tesla:  { sect:'TOWER MASTERY', name:'Tesla Mastery',  icon:'⚡', max:5, cost: r => 4 + r*4, desc: r => `Teslas +${6*r}% dmg, +${2*r}% range` },
   mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 4 + r*4, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
+  mastery_mortar: { sect:'TOWER MASTERY', name:'Mortar Mastery', icon:'🎇', max:5, cost: r => 4 + r*4, desc: r => `Mortars +${6*r}% dmg, +${2*r}% range` },
   mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 4 + r*4, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
 };
 let meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
@@ -106,6 +107,7 @@ const TOWER_TYPES = {
   cannon: { name:'Cannon', icon:'💣', cost:150, range:130, dmg:26,  rate:1.2,  color:'#ffd866', proj:'bomb',   desc:'Splash damage' },
   tesla:  { name:'Tesla',  icon:'⚡', cost:200, range:120, dmg:14,  rate:0.7,  color:'#d2a8ff', proj:'chain',  desc:'Chains 3 targets' },
   poison: { name:'Poison', icon:'☣️', cost:90,  range:105, dmg:7,   rate:0.8,  color:'#3fb950', proj:'poison', desc:'DoT + corrodes armor', tip:'Stacking damage-over-time. Each hit also corrodes −3 enemy armor (down to 0), stripping shield/armored/boss defenses so your whole team hits harder.' },
+  mortar: { name:'Mortar', icon:'🎇', cost:175, range:225, dmg:28,  rate:2.0,  color:'#b0894f', proj:'mortar', desc:'Long-range AoE · ignores armor', tip:'Lobs an explosive shell that detonates in an area and IGNORES enemy armor entirely — a back-line siege piece against shielded/armored packs and bosses. Slow to reload, so it favours single heavy shots over sustained DPS.' },
   buff:   { name:'Booster',icon:'📡', cost:100, range:68,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
@@ -120,6 +122,7 @@ const SPECS = {
   cannon: [ {id:'mega',    name:'Mega Blast',   desc:'+60% splash & +15% dmg'},  {id:'cluster',  name:'Cluster Bomb', desc:'+50% damage'} ],
   tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets'},       {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
   poison: [ {id:'virulent',name:'Virulent',     desc:'Poison DPS ×2'},           {id:'lingering',name:'Lingering',    desc:'Poison duration ×2'} ],
+  mortar: [ {id:'demo',    name:'Demolisher',   desc:'+35% damage'},             {id:'saturate', name:'Saturation',   desc:'+55% blast radius'} ],
   buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
 };
 function specOf(t) {

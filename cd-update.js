@@ -138,12 +138,13 @@ function update(dt) {
       projectiles.push({
         x: t.x + Math.cos(t.angle)*14, y: t.y + Math.sin(t.angle)*14,
         target, dmg, kind: def.proj, src: t, crit,
-        ignoreArmor: t.spec === 'ap',
-        color: def.color, spd: def.proj === 'bomb' ? 260 : 480
+        ignoreArmor: t.spec === 'ap' || t.type === 'mortar',  // mortar shells always ignore armor
+        color: def.color, spd: def.proj === 'bomb' ? 260 : def.proj === 'mortar' ? 200 : 480
       });
       if (t.type === 'sniper') SFX.snipe();
       else if (t.type === 'frost') SFX.frost();
       else if (t.type === 'poison') SFX.poison();
+      else if (t.type === 'mortar') SFX.mortar();
       else SFX.shoot();
     }
   }
@@ -244,6 +245,19 @@ function hitEnemy(p) {
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
       if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg, p.src, false, p.ignoreArmor);
+    }
+  } else if (p.kind === 'mortar') {
+    // Lobbed siege shell: an armor-ignoring blast (p.ignoreArmor is forced true at
+    // launch). Saturation spec widens the radius; damage already includes the
+    // Demolisher spec via effDmg(). Distinct sandy burst + a heavier boom + shake.
+    SFX.bomb();
+    shake = Math.max(shake, 4);
+    const radius = 46 * perkState.splashMult * (p.src && p.src.spec === 'saturate' ? 1.55 : 1);
+    addExplosion(p.target.x, p.target.y, p.color, 16, 150);
+    addExplosion(p.target.x, p.target.y, '#ffd866', 8, 90);
+    for (const e of enemies) {
+      if (e.x === undefined || e.dead) continue;
+      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg, p.src, false, true);
     }
   } else if (p.kind === 'poison') {
     let dur = perkState.poisonDur;
