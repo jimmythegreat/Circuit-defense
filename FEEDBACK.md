@@ -14,9 +14,12 @@ When it completes an item it moves it to DONE below with the date and version.
   >   spec now matters more off the smaller base (your "makes network better" point). Also
   >   chips at the "single tower + booster carries" complaint below. Save-safe (towers
   >   rebuild range from base). Test [39]. See CHANGELOG v1.20.1.
-  > - **Still to do:** continue toward 45 over the next couple of runs (next step e.g.
-  >   68→52, then 52→45, each ≤25%). Or, owner: say the word and I'll do the full 90→45
-  >   in one run.
+  > - **v1.24.1 (2026-06-12)** — slice 2 of the −50%. Booster base aura range `68 → 52`
+  >   (−23.5%, inside the per-run cap; ~−41% more area). Cumulative `90→68→52` leaves coverage
+  >   area at ~33% of the original (52²/90²) — already well under half. Network (+50% range) and
+  >   Booster Mastery now matter more off the smaller base. Save-safe. Test [39]. CHANGELOG v1.24.1.
+  > - **Still to do:** one more step `52 → ~45` lands the literal full −50% base (≤25%, sim/test).
+  >   Or, owner: say the word and I'll do the final `52→45` in one run.
 
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 

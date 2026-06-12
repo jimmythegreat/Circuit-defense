@@ -3,6 +3,32 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.24.1 — 2026-06-12 — 🎯 Booster aura-range cut, slice 2 (68→52)
+
+**What & why.** FEEDBACK PENDING item #1 (first pending, owner: *"[Low priority] Reduce the range of
+booster by 50% base. This helps make network better."*). All current PENDING items are `[Low priority]`,
+so the routine leaves the pick open, but this is an explicitly-queued, mid-progress owner request with a
+defined next slice (v1.20.1 noted "next step e.g. 68→52"), and it also chips at the recurring **"too easy /
+single-tower-carries"** complaint. This run takes the second slice: `TOWER_TYPES.buff.range` **68 → 52**.
+
+**Sizing.** −23.5% this run (inside the ≤25%/number/run guardrail). The aura is a circle, so this is
+~**−41% of the covered area** at 52 vs 68. Cumulative with the original `90 → 68 → 52`, a booster's coverage
+area is now **~33% of the original** (52²/90² ≈ 0.33) — well under half, matching the spirit of the owner's
+"−50% base" ask (final step `52 → ~45` will land the literal halving next run).
+
+**Effect.** One booster can no longer blanket a sprawling defense, so it's placed deliberately near key
+towers (or you build a second), and the **Network** spec (+50% range, the "makes network better" point) and
+**Booster Mastery** range matter more off the smaller base. `effBuffRange(t) = t.range × (network?1.5:1) ×
+(1 + 0.02·mastery_buff)` is unchanged — only the base feeding it shrank.
+
+**Scope / safety.** Save-safe: fresh placement (`cd-game.js`) and `loadRun`'s rebuild (`cd-state.js`,
+`range: def.range × 1.08^(lvl-1)`) both read `def.range`, so resumed boosters pick up the new radius with no
+migration. No damage/economy/save-schema impact.
+
+- **Files:** `cd-defs.js` (`buff.range` 68→52), `cd-core.js` (version + changelog entry).
+- **Tests:** group **[39]** updated — base is now 52, plain/Network ranges follow, a tower at **60px** (inside
+  the old 68 ring) is no longer buffed while one at **45px** still is. Suite expected green.
+
 ## v1.24.0 — 2026-06-12 — ▦ Grid placement (line your towers up cleanly)
 
 **What & why.** Newest owner FEEDBACK (commit `3664000`, top of PENDING): *"[Low priority][external
