@@ -49,7 +49,7 @@ function metaCostMult() { return 1 - 0.03 * tRank('engineering'); }
 function metaCdMult() { return 1 - 0.06 * tRank('surge'); }
 function sellRatio() { return Math.min(0.95, 0.6 + 0.05 * tRank('salvage') + (perkState ? perkState.sellBonus : 0)); }
 
-function openTalents() { renderTalents(); document.getElementById('talentPanel').style.display = 'flex'; }
+function openTalents() { renderTalents(); document.getElementById('talentPanel').style.display = 'flex'; focusPanel('talentPanel'); }
 function closeTalents() { document.getElementById('talentPanel').style.display = 'none'; renderStartScreen(); updateHud(); }
 function renderTalents() {
   document.getElementById('talentChips').textContent = meta.chips;

@@ -1826,6 +1826,82 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 37: Menu keyboard accessibility (v1.19.0) ----
+  console.log('\n[37] Menu keyboard a11y');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(async () => {
+      const fire = (key, shift = false) =>
+        document.dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey: shift, bubbles: true, cancelable: true }));
+      const tp = document.getElementById('talentPanel');
+      const sp = document.getElementById('settingsPanel');
+      const bp = document.getElementById('bestPanel');
+      const wn = document.getElementById('whatsnew');
+      wn.style.display = 'none';   // start with nothing open
+
+      // 1) Opening a panel moves keyboard focus inside it.
+      openTalents();
+      const openDisp = getComputedStyle(tp).display;
+      const focusInside = tp.contains(document.activeElement);
+      closeTalents();
+
+      // 2) Esc closes the open modal and restores focus to the opener.
+      // Use the STATIC start-screen Talents button (renderStartScreen rebuilds the
+      // mode/map/diff button rows, so a button from those would detach on close).
+      const opener = document.querySelector('#startScreen [onclick="openTalents()"]');
+      opener.focus();
+      openTalents();
+      fire('Escape');
+      const closedByEsc = getComputedStyle(tp).display === 'none';
+      const focusRestored = document.activeElement === opener;
+
+      // 3) Tab is trapped inside the open modal (last→first, and Shift+Tab first→last).
+      openSettings();
+      const f = focusablesIn(sp);
+      const first = f[0], last = f[f.length - 1];
+      const enoughFocusable = f.length >= 2 && first !== last;
+      last.focus(); fire('Tab');
+      const wrapForward = document.activeElement === first;
+      first.focus(); fire('Tab', true);
+      const wrapBackward = document.activeElement === last;
+      closeSettings();
+
+      // 4) A modal panel takes Esc priority over the non-modal What's New rail.
+      openWhatsNew();
+      openBests();
+      fire('Escape');
+      const modalClosedFirst = getComputedStyle(bp).display === 'none' && getComputedStyle(wn).display !== 'none';
+      fire('Escape');
+      const railClosedSecond = getComputedStyle(wn).display === 'none';
+
+      // 5) Modal panels are tagged as dialogs for screen readers.
+      const ariaOk = ['talentPanel', 'achPanel', 'bestPanel', 'settingsPanel'].every(id => {
+        const el = document.getElementById(id);
+        return el.getAttribute('role') === 'dialog' && el.getAttribute('aria-modal') === 'true';
+      });
+
+      backToMenu();
+      return { openDisp, focusInside, closedByEsc, focusRestored, enoughFocusable, wrapForward, wrapBackward, modalClosedFirst, railClosedSecond, ariaOk };
+    });
+    // 6) A keyboard focus-ring rule exists in the shipped stylesheet. Read it from
+    // disk in Node — the harness loads the game over file://, where in-page fetch
+    // and CSSOM .cssRules are both blocked (cross-origin), so this can't run in-page.
+    const cssSrc = readFileSync(resolve(ROOT, 'tower-defense.css'), 'utf8');
+    const hasFocusRing = cssSrc.includes(':focus-visible');
+    check('opening a panel moves focus inside it', r.openDisp === 'flex' && r.focusInside, `disp=${r.openDisp} inside=${r.focusInside}`);
+    check('Esc closes the open modal panel', r.closedByEsc);
+    check('Esc restores focus to the opener button', r.focusRestored);
+    check('settings panel has ≥2 distinct focusable controls', r.enoughFocusable);
+    check('Tab wraps from last focusable back to first (trap)', r.wrapForward);
+    check('Shift+Tab wraps from first focusable back to last (trap)', r.wrapBackward);
+    check("a modal panel takes Esc priority over the What's New rail", r.modalClosedFirst);
+    check("a second Esc then closes the What's New rail", r.railClosedSecond);
+    check('modal panels are tagged role=dialog aria-modal=true', r.ariaOk);
+    check('a :focus-visible focus-ring rule exists in CSS', hasFocusRing);
+    check('no console errors during a11y test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

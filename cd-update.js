@@ -372,7 +372,7 @@ function achLine(newly) {
   if (!newly.length) return '';
   return '\n🏅 Achievement' + (newly.length > 1 ? 's' : '') + ' unlocked: ' + newly.map(a => `${a.icon} ${a.name}`).join(' · ');
 }
-function openAchievements() { renderAchievements(); document.getElementById('achPanel').style.display = 'flex'; }
+function openAchievements() { renderAchievements(); document.getElementById('achPanel').style.display = 'flex'; focusPanel('achPanel'); }
 function closeAchievements() { document.getElementById('achPanel').style.display = 'none'; renderStartScreen(); }
 // Records / personal bests. Updates the legacy per-difficulty key AND a new
 // per-map+difficulty key (quick mode only; campaign maps are random per attempt).
@@ -407,11 +407,11 @@ function applyRecordFlourish(rec) {
   shake = Math.max(shake, 16);
   for (let i = 0; i < 5; i++) addExplosion(120 + i*150, 60, '#e3b341', 14, 200);
 }
-function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; }
+function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; focusPanel('bestPanel'); }
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
 
 // ----- Settings panel (performance / accessibility prefs, persisted on device) -----
-function openSettings() { const p = document.getElementById('settingsPanel'); if (!p) return; renderSettings(); p.style.display = 'flex'; }
+function openSettings() { const p = document.getElementById('settingsPanel'); if (!p) return; renderSettings(); p.style.display = 'flex'; focusPanel('settingsPanel'); }
 function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; renderStartScreen(); }
 // Start-screen ⚙ button toggles the panel (open if closed, close if open) — owner
 // FEEDBACK ("Settings button doesn't open"). A clean toggle is robust against any

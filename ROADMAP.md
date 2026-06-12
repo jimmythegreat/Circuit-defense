@@ -173,18 +173,20 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
 
-_Still-unaddressed, in priority order: **gamepad** → PWA install → **menu keyboard a11y**.
-Done: **colorblind aid / shape-coded enemies (v1.18.0)**, document metadata (v1.8.6),
+_Still-unaddressed, in priority order: **gamepad** → PWA install → **bigger HTML tap targets on small phones**.
+Done: **menu keyboard a11y (v1.19.0)** — Esc-close + focus trap/restore + `:focus-visible` rings +
+`role=dialog`/`aria-modal` on the start-screen panels (`A11Y_PANELS`/`focusPanel()` in `cd-core.js`),
+**colorblind aid / shape-coded enemies (v1.18.0)**, document metadata (v1.8.6),
 reduced-motion (v1.10.0), volume slider (v1.13.2),
 **responsive layout (v1.14.0)**, **mobile board sizing + What's New default-collapse (v1.15.0)**,
 **touch/pointer controls (v1.16.3)** — canvas board interaction (place/select/aim) is now
 `pointerdown`-driven with a touch-generous tap radius + `touch-action:none` — and **high-DPI
 canvas scaling (v1.17.0)** — the backing store now scales with `devicePixelRatio` (capped 2×) so
 the board is crisp on Retina/4K/scaled displays. v1.14.1 visual pass confirmed desktop & phone
-menus all render correctly; the remaining mobile polish is just bigger HTML button targets if
-wanted. **Colorblind aid shipped v1.18.0** (enemy kinds now shape-coded — `enemyGlyph()`). **Next
-normal run's strongest table-stakes pick: menu keyboard a11y** (panels are mouse-only — no Esc-close,
-no focus trap/rings) or **gamepad support**._
+menus all render correctly. **Next normal run's strongest table-stakes pick: gamepad support**, then
+PWA install (offline manifest, hosted-only). Menu keyboard a11y follow-up: the **draft cards** (mid-game
+perk picker) are still mouse-only `<div>`s — make them keyboard-focusable/operable + Tab-trapped (Esc
+stays disabled there since a pick is required)._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,
@@ -232,11 +234,16 @@ no focus trap/rings) or **gamepad support**._
       block entirely (byte-identical on standard displays + headless tests). Test [35]. Follow-up:
       *re-render-on-dpr-change* if a window is dragged between monitors of different scale (rare;
       the page would need a reload today).
-- [ ] **Menu / panel keyboard accessibility** (new, v1.13.4 audit) — gameplay has rich
-      hotkeys, but the start-screen panels (Talents, Achievements, Records, Settings, What's
-      New, draft cards) are mouse-only: no focus trapping, no Esc-to-close on the panels, no
-      Tab order or `aria` roles. Add focus management + Esc-close + visible focus rings so the
-      menus are keyboard-navigable. (Esc already cancels in-game ability targeting.)
+- [x] **Menu / panel keyboard accessibility** — shipped **v1.19.0**. The start-screen panels
+      (Talents, Achievements, Records, Settings, What's New) are now keyboard-navigable: Esc closes
+      the open panel (modal-over-rail priority), opening one moves focus inside it and Tab is trapped
+      (wraps both ways), closing restores focus to the opener, a `:focus-visible` ring shows for
+      keyboard users, and the four modal panels carry `role=dialog`/`aria-modal`. `A11Y_PANELS` +
+      `focusPanel()`/`_topAnyPanel()`/`_topTrapPanel()` + a document `keydown` listener in
+      `cd-core.js`; `focusPanel(id)` called from each `open*()`. Panel-open is keyed off
+      `getComputedStyle().display` (not `offsetParent`, which is null for the fixed mobile panels).
+      Test [37]. **Follow-up:** the mid-game **draft cards** are still mouse-only `<div>`s — make them
+      keyboard-focusable/operable + Tab-trapped (Esc stays disabled there since a pick is required).
 
 ## Tech / tooling
 

@@ -48,7 +48,7 @@
     <p style="color:#8b949e">Wave <span id="draftWave"></span> milestone — pick one permanent boost for this run</p>
     <div id="draftCards"></div>
   </div>
-  <div id="talentPanel">
+  <div id="talentPanel" role="dialog" aria-modal="true" aria-label="Talents">
     <h2>🧬 TALENTS</h2>
     <p style="color:#8b949e; margin:2px 0 0">Permanent upgrades · earn 🪙 chips by surviving waves<br>Balance: <b id="talentChips" style="color:#d2a8ff">0</b> 🪙</p>
     <div id="talentGrid"></div>
@@ -57,7 +57,7 @@
       <button class="ctl blue" onclick="closeTalents()">Done</button>
     </div>
   </div>
-  <div id="achPanel">
+  <div id="achPanel" role="dialog" aria-modal="true" aria-label="Achievements">
     <h2 style="color:#e3b341; text-shadow:0 0 16px rgba(227,179,65,.4)">🏅 ACHIEVEMENTS</h2>
     <p style="color:#8b949e; margin:2px 0 0">Earned across all your runs · <b id="achProgress" style="color:#e3b341">0 / 0</b> unlocked</p>
     <div id="achGrid"></div>
@@ -65,7 +65,7 @@
       <button class="ctl blue" onclick="closeAchievements()">Done</button>
     </div>
   </div>
-  <div id="bestPanel">
+  <div id="bestPanel" role="dialog" aria-modal="true" aria-label="Records">
     <h2 style="color:#58a6ff; text-shadow:0 0 16px rgba(88,166,255,.4)">🏆 RECORDS</h2>
     <p style="color:#8b949e; margin:2px 0 0">Highest wave reached per map &amp; difficulty</p>
     <div id="bestBody"></div>
@@ -73,7 +73,7 @@
       <button class="ctl blue" onclick="closeBests()">Done</button>
     </div>
   </div>
-  <div id="settingsPanel">
+  <div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Settings">
     <h2 style="color:#8b949e">⚙ SETTINGS</h2>
     <p style="color:#8b949e; margin:2px 0 0">Performance &amp; accessibility · saved on this device</p>
     <div id="settingsBody"></div>

@@ -3,6 +3,46 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.19.0 — 2026-06-12 — Menu keyboard accessibility (table-stakes, ROADMAP)
+
+**What & why.** The strongest open accessibility / table-stakes item (flagged in the v1.16.4
+health-check audit and the ROADMAP table-stakes summary as the next normal-run pick): in-game play
+has rich hotkeys, but the **start-screen panels were mouse-only** — no Esc-to-close, no focus
+management, no visible keyboard focus, no screen-reader roles. A keyboard or screen-reader user
+could open Talents/Achievements/Records/Settings/What's New but then had to mouse over to the "Done"
+button, and Tab would wander off into the dimmed page behind the modal.
+
+**What changed.** A small a11y layer in `cd-core.js` (loads first, so its helpers are global):
+- **Esc closes the open panel.** A document-level `keydown` listener finds the highest-priority open
+  panel (`A11Y_PANELS`: the four modal overlays first, then the non-modal What's New rail) and closes
+  it — a modal takes priority over the rail, so one Esc closes the modal and a second closes the rail.
+  The draft modal is deliberately NOT Esc-closable (you must pick a perk).
+- **Focus moves into a panel on open and back to the opener on close.** `focusPanel(id)` (called from
+  each `open*()` in `cd-defs.js`/`cd-update.js`) remembers the triggering button, then focuses the
+  panel's first control; `_restoreOpenerFocus()` returns focus on Esc-close.
+- **Tab is trapped inside the open modal** so focus can't escape to the page behind (wraps last→first
+  and Shift+Tab first→last).
+- **Visible focus ring** via a single `:focus-visible` CSS rule (blue outline) — shows for keyboard
+  users, stays hidden for mouse clicks.
+- **Screen-reader roles**: the four modal panels carry `role="dialog" aria-modal="true" aria-label`.
+
+**Robustness note.** Panel-open detection uses `getComputedStyle(el).display`, NOT `offsetParent` —
+the latter is `null` for the `position:fixed` panels of the ≤920px mobile layout, which would have
+made Esc silently no-op on phones. Verified the focus-trap + Esc still work under the fixed layout
+(focusable controls of a fixed panel keep a non-null `offsetParent` via the positioned ancestor).
+
+**No save/economy/gameplay impact.** Pure DOM/UX: no new localStorage keys, no balance numbers, no
+schema change. The in-game Esc (cancel ability targeting) is untouched — it lives behind a `!started`
+guard and panels are start-screen-only, so there's no conflict.
+
+**Tests.** New group **[37]** (11 checks): opening a panel moves focus inside it; Esc closes the
+modal and restores focus to the opener button; the settings panel exposes ≥2 distinct focusables;
+Tab/Shift+Tab wrap (trap); a modal takes Esc priority over the What's New rail and a second Esc
+closes the rail; the four modal panels are `role=dialog`/`aria-modal=true`; a `:focus-visible` rule
+exists in the shipped CSS (asserted from disk in Node — the harness runs over `file://`, where
+in-page `fetch` and CSSOM `.cssRules` are both blocked cross-origin). Suite **305/0** green; verified
+in-preview (incl. the fixed-position mobile layout) with zero console errors.
+
 ## v1.18.0 — 2026-06-12 — Colorblind aid: shape-coded enemy kinds (table-stakes, ROADMAP)
 
 **What & why.** The top open accessibility / table-stakes item (flagged in the v1.16.4 health-check

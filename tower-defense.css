@@ -101,6 +101,12 @@
   button.ctl.gray.off { opacity: .55; }
   button.ctl.danger { background: #b62324; animation: dangerPulse 0.8s ease-in-out infinite; }
   button.ctl.danger:hover { background: #da3633; }
+  /* Keyboard focus ring (v1.19.0 a11y) — only shows for keyboard users via
+     :focus-visible, so mouse clicks don't draw an outline. */
+  button:focus-visible, .towerBtn:focus-visible, .setBtn:focus-visible,
+  .setSlider:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #58a6ff; outline-offset: 2px; border-radius: 6px;
+  }
   @keyframes dangerPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(218,54,51,.5); } 50% { box-shadow: 0 0 0 6px rgba(218,54,51,0); } }
   #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #settingsPanel {
     position: absolute; inset: 0;

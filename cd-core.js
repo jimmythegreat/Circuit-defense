@@ -52,10 +52,11 @@ let particleDensity = (() => {
 let colorblindAid = localStorage.getItem('cd_colorblind') === '1';
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.18.0';
+const GAME_VERSION = 'v1.19.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.19.0', date: '2026-06-12', time: '06:13 EDT', body: "Accessibility: the start-screen menus (Talents, Achievements, Records, Settings, What's New) are now fully keyboard-navigable. Before, they could only be opened and closed with the mouse. Now: pressing Esc closes whichever panel is open; opening a panel moves your keyboard focus into it and Tab cycles through its buttons without escaping to the dimmed page behind; and closing a panel returns focus to the button you opened it from. Buttons and controls also show a clear blue focus ring when you're navigating by keyboard (it stays hidden for mouse clicks). Panels are tagged as dialogs for screen readers too. Pure interface polish — no effect on gameplay, balance or saves." },
   { v: 'v1.18.0', date: '2026-06-12', time: '19:40 EDT', body: "Accessibility: a new ♿ Colorblind aid toggle in ⚙ Settings. Most enemy types already show a symbol (+ heal, 🛡 shield, ✂ split, 👻 phantom, ☠ boss), but the fast and tank enemies were told apart by COLOUR alone (purple vs orange), which is hard if you're colourblind. Turn the aid on and every enemy kind gets its own symbol too — » for the quick ones, ◆ for the heavy tanks — so you can read the board by shape, not just hue. Off by default, saves on your device, and zero effect on gameplay or balance." },
   { v: 'v1.17.0', date: '2026-06-12', time: '18:15 EDT', body: "Sharper graphics on high-resolution screens (Retina, 4K, and Windows display scaling like 125%/150%). The game board was drawn at a fixed resolution and then stretched to fit your screen, so on a high-DPI display the towers, enemies and text looked a little soft. It now draws at your screen's true pixel density (up to 2×), so everything is crisp — while staying exactly the same size and playing identically. No effect on gameplay, balance, controls or saves; on a standard 1× display nothing changes at all." },
   { v: 'v1.16.4', date: '2026-06-12', time: '16:45 EDT', body: "🩺 Health check (every-6th-run maintenance pass — no gameplay changes). Full test suite green (272/0, zero console errors); all eight code files comfortably within the size limit (largest is ~656 lines vs the ~1500 cap); every documented formula re-verified against the actual code (scoring, enemy-HP scaling, the economy trim, the booster-aura taper, the touch radius) — all matched. Old saves confirmed to still load via the migration defaults (an old meta with no achievements/stats and an old run with no map-theme both loaded cleanly), and double-click/offline play re-verified. Tidied the docs: the project's root redirect page (index.html → tower-defense.html, used by the hosted version) is now documented. The remaining 'polished-browser-game' gaps — colourblind-safe palette, gamepad support, high-DPI crispness and menu keyboard navigation — are still on the roadmap for future updates." },
@@ -150,6 +151,70 @@ function initWhatsNew() {
 }
 // Keep the cap in sync as the viewport (and thus the game's height) changes.
 window.addEventListener('resize', syncWhatsNewHeight);
+
+// ===== Menu keyboard accessibility (v1.19.0) =====
+// The start-screen panels were mouse-only. This makes them keyboard-navigable:
+// Esc closes the open panel, Tab is trapped inside the open MODAL panels (so a
+// keyboard/screen-reader user can't tab out into the dimmed page behind), and
+// focus returns to the button that opened it on close. Pure DOM/UX — no
+// gameplay/economy/save impact. The close functions referenced here live in
+// later files but resolve at call time (classic scripts share one scope).
+// Priority order: modal overlays first, then the non-modal What's New side rail.
+const A11Y_PANELS = [
+  { id: 'talentPanel',   close: () => closeTalents() },
+  { id: 'achPanel',      close: () => closeAchievements() },
+  { id: 'bestPanel',     close: () => closeBests() },
+  { id: 'settingsPanel', close: () => closeSettings() },
+  { id: 'whatsnew',      close: () => closeWhatsNew(), nontrap: true },
+];
+const FOCUSABLE_SEL = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+// Visible via computed display — NOT offsetParent, which is null for the
+// position:fixed panels of the mobile (≤920px) layout, so Esc would silently
+// no-op on phones if we keyed off offsetParent here.
+function panelOpen(el) { return !!el && getComputedStyle(el).display !== 'none'; }
+function focusablesIn(el) {
+  return Array.prototype.slice.call(el.querySelectorAll(FOCUSABLE_SEL))
+    .filter(n => n.offsetParent !== null && !n.disabled);
+}
+let _panelOpener = null;
+// Move focus into a just-opened modal panel, remembering the opener to restore later.
+function focusPanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const a = document.activeElement;
+  _panelOpener = (a && a !== document.body) ? a : null;
+  const f = focusablesIn(el);
+  if (f.length) f[0].focus();
+}
+function _topTrapPanel() {          // highest-priority open panel that traps Tab (excludes the rail)
+  for (const p of A11Y_PANELS) { if (p.nontrap) continue; const el = document.getElementById(p.id); if (panelOpen(el)) return el; }
+  return null;
+}
+function _topAnyPanel() {           // highest-priority open panel incl. the rail (for Esc)
+  for (const p of A11Y_PANELS) { const el = document.getElementById(p.id); if (panelOpen(el)) return p; }
+  return null;
+}
+function _restoreOpenerFocus() {
+  if (_panelOpener && _panelOpener.offsetParent !== null) { try { _panelOpener.focus(); } catch (e) {} }
+  _panelOpener = null;
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const top = _topAnyPanel();
+    if (top) { e.preventDefault(); e.stopPropagation(); top.close(); _restoreOpenerFocus(); }
+    return;
+  }
+  if (e.key === 'Tab') {
+    const panel = _topTrapPanel();
+    if (!panel) return;
+    const f = focusablesIn(panel);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (!panel.contains(a)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+  }
+});
 
 // ================= Audio =================
 let audioCtx = null;
