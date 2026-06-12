@@ -5,6 +5,8 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[Low priority][external user] It would be cool if the spaces to place the turrets were more of a grid so you could line them up cleaner.
+
 [Low priority] Reduce the range of booster by 50% base. This helps make network better.
 
   > _Progress (kept in PENDING — being cut gradually to respect the ≤25%/number/run guardrail):_
