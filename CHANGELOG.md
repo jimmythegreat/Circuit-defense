@@ -3,6 +3,36 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.21.0 — 2026-06-12 — 🔮 Wave preview with per-kind counts
+
+**What & why.** ROADMAP "Game feel / polish → Wave preview — show the composition of the next
+wave (icons) so players can plan purchases." The between-waves bottom-left preview already listed
+the *kinds* present in the next wave as text (`Next: 18 enemies · fast · tanks · healers · BOSS ☠`),
+but gave **no counts** — the actual planning info (how many tanks? is there a boss?). This run turns
+that text line into a glanceable **icon roster**: a colour disc per enemy kind + `×count`, e.g.
+`Next: ● ×13  » ×3  ◆ ×4  + ×2  🛡 ×2  ✂ ×2  👻 ×5` (boss appended as `☠ ×1` on every 5th wave).
+
+**How.**
+- `cd-game.js`: replaced the text-only `waveDesc(w)` (its only consumer was the preview) with
+  `waveComposition(w)` — a **deterministic** tally that returns ordered `{kind,count}` entries by
+  replaying buildWave()'s exact modular kind-assignment (norm → fast → tank → heal → shield → split
+  → phantom, boss last on multiples of 5). It mirrors `buildWave()` with a `KEEP IN SYNC` comment;
+  test [40] asserts the two agree at waves 3/7/9/11/13/15/20/25.
+- `cd-render.js`: a new `PREVIEW_COLOR` map (kind → sphere colour, synced with buildWave) + the
+  preview render block draws a small filled disc per kind (boss slightly bigger), overlays the
+  **same** `enemyGlyph()` symbol the sphere uses (single source of truth — honours the colourblind
+  aid; boss/heal/shield/split/phantom always coded), then the `×count`. Bosses are tinted red.
+- Width: ≤8 entries ends near logical x≈374 — well clear of the bottom-right combo meter (x>750)
+  and inside the 900-wide board; no overflow. The mayhem "world will shift" note still sits above it.
+
+**Scope / safety.** Purely render + one deterministic helper. No gameplay, economy, balance or save
+impact; no new localStorage keys. Desktop and mobile unaffected beyond the richer preview.
+
+**Tests.** New group [40] (composition matches buildWave at 8 waves; norm-first/boss-last ordering;
+boss only on ×5 waves; every kind has a preview colour; w15 totals 34; `draw()` renders the
+preview state with zero console errors). Verified in-preview: `waveComposition(14)/(15)` exact,
+preview pixels drawn in the bottom-left strip (rightmost logical x≈374, no clipping), console clean.
+
 ## v1.20.2 — 2026-06-12 — 🩺 Health check
 
 **Every-6th-run maintenance pass** (5 version entries since the v1.16.4 health check: v1.17.0,

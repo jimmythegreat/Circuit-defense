@@ -2010,6 +2010,46 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 40: wave-preview composition (icon roster with per-kind counts) ----
+  console.log('\n[40] Wave-preview composition');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      // waveComposition must exactly match a buildWave() tally (no wave-mod active).
+      function tallyBuild(w){ const t={}; buildWave(w).forEach(e=>t[e.kind]=(t[e.kind]||0)+1); return t; }
+      const waves = [3,7,9,11,13,15,20,25];
+      let allMatch = true; const mism = [];
+      for (const w of waves) {
+        const comp = {}; waveComposition(w).forEach(c=>comp[c.kind]=c.count);
+        const build = tallyBuild(w);
+        const keys = new Set([...Object.keys(comp),...Object.keys(build)]);
+        for (const k of keys) if (comp[k] !== build[k]) { allMatch = false; mism.push(`w${w}.${k}`); }
+      }
+      const c15 = waveComposition(15);
+      const c14 = waveComposition(14);
+      const orderOk = c15[0].kind === 'norm' && c15[c15.length-1].kind === 'boss';
+      const bossOnlyMult5 = (c15.some(e=>e.kind==='boss')) && (!c14.some(e=>e.kind==='boss'));
+      // every kind that can appear has a preview colour
+      const kinds = ['norm','fast','tank','heal','shield','split','phantom','boss'];
+      const colorsOk = kinds.every(k => typeof PREVIEW_COLOR[k] === 'string');
+      // draw the between-waves preview state cleanly
+      wave = 13; waveActive = false; gameOver = false;
+      let drew = true; try { draw(); } catch(e){ drew = false; }
+      backToMenu();
+      return { allMatch, mism, orderOk, bossOnlyMult5, colorsOk, drew, total15: c15.reduce((s,e)=>s+e.count,0) };
+    });
+    check('waveComposition tallies match buildWave() at every sampled wave', r.allMatch, r.mism.join(','));
+    check('roster is ordered norm-first, boss-last', r.orderOk);
+    check('boss appears only on multiples of 5 (w15 yes, w14 no)', r.bossOnlyMult5);
+    check('PREVIEW_COLOR defines a colour for every enemy kind', r.colorsOk);
+    check('w15 total = 33 normals/specials + 1 boss = 34', r.total15 === 34, `got ${r.total15}`);
+    check('draw() renders the wave-preview state cleanly', r.drew);
+    check('no console errors during wave-preview test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

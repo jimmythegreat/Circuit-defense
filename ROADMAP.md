@@ -120,8 +120,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Idle start-screen sheen** — now that the chrome dims on the menu (v1.5.1),
       consider a subtle animated glow or pulse on the PLAY button to draw the eye
       to the one live surface, reinforcing the new focus.
-- [ ] **Wave preview** — show the composition of the next wave (icons) so players
-      can plan purchases.
+- [x] **Wave preview** — shipped **v1.21.0**. The between-waves bottom-left `Next:` line
+      now shows an **icon roster** — a colour disc (+ the same `enemyGlyph()` symbol the
+      sphere uses) and `×count` per enemy kind, boss appended on every 5th wave — instead of
+      a text kind-list, so you can see counts at a glance and plan purchases. `waveComposition(w)`
+      (cd-game.js, replaces `waveDesc`) is a deterministic tally that mirrors `buildWave()`;
+      `PREVIEW_COLOR` (cd-render.js) holds the per-kind disc colours. Render + one helper only;
+      no gameplay/economy/save impact. Test [40]. Follow-up: *also surface the next wave's total
+      HP / threat number*, and *a per-kind hover tooltip* on the preview.
 - [ ] **What's New flush polish** — since v1.4.1 the panel butts against the
       `#gameCol` right edge, which is ~21px wider than the canvas (driven by the
       `.hint` margins). Minor cosmetic gap between the canvas and the panel; could

@@ -18,6 +18,12 @@ function enemyGlyph(e) {
     default: return '';
   }
 }
+// Sphere colour per enemy kind for the bottom-left wave-preview discs.
+// KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
+const PREVIEW_COLOR = {
+  norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', boss:'#f85149',
+};
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
   '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
@@ -456,14 +462,38 @@ function draw() {
   ctx.globalAlpha = 1;
   ctx.textAlign = 'left';
 
-  // wave preview
+  // wave preview — glanceable roster of the NEXT wave: a colour disc (+ colorblind
+  // glyph) and ×count per enemy kind, so you can plan purchases (how many tanks? boss?).
   if (!waveActive && !gameOver && started && wave >= 0 && wave < victoryWave()) {
-    ctx.fillStyle = 'rgba(139,148,158,0.85)';
-    ctx.font = '13px sans-serif';
-    ctx.fillText(`Next: ${waveDesc(wave+1)}`, 12, H - 12);
+    const comp = waveComposition(wave + 1);
+    const py = H - 14;
+    let px = 12;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.font = '12px sans-serif'; ctx.fillStyle = 'rgba(139,148,158,0.9)';
+    ctx.fillText('Next:', px, py);
+    px += ctx.measureText('Next:').width + 9;
+    for (const c of comp) {
+      const isBoss = c.kind === 'boss';
+      const rad = isBoss ? 8 : 6;
+      ctx.beginPath(); ctx.arc(px + rad, py, rad, 0, Math.PI * 2);
+      ctx.fillStyle = PREVIEW_COLOR[c.kind] || '#3fb950'; ctx.fill();
+      const gl = enemyGlyph({ kind: c.kind, frozen: 0 });   // same single-source glyph as the sphere
+      if (gl) {
+        ctx.fillStyle = '#0d1117'; ctx.textAlign = 'center';
+        ctx.font = (gl === '☠' ? 'bold 10px sans-serif' : 'bold 8px sans-serif');
+        ctx.fillText(gl, px + rad, py + 0.5); ctx.textAlign = 'left';
+      }
+      px += rad * 2 + 3;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = isBoss ? '#f85149' : 'rgba(201,209,217,0.95)';
+      const lbl = '×' + c.count;
+      ctx.fillText(lbl, px, py);
+      px += ctx.measureText(lbl).width + 11;
+    }
+    ctx.textBaseline = 'alphabetic';
     if (isMayhem() && wave > 0 && wave % 5 === 0) {
-      ctx.fillStyle = 'rgba(210,168,255,0.9)';
-      ctx.fillText('🌀 The world will shift when the next wave begins!', 12, H - 30);
+      ctx.fillStyle = 'rgba(210,168,255,0.9)'; ctx.font = '13px sans-serif';
+      ctx.fillText('🌀 The world will shift when the next wave begins!', 12, H - 32);
     }
   }
   // active mayhem modifier

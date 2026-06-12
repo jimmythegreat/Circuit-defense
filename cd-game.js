@@ -137,16 +137,27 @@ function buildWave(w) {
   }
   return q;
 }
-function waveDesc(w) {
-  const parts = [`${8 + Math.floor(w*1.7)} enemies`];
-  if (w >= 3) parts.push('fast');
-  if (w >= 5) parts.push('tanks');
-  if (w >= 7) parts.push('healers');
-  if (w >= 9) parts.push('armored');
-  if (w >= 11) parts.push('splitters');
-  if (w >= 13) parts.push('phantoms');
-  if (w % 5 === 0 && w > 0) parts.push('BOSS ☠');
-  return parts.join(' · ');
+// Composition of an upcoming wave as ordered {kind,count} entries — the DETERMINISTIC
+// base roster (before any mayhem wave-mod is rolled), feeding the bottom-left icon
+// wave-preview so players can plan purchases (how many tanks? is there a boss?).
+// Mirrors the kind-assignment order/conditions in buildWave() — KEEP IN SYNC.
+function waveComposition(w) {
+  const count = 8 + Math.floor(w*1.7);
+  const tally = {};
+  for (let i = 0; i < count; i++) {
+    let k = 'norm';
+    if (w >= 3  && i % 5  === 4) k = 'fast';
+    if (w >= 5  && i % 7  === 6) k = 'tank';
+    if (w >= 7  && i % 9  === 8) k = 'heal';
+    if (w >= 9  && i % 8  === 7) k = 'shield';
+    if (w >= 11 && i % 10 === 9) k = 'split';
+    if (w >= 13 && i % 6  === 5) k = 'phantom';
+    tally[k] = (tally[k] || 0) + 1;
+  }
+  const order = ['norm','fast','tank','heal','shield','split','phantom'];
+  const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
+  if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
+  return out;
 }
 
 function startWave() {
