@@ -12,10 +12,16 @@ When it completes an item it moves it to DONE below with the date and version.
   >   the front-loaded gold snowball. Measured it first (kills = ~69% of early income), then cut
   >   per-kill bounty `(4+w*0.6)→(3+w*0.6)` (−20% w1, fading late) and the wave-clear bonus
   >   `(25+w*5)→(20+w*4)` (−20%). Net: 10-wave war chest **−13%** (2658→2312). See CHANGELOG v1.16.1.
-  > - **Still to do:** the **single-tower carry** (your campaign-6-hard "one gunner + max booster"
-  >   example) — that's a tower-power outlier, not economy. Candidate next slice: taper the booster
-  >   aura per-level scaling (ROADMAP "Frost/booster damage snowball"). And keep trimming the
-  >   economy / steepening late HP if classic-normal still falls to opening-round money.
+  > - **v1.16.2 (2026-06-12)** — addressed the **single-tower carry** half (your campaign-6-hard
+  >   "one gunner + max booster" example, a tower-power outlier). Tapered the booster aura's
+  >   per-level scaling `+0.1 → +0.08`/level: a low-level booster is unchanged, but a **maxed**
+  >   booster now gives **+65% instead of +75%** aura damage, so a buffed tower does ~6% less at
+  >   max. Simulated in-engine (buffed gunner 14.0→13.2 at L6). Modest so it doesn't gut a real
+  >   multi-tower build. See CHANGELOG v1.16.2.
+  > - **Still to do:** re-test the campaign-6-hard solo-carry after this trim — if a single
+  >   booster still carries, the next levers are Frost Mastery's per-rank dmg or a booster soft-cap
+  >   (ROADMAP "Frost/booster damage snowball"). And keep trimming the economy / steepening late HP
+  >   if classic-normal still falls to opening-round money.
 
 ## DONE
 

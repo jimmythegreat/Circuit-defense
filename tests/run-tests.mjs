@@ -1586,6 +1586,52 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 33: booster aura taper — cool the maxed-booster carry (FEEDBACK balance, v1.16.2) ----
+  console.log('\n[33] Booster aura taper — maxed-booster carry (v1.16.2)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      gold = 1e9;
+      towers.length = 0;
+      const b = { type:'buff', x:150, y:150, range:TOWER_TYPES.buff.range, dmg:0,
+                  rate:TOWER_TYPES.buff.rate, cd:0, level:1, baseCost:60, invested:60,
+                  angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 };
+      towers.push(b);
+      selectedTower = b;
+      const l1 = b.buffPower;            // 0.25
+      upgradeTower();                    // -> L2
+      const l2 = b.buffPower;            // 0.33 (increment now +0.08, was +0.1)
+      const cap = maxTowerLevel();
+      while (b.level < cap) { selectedTower = b; upgradeTower(); }
+      const capLevel = b.level;
+      const capPower = b.buffPower;      // 0.25 + 0.08*(cap-1)
+      // Old +0.1 ramp would have produced this at the same level — assert we're below it.
+      const oldPower = 0.25 + 0.1 * (capLevel - 1);
+      // Save→reload round-trip parity: the rebuilt booster must keep the tapered power.
+      saveRun();
+      loadRun();
+      const reb = towers.find(t => t.type === 'buff');
+      const rebuiltPower = reb ? reb.buffPower : -1;
+      backToMenu();
+      localStorage.removeItem('cd_save');
+      return { l1, l2, capLevel, capPower, oldPower, rebuiltPower };
+    });
+    check('booster per-level increment tapered to +0.08 (was +0.1)',
+      Math.abs(r.l2 - r.l1 - 0.08) < 1e-9, `L1=${r.l1} L2=${r.l2}`);
+    check('maxed booster aura follows the 0.25 + 0.08*(lvl-1) ramp',
+      Math.abs(r.capPower - (0.25 + 0.08 * (r.capLevel - 1))) < 1e-9,
+      `lvl=${r.capLevel} power=${r.capPower}`);
+    check('maxed booster aura sits below the old +0.1 ramp (snowball cooled)',
+      r.capPower < r.oldPower - 1e-9, `new=${r.capPower} old=${r.oldPower}`);
+    check('resumed (loadRun) booster keeps the tapered power — save parity',
+      Math.abs(r.rebuiltPower - r.capPower) < 1e-9,
+      `live=${r.capPower} rebuilt=${r.rebuiltPower}`);
+    check('no console errors during booster-taper test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

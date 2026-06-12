@@ -142,7 +142,7 @@ function loadRun() {
       mode: MODES.includes(st.mode) ? st.mode : 'first',
       spec: st.spec || null,
       dealt: st.dealt || 0, kills: st.kills || 0,
-      buffPower: 0.25 + 0.1*(lvl-1), flash: 0
+      buffPower: 0.25 + 0.08*(lvl-1), flash: 0 // keep in sync with upgradeTower taper (v1.16.2)
     });
   }
   if (isMayhem() || gameMode === 'campaign') relocateTowers(); // saved positions won't match the freshly generated path

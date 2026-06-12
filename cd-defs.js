@@ -246,7 +246,7 @@ function ascendTowers() {
     if (t.level >= maxTowerLevel()) continue;
     t.level++;
     t.dmg *= 1.45; t.range *= 1.08; t.rate *= 0.88;
-    if (t.type === 'buff') t.buffPower += 0.1;
+    if (t.type === 'buff') t.buffPower += 0.08; // matches upgradeTower taper (v1.16.2)
     addExplosion(t.x, t.y, '#ffd866', 10, 90);
   }
   updateHud();

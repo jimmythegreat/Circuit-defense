@@ -150,13 +150,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       runs), slower economy snowball (trim early interest/wave-clear bonus/bounty),
       the Frost/booster snowball item below, or stronger late bosses (`14 + w*0.5`
       → `+w*0.6`, bounded +20%). Simulate before/after; ≤25% per number per run.
-- [ ] **Frost/booster damage snowball** (owner FEEDBACK, v1.10.0) — Shatter was cut
-      ×6→×4.5, but the underlying multiplicative stack is still strong: a single L6
-      **booster** aura is +75% (`buffPower` +0.1/level off a 0.25 base) and **Frost
-      Mastery** adds +30%, all multiplying Shatter and Frostbite. Owner cleared
-      campaign 9 on hard with just 2 frosts + 1 booster. Next candidate levers (≤25%
-      each, sim first): taper booster per-level scaling (e.g. +0.08/level, or a soft
-      cap), or trim Frost Mastery's per-rank dmg. Don't gut any single build.
+- [~] **Frost/booster damage snowball** (owner FEEDBACK, v1.10.0) — Shatter was cut
+      ×6→×4.5, but the underlying multiplicative stack is still strong: a single
+      **booster** aura was +75% at L6 (`buffPower` +0.1/level off a 0.25 base) and
+      **Frost Mastery** adds +30%, all multiplying Shatter and Frostbite. Owner cleared
+      campaign 9 on hard with just 2 frosts + 1 booster (and campaign 6 with a single
+      gunner + maxed booster). **v1.16.2 took the booster slice:** tapered the per-level
+      scaling **+0.1 → +0.08** (base/L1 unchanged; maxed booster +75%→+65%, ~−6% buffed-
+      tower dmg at L6 — sim: gunner 14.0→13.2). Test [33]. **Remaining levers** (≤25%
+      each, sim first): trim **Frost Mastery**'s per-rank dmg, or add a **booster aura
+      soft-cap** if a single super-booster still solo-carries. Don't gut any single build.
 - [~] **Interest/economy curve review** — verify gold pacing across difficulties
       with the harness. Tie to the difficulty work above: the owner's "money from
       the first 10 rounds" line points at a front-loaded snowball. **v1.16.1 took the

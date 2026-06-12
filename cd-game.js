@@ -371,7 +371,7 @@ function upgradeTower() {
   t.dmg *= 1.45;
   t.range *= 1.08;
   t.rate *= 0.88;
-  if (t.type === 'buff') t.buffPower += 0.1;
+  if (t.type === 'buff') t.buffPower += 0.08; // tapered from 0.1 (v1.16.2) — cool the maxed-booster carry
   addFloater(t.x, t.y - 20, 'LEVEL UP!', '#3fb950', 14);
   addExplosion(t.x, t.y, '#3fb950', 12, 80);
   SFX.upgrade();

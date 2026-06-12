@@ -3,6 +3,34 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.16.2 — 2026-06-12 — Booster aura taper: cool the maxed-booster solo-carry (FEEDBACK balance)
+
+**Owner FEEDBACK (PENDING, "still too easy"):** *"campaign 6 on hard can be completed with a
+single gunner and booster at max level (only losing 5 hp to the final boss)."* v1.16.1 took the
+**economy** half ("money from the first 10 rounds"); this run takes the **tower-power** half —
+the *single maxed booster carries the whole run* outlier the owner and ROADMAP ("Frost/booster
+damage snowball") both flag. The booster aura's per-level scaling was the snowball lever.
+
+**Change (one number, `+0.1 → +0.08` per level — a −20% trim to the increment, ≤25% guardrail):**
+- The booster's `buffPower` grew `+0.1`/level off a `0.25` base → **+75% aura damage at L6**. Now
+  it grows **`+0.08`/level → +65% at L6**. Base (L1, +25%) is **unchanged** — the trim only kicks
+  in as you sink levels into one booster, so it bites the maxed solo-carry, not casual aura use.
+- Synced across all three sites so resume parity holds: `upgradeTower` (`cd-game.js`),
+  `ascendTowers`/Ascension perk (`cd-defs.js`), and the `loadRun` rebuild formula
+  `0.25 + 0.08*(lvl-1)` (`cd-state.js`).
+
+**Effect (re-simulated in-engine, classic-normal):** a buffed gunner's damage drops
+**14.0 → 13.2 (−5.7%)** with an L6 booster and **13.2 → 12.56 (−4.8%)** at the L5 base cap; a
+low-level booster is byte-identical. The nerf grows with booster level — exactly the snowball
+shape — and never approaches the guardrail. Deliberately modest so it doesn't gut a real
+multi-tower build (ROADMAP: "Don't gut any single build").
+
+**Save-safe:** the live-upgrade increment and the `loadRun` rebuild both use `0.08`, so a resumed
+booster has identical power to a freshly-leveled one; old `cd_save` entries still load (power is
+recomputed from `level`, no schema change). **Tests:** new group **[33]** asserts the `+0.08`
+increment, the `0.25 + 0.08*(lvl-1)` ramp, that the maxed aura now sits below the old `+0.1` ramp,
+and a save→reload round-trip parity (resumed booster keeps the tapered power). Suite **264/0**.
+
 ## v1.16.1 — 2026-06-12 — Economy trim: cool the front-loaded gold snowball (FEEDBACK balance)
 
 **Owner FEEDBACK (PENDING, "still too easy"):** *"I'm able to clear classic-normal with money
