@@ -41,45 +41,46 @@ function draw() {
   }
   ctx.clearRect(-20, -20, W+40, H+40);
 
-  // background gradient + stars
+  // background gradient + stars — colours come from the active map theme (cosmetic)
+  const pal = mapPalette();
   const grad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 600);
-  grad.addColorStop(0, '#0d1420');
-  grad.addColorStop(1, '#070a10');
+  grad.addColorStop(0, pal.bgIn);
+  grad.addColorStop(1, pal.bgOut);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
   const now = performance.now() / 1000;
   for (const s of stars) {
     const tw = 0.3 + 0.7 * Math.abs(Math.sin(now * s.sp + s.ph));
     ctx.globalAlpha = tw * 0.6;
-    ctx.fillStyle = '#9ecbff';
+    ctx.fillStyle = pal.star;
     ctx.fillRect(s.x, s.y, s.r, s.r);
   }
   ctx.globalAlpha = 1;
 
   // grid
-  ctx.strokeStyle = 'rgba(88,166,255,0.05)';
+  ctx.strokeStyle = pal.grid;
   ctx.lineWidth = 1;
   for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
   // path with depth bevel + glow
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#04060a'; ctx.lineWidth = 46;
+  ctx.strokeStyle = pal.pDark; ctx.lineWidth = 46;
   ctx.beginPath();
   ctx.moveTo(waypoints[0][0], waypoints[0][1] + 6);
   for (const [x,y] of waypoints) ctx.lineTo(x, y + 6);
   ctx.stroke();
-  ctx.shadowColor = 'rgba(88,166,255,0.4)';
+  ctx.shadowColor = pal.glow;
   ctx.shadowBlur = 18;
-  ctx.strokeStyle = '#1c2533'; ctx.lineWidth = 42;
+  ctx.strokeStyle = pal.pMid; ctx.lineWidth = 42;
   ctx.beginPath();
   ctx.moveTo(waypoints[0][0], waypoints[0][1]);
   for (const [x,y] of waypoints) ctx.lineTo(x, y);
   ctx.stroke();
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#243044'; ctx.lineWidth = 34;
+  ctx.strokeStyle = pal.pLite; ctx.lineWidth = 34;
   ctx.stroke();
-  ctx.strokeStyle = 'rgba(88,166,255,0.25)';
+  ctx.strokeStyle = pal.dash;
   ctx.lineWidth = 3;
   ctx.setLineDash([8, 20]);
   ctx.lineDashOffset = -performance.now()/40;

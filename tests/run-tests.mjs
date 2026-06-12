@@ -1287,6 +1287,62 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 28: Per-map visual themes (v1.13.8) ----
+  console.log('\n[28] Map themes');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // Each named quick-map resolves to its own fixed theme key.
+      gameMode = 'quick'; diffKey = 'easy';
+      mapKey = 'classic'; beginGame(); const classicTheme = mapTheme;
+      mapKey = 'spiral';  beginGame(); const spiralTheme  = mapTheme;
+      mapKey = 'serpent'; beginGame(); const serpentTheme = mapTheme;
+      mapKey = 'mayhem';  beginGame(); const mayhemTheme  = mapTheme;
+      // Classic is deterministic across runs; mayhem is the animated chaos palette.
+      mapKey = 'classic'; beginGame(); const classicAgain = mapTheme;
+      // Campaign rolls a tame palette (always a valid static THEMES key, never chaos).
+      gameMode = 'campaign'; campLevel = 1;
+      const campKeys = [];
+      for (let i = 0; i < 12; i++) { beginGame(); campKeys.push(mapTheme); }
+      const campAllTame = campKeys.every(k => !!THEMES[k]);
+      // mapPalette() returns a usable palette for both a static theme and chaos.
+      gameMode = 'quick'; mapKey = 'classic'; beginGame();
+      const staticPal = mapPalette();
+      mapKey = 'mayhem'; beginGame();
+      const chaosPal = mapPalette();
+      const palOk = !!(staticPal.bgIn && staticPal.pMid && staticPal.dash &&
+                       chaosPal.bgIn && chaosPal.pMid && chaosPal.dash);
+      // draw() renders cleanly under the animated chaos palette.
+      let drew = true; try { draw(); } catch (e) { drew = false; }
+      // Save/resume round-trips the resolved palette key (campaign parity).
+      gameMode = 'campaign'; campLevel = 3; beginGame();
+      const savedTheme = mapTheme;
+      saveRun();
+      mapTheme = 'circuit';           // clobber, then resume should restore it
+      loadRun();
+      const resumedTheme = mapTheme;
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return {
+        classicTheme, spiralTheme, serpentTheme, mayhemTheme, classicAgain,
+        distinct: new Set([classicTheme, spiralTheme, serpentTheme]).size === 3,
+        campAllTame, palOk, drew, savedTheme, resumedTheme,
+      };
+    });
+    check('each named quick-map has a distinct theme', r.distinct,
+      `${r.classicTheme}/${r.spiralTheme}/${r.serpentTheme}`);
+    check('classic theme is deterministic across runs', r.classicTheme === r.classicAgain,
+      `${r.classicTheme} vs ${r.classicAgain}`);
+    check('mayhem uses the animated chaos palette', r.mayhemTheme === 'chaos', `${r.mayhemTheme}`);
+    check('campaign always rolls a tame (non-chaos) palette', r.campAllTame);
+    check('mapPalette() yields full palettes for static + chaos', r.palOk);
+    check('draw() renders cleanly under the chaos palette', r.drew === true, `${r.drew}`);
+    check('save→resume restores the run palette key', r.resumedTheme === r.savedTheme,
+      `saved=${r.savedTheme} resumed=${r.resumedTheme}`);
+    check('no console errors during map-theme test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

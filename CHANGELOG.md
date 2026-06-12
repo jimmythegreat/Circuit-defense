@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.13.8 — 2026-06-11
+
+**Per-map visual themes — the maps no longer all look the same (FEEDBACK).**
+Owner: *"All the maps look the same. We should add random colors and textures to them.
+In classic mode it should always pick the same theme. In mayhem it should be wild (things
+on fire, wild colors, etc). In campaign mode it should be random but not crazy like mayhem.
+Also Mayhem should be a random map every time."*
+
+- New `THEMES` palette table + `mapPalette()`/`pickMapTheme()` in `cd-maps.js`. A palette
+  drives the **background gradient, starfield colour, grid, and all path bevel/glow/dash
+  layers** in `draw()` (previously hardcoded blue). Each named quick-map gets a **fixed
+  identity**: Classic → `circuit` (the canonical blue), Spiral → `verdant` (emerald),
+  Serpent → `ember` (amber). **Campaign** rolls a tame palette per attempt from
+  `CAMPAIGN_THEMES` (circuit/verdant/ember/violet/ice — always a valid static theme, never
+  chaos). **Mayhem** uses an **animated `chaos` palette** whose hue sweeps for a "world on
+  fire" feel — and collapses to a static fiery palette under OS reduce-motion.
+- **"Mayhem random map every time"** was already satisfied — `resetState()` regenerates
+  `MAPS.mayhem.pts` on every `beginGame()` — so this run focuses on the visual distinction
+  the request was really about. Verified mayhem still re-rolls its path each run.
+- **Save-safe:** the resolved theme key is stored in `cd_save` (`mapTheme`) and restored in
+  `loadRun()` so a resumed run (esp. campaign, which rolls randomly) keeps the colours it
+  started with. Old saves lack the field → `resetState()`'s `pickMapTheme()` default covers
+  them. Purely cosmetic — zero gameplay/economy impact. Picking a map on the start screen
+  now also previews its theme live.
+
+New test group **[28]**: each named map resolves to a distinct theme, classic is
+deterministic across runs, mayhem = `chaos`, campaign always rolls a tame (non-chaos)
+palette over 12 rolls, `mapPalette()` yields full palettes for both static + chaos, `draw()`
+renders cleanly under the animated chaos palette, and save→resume restores the palette key.
+Suite green.
+
 ## v1.13.7 — 2026-06-11
 
 **What's New entries now show the time alongside the date (FEEDBACK, high priority).**

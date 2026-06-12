@@ -36,7 +36,7 @@ function renderStartScreen() {
       const b = document.createElement('button');
       b.className = 'optBtn' + (mapKey===k ? ' sel' : '');
       b.innerHTML = `${MAPS[k].name}<small>${MAPS[k].desc}</small>`;
-      b.onclick = () => { mapKey = k; renderStartScreen(); buildPath(); };
+      b.onclick = () => { mapKey = k; mapTheme = pickMapTheme(); renderStartScreen(); buildPath(); };
       mapRow.appendChild(b);
     }
   } else {

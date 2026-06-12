@@ -153,4 +153,44 @@ const DIFFS = {
 };
 let diffKey = 'normal';
 
+// ================= Map themes (visual palettes) =================
+// Owner FEEDBACK: "all the maps look the same — add random colors/textures.
+// Classic always picks the same theme; mayhem is wild (on fire, wild colors);
+// campaign is random but tame." So each named quick-map gets a fixed identity,
+// campaign rolls a tame palette per attempt, and mayhem uses an animated "chaos"
+// palette. PURELY COSMETIC — the palette only feeds draw(); the only persistent
+// hook is saving the resolved theme key so a resumed run looks identical.
+const THEMES = {
+  circuit: { name:'Circuit', bgIn:'#0d1420', bgOut:'#070a10', star:'#9ecbff', grid:'rgba(88,166,255,0.05)',  pDark:'#04060a', pMid:'#1c2533', pLite:'#243044', glow:'rgba(88,166,255,0.4)',  dash:'rgba(88,166,255,0.25)' },
+  verdant: { name:'Verdant', bgIn:'#0a1810', bgOut:'#040a06', star:'#9be8b4', grid:'rgba(80,220,140,0.05)',  pDark:'#03080a', pMid:'#16302a', pLite:'#1f4438', glow:'rgba(80,220,140,0.4)',  dash:'rgba(120,240,170,0.25)' },
+  ember:   { name:'Ember',   bgIn:'#1a0f08', bgOut:'#0c0604', star:'#ffcaa0', grid:'rgba(255,150,80,0.05)',  pDark:'#0a0503', pMid:'#33231a', pLite:'#48321f', glow:'rgba(255,150,80,0.4)',  dash:'rgba(255,180,110,0.25)' },
+  violet:  { name:'Violet',  bgIn:'#140a20', bgOut:'#08040f', star:'#d2a8ff', grid:'rgba(170,120,255,0.05)', pDark:'#070310', pMid:'#261c38', pLite:'#352a4a', glow:'rgba(170,120,255,0.4)', dash:'rgba(200,160,255,0.25)' },
+  ice:     { name:'Ice',     bgIn:'#0a1620', bgOut:'#04090f', star:'#aef0ff', grid:'rgba(120,210,255,0.05)', pDark:'#03070a', pMid:'#173040', pLite:'#1f4458', glow:'rgba(120,210,255,0.4)', dash:'rgba(170,230,255,0.25)' },
+};
+// Fixed identity per named quick-map; campaign draws from the tame set below.
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember' };
+const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice'];
+let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
+function pickMapTheme() {
+  if (gameMode === 'campaign') return CAMPAIGN_THEMES[Math.floor(Math.random() * CAMPAIGN_THEMES.length)];
+  if (isMayhem()) return 'chaos';
+  return MAP_THEME[mapKey] || 'circuit';
+}
+// Resolve the concrete palette for THIS frame. 'chaos' (mayhem) is animated — the
+// hue sweeps for a "world on fire" feel — but collapses to a static fiery palette
+// when the OS asks to reduce motion. Every other theme is a static THEMES entry.
+function mapPalette() {
+  if (mapTheme === 'chaos') {
+    const t = reduceMotion() ? 0 : performance.now() / 1000;
+    const h = (t * 40) % 360, h2 = (h + 50) % 360;
+    return {
+      bgIn:`hsl(${(h + 10) % 360},55%,8%)`, bgOut:'#0a0204', star:`hsl(${h2},90%,75%)`,
+      grid:`hsla(${h},90%,60%,0.06)`,
+      pDark:'#0a0202', pMid:`hsl(${h},45%,16%)`, pLite:`hsl(${h2},55%,24%)`,
+      glow:`hsla(${h},95%,55%,0.5)`, dash:`hsla(${h2},95%,65%,0.35)`,
+    };
+  }
+  return THEMES[mapTheme] || THEMES.circuit;
+}
+
 

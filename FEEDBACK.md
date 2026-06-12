@@ -9,11 +9,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
 
-[Low priority] All the maps look the same. We should add random colors and textures to them. In the classic mode it should always pick the same theme. In mayham it should be while (things on fire, wild colors, etc). In campain mode it should be random but not crazy like mayham. Also Mayhem should be a random map every time.
-
 [Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
 
 ## DONE
+
+- **2026-06-11 · v1.13.8** — "[low priority] All the maps look the same. We should add random colors and textures to them. In classic mode it should always pick the same theme. In mayhem it should be wild (things on fire, wild colors, etc). In campaign mode it should be random but not crazy like mayhem. Also Mayhem should be a random map every time." → Added a `THEMES` palette system (`cd-maps.js`). Each Classic-mode map has a **fixed** colour identity (Classic=blue circuit, Spiral=emerald, Serpent=amber); **Campaign** rolls a tame palette per attempt; **Mayhem** uses an **animated "chaos" palette** that sweeps wild fiery hues (static under OS reduce-motion). Palette drives the background gradient, stars, grid, and all path layers in `draw()`. (Mayhem already re-rolls its path every `beginGame()` via `resetState()` — verified — so this focused on the visual distinction the request was about.) Resolved theme key saved to `cd_save` + restored on resume so colours persist; old saves default cleanly. Cosmetic only, no gameplay/save impact. New test group [28].
 
 - **2026-06-11 · v1.13.7** — "[high priority] You should list the time as well as the date for the whats new." → `CHANGELOG_ENTRIES` entries gained an optional `time` field; `renderWnList()` now shows `date · time` when present (falling back to date-only for older, timeless entries). New entries are timestamped going forward. Display-only, no save impact. New test group [27].
 

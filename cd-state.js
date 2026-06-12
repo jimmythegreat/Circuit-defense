@@ -44,6 +44,7 @@ function resetState() {
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   if (isMayhem()) MAPS.mayhem.pts = genMayhemPath();
+  mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);
   buildPath();
   document.getElementById('overlay').style.display = 'none';
@@ -62,7 +63,7 @@ function resetState() {
 function saveRun() {
   try {
     localStorage.setItem('cd_save', JSON.stringify({
-      mapKey, diffKey, gameMode, campLevel,
+      mapKey, diffKey, gameMode, campLevel, mapTheme,
       gold: Math.floor(gold), lives, kills,
       // resume from the last fully-settled wave: quitting mid-wave (or mid-rush with
       // several waves in flight) replays the unsettled wave(s), never double-paying
@@ -121,6 +122,10 @@ function loadRun() {
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
   lastSettledWave = wave;  // resumed at a clean boundary — all prior waves are settled
   livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
+  // restore the saved palette so a resumed run looks identical (campaign rolls random
+  // per attempt, so without this a resume would re-roll a different colour). Old saves
+  // lack the field — resetState's pickMapTheme() default already covers them.
+  if (s.mapTheme && (THEMES[s.mapTheme] || s.mapTheme === 'chaos')) mapTheme = s.mapTheme;
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;
   if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0}, s.abilityCd);

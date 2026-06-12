@@ -34,6 +34,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Content & variety
 
+- [x] **Per-map visual themes** — shipped v1.13.8 (owner FEEDBACK "all the maps look the
+      same"). `THEMES` palette table in `cd-maps.js` drives the background, stars, grid and
+      path layers in `draw()`. Classic=blue circuit, Spiral=emerald, Serpent=amber (fixed);
+      Campaign rolls a tame palette per attempt; Mayhem uses an animated fiery `chaos`
+      palette (static under reduce-motion). Theme key saved/restored for resume parity.
+      Test [28]. Follow-ups: *actual ground textures/patterns* (currently solid-colour path
+      fills), and *per-theme star density / parallax* for more visual identity.
 - [ ] **More wave modifiers** for Mayhem (fog/limited range, double-speed,
       armored surge, bounty boom).
 - [ ] **A secret / easter-egg legendary perk** with a quirky effect (owner likes
