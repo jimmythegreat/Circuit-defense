@@ -91,6 +91,42 @@ function update(dt) {
         if (Math.hypot(o.x-e.x, o.y-e.y) < 70) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.04 * dt);
       }
     }
+    // boss archetypes (v1.25.0): late bosses (w20+) carry a mechanic on top of HP —
+    //   regen     : self-heal 1.2%/s of max HP (punishes under-investment)
+    //   bulwark   : cycles a 2s damage-soak shield (×0.4 incoming) every ~8s
+    //   summoner  : periodically spawns weak adds behind it (up to 8 total)
+    // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
+    // All fields are run-only and lazily initialised, so nothing touches save state.
+    if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
+      if (e.bossType === 'regen') {
+        e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.012 * dt);
+      } else if (e.bossType === 'bulwark') {
+        if (e.shieldOn) {
+          e.shieldT -= dt;
+          if (e.shieldT <= 0) { e.shieldOn = false; e.shieldCd = 6; }
+        } else {
+          e.shieldCd = (e.shieldCd == null ? 5 : e.shieldCd) - dt;
+          if (e.shieldCd <= 0) { e.shieldT = 2; e.shieldOn = true; SFX.bossSkill(); }
+        }
+      } else if (e.bossType === 'summoner') {
+        if (e.summonsLeft == null) e.summonsLeft = 8;
+        e.summonCd = (e.summonCd == null ? 3 : e.summonCd) - dt;
+        if (e.summonCd <= 0 && e.summonsLeft > 0) {
+          e.summonCd = 4.5;
+          for (let i = 0; i < 2 && e.summonsLeft > 0; i++) {
+            e.summonsLeft--;
+            const ahp = e.maxHp * 0.02;
+            pendingSpawns.push({
+              kind:'norm', hp: ahp, maxHp: ahp, spd: e.spd / 0.45, r: 8,
+              bounty: Math.max(1, Math.round(e.bounty * 0.02)), color:'#ff9492', armor:0, gap:0,
+              dist: Math.max(0, e.dist - 14 - i*16), slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0
+            });
+          }
+          addExplosion(e.x, e.y, '#ff9492', 8, 90);
+          SFX.bossSkill();
+        }
+      }
+    }
     if (e.dist >= pathLen) {
       e.dead = true;
       const dmgLives = e.kind === 'boss' ? 5 : 1;
@@ -286,6 +322,7 @@ function hitEnemy(p) {
 function damage(e, dmg, src, silent=false, ignoreArmor=false) {
   if (e.hp <= 0 || e.dead) return;
   if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
+  if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
   const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) - 2 * tRank('piercing'));
   const actual = Math.max(0.5, dmg - armor * (dmg > 2 ? 1 : 0.05));
   const applied = Math.min(e.hp, actual);

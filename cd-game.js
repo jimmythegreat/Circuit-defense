@@ -106,6 +106,10 @@ function enemyTemplate(w) {
   // deep endless. Specials/boss scale off this, so the trim propagates proportionally.
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((3 + w*0.6) * d.bounty)) };
 }
+// Boss archetype rotation (v1.25.0). Indexed by boss number from wave 20 on, so deep
+// bosses cycle regen → summoner → bulwark. KEEP IN SYNC with the update()/render() and
+// damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark'];
 function buildWave(w) {
   const q = [];
   let count = 8 + Math.floor(w*1.7);
@@ -136,6 +140,13 @@ function buildWave(w) {
     // (= the coefficient change), inside the ≤25%/number/run guardrail at every wave.
     const mult = 14 + w*0.6;
     const boss = { kind:'boss', hp:t.hp*mult, maxHp:t.hp*mult, spd:t.speed*0.45, r:24, bounty:t.bounty*12, color:'#f85149', armor: w*0.4, gap:1.5 };
+    // Boss ARCHETYPES (v1.25.0): from wave 20+ the every-5th-wave boss gains a MECHANIC
+    // (regen / summoner / bulwark shield) on a 3-cycle — hardening the LATE game off the
+    // HP axis, since the norm-enemy HP curve is already invariant-capped (see [16] / the
+    // enemyTemplate note in CLAUDE.md). Early/tutorial bosses (w5/10/15, and campaign
+    // L1–5 finals at victoryWave<20) stay vanilla, so the early game is untouched. The
+    // mechanic itself is run-only state (ticked in update()), so it's never persisted.
+    if (w >= 20) boss.bossType = BOSS_ARCHETYPES[(w/5 - 4) % BOSS_ARCHETYPES.length];
     if (modIs('titans')) { boss.hp *= 1.5; boss.bounty = Math.ceil(boss.bounty * 1.5); }
     if (modIs('goldrush')) boss.bounty *= 2;
     if (modIs('frenzy')) boss.spd *= 1.35;

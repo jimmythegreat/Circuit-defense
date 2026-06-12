@@ -3,6 +3,39 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.25.0 — 2026-06-12 — 👑 Boss archetypes (regen / bulwark / summoner)
+
+**Content + late-game difficulty** (ROADMAP "Boss variety", and serves the recurring FEEDBACK *"too easy"* —
+hardening deep waves **off the HP axis**, since the norm-enemy curve is invariant-capped by test `[16]`). Bosses
+(every 5th wave) were just scaled HP. From **wave 20 onward** each boss now also carries a **mechanic**, cycling
+through three archetypes by boss number (`BOSS_ARCHETYPES = ['regen','summoner','bulwark']`, indexed
+`(w/5 − 4) % 3` in `buildWave`, `cd-game.js`):
+
+- **🟢 Regenerator** — self-heals `1.2%/s` of max HP (`cd-update.js` enemy loop). Punishes under-investment;
+  **freezing it pauses the heal** (gated on `e.frozen<=0`, like the heal enemy).
+- **🔵 Bulwark** — cycles a **2s damage-soak shield** (`×0.4` incoming, i.e. −60%) every ~8s. The reduction is a
+  single line in `damage()` (`if (e.shieldOn) dmg *= 0.4`); the aura ring flares bright/thick during the active
+  window so it's readable. Average effective-HP gain ≈ +15% (2s on / 8s cycle × 0.6 soak).
+- **🔴 Summoner** — spawns **2 weak adds** behind it every 4.5s, **capped at 8 total** (`summonsLeft`). Adds are
+  `maxHp×0.02` (~half a norm enemy), tiny bounty, so they split tower attention / threaten leaks without feeding
+  the economy.
+
+A coloured boss aura (`cd-render.js`) codes the archetype (green/red/blue), and `SFX.bossSkill()` (`cd-core.js`) —
+a short ominous metallic swell — fires when a boss raises its shield or summons. **Early/tutorial bosses
+(w5/10/15, and campaign L1–5 finals at `victoryWave<20`) are unchanged**, so the opening (which the notes mark as
+already feeling right) is untouched.
+
+- **Save-safe:** every archetype field (`bossType`, `shieldOn/shieldT/shieldCd`, `summonCd/summonsLeft`) is
+  run-only and lazily initialised in `update()` — enemies are never persisted, so there's no schema change or
+  migration. Old saves resume identically.
+- **Tests:** new group `[45]` (boss archetypes) — asserts vanilla bosses below w20, the correct archetype
+  rotation at w20/25/30/35, that regen heals & freeze pauses it, that the bulwark shield soaks damage & cycles,
+  that the summoner spawns capped adds, and that an archetype boss wave still clears with overwhelming towers
+  (beatable, no hang, zero console errors). Full suite green.
+- **Why mechanics, not more HP:** the regular-enemy HP curve is at its design ceiling (test `[16]`); behaviour is
+  the open lever. ROADMAP "Boss variety" called for exactly *"distinct boss behaviors (shielded, summoner,
+  regenerator) instead of just scaled HP."*
+
 ## v1.24.4 — 2026-06-12 — 🐲 Tougher late-game bosses (boss HP slope 0.5 → 0.6)
 
 **Addresses the recurring FEEDBACK item** *"The game is still too easy."* (kept in PENDING — recurring,

@@ -74,8 +74,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       glass-cannon trade-off), and maybe a hidden unlock condition for a secret one.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes.
-- [ ] **Boss variety** — distinct boss behaviors per campaign tier (shielded,
-      summoner, regenerator) instead of just scaled HP.
+- [x] **Boss variety** — shipped **v1.25.0**. From wave 20+ each every-5th-wave boss carries a
+      MECHANIC, cycling `regen → summoner → bulwark` by boss number (`BOSS_ARCHETYPES[(w/5−4)%3]`
+      in `buildWave`). **Regen** self-heals 1.2%/s (freeze pauses it); **bulwark** cycles a 2s
+      ×0.4 damage-soak shield (~+15% effective HP); **summoner** spawns 2 weak adds every 4.5s,
+      capped at 8. Colour-coded boss aura (`cd-render.js`) + `SFX.bossSkill()`. Early/tutorial
+      bosses (w5/10/15, campaign L1–5 finals) unchanged. Run-only state, no save impact. Hardens the
+      late game through behaviour, not HP (the norm-HP curve is invariant-capped). Test `[45]`.
+      **Follow-ups:** *step the threshold/intensity if late game is still soft*; a **4th archetype**
+      (e.g. an enrager that speeds nearby enemies, or a teleporter); per-campaign-tier *fixed*
+      archetypes (vs the current wave-number cycle); and a *boss-bar badge* naming the active mechanic.
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -176,9 +184,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       early game now feels right; the plateau was the gap. **v1.24.4 steepened the
       BOSS HP slope** `14 + w*0.5 → 14 + w*0.6` (+3% at w5 → +10% at w30, bounded +20%
       asymptote) — the open late-game lever, since the norm-HP curve is invariant-capped
-      (see ⚠ below). Next candidate levers if still too easy late — **step the boss
-      slope `0.6 → ~0.7`** next run, **boss mechanics** (regen/shield, see "Boss
-      variety") to harden late waves off the HP axis entirely, the Frost/booster
+      (see ⚠ below). **v1.25.0 took the off-HP lever: boss ARCHETYPES** (regen/bulwark/
+      summoner from w20+, see "Boss variety" above) harden deep/late-campaign waves through
+      *behaviour* rather than more HP — exactly the "boss mechanics" candidate below.
+      Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
+      **lower the archetype threshold** (w20 → w15) or add a 4th archetype, the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
       before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`

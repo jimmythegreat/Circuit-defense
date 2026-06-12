@@ -2337,6 +2337,113 @@ async function main() {
     await page.close();
   }
 
+  // [45] Boss archetypes — regen / bulwark / summoner (v1.25.0)
+  console.log('\n[45] Boss archetypes (regen/bulwark/summoner)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
+      // Rotation by boss number: (w/5 - 4) % 3 → regen, summoner, bulwark, regen, ...
+      const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
+                    && bt(30) === 'bulwark' && bt(35) === 'regen' && bt(40) === 'summoner';
+
+      // Drop a controlled boss into the live enemy array and tick update() on it.
+      const mkBoss = (bossType, over = {}) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        const e = { kind:'boss', bossType, hp:1000, maxHp:2000, spd:20, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:5, x:W/2, y:H/2, px:W/2, py:H/2,
+          slow:0, slowF:0.8, frozen:0, poison:null, flash:0 };
+        Object.assign(e, over);
+        enemies.push(e);
+        return e;
+      };
+
+      // REGEN — heals over time; freeze pauses the heal.
+      let e = mkBoss('regen'); const hp0 = e.hp;
+      for (let i = 0; i < 30; i++) update(1/60);
+      const regenHeals = enemies[0] && enemies[0].hp > hp0;
+      e = mkBoss('regen', { frozen: 5 }); const fhp0 = e.hp;
+      for (let i = 0; i < 30; i++) update(1/60);
+      const frozenNoHeal = enemies[0] && Math.abs(enemies[0].hp - fhp0) < 1e-6;
+
+      // BULWARK — active shield soaks 60% of a hit; the cycle raises a shield over time.
+      e = mkBoss('bulwark', { shieldOn: true, shieldT: 2 });
+      const hpB = e.hp; damage(e, 100, null);
+      const shieldSoaks = Math.abs((hpB - e.hp) - 40) < 1e-6;   // 100 × 0.4
+      e = mkBoss('bulwark', { spd: 0 });                         // pin so it can't leak
+      let shieldRaised = false;
+      for (let i = 0; i < 600 && !shieldRaised; i++) { update(1/60); if (enemies[0] && enemies[0].shieldOn) shieldRaised = true; }
+
+      // SUMMONER — spawns weak adds, capped at 8 total. Pin boss (spd 0) so adds (spd
+      // inherits 0) and the boss stay put and can be counted deterministically.
+      e = mkBoss('summoner', { spd: 0 });
+      for (let i = 0; i < 1500; i++) update(1/60);
+      const adds = enemies.filter(k => k.kind === 'norm').length;
+      const bossNow = enemies.find(k => k.kind === 'boss');
+      const summonerCapped = adds === 8 && bossNow && bossNow.summonsLeft === 0;
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped };
+    });
+    check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
+    check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
+    check('regen boss heals itself over time', r.regenHeals);
+    check('freezing a regen boss pauses its healing', r.frozenNoHeal);
+    check('bulwark active shield soaks 60% of a hit', r.shieldSoaks);
+    check('bulwark raises its shield on a cycle', r.shieldRaised);
+    check('summoner spawns adds capped at 8 total', r.summonerCapped, `adds=${r.adds}`);
+
+    // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
+    // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
+    // waypoints are [x,y] arrays), then confirm it dies within a bounded sim (no immortal
+    // mechanic / hang). Even the bulwark's damage-soak only delays, never blocks, a kill.
+    const killable = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const sp = pointAt(60);
+      const results = {};
+      for (const bt of ['regen', 'bulwark', 'summoner']) {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
+          level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
+          buffPower:0.25, flash:0 });
+        enemies.push({ kind:'boss', bossType:bt, hp:5000, maxHp:5000, spd:6, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+          slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+        let guard = 0;
+        while (enemies.some(e => e.kind === 'boss') && guard < 3000) { update(1/60); guard++; }
+        results[bt] = { died: !enemies.some(e => e.kind === 'boss'), guard };
+      }
+      backToMenu(); localStorage.removeItem('cd_save');
+      return results;
+    });
+    check('regen boss is killable (dies under sustained fire)', killable.regen.died, `guard=${killable.regen.guard}`);
+    check('bulwark boss is killable (shield only delays, not immortal)', killable.bulwark.died, `guard=${killable.bulwark.guard}`);
+    check('summoner boss is killable', killable.summoner.died, `guard=${killable.summoner.guard}`);
+
+    // Full late wave with the archetype boss still drives to completion (multi-tower
+    // god setup via the harness driver — the proven pattern from groups [2]/[3]).
+    const beat = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const r = __cdDrive({ maxWave: 22 });    // drives THROUGH wave 20 (regen archetype boss)
+      const r2 = { reached: wave >= 21, wave, hitCap: r.hitCap, gameOver };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return r2;
+    });
+    check('drives through the w20 archetype boss wave without hanging', beat.reached && !beat.hitCap,
+      `wave=${beat.wave} hitCap=${beat.hitCap} gameOver=${beat.gameOver}`);
+    check('no console errors during boss-archetype test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

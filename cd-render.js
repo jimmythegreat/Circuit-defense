@@ -353,6 +353,17 @@ function draw() {
       ctx.lineWidth = 1;
       ctx.stroke();
     }
+    // boss archetype aura (v1.25.0): colour-codes the mechanic — green regen, red
+    // summoner, blue bulwark. The bulwark ring flares bright+thick during its active
+    // shield phase so the damage-soak window is readable at a glance.
+    if (e.kind === 'boss' && e.bossType) {
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : '121,192,255';
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6), 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(${ac},${e.shieldOn ? 0.85 : 0.4})`;
+      ctx.lineWidth = e.shieldOn ? 3.5 : 2;
+      ctx.stroke();
+    }
     // ground shadow
     ctx.beginPath();
     ctx.ellipse(e.x + 2, e.y + e.r * 0.85, e.r * 0.9, e.r * 0.35, 0, 0, Math.PI*2);
