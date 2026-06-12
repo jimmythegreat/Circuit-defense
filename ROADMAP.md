@@ -171,15 +171,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.14.1 health check)
+## Table-stakes (polished-browser-game basics — re-audited v1.16.4 health check)
 
 _Still-unaddressed, in priority order: **colorblind-safe palette** → gamepad → PWA
-install → **high-DPI canvas** → **menu keyboard a11y**. Done: document metadata (v1.8.6),
-reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive layout (v1.14.0)**, **mobile
-board sizing + What's New default-collapse (v1.15.0)**, **touch/pointer controls (v1.16.3)** —
-canvas board interaction (place/select/aim) is now `pointerdown`-driven with a touch-generous
-tap radius + `touch-action:none`. v1.14.1 visual pass confirmed desktop & phone menus all render
-correctly; the remaining mobile polish is just bigger HTML button targets if wanted._
+install → **high-DPI canvas** → **menu keyboard a11y** (all confirmed still open at the
+v1.16.4 health check — none regressed, none newly closed since v1.15.0). Done: document
+metadata (v1.8.6), reduced-motion (v1.10.0), volume slider (v1.13.2), **responsive layout
+(v1.14.0)**, **mobile board sizing + What's New default-collapse (v1.15.0)**, **touch/pointer
+controls (v1.16.3)** — canvas board interaction (place/select/aim) is now `pointerdown`-driven
+with a touch-generous tap radius + `touch-action:none`. v1.14.1 visual pass confirmed desktop &
+phone menus all render correctly; the remaining mobile polish is just bigger HTML button targets
+if wanted. **Next normal run's strongest table-stakes pick: high-DPI canvas scaling** (pure
+rendering crispness, no save/gameplay impact, self-contained) or **colorblind-safe palette**._
 
 
 - [x] **Document metadata** — shipped v1.8.6. Favicon (inline SVG data URI,

@@ -3,6 +3,45 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.16.4 — 2026-06-12 — 🩺 Health check
+
+**Every-6th-run maintenance pass** (5 version entries since the v1.14.1 health check: v1.15.0,
+v1.16.0, v1.16.1, v1.16.2, v1.16.3). Ships no new feature — confirms the project is still
+healthy and the docs still match the code. The pending FEEDBACK item is "[Low priority]" (not a
+`[bug]`), so it did not override the health check.
+
+**1. Refactor audit.** All eight game files are comfortably within the ~1500-line cap — line
+counts: cd-update.js 656, cd-render.js 533, cd-game.js 527, cd-defs.js 300, cd-core.js 240,
+cd-maps.js 196, cd-state.js 156; plus tower-defense.css 393, tower-defense.html 138. No file is
+near the cap, no dead code or out-of-domain functions found. The booster-aura taper appears in
+three sites (`upgradeTower`/`ascendTowers`/`loadRun` rebuild) by design — each carries a
+"keep in sync" comment, so it's intentional duplication, not drift. **No `[refactor]` items
+needed.**
+
+**2. Docs coherence.** Re-verified the key CLAUDE.md formulas against the code — all matched:
+enemy-HP `(18 + w*7 + 1.25·w^1.9)·1.80·d.hp·campScale`, per-kill bounty `max(2, round((3+w·0.6)·d.bounty))`,
+wave-clear bonus `(20 + w·4)·…`, booster taper `0.25 + 0.08·(lvl-1)` (and `+= 0.08` at both
+upgrade sites), the `computeScore()` term list + `effMult = 1 + max(0,10−nt)·0.03`, and the
+touch select radius `coarsePointer() ? 30 : 18`. `GAME_VERSION` matched the latest CHANGELOG
+heading (was v1.16.3). **One drift fixed:** `index.html` (the GitHub Pages root → `tower-defense.html`
+redirect, added in the public-release commit, plus the static-deploy workflow that bundles it) was
+undocumented in CLAUDE.md — now described in the intro. ROADMAP table-stakes audit note refreshed
+to v1.16.4; vetoed section intact (still none recorded).
+
+**3. Table-stakes audit.** Walked the polished-browser-game list. Still-open, unchanged since the
+v1.15.0/v1.16.3 mobile work: **colourblind-safe palette**, **gamepad**, **PWA install**,
+**high-DPI canvas**, **menu keyboard a11y** — all already logged in ROADMAP, none regressed, none
+newly closed. Flagged high-DPI canvas scaling or the colourblind palette as the strongest pick for
+the next normal run. No new gaps found.
+
+**4. Integrity spot-checks.** Full suite **272/0 green** (34 groups), zero console errors. Page
+loads with all globals present (`GAME_VERSION`/`beginGame`/`loadMeta`/`coarsePointer`/`computeScore`).
+Old-format save migration verified live: a minimal old `cd_meta` (chips + talents only) loaded with
+`achievements`/`stats` defaulted (`bestCombo` → 0), and an old `cd_save` with no `mapTheme`/`lastSettledWave`
+restored cleanly (`mapTheme` → `circuit` default, towers rebuilt). Test data cleaned up afterwards.
+
+**Version bump:** v1.16.3 → **v1.16.4** (patch). This resets the 5-run health-check counter.
+
 ## v1.16.3 — 2026-06-12 — Touch / pointer controls: make tapping the board reliable on phones (ROADMAP table-stakes)
 
 **Why:** Mobile has been the owner's recurring theme (v1.14.0 layout, v1.15.0 board-sizing). The

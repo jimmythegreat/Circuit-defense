@@ -2,6 +2,8 @@
 
 A browser tower defense game. **The game is `tower-defense.html` (markup) + `tower-defense.css` (styles) + seven domain-split JS files (v1.8.2).** Everything is wired with classic `<link rel="stylesheet">` and `<script src>` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
 
+`index.html` is a tiny `<meta http-equiv="refresh">` **redirect** to `tower-defense.html` (added in the public-release commit) so the GitHub Pages **root URL** lands on the game; it carries no game code. The Pages deploy workflow (`.github/workflows/`) copies `index.html` + `tower-defense.html` + `tower-defense.css` + `cd-*.js` into `_site` and publishes them as a **static** deploy (no build step) on every push to `master`. Don't break it.
+
 **JS load order (classic scripts share one global scope, so order = dependency order — do not reorder, and keep the startup-init block last in `cd-render.js`):**
 
 1. `cd-core.js` — canvas refs (`cv`/`ctx`/`W`/`H`), `GAME_VERSION`/`CHANGELOG_ENTRIES` + What's-New panel, audio (`tone`/`noise`/`SFX`)
