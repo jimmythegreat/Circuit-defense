@@ -5,6 +5,8 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[important] This game looks terrible on phones. Pick various popular screen sizes and make it work on those.
+
 [Low priority] A scoring system for the final victory/defeat screen. Based on stuff like kill time, remaining gold, using fewer towers, etc.
 
 [Low priority] The victory screen is getting a bit overwhelming. I think it just needs to be restyled.
