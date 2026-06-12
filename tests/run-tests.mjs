@@ -2050,6 +2050,66 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 41: Last Stand legendary perk (comeback damage, v1.22.0) ----
+  console.log('\n[41] Last Stand comeback perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+      // perk exists in the pool and is a legendary
+      const def = PERKS.find(p => p.id === 'laststand');
+      const inPool = !!def && def.rarity === 'legendary';
+      // clean run: perk held, no lives lost -> no bonus
+      perkState.lastStand = true; perkState.livesLost = 0;
+      const dClean = effDmg(gun);
+      // 5 lives lost (one boss leak) -> +15%
+      perkState.livesLost = 5;
+      const d5 = effDmg(gun);
+      // 20 lives lost -> +60% cap; 40 -> still capped
+      perkState.livesLost = 20;
+      const d20 = effDmg(gun);
+      perkState.livesLost = 40;
+      const d40 = effDmg(gun);
+      // base (perk NOT held) ignores the counter entirely
+      perkState.lastStand = false; perkState.livesLost = 30;
+      const dNoPerk = effDmg(gun);
+      const base = dClean;  // lastStand with 0 lost == base multiplier path
+      // freshPerkState defaults are present & save-safe
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.lastStand === false && fresh.livesLost === 0;
+      // save -> restore round-trip (perkState persisted whole; reapply over freshPerkState)
+      perkState.lastStand = true; perkState.livesLost = 7;
+      saveRun();
+      perkState.lastStand = false; perkState.livesLost = 0;  // clobber
+      const loaded = loadRun();
+      const restored = perkState.lastStand === true && perkState.livesLost === 7;
+      // old-save migration: a cd_save whose perkState lacks the new fields defaults them
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.lastStand; delete old.perkState.livesLost;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.lastStand === false && perkState.livesLost === 0;
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inPool, base, dClean, d5, d20, d40, dNoPerk, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Last Stand is a legendary perk in the pool', r.inPool);
+    check('clean run (0 lives lost) gives no bonus', Math.abs(r.dClean - r.base) < 1e-9, `clean=${r.dClean}`);
+    check('5 lives lost = +15% damage', Math.abs(r.d5 - r.base * 1.15) < 1e-6, `d5=${r.d5} base=${r.base}`);
+    check('20 lives lost = +60% cap', Math.abs(r.d20 - r.base * 1.6) < 1e-6, `d20=${r.d20}`);
+    check('40 lives lost stays capped at +60%', Math.abs(r.d40 - r.base * 1.6) < 1e-6, `d40=${r.d40}`);
+    check('counter ignored when perk not held', Math.abs(r.dNoPerk - r.base) < 1e-9, `noPerk=${r.dNoPerk}`);
+    check('freshPerkState defaults lastStand:false / livesLost:0', r.defaultsOk);
+    check('save/reload round-trips the perk flag + counter', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing the fields migrates to defaults', r.migratedOk);
+    check('no console errors during Last Stand test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

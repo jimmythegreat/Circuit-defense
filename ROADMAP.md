@@ -56,8 +56,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       fills), and *per-theme star density / parallax* for more visual identity.
 - [ ] **More wave modifiers** for Mayhem (fog/limited range, double-speed,
       armored surge, bounty boom).
-- [ ] **A secret / easter-egg legendary perk** with a quirky effect (owner likes
-      surprises).
+- [x] **A secret / easter-egg legendary perk** — shipped **v1.22.0**: 🩸 **Last Stand**,
+      a comeback perk that gives ALL towers +3% damage per life lost this run (cap +60% at
+      20 lives lost). Deliberately conditional — a flawless run gets +0%, so it can't make an
+      already-easy run easier (respects the "too easy" feedback); it's a pure rubber-band for
+      a near-loss. `lastStand`/`livesLost` live in `perkState` (save-safe via `freshPerkState()`);
+      counter incremented at the leak site in `cd-update.js`; `effDmg()` applies the multiplier.
+      Test [41]. Follow-up: *more quirky legendaries* (e.g. a true random "Wildcard", or a
+      glass-cannon trade-off), and maybe a hidden unlock condition for a secret one.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes.
 - [ ] **Boss variety** — distinct boss behaviors per campaign tier (shielded,

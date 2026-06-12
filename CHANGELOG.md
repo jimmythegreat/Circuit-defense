@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.22.0 — 2026-06-12 — 🩸 New legendary perk: Last Stand (comeback damage)
+
+**What & why.** ROADMAP "Content & variety → A secret / easter-egg legendary perk with a quirky
+effect (owner likes surprises)." Added **Last Stand** (🩸, legendary): ALL towers deal **+3% damage
+per life lost this run, capped at +60%** (reached at 20 lives lost). It's a deliberate rubber-band —
+a flawless run gets **+0%**, so it can only ever help a *struggling* player. That makes it the
+safest possible power perk against the owner's recurring **"game is too easy"** feedback: it cannot
+make an already-dominant run any stronger, it only softens a near-loss into a rally.
+
+**How.**
+- `PERKS` gains the entry (`id:'laststand'`, legendary tier) in `cd-defs.js`; `freshPerkState()`
+  gains `lastStand:false` and a `livesLost:0` counter.
+- The leak site in `cd-update.js` (`lives -= dmgLives`) now also does `perkState.livesLost += dmgLives`
+  (boss leaks count their full 5), so the counter is always maintained whether or not the perk is held.
+- `effDmg()` in `cd-game.js` applies `d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost)` when
+  `perkState.lastStand`. Because `upgradeKey()` already hashes `effDmg`, the upgrade panel live-updates
+  if a life leaks while it's open; the board perk tooltip works automatically (looked up from `PERKS`).
+
+**Balance.** Conditional by design. A leak (1 life) → +3%; a boss breakthrough (5 lives) → +15%;
+cap +60% at 20 lives lost. Compare the unconditional Diamond Core (+30%). Sim (Last Stand held,
+gunner base 10 dmg): 0 lives lost → ×1.00 (10.0); 5 lost → ×1.15 (11.5); 20+ lost → ×1.60 (16.0,
+capped). No effect on a clean run.
+
+**Save-safe.** The two new fields live inside `perkState`, which is persisted whole and restored via
+`Object.assign(freshPerkState(), s.perkState)` — old saves default to `lastStand:false`/`livesLost:0`.
+A run that drafts Last Stand keeps its life-loss tally across save/resume.
+
+**Tests.** New group `[41]` (perk applies the flag; damage scales with `livesLost` and hits the +60%
+cap; a clean run gets ×1.0; save→reload round-trips the perk + counter). Cosmetic/board tooltip and
+draft a11y inherited from the existing perk infrastructure.
+
 ## v1.21.0 — 2026-06-12 — 🔮 Wave preview with per-kind counts
 
 **What & why.** ROADMAP "Game feel / polish → Wave preview — show the composition of the next

@@ -410,6 +410,8 @@ function effDmg(t) {
   if (t.spec === 'cluster') d *= 1.5;
   if (t.spec === 'mega') d *= 1.15;
   if (modIs('surge')) d *= 1.3;
+  // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
+  if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
   return d;
 }
 function effRate(t) {

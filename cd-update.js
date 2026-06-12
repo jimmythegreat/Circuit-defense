@@ -96,6 +96,7 @@ function update(dt) {
       const dmgLives = e.kind === 'boss' ? 5 : 1;
       lives -= dmgLives;
       livesLostThisRun = true;
+      perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
       shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
       addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
       SFX.life();

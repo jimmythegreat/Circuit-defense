@@ -233,13 +233,16 @@ const PERKS = [
   { id:'titanslayer',rarity:'legendary',icon:'🗡️',name:'Titan Slayer',   desc:'+100% damage vs tanks & bosses',           apply:s=>s.bossDmg *= 2 },
   { id:'geese',   rarity:'legendary', icon:'🪿', name:'Golden Geese',    desc:'+3 gold per kill',                         apply:s=>s.bountyAdd += 3 },
   { id:'ascension',rarity:'legendary',icon:'🌟', name:'Ascension',       desc:'ALL towers +1 level instantly (free)',     apply:()=>{ ascendTowers(); } },
+  // Comeback mechanic (v1.22.0): scales with lives lost this run, so it ONLY rewards a
+  // struggling player (a flawless run gets +0%) — a deliberate "too easy"-safe legendary.
+  { id:'laststand',rarity:'legendary',icon:'🩸', name:'Last Stand',      desc:'+3% damage per life lost (max +60%)',      apply:s=>s.lastStand = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
 function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
-    orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1 };
+    orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0 };
 }
 function ascendTowers() {
   for (const t of towers) {
