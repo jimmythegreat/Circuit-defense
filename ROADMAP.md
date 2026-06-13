@@ -130,14 +130,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       late game through behaviour, not HP (the norm-HP curve is invariant-capped). Test `[45]`.
       **v1.34.0 added the 4th archetype — 😡 Enrager** (haste aura: nearby enemies +35% speed,
       `hasted` tag decays in 0.6s; frozen boss pauses it, Frost slows still multiply in; orange
-      boss aura + per-enemy ring). Cycle now `(w/5−4)%4` (w35→enrager, w40→regen). Test `[45]` extended.
+      boss aura + per-enemy ring). **v1.40.0 added the 5th — 🟣 Teleporter** (blinks +80px forward
+      every ~4s, briefly intangible mid-jump → shrinks the damage window + reaches the exit faster;
+      reuses the phantom blink fields, violet aura/badge, freeze pauses the blink, invuln decays even
+      while frozen so it's never immortal). Cycle now `(w/5−4)%5` (w40→teleporter, w45→regen).
+      Test `[45]` extended. ✅ **boss-bar mechanic badge shipped v1.36.0** — the boss HP bar now names
+      the active archetype under "OVERLORD — WAVE N", colour-matched to the aura ring (green
+      REGENERATING / red SUMMONER / blue BULWARK↔SHIELDED / orange ENRAGED / violet TELEPORTER);
+      `bossMechanicBadge()` in `cd-render.js`, render-only, test [53].
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      a 5th archetype (teleporter); per-campaign-tier *fixed* archetypes (vs the current wave-number
-      cycle). ✅ **boss-bar mechanic badge shipped v1.36.0** — the boss HP bar now names the
-      active archetype under "OVERLORD — WAVE N", colour-matched to the aura ring (green
-      REGENERATING / red SUMMONER / blue BULWARK↔SHIELDED / orange ENRAGED); `bossMechanicBadge()`
-      in `cd-render.js`, render-only, test [53]. Still open: a 5th archetype (teleporter) and
-      per-campaign-tier *fixed* archetypes.
+      a 6th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -265,7 +267,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
       crucially hits **Classic & Campaign** (the modes the owner called too easy), not just
       Mayhem/late bosses. See "New enemy type: warden" above.
       Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
-      **lower the archetype threshold** (w20 → w15) or add a 4th archetype, the Frost/booster
+      **lower the archetype threshold** (w20 → w15) or add another archetype (5 as of v1.40.0), the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
       before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`

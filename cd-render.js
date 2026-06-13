@@ -42,6 +42,7 @@ function bossMechanicBadge(e) {
     case 'summoner': return { label: 'SUMMONER', c: '255,148,146' };
     case 'bulwark':  return { label: e.shieldOn ? 'SHIELDED' : 'BULWARK', c: '121,192,255' };
     case 'enrager':  return { label: 'ENRAGED', c: '255,180,84' };
+    case 'teleporter': return { label: 'TELEPORTER', c: '188,140,255' };
     default:         return null;
   }
 }
@@ -423,11 +424,12 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // boss archetype aura (v1.25.0; enrager v1.34.0): colour-codes the mechanic — green
-    // regen, red summoner, blue bulwark, orange enrager. The bulwark ring flares bright+thick
-    // during its active shield phase so the damage-soak window is readable at a glance.
+    // boss archetype aura (v1.25.0; enrager v1.34.0; teleporter v1.40.0): colour-codes the
+    // mechanic — green regen, red summoner, blue bulwark, orange enrager, violet teleporter.
+    // The bulwark ring flares bright+thick during its active shield phase so the damage-soak
+    // window is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : '121,192,255';
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6), 0, Math.PI*2);
       ctx.strokeStyle = `rgba(${ac},${e.shieldOn ? 0.85 : 0.4})`;
@@ -441,8 +443,10 @@ function draw() {
     ctx.fill();
     // shaded sphere
     const ecol = e.flash > 0 ? '#ffffff' : (e.frozen > 0 ? '#9be8ff' : e.color);
-    // phantoms render translucent, fading almost out while they're mid-blink
-    const phantomA = e.kind === 'phantom' ? (e.blinkInvuln > 0 ? 0.22 : 0.72) : 1;
+    // phantoms render translucent, fading almost out while they're mid-blink; a teleporter
+    // boss is solid normally but fades while it's intangible mid-jump (v1.40.0) as the cue.
+    const phantomA = e.kind === 'phantom' ? (e.blinkInvuln > 0 ? 0.22 : 0.72)
+                   : (e.kind === 'boss' && e.bossType === 'teleporter' && e.blinkInvuln > 0) ? 0.3 : 1;
     if (phantomA < 1) ctx.globalAlpha = phantomA;
     const sphereG = ctx.createRadialGradient(e.x - e.r*0.35, e.y - e.r*0.4, e.r*0.15, e.x, e.y, e.r);
     sphereG.addColorStop(0, shade(ecol, 85));

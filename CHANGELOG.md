@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.40.0 — 2026-06-13 — 🟣 Teleporter — 5th boss archetype (blink + brief intangibility, w20+, all modes)
+
+**Type:** Content / late-game difficulty. Minor bump. **ROADMAP** "Boss variety" follow-up (the explicitly-listed open item: *"a 5th archetype (teleporter)"*). Continues the recurring "too easy" thread by hardening deep bosses through **behaviour**, not HP (the norm-enemy HP curve is invariant-capped by test `[16]`; archetypes are the off-HP lever).
+
+**What changed:** `BOSS_ARCHETYPES` grows `4 → 5` (`['regen','summoner','bulwark','enrager','teleporter']`, `cd-game.js`). From wave 20+ the every-5th-wave boss cycles `(w/5−4) % 5`, so the rotation is now **Regen → Summoner → Bulwark → Enrager → Teleporter** (w20/25/30/35/40; w45 wraps to Regen). Early/tutorial bosses (w5/10/15, campaign L1–5 finals at `victoryWave<20`) stay vanilla.
+
+**The Teleporter mechanic** (`cd-update.js`, in the boss-tick block gated `frozen<=0`): every **~4s** the boss blinks **+80px** forward along the path and sets `e.blinkInvuln = 0.4` — reusing the **phantom** blink fields, so mid-blink it's untargetable (`pickTarget` skip) and immune (`damage()` early-return). The intangibility decays **every frame even while frozen** (a dedicated line *above* the gated block) so a boss frozen mid-blink can't get stuck permanently invulnerable; the blink *trigger* is paused by freeze (like phantom's `blinkCd`). Because it keeps skipping ahead it spends less time in firing arcs (harder to whittle down) and reaches the exit sooner — pressuring DPS/timing off the HP axis. Counter: freeze pauses the blink; dense back-stretch coverage maximises the shrinking damage window.
+
+**Render** (`cd-render.js`): violet aura ring (`188,140,255`) matching the other colour-coded auras; the boss fades to 0.3 alpha while intangible mid-jump (the cue); `bossMechanicBadge()` returns `{label:'TELEPORTER', c:'188,140,255'}` so the boss HP bar names it. Blink burst uses `SFX.blink()`.
+
+**Save-safe:** all fields (`blinkInvuln`/`blinkCd`/`bossType`) are run-only and lazily initialised — enemies are never persisted, so no schema/migration change. No economy/balance impact (no HP/bounty change). **Tests:** group `[45]` extended (rotation now asserts w40=teleporter / w45=regen; blink-advances-dist, mid-blink-intangible, freeze-pauses-blink, invuln-decays-while-frozen, teleporter-is-killable) + `[53]` (TELEPORTER badge). Suite green.
+
 ## v1.39.1 — 2026-06-13 — 🎛️ Start-menu button hierarchy (FEEDBACK "bottom-row buttons huge / menu clunky", first slice)
 
 **Type:** UX / layout polish. Patch bump. **From FEEDBACK** (the one PENDING item, marked `[low priority]`): *"The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu."* A full menu revamp is too big for one run; this is the **first coherent slice** — fixing the concrete complaint that the bottom-row buttons all read equally huge.

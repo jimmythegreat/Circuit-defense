@@ -2371,8 +2371,8 @@ async function main() {
     await page.close();
   }
 
-  // [45] Boss archetypes — regen / bulwark / summoner (v1.25.0)
-  console.log('\n[45] Boss archetypes (regen/bulwark/summoner)');
+  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter (v1.25.0+)
+  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -2382,9 +2382,10 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 4 → regen, summoner, bulwark, enrager, regen, ...
+      // Rotation by boss number: (w/5 - 4) % 5 → regen, summoner, bulwark, enrager, teleporter, regen, ...
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
-                    && bt(30) === 'bulwark' && bt(35) === 'enrager' && bt(40) === 'regen';
+                    && bt(30) === 'bulwark' && bt(35) === 'enrager'
+                    && bt(40) === 'teleporter' && bt(45) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2439,9 +2440,25 @@ async function main() {
       const fm = enrageRun(true);
       const frozenNoHaste = fm && !(fm.hasted > 0);
 
+      // TELEPORTER — blinks forward (dist jumps) and goes briefly intangible; freeze pauses
+      // the jump. Pin spd 0 so any dist gain comes only from the blink, then run long enough
+      // to guarantee a blink (~4s cd).
+      e = mkBoss('teleporter', { spd: 0, dist: 5 });
+      let blinked = false, sawInvuln = false;
+      for (let i = 0; i < 300; i++) { update(1/60); if (enemies[0] && enemies[0].blinkInvuln > 0) sawInvuln = true; }
+      blinked = enemies[0] && enemies[0].dist > 5;
+      // freeze pauses the jump: a frozen teleporter (spd 0) should never advance.
+      e = mkBoss('teleporter', { spd: 0, dist: 5, frozen: 99 });
+      for (let i = 0; i < 300; i++) update(1/60);
+      const frozenNoBlink = enemies[0] && Math.abs(enemies[0].dist - 5) < 1e-6;
+      // intangibility decays even while frozen, so a boss frozen mid-blink can't stay immortal.
+      e = mkBoss('teleporter', { spd: 0, dist: 5, frozen: 99, blinkInvuln: 0.4 });
+      for (let i = 0; i < 60; i++) update(1/60);
+      const frozenInvulnDecays = enemies[0] && enemies[0].blinkInvuln <= 0;
+
       enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste };
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays };
     });
     check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
     check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
@@ -2452,6 +2469,10 @@ async function main() {
     check('summoner spawns adds capped at 8 total', r.summonerCapped, `adds=${r.adds}`);
     check('enrager hastes nearby enemies', r.enrageHastes);
     check('freezing an enrager pauses its haste aura', r.frozenNoHaste);
+    check('teleporter boss blinks forward (dist jumps)', r.blinked);
+    check('teleporter boss goes intangible mid-blink', r.sawInvuln);
+    check('freezing a teleporter pauses its blink', r.frozenNoBlink);
+    check('teleporter intangibility decays even while frozen (no immortality)', r.frozenInvulnDecays);
 
     // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
     // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
@@ -2462,7 +2483,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2481,6 +2502,7 @@ async function main() {
     check('bulwark boss is killable (shield only delays, not immortal)', killable.bulwark.died, `guard=${killable.bulwark.guard}`);
     check('summoner boss is killable', killable.summoner.died, `guard=${killable.summoner.guard}`);
     check('enrager boss is killable', killable.enrager.died, `guard=${killable.enrager.guard}`);
+    check('teleporter boss is killable', killable.teleporter.died, `guard=${killable.teleporter.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -3067,6 +3089,7 @@ async function main() {
         bulwark: bossMechanicBadge(mk({ bossType:'bulwark' })),
         bulwarkShielded: bossMechanicBadge(mk({ bossType:'bulwark', shieldOn:true })),
         enrager: bossMechanicBadge(mk({ bossType:'enrager' })),
+        teleporter: bossMechanicBadge(mk({ bossType:'teleporter' })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3081,6 +3104,7 @@ async function main() {
     check('bulwark badge labelled BULWARK when shield down (blue)', r.bulwark && r.bulwark.label === 'BULWARK' && r.bulwark.c === '121,192,255', JSON.stringify(r.bulwark));
     check('bulwark badge flips to SHIELDED while shield is up', r.bulwarkShielded && r.bulwarkShielded.label === 'SHIELDED', JSON.stringify(r.bulwarkShielded));
     check('enrager badge labelled ENRAGED (orange)', r.enrager && r.enrager.label === 'ENRAGED' && r.enrager.c === '255,180,84', JSON.stringify(r.enrager));
+    check('teleporter badge labelled TELEPORTER (violet)', r.teleporter && r.teleporter.label === 'TELEPORTER' && r.teleporter.c === '188,140,255', JSON.stringify(r.teleporter));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

@@ -132,11 +132,17 @@ function update(dt) {
     // recurring "too easy" feedback). Tagged at spawn in buildWave (run-only, never saved),
     // so concurrent waves each keep their own mod; freeze pauses it (like heal/boss-regen).
     if (e.regen && e.frozen <= 0 && !e.dead) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.02 * dt);
-    // boss archetypes (v1.25.0; enrager v1.34.0): late bosses (w20+) carry a mechanic on top of HP —
-    //   regen     : self-heal 1.2%/s of max HP (punishes under-investment)
-    //   bulwark   : cycles a 2s damage-soak shield (×0.4 incoming) every ~8s
-    //   summoner  : periodically spawns weak adds behind it (up to 8 total)
-    //   enrager   : haste aura — nearby enemies move +35% faster (pressures DPS/timing, no HP)
+    // teleporter boss (v1.40.0): decay the post-blink intangibility EVERY frame — even while
+    // frozen — so a boss frozen mid-blink can't get stuck permanently invulnerable (the blink
+    // trigger itself is paused by freeze in the gated block below, like phantom's blinkCd).
+    if (e.kind === 'boss' && e.bossType === 'teleporter') e.blinkInvuln = Math.max(0, (e.blinkInvuln || 0) - dt);
+    // boss archetypes (v1.25.0; enrager v1.34.0; teleporter v1.40.0): late bosses (w20+) carry a mechanic on top of HP —
+    //   regen      : self-heal 1.2%/s of max HP (punishes under-investment)
+    //   bulwark    : cycles a 2s damage-soak shield (×0.4 incoming) every ~8s
+    //   summoner   : periodically spawns weak adds behind it (up to 8 total)
+    //   enrager    : haste aura — nearby enemies move +35% faster (pressures DPS/timing, no HP)
+    //   teleporter : blinks ~80px forward every ~4s, briefly intangible mid-jump — skips tower
+    //                coverage so the damage window shrinks and it reaches the exit faster
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
@@ -177,6 +183,18 @@ function update(dt) {
         }
         e.enrageCd = (e.enrageCd == null ? 2.5 : e.enrageCd) - dt;
         if (e.enrageCd <= 0) { e.enrageCd = 2.5; addExplosion(e.x, e.y, '#ffb454', 8, 100); SFX.bossSkill(); }
+      } else if (e.bossType === 'teleporter') {
+        // blink forward along the path, briefly intangible mid-jump (reuses the phantom
+        // blink fields). The intangibility decays every frame above, so a frozen boss can't
+        // stay invulnerable; freeze pauses the trigger here. Pressures DPS/timing off the HP axis.
+        e.blinkCd = (e.blinkCd == null ? 4 : e.blinkCd) - dt;
+        if (e.blinkCd <= 0) {
+          e.blinkCd = 4;
+          e.blinkInvuln = 0.4;
+          e.dist += 80;
+          addExplosion(e.x, e.y, '#bc8cff', 10, 110);
+          SFX.blink();
+        }
       }
     }
     if (e.dist >= pathLen) {
