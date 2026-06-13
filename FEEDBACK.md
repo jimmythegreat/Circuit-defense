@@ -7,6 +7,8 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [bug] Completing a level doesn't reset "resume". You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower youre trying to click on and off.
 
+[low priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everthing else. I think its time we revamp the whole starting menu.
+
 ## DONE
 
 - **2026-06-13 · v1.38.0** — "[medium priority] The talents are way over powered, which is good but they are way too easy to get … after a few rounds you become way better and the game is easy and boring … Review all the talents: which ones are OP→increase cost a lot, which ones could be removed→remove. I think a general 25% cost increase would be good. Ignore the ~25% swing rule for this run." → **Done as a cost-only rework — power untouched, prices raised so talents are a grind to earn (matches the existing intentional-grind design).** Every CORE talent got the general ~25% bump; the OP damage/power talents got a lot more with steeper slopes: ⚔️ Firepower & 🔬 Crit Lab ≈ doubled per rank, the eight 🛡 Tower Mastery talents doubled (60→120 chips each — they were the cheapest +30%-dmg picks), 🌟 Overdrive +50%. Maxing the whole tree rose ≈ 2,350 → 3,550 chips (+51%, ~47→~71 winning runs), heaviest on the early upgrades that were trivialising the game. **Nothing removed:** each talent maps to a distinct mechanic, and removing one would silently strip already-spent chips (save-unsafe), so cost is the lever. Save-safe (only cost functions changed; ranks/chips/`cd_meta` load unchanged). New test [55]; suite green. Owner waived the ≤25% swing rule for this run. See CHANGELOG v1.38.0.
