@@ -3211,6 +3211,79 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 56: winGame resets Resume + tower-select ghost suppression (v1.38.1 bug fix) ----
+  console.log('\n[56] Completing a run resets Resume; no placement-ghost over towers');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const mkTower = (x, y) => ({ type:'gun', x, y, range:120, dmg:10, rate:0.5, cd:0, level:1,
+        baseCost:60, invested:60, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 });
+
+      // (a) Campaign win must clear cd_save so the cleared level isn't endlessly resumable.
+      localStorage.removeItem('cd_save');
+      gameMode='campaign'; mapKey='classic'; diffKey='easy'; campLevel=1;
+      beginGame(); gold=99999; towers.push(mkTower(200,200));
+      wave=14; lastSettledWave=14; waveActive=false; saveRun();
+      const campSaveBefore = !!localStorage.getItem('cd_save');
+      winGame();
+      const campSaveAfter = !!localStorage.getItem('cd_save');
+      renderStartScreen();
+      const campResumeShown = document.getElementById('resumeBtn').style.display !== 'none';
+
+      // (b) Quick-mode victory clears the save too.
+      localStorage.removeItem('cd_save');
+      gameMode='quick'; mapKey='classic'; diffKey='easy';
+      beginGame(); gold=99999; towers.push(mkTower(200,200));
+      wave=29; lastSettledWave=29; waveActive=false; saveRun();
+      winGame();
+      const quickSaveAfter = !!localStorage.getItem('cd_save');
+
+      // (c) A daily win must NOT wipe the player's separate normal save.
+      localStorage.removeItem('cd_save');
+      gameMode='quick'; mapKey='classic'; diffKey='easy';
+      beginGame(); gold=999; towers.push(mkTower(250,250));
+      wave=5; lastSettledWave=5; waveActive=false; saveRun();
+      const normalBefore = !!localStorage.getItem('cd_save');
+      daily = true; winGame(); daily = false;
+      const dailyKeptNormal = normalBefore && !!localStorage.getItem('cd_save');
+
+      // (d) An endless-continue save (wave past victoryWave) resumes without re-firing victory.
+      localStorage.removeItem('cd_save');
+      gameMode='quick'; mapKey='classic'; diffKey='easy';
+      beginGame(); gold=99999; towers.push(mkTower(200,200));
+      wave=31; lastSettledWave=31; waveActive=false; saveRun();
+      const endlessLoad = loadRun();
+      const endlessVictory = victory, endlessGameOver = gameOver;
+
+      // (e) towerAt() — shared select/ghost-suppression hit test — finds a tower under the
+      //     cursor and nothing on open ground (so the placement ghost is hidden over towers).
+      localStorage.removeItem('cd_save');
+      gameMode='quick'; mapKey='classic'; diffKey='easy';
+      beginGame(); gold=99999;
+      const t = mkTower(300,300); towers.push(t);
+      const overTower = !!towerAt(t.x+2, t.y-1);
+      const emptyGround = !!towerAt(t.x+90, t.y+90);
+
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_campaign');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { campSaveBefore, campSaveAfter, campResumeShown, quickSaveAfter,
+        dailyKeptNormal, endlessLoad, endlessVictory, endlessGameOver, overTower, emptyGround };
+    });
+    check('campaign run had a save before winning', r.campSaveBefore);
+    check('campaign win clears cd_save (Resume reset)', !r.campSaveAfter);
+    check('resume button hidden after a campaign win', !r.campResumeShown);
+    check('quick-mode victory clears cd_save', !r.quickSaveAfter);
+    check('daily win leaves the normal save intact', r.dailyKeptNormal);
+    check('endless-continue save resumes (loadRun ok)', r.endlessLoad);
+    check('resumed endless run is playable, victory pre-set so winGame won\'t re-fire',
+      r.endlessVictory === true && r.endlessGameOver === false);
+    check('towerAt() finds a tower under the cursor', r.overTower);
+    check('towerAt() returns nothing on open ground (ghost shows there)', !r.emptyGround);
+    check('no console errors during win-reset test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

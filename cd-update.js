@@ -772,6 +772,9 @@ function endGame() {
 function winGame() {
   victory = true;
   gameOver = true;
+  if (!daily) clearRun();  // finishing a level/run must reset Resume — else the cleared
+                           // level stays resumable forever (you could re-win it on repeat).
+                           // daily never persists, so leave the player's normal save alone.
   SFX.win();
   const earned = chipsForRun();
   meta.chips += earned;

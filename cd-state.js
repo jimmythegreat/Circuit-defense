@@ -128,6 +128,11 @@ function loadRun() {
   setActiveUI();
   resetState();
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
+  // A resumed run already past its victory wave is an endless-continue save (winGame now
+  // clears the save, so this only happens after Continue Endless re-saved). Mark victory so
+  // update() doesn't instantly re-fire winGame() on the first tick. Normal mid-run saves have
+  // wave < victoryWave(), so this is a no-op for them.
+  if (wave >= victoryWave()) victory = true;
   lastSettledWave = wave;  // resumed at a clean boundary — all prior waves are settled
   livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
   abilityUsedThisRun = true; // …nor that no ability was cast earlier — Pacifist unearnable on resume

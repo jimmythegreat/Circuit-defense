@@ -521,10 +521,7 @@ cv.addEventListener('pointerdown', e => {
     castMeteor(mouseX, mouseY);
     return;
   }
-  // Bigger tap target on a finger: the forbidden placement gap is 32, so a 30px select
-  // radius still can't steal a tap meant to place an adjacent tower (desktop keeps 18).
-  const selectR = coarsePointer() ? 30 : 18;
-  const hit = towers.find(t => Math.hypot(t.x-mouseX, t.y-mouseY) < selectR);
+  const hit = towerAt(mouseX, mouseY);
   if (hit) { selectedShop = null; renderShop(); showUpgrade(hit); return; }
   hideUpgrade();
   if (!selectedShop) return;
@@ -548,6 +545,14 @@ cv.addEventListener('pointerdown', e => {
   if (gold < cost) selectedShop = null;
   updateHud();
 });
+// The tower (if any) under a board point, using the same hit radius as tower selection.
+// Bigger tap target on a finger: the forbidden placement gap is 32, so a 30px select
+// radius still can't steal a tap meant to place an adjacent tower (desktop keeps 18).
+// Shared by the pointerdown select hit-test and the render placement-ghost suppression.
+function towerAt(x, y) {
+  const selectR = coarsePointer() ? 30 : 18;
+  return towers.find(t => Math.hypot(t.x - x, t.y - y) < selectR);
+}
 function canPlace(x, y) {
   if (x < 14 || x > W-14 || y < 14 || y > H-14) return false;
   if (distToPath(x, y) < 34) return false;

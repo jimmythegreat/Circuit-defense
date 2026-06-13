@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.38.1 — 2026-06-13 — 🐛 Resume-after-win reset + tower-select flicker fix
+
+**Type:** Bug fix. Patch bump. **Owner FEEDBACK** (bug): *"Completing a level doesn't reset 'resume'. You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower you're trying to click on and off."*
+
+**Two fixes, one report:**
+
+1. **Completing a run now resets Resume.** `endGame()` already cleared the saved run on a loss, but `winGame()` never did — so after clearing a Campaign level (or winning a Quick run), `cd_save` survived and the start-screen Resume button re-offered the *already-won* level, which you could resume and re-win indefinitely (verified in-browser: post-win label `⏯ Resume (wave 14, Campaign 1)`). Fix: `winGame()` now calls `clearRun()` (guarded `!daily`, mirroring `endGame()`).
+   - **Daily Challenge unaffected:** a daily win still leaves your separate normal save intact (`clearRun` skipped when `daily`).
+   - **Continue Endless still works:** after a Quick victory you can still continue past wave 30; `loadRun()` now sets `victory = true` when a resumed save is already past its `victoryWave()` (only reachable from an endless-continue re-save now that wins clear the save), so resuming an endless run no longer instantly re-fires the victory screen. Normal mid-run saves have `wave < victoryWave()`, so this is a no-op for them.
+
+2. **Selecting a tower no longer flickers it.** When a shop tower type was still selected and you moved the cursor over an existing tower to click it, the red "can't build here" placement ghost (range ring + disc) drew right on top of that tower and flickered as grid-snap jumped the snapped point between cells (confirmed in-browser: ghost draw-condition true, `canPlace` false over the tower). Fix: extracted a shared `towerAt(x,y)` hit-test (same radius the click handler uses — 30px coarse / 18px fine) and the placement preview is now suppressed whenever the cursor is over a selectable tower (you can't place there anyway, so nothing is lost).
+
+**Save-safe / scope:** only `winGame` (clear), `loadRun` (endless victory guard), a new `towerAt` helper, and one render condition changed. No schema, economy, or balance impact. Verified all paths in-browser (campaign/quick clear, daily preserved, endless resume playable, `towerAt` over-tower vs open-ground), zero console errors.
+
+**Tests:** new group **[56]** — campaign/quick win clears `cd_save` (+ Resume hidden), daily win keeps the normal save, endless-continue save resumes with `victory` pre-set & playable, `towerAt()` finds a tower under the cursor and nothing on open ground. SW cache bumped to `v1.38.1` (test [49]).
+
 ## v1.38.0 — 2026-06-13 — ⚖️ Talent cost rework (slow the snowball)
 
 **Type:** Balance / meta-economy. Minor bump. **Owner FEEDBACK** (medium priority): *"The talents are way over powered, which is good but they are way too easy to get … after a few rounds you become way better and the game is easy and boring … Review all the talents: which ones are OP→increase cost a lot, which ones could be removed→remove. I think a general 25% cost increase would be good. Ignore the ~25% swing rule for this run."*

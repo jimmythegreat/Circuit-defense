@@ -169,8 +169,10 @@ function draw() {
     ctx.textAlign = 'left';
   }
 
-  // placement preview
-  if (selectedShop && mouseX > 0 && !gameOver && started && !paused && armedAbility !== 'meteor') {
+  // placement preview — hidden while the cursor is over an existing tower: a click there
+  // SELECTS the tower (it can never place there anyway), so drawing the red "can't place"
+  // ghost just flickered over the tower you were reaching to click (owner bug report).
+  if (selectedShop && mouseX > 0 && !gameOver && started && !paused && armedAbility !== 'meteor' && !towerAt(mouseX, mouseY)) {
     const def = TOWER_TYPES[selectedShop];
     // Snap the ghost to the grid so the preview lands exactly where the tower will (v1.24.0).
     const p = placeCoord(mouseX, mouseY);
