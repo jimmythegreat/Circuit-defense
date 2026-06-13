@@ -50,8 +50,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Test [42]. **Follow-ups:** the **arc/chain** tower is still open (chain-lightning that bounces —
       a swarm counter, distinct from Tesla's fixed chain); and a *visual arc* for the lobbed shell
       (currently homes straight like the bomb) would sell the artillery feel.
-- [ ] **Daily challenge seed** — a deterministic map+modifier set keyed off the
-      date, with its own best-score key. (Offline-safe: derive from local date.)
+- [x] **Daily challenge seed** — shipped **v1.28.0**. A 🗓 **Daily Challenge** start-screen
+      button (`beginDaily()`) launches today's date-seeded run: the map path, difficulty
+      (normal/hard) and the per-wave Mayhem modifier schedule are all generated from a
+      `mulberry32(dailySeedFrom(dailyDateString()))` stream (`setupDaily()` in `cd-maps.js`),
+      so every player gets the SAME run today. Plays as a quick-mode Mayhem run (chaos theme +
+      mods) but with a **fixed** map (no every-5-waves shift → comparable scores). Own additive
+      best key `cd_daily_<YYYYMMDD>` (on the button + Records panel). One-off, not resumable,
+      and never touches the player's normal save (`saveRun`/`clearRun` skip when `daily`).
+      Offline-safe (local date, no network). Test [47]. **Follow-ups:** *a daily streak counter*
+      (consecutive days played/cleared), *a per-day score key* (not just best wave) since
+      `computeScore()` already exists, and *a small "today's modifiers" preview* on the button.
 
 ## Content & variety
 

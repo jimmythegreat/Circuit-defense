@@ -515,7 +515,7 @@ function draw() {
       px += ctx.measureText(lbl).width + 11;
     }
     ctx.textBaseline = 'alphabetic';
-    if (isMayhem() && wave > 0 && wave % 5 === 0) {
+    if (isMayhem() && !daily && wave > 0 && wave % 5 === 0) {
       ctx.fillStyle = 'rgba(210,168,255,0.9)'; ctx.font = '13px sans-serif';
       ctx.fillText('🌀 The world will shift when the next wave begins!', 12, H - 32);
     }

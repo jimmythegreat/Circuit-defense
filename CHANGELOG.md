@@ -3,6 +3,50 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.28.0 — 2026-06-12 — 🗓 Daily Challenge
+
+**What:** A new **Daily Challenge** game mode (start-screen button, `beginDaily()`). Today's run is
+**fully determined by the local date** — the map path, the difficulty, and the per-wave Mayhem
+modifier schedule are all generated from a date-seeded PRNG, so **every player faces the same run
+today** (and can chase the same target tomorrow). It plays like a Mayhem run (animated `chaos`
+theme, per-wave twists) but the map is **FIXED for the day** (no every-5-waves world-shift), so
+scores are comparable. Difficulty is locked to **Normal or Hard** by the seed (a daily is a
+challenge — never Easy). Best wave per day is tracked under its own additive key
+`cd_daily_<YYYYMMDD>`, shown on the Daily button and in the 🏆 Records panel, separate from the
+normal per-map records. A daily is **one-off & not resumable** and **never touches the player's
+normal saved run** (it doesn't `clearRun()` on start and `saveRun()` bails while `daily`). Comes
+back fresh at local midnight.
+
+**Why:** ROADMAP "Next up (high value)" — *Daily challenge seed: a deterministic map+modifier set
+keyed off the date, with its own best-score key (offline-safe: derive from local date)*. Owner
+loves addictive progression loops; a fresh daily target is exactly that. Recent runs were heavy on
+difficulty/boss/balance, so this adds variety. The standing FEEDBACK item is `[Low priority]`, so
+per the routine a self-chosen high-value ROADMAP item was eligible.
+
+**How (all additive, save-safe, no economy/balance touch to existing modes):**
+- `cd-maps.js`: `mulberry32()` seeded PRNG + `dailyDateString()` (local) + `dailySeedFrom()`
+  (FNV-1a) + `setupDaily()` (resolves diffKey, the seeded fixed path via `genPathWith(rnd)`, and the
+  `dailyMods[1..30]` schedule from one rng stream). New run-only globals `daily`/`dailyDateKey`/
+  `dailySeed`/`dailyMods`. `rollWaveMod()` reads `dailyMods[wave]` when `daily` (deterministic).
+- `cd-game.js`: `beginDaily()` (no `clearRun`); `startWave()` skips `shiftWorld` when `daily`;
+  `beginGame()`/`backToMenu()` clear the flag; start-screen button shows today's best.
+- `cd-state.js`: `bestKey()` routes to `cd_daily_<date>` when `daily`; `resetState()` keeps the
+  seeded path (`!daily` guard) and labels the run `🗓 Daily <date>`; `saveRun()` bails when `daily`;
+  `loadRun()` clears the flag.
+- `cd-update.js`: `recordBest()` records/flourishes off the per-date daily key; `endGame()` skips
+  `clearRun()` when `daily`; `renderBests()` shows today's daily best.
+- `cd-render.js`: the "world will shift" hint is hidden for daily (path is fixed).
+- HTML: a `🗓 Daily Challenge` button on the start screen.
+
+**Test evidence:** new test group `[47]` (17 checks) — setup determinism per date, distinct dates
+differ, diff always normal/hard, 1..30 mod schedule, `rollWaveMod` follows the schedule, `beginDaily`
+wiring, fixed path across a 5-wave boundary, normal-save left untouched, clean multi-wave drive,
+per-date best key writes (not the per-map quick keys), silent first-record / flourish-on-beat /
+no-flourish-on-lower, monotonic best, `bestKey()` routing. **Full suite 410/0 green**, zero console
+errors. Verified in-preview: button present, today's seed → Hard / chaos theme / victory wave 30,
+diff label `🗓 Daily 20260612 · Hard`, path fixed across waves, `cd_save` sentinel preserved, button
++ Records panel both surface the daily best.
+
 ## v1.27.1 — 2026-06-12 — 🩺 Health check
 
 Every-6th-run maintenance pass (5 version entries since the v1.24.2 health check: v1.24.3, v1.24.4,

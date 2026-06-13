@@ -18,6 +18,17 @@ let campLevel = 1;
 const CAMPAIGN_LEVELS = 40;
 let waypoints, segs, pathLen;
 const isMayhem = () => gameMode === 'quick' && mapKey === 'mayhem';
+// Daily Challenge (v1.28.0): a deterministic, date-seeded Mayhem-flavoured run — everyone
+// gets the SAME map path + difficulty + wave-modifier schedule for a given local date, with
+// its own per-day best-wave key (cd_daily_<YYYYMMDD>). A daily run is modelled as a quick-mode
+// Mayhem run (so isMayhem() stays true → chaos theme + mods) with `daily=true` flipping the
+// random bits to the seeded stream and FIXING the path (no every-5-waves shift, so scores
+// compare). Run-only flags; daily runs never call saveRun()/clearRun() so the player's normal
+// saved run is never touched (no schema change).
+let daily = false;
+let dailyDateKey = '';      // 'YYYYMMDD' for the active/last-setup daily
+let dailySeed = 0;          // 32-bit numeric seed derived from dailyDateKey
+let dailyMods = [];         // precomputed wave-mod id (or null) indexed by wave number (1-based)
 function campaignDone() { return +(localStorage.getItem('cd_campaign') || 0); }
 function victoryWave() { return gameMode === 'campaign' ? 14 + campLevel : 30; }
 function genPathWith(rnd) {
@@ -40,6 +51,46 @@ function genPathWith(rnd) {
 function genMayhemPath() { return genPathWith(Math.random); }
 // campaign maps are freshly randomized on every attempt — no two runs alike
 function genCampaignPath() { return genPathWith(Math.random); }
+
+// ----- Daily Challenge seeded RNG (v1.28.0) -----
+// Mulberry32: a tiny, fast, well-distributed 32-bit PRNG. Pure JS, offline-safe — the daily
+// challenge derives its whole setup from the LOCAL date so every player gets the same run today.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// 'YYYYMMDD' from a Date (defaults to now, in the player's LOCAL timezone so the day flips at
+// local midnight — no network/UTC dependency).
+function dailyDateString(d) {
+  d = d || new Date();
+  return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+// FNV-1a string hash → 32-bit seed.
+function dailySeedFrom(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+// Resolve the deterministic setup for a date: difficulty, the fixed Mayhem path, and the
+// per-wave modifier schedule (waves 1..30). Call order fixes the rng-stream consumption, so a
+// given date always yields the same run. diffKey is forced to normal/hard (a daily is a
+// challenge — never easy). Difficulty/path/mods all share ONE rng stream for reproducibility.
+function setupDaily(dateStr) {
+  dailyDateKey = dateStr || dailyDateString();
+  dailySeed = dailySeedFrom(dailyDateKey);
+  const rnd = mulberry32(dailySeed);
+  diffKey = rnd() < 0.5 ? 'normal' : 'hard';
+  MAPS.mayhem.pts = genPathWith(rnd);            // fixed map for the day (no shift)
+  dailyMods = [null];                             // index 0 unused (waves are 1-based)
+  for (let w = 1; w <= 30; w++) {
+    dailyMods[w] = rnd() < 0.78 ? WAVE_MODS[Math.floor(rnd() * WAVE_MODS.length)].id : null;
+  }
+}
 function buildPath() {
   if (gameMode === 'campaign') {
     waypoints = genCampaignPath();
@@ -128,9 +179,15 @@ function relocateTowers() {
 }
 function rollWaveMod() {
   waveMod = null;
-  if (!isMayhem()) return;
-  if (Math.random() < 0.78) {
-    waveMod = WAVE_MODS[Math.floor(Math.random() * WAVE_MODS.length)];
+  // Daily Challenge: the modifier for each wave is fixed by the date seed (deterministic
+  // schedule precomputed in setupDaily), so every player faces the same mods in the same order.
+  if (daily) {
+    const id = dailyMods[wave];
+    if (id) waveMod = WAVE_MODS.find(m => m.id === id) || null;
+  } else if (isMayhem()) {
+    if (Math.random() < 0.78) waveMod = WAVE_MODS[Math.floor(Math.random() * WAVE_MODS.length)];
+  }
+  if (waveMod) {
     meteorRainTimer = 3;
     addFloater(W/2, 110, `${waveMod.icon} ${waveMod.name}: ${waveMod.desc}`, '#ffd866', 18);
     SFX.perk();

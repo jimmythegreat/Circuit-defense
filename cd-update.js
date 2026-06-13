@@ -433,8 +433,15 @@ function closeAchievements() { document.getElementById('achPanel').style.display
 // Records-grid cell (per map × difficulty), else null. First-ever entries
 // (prev 0) record silently — the flourish only fires when you beat a real best.
 function recordBest() {
+  // For a daily run bestKey() routes to cd_daily_<date>; capture its prior value BEFORE the
+  // generic best-write below so the "new record" flourish can compare against it.
+  const dailyPrev = daily ? +(localStorage.getItem(bestKey()) || 0) : 0;
   if (wave > best) { best = wave; localStorage.setItem(bestKey(), best); }
   let rec = null;
+  if (daily) {
+    if (wave > dailyPrev && dailyPrev > 0) rec = { prev: dailyPrev, now: wave };
+    return rec;
+  }
   if (gameMode === 'quick') {
     const k = 'cd_best_' + mapKey + '_' + diffKey;
     const prev = +(localStorage.getItem(k) || 0);
@@ -529,7 +536,9 @@ function renderBests() {
   html += '</tr></tbody></table>';
   const dmg = (meta.stats && meta.stats.dmg) || 0, runs = (meta.stats && meta.stats.runs) || 0;
   const bestCombo = (meta.stats && meta.stats.bestCombo) || 0;
+  const dailyToday = +(localStorage.getItem('cd_daily_' + dailyDateString()) || 0);
   html += `<div class="bestStats">`
+    + `<span>🗓 Daily (today): <b>${dailyToday ? 'wave ' + dailyToday : '—'}</b></span>`
     + `<span>🎖 Campaign: <b>L${campaignDone()}</b> cleared</span>`
     + `<span>⚔ Lifetime dmg: <b>${fmtNum(dmg)}</b></span>`
     + `<span>🔥 Best combo: <b>${bestCombo ? bestCombo + '×' : '—'}</b></span>`
@@ -638,7 +647,7 @@ function renderEndScreen(won, earned, newAch) {
 function endGame() {
   gameOver = true;
   SFX.over();
-  clearRun();
+  if (!daily) clearRun();  // daily never persists; don't wipe the player's normal saved run
   const earned = chipsForRun();
   meta.chips += earned;
   saveMeta();

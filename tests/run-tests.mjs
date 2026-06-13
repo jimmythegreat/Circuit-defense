@@ -2543,6 +2543,101 @@ async function main() {
     await page.close();
   }
 
+  // [47] Daily Challenge — deterministic date-seeded run (v1.28.0)
+  console.log('\n[47] Daily Challenge (seeded daily run)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const D1 = '20260615', D2 = '20260616';
+      // Determinism: same date -> identical difficulty, path, and modifier schedule.
+      setupDaily(D1);
+      const a = { diff: diffKey, pts: JSON.stringify(MAPS.mayhem.pts), mods: dailyMods.slice(0).join(',') };
+      setupDaily(D2);  // perturb the rng stream / globals
+      setupDaily(D1);
+      const b = { diff: diffKey, pts: JSON.stringify(MAPS.mayhem.pts), mods: dailyMods.slice(0).join(',') };
+      const deterministic = a.diff === b.diff && a.pts === b.pts && a.mods === b.mods;
+
+      // Different dates generally differ (path and/or mod schedule).
+      setupDaily(D2);
+      const c = { diff: diffKey, pts: JSON.stringify(MAPS.mayhem.pts), mods: dailyMods.slice(0).join(',') };
+      const datesDiffer = c.pts !== a.pts || c.mods !== a.mods;
+
+      // Difficulty is always normal/hard (never easy) — a daily is a challenge.
+      let diffOk = true;
+      for (const ds of ['20260101', '20260202', '20260303', '20260404', '20260505', '20260606']) {
+        setupDaily(ds); if (diffKey !== 'normal' && diffKey !== 'hard') diffOk = false;
+      }
+
+      // Mod schedule is a deterministic per-wave lookup, so rollWaveMod is reproducible.
+      setupDaily(D1); daily = true; gameMode = 'quick'; mapKey = 'mayhem';
+      const sched = [null];  // 1-based, mirror dailyMods
+      for (let w = 1; w <= 30; w++) { wave = w; rollWaveMod(); sched[w] = waveMod ? waveMod.id : null; }
+      let matchesSchedule = true;
+      for (let w = 1; w <= 30; w++) if (sched[w] !== (dailyMods[w] || null)) matchesSchedule = false;
+      daily = false; waveMod = null;
+
+      return { deterministic, datesDiffer, diffOk, matchesSchedule,
+               modsLen: dailyMods.length };
+    });
+    check('daily setup is deterministic for a given date', r.deterministic);
+    check('different dates produce different daily runs', r.datesDiffer);
+    check('daily difficulty is always normal/hard (never easy)', r.diffOk);
+    check('daily wave-mod schedule covers waves 1..30', r.modsLen === 31);
+    check('rollWaveMod follows the seeded daily schedule', r.matchesSchedule);
+
+    // beginDaily wires a real run; the map is FIXED (no every-5-waves shift) and the
+    // player's existing saved run is left untouched (daily never saves).
+    const run = await page.evaluate(() => {
+      localStorage.setItem('cd_save', '__SENTINEL__');  // pretend the player has a normal run saved
+      beginDaily();
+      const flagged = daily === true && gameMode === 'quick' && mapKey === 'mayhem';
+      const pathBefore = JSON.stringify(MAPS.mayhem.pts);
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 7 });   // crosses a 5-wave boundary (would shift in normal Mayhem)
+      const pathFixed = JSON.stringify(MAPS.mayhem.pts) === pathBefore;
+      const saveUntouched = localStorage.getItem('cd_save') === '__SENTINEL__';  // saveRun bailed
+      const out = { flagged, pathFixed, saveUntouched, reached: wave >= 6, hitCap: res.hitCap, daily };
+      daily = false; backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('beginDaily sets daily/quick/mayhem', run.flagged);
+    check('daily map path stays fixed across a 5-wave boundary', run.pathFixed);
+    check('daily run does not overwrite the normal saved run', run.saveUntouched);
+    check('daily run drives clean past several waves', run.reached && !run.hitCap, `wave=${run.wave} hitCap=${run.hitCap}`);
+
+    // recordBest writes the per-date daily key (and not a per-map quick key).
+    const rec = await page.evaluate(() => {
+      const DK = '20260615';
+      localStorage.removeItem('cd_daily_' + DK);
+      localStorage.removeItem('cd_best_mayhem_hard'); localStorage.removeItem('cd_best_mayhem_normal');
+      daily = true; gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'hard';
+      dailyDateKey = DK; dailySeed = 1; wave = 12; best = 0;
+      const ev1 = recordBest();                 // first entry — records silently (no flourish)
+      const stored = +(localStorage.getItem('cd_daily_' + DK) || 0);
+      const noMapKey = localStorage.getItem('cd_best_mayhem_hard') === null
+                    && localStorage.getItem('cd_best_mayhem_normal') === null;
+      // beating it fires the flourish event; a lower wave does not.
+      best = 12; wave = 18; const ev2 = recordBest();
+      best = 18; wave = 9;  const ev3 = recordBest();
+      const finalStored = +(localStorage.getItem('cd_daily_' + DK) || 0);
+      // bestKey() routes to the daily key when daily is on.
+      const keyRoutes = bestKey() === 'cd_daily_' + DK;
+      daily = false;
+      localStorage.removeItem('cd_daily_' + DK);
+      return { stored, noMapKey, firstSilent: ev1 === null, beatFires: !!ev2 && ev2.now === 18 && ev2.prev === 12,
+               lowerNoFire: ev3 === null, finalStored, keyRoutes };
+    });
+    check('daily best stored under cd_daily_<date>', rec.stored === 12, `stored=${rec.stored}`);
+    check('daily run does not pollute per-map quick records', rec.noMapKey);
+    check('first daily best records silently (no flourish)', rec.firstSilent);
+    check('beating the daily best fires the record flourish', rec.beatFires);
+    check('a lower daily wave does not fire the flourish', rec.lowerNoFire);
+    check('daily best key only climbs (stays 18 after a wave-9 run)', rec.finalStored === 18);
+    check('bestKey() routes to the daily key during a daily run', rec.keyRoutes);
+    check('no console errors during daily challenge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -20,7 +20,9 @@ const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
 }
-let bestKey = () => 'cd_best_' + diffKey;
+// Daily runs track their own per-date best wave (cd_daily_<YYYYMMDD>); everything else uses
+// the legacy per-difficulty key. Routes the HUD `best` load + the recordBest write.
+let bestKey = () => daily ? 'cd_daily_' + dailyDateKey : 'cd_best_' + diffKey;
 let best = 0;
 
 function costOf(typeKey) {
@@ -43,7 +45,7 @@ function resetState() {
   livesLostThisRun = false;
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
-  if (isMayhem()) MAPS.mayhem.pts = genMayhemPath();
+  if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);
   buildPath();
@@ -53,7 +55,7 @@ function resetState() {
   document.getElementById('startBtn').textContent = '▶ Start Wave 1';
   document.getElementById('pauseBtn').textContent = '⏸ Pause';
   document.getElementById('diffLabel').textContent =
-    (gameMode === 'campaign' ? `Campaign ${campLevel}/${CAMPAIGN_LEVELS}` : MAPS[mapKey].name) + ` · ${d.name}`;
+    (daily ? `🗓 Daily ${dailyDateKey}` : gameMode === 'campaign' ? `Campaign ${campLevel}/${CAMPAIGN_LEVELS}` : MAPS[mapKey].name) + ` · ${d.name}`;
   hideUpgrade();
   renderAbilityBar();
   updateHud();
@@ -61,6 +63,7 @@ function resetState() {
 
 // ================= Save / Resume =================
 function saveRun() {
+  if (daily) return;  // daily runs are one-off & not resumable; never overwrite the player's normal cd_save
   try {
     localStorage.setItem('cd_save', JSON.stringify({
       mapKey, diffKey, gameMode, campLevel, mapTheme,
@@ -112,6 +115,7 @@ function loadRun() {
   let s;
   try { s = JSON.parse(localStorage.getItem('cd_save')); } catch(e) { return false; }
   if (!s || !MAPS[s.mapKey] || !DIFFS[s.diffKey]) return false;
+  daily = false;  // resuming is always a normal saved run (daily is never persisted)
   mapKey = s.mapKey; diffKey = s.diffKey;
   gameMode = s.gameMode === 'campaign' ? 'campaign' : 'quick';
   campLevel = Math.max(1, Math.min(CAMPAIGN_LEVELS, s.campLevel || 1));

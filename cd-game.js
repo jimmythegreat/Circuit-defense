@@ -4,6 +4,14 @@ function renderStartScreen() {
   document.getElementById('chipsBtn').textContent = meta.chips;
   document.getElementById('achBtn').textContent = `${achDone()}/${ACHIEVEMENTS.length}`;
   document.getElementById('verTag').textContent = GAME_VERSION;
+  // Daily Challenge button: show today's date + this player's best wave so far today.
+  const dBtn = document.getElementById('dailyBtn');
+  if (dBtn) {
+    const ds = dailyDateString();
+    const dbest = +(localStorage.getItem('cd_daily_' + ds) || 0);
+    dBtn.innerHTML = `🗓 Daily Challenge${dbest ? ` <small style="opacity:.75">best w${dbest}</small>` : ''}`;
+    dBtn.title = `Today's seeded challenge (${ds}) — same map, difficulty & modifiers for every player today. One-off run; doesn't affect your saved game.`;
+  }
   let hasSave = false;
   try { const s = JSON.parse(localStorage.getItem('cd_save')); hasSave = !!(s && s.wave > 0); } catch(e) {}
   document.getElementById('resumeBtn').style.display = hasSave ? 'inline-block' : 'none';
@@ -70,6 +78,7 @@ function setActiveUI() {
   if (col) col.classList.toggle('idle', !started);
 }
 function beginGame() {
+  daily = false;
   clearRun();
   started = true;
   document.getElementById('startScreen').style.display = 'none';
@@ -77,8 +86,24 @@ function beginGame() {
   setActiveUI();
   SFX.wave();
 }
+// Daily Challenge (v1.28.0): start today's deterministic, date-seeded Mayhem run. The map path,
+// difficulty and per-wave modifier schedule are all fixed by the local date (setupDaily), so
+// scores are comparable day-to-day. Deliberately does NOT clearRun() — a daily is one-off and
+// not resumable (saveRun bails on `daily`), so the player's existing saved run survives untouched.
+function beginDaily() {
+  daily = true;
+  gameMode = 'quick';
+  mapKey = 'mayhem';
+  setupDaily();          // sets dailyDateKey/dailySeed, diffKey, MAPS.mayhem.pts, dailyMods
+  started = true;
+  document.getElementById('startScreen').style.display = 'none';
+  resetState();          // !daily-guarded so it keeps the seeded path; loads cd_daily_<date> as `best`
+  setActiveUI();
+  SFX.wave();
+}
 function backToMenu() {
   started = false;
+  daily = false;
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
   renderStartScreen();
@@ -192,7 +217,7 @@ function startWave() {
     addFloater(W/2, 70, `Early call! +${bonus}💰`, '#3fb950', 16);
   }
   wave++;
-  if (isMayhem() && wave > 1 && (wave - 1) % 5 === 0) shiftWorld();
+  if (isMayhem() && !daily && wave > 1 && (wave - 1) % 5 === 0) shiftWorld();  // daily path is fixed
   rollWaveMod();
   spawners.push({ queue: buildWave(wave), timer: 0 });  // a parallel spawn stream for this wave
   waveActive = true;
