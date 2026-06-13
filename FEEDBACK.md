@@ -5,7 +5,7 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[Low priority] The game should get harder the farther along you on in a round. I think exponential scaling towards the end might be a good idea (but use your best judgement). I just did a hard mayhem, got S teir and had 20k gold left.
+[medium priority] The talents are way over powered, which is good but they are way too easy to get. Meaning after a few rounds you become way better and the game  is easy and boring. I actually like the difficulty without any talents, but also like the talent system to be able to spec into the things I like. Review all the talents: which ones are OP->increase cost alot, which ones could be remove->remove. I think a general 25% cost increase would be good. Ignore the ~25% swing rule for this run.
 
 [bug] Completing a level doesn't reset "resume". You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower youre trying to click on and off.
 
