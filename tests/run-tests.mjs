@@ -2754,6 +2754,87 @@ async function main() {
     await page.close();
   }
 
+  // ---------------------------------------------------------------------------
+  // [50] Daily streak counter — consecutive-day tracking (v1.31.0)
+  console.log('\n[50] Daily streak (consecutive-day counter)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      localStorage.removeItem('cd_daily_streak');
+      const out = {};
+
+      // dailyDayBefore: correct calendar arithmetic incl. month/year rollover.
+      out.before1 = dailyDayBefore('20260615') === '20260614';
+      out.beforeMonth = dailyDayBefore('20260601') === '20260531';
+      out.beforeYear = dailyDayBefore('20260101') === '20251231';
+
+      // Fresh: no streak yet.
+      out.fresh = currentDailyStreak() === 0;
+
+      // First finish starts the streak at 1.
+      let res = recordDailyStreak('20260610');
+      out.firstIsOne = res.count === 1 && res.extended === true;
+
+      // Same day again is a no-op (one per calendar day).
+      res = recordDailyStreak('20260610');
+      out.sameDayNoop = res.count === 1 && res.extended === false;
+
+      // Consecutive days extend.
+      res = recordDailyStreak('20260611'); const c2 = res.count, e2 = res.extended;
+      res = recordDailyStreak('20260612'); const c3 = res.count, e3 = res.extended;
+      out.consecGrows = c2 === 2 && e2 && c3 === 3 && e3;
+
+      // A gap (missed day) resets to 1.
+      res = recordDailyStreak('20260614');
+      out.gapResets = res.count === 1 && res.extended === true;
+
+      // currentDailyStreak counts a streak whose last finish was "yesterday" relative to today,
+      // but reads 0 once it has lapsed (last finish older than yesterday).
+      const today = dailyDateString();
+      localStorage.setItem('cd_daily_streak', JSON.stringify({ count: 7, last: dailyDayBefore(today) }));
+      out.standsYesterday = currentDailyStreak() === 7;
+      localStorage.setItem('cd_daily_streak', JSON.stringify({ count: 7, last: today }));
+      out.standsToday = currentDailyStreak() === 7;
+      localStorage.setItem('cd_daily_streak', JSON.stringify({ count: 7, last: dailyDayBefore(dailyDayBefore(today)) }));
+      out.lapsedReadsZero = currentDailyStreak() === 0;
+
+      // Old saves (no key / malformed) default cleanly to 0.
+      localStorage.removeItem('cd_daily_streak');
+      out.missingIsZero = currentDailyStreak() === 0;
+      localStorage.setItem('cd_daily_streak', 'not json');
+      out.malformedIsZero = currentDailyStreak() === 0;
+
+      // A finished daily run actually records a streak via endGame (the live path).
+      localStorage.removeItem('cd_daily_streak');
+      daily = true; gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'hard';
+      dailyDateKey = dailyDateString(); dailySeed = 1; wave = 8; best = 0;
+      started = true; gameOver = false;
+      endGame();
+      const stored = JSON.parse(localStorage.getItem('cd_daily_streak') || 'null');
+      out.endGameRecorded = !!(stored && stored.count === 1 && stored.last === dailyDateString());
+
+      // Cleanup.
+      daily = false; localStorage.removeItem('cd_daily_streak'); backToMenu();
+      return out;
+    });
+    check('dailyDayBefore steps back one day', r.before1);
+    check('dailyDayBefore handles month rollover', r.beforeMonth);
+    check('dailyDayBefore handles year rollover', r.beforeYear);
+    check('no streak before any daily is finished', r.fresh);
+    check('first daily finish starts streak at 1', r.firstIsOne);
+    check('replaying the same day does not pad the streak', r.sameDayNoop);
+    check('consecutive days grow the streak', r.consecGrows);
+    check('a missed day resets the streak to 1', r.gapResets);
+    check('streak still stands when last finish was yesterday', r.standsYesterday);
+    check('streak still stands when last finish was today', r.standsToday);
+    check('a lapsed streak (older than yesterday) reads 0', r.lapsedReadsZero);
+    check('missing streak key defaults to 0', r.missingIsZero);
+    check('malformed streak key defaults to 0', r.malformedIsZero);
+    check('finishing a daily run records the streak via endGame', r.endGameRecorded);
+    check('no console errors during daily streak test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

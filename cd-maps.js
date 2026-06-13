@@ -70,6 +70,14 @@ function dailyDateString(d) {
   d = d || new Date();
   return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
 }
+// 'YYYYMMDD' for the calendar day before a given key — used by the Daily streak counter to
+// decide whether a finish continues yesterday's streak. Parses the key into a LOCAL Date
+// (midnight), steps back one day (DST/month/year-safe via Date arithmetic), reformats.
+function dailyDayBefore(key) {
+  const d = new Date(+key.slice(0, 4), +key.slice(4, 6) - 1, +key.slice(6, 8));
+  d.setDate(d.getDate() - 1);
+  return dailyDateString(d);
+}
 // FNV-1a string hash → 32-bit seed.
 function dailySeedFrom(s) {
   let h = 2166136261 >>> 0;

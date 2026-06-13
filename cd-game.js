@@ -9,8 +9,11 @@ function renderStartScreen() {
   if (dBtn) {
     const ds = dailyDateString();
     const dbest = +(localStorage.getItem('cd_daily_' + ds) || 0);
-    dBtn.innerHTML = `🗓 Daily Challenge${dbest ? ` <small style="opacity:.75">best w${dbest}</small>` : ''}`;
-    dBtn.title = `Today's seeded challenge (${ds}) — same map, difficulty & modifiers for every player today. One-off run; doesn't affect your saved game.`;
+    const streak = currentDailyStreak();
+    const tags = (dbest ? `best w${dbest}` : '') + (streak > 1 ? `${dbest ? ' · ' : ''}🔥${streak}d` : '');
+    dBtn.innerHTML = `🗓 Daily Challenge${tags ? ` <small style="opacity:.75">${tags}</small>` : ''}`;
+    dBtn.title = `Today's seeded challenge (${ds}) — same map, difficulty & modifiers for every player today. One-off run; doesn't affect your saved game.`
+      + (streak > 1 ? ` You're on a ${streak}-day streak — play today to keep it alive!` : '');
   }
   let hasSave = false;
   try { const s = JSON.parse(localStorage.getItem('cd_save')); hasSave = !!(s && s.wave > 0); } catch(e) {}

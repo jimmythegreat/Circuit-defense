@@ -434,6 +434,46 @@ function achLine(newly) {
 }
 function openAchievements() { renderAchievements(); document.getElementById('achPanel').style.display = 'flex'; focusPanel('achPanel'); }
 function closeAchievements() { document.getElementById('achPanel').style.display = 'none'; renderStartScreen(); }
+// ----- Daily streak (v1.31.0) -----
+// Consecutive calendar days on which the player has FINISHED a Daily Challenge (any outcome —
+// win, loss, or endless continue). Stored additively in localStorage cd_daily_streak =
+// {count, last:'YYYYMMDD'} (old saves simply lack it → streak 0). One additive key, no schema
+// or gameplay impact. Owner loves addictive progression loops; a "keep your streak alive" hook
+// is exactly that, and a natural follow-up to the v1.28.0 Daily Challenge.
+function loadDailyStreak() {
+  try {
+    const s = JSON.parse(localStorage.getItem('cd_daily_streak') || 'null');
+    if (s && typeof s.count === 'number' && typeof s.last === 'string') return { count: s.count, last: s.last };
+  } catch (e) {}
+  return { count: 0, last: '' };
+}
+// The streak as it currently STANDS for display: only counts if the last finish was today or
+// yesterday — otherwise it has lapsed (a day was missed) and reads 0. Read-only; never writes.
+function currentDailyStreak() {
+  const s = loadDailyStreak();
+  if (!s.last) return 0;
+  const today = dailyDateString();
+  return (s.last === today || s.last === dailyDayBefore(today)) ? s.count : 0;
+}
+// Record a finished daily run into the streak. todayKey defaults to the local date. Playing the
+// daily again the same day is a no-op (the streak already counts today); a finish the day after
+// the last one extends it; any larger gap (or first ever) restarts at 1. Returns the resulting
+// {count, extended} (extended=true when this finish grew the count) so callers can celebrate.
+function recordDailyStreak(todayKey) {
+  todayKey = todayKey || dailyDateString();
+  const s = loadDailyStreak();
+  let extended = false;
+  if (s.last === todayKey) {
+    if (s.count < 1) s.count = 1;                       // already played today → unchanged
+  } else if (s.last && s.last === dailyDayBefore(todayKey)) {
+    s.count += 1; extended = true;                      // consecutive day → grow
+  } else {
+    s.count = 1; extended = true;                       // first ever or broken streak → restart
+  }
+  s.last = todayKey;
+  try { localStorage.setItem('cd_daily_streak', JSON.stringify({ count: s.count, last: s.last })); } catch (e) {}
+  return { count: s.count, extended };
+}
 // Records / personal bests. Updates the legacy per-difficulty key AND a new
 // per-map+difficulty key (quick mode only; campaign maps are random per attempt).
 // Both keys are additive — older saves without them just start at 0.
@@ -545,8 +585,10 @@ function renderBests() {
   const dmg = (meta.stats && meta.stats.dmg) || 0, runs = (meta.stats && meta.stats.runs) || 0;
   const bestCombo = (meta.stats && meta.stats.bestCombo) || 0;
   const dailyToday = +(localStorage.getItem('cd_daily_' + dailyDateString()) || 0);
+  const dStreak = currentDailyStreak();
   html += `<div class="bestStats">`
     + `<span>🗓 Daily (today): <b>${dailyToday ? 'wave ' + dailyToday : '—'}</b></span>`
+    + `<span>🔥 Daily streak: <b>${dStreak ? dStreak + ' day' + (dStreak === 1 ? '' : 's') : '—'}</b></span>`
     + `<span>🎖 Campaign: <b>L${campaignDone()}</b> cleared</span>`
     + `<span>⚔ Lifetime dmg: <b>${fmtNum(dmg)}</b></span>`
     + `<span>🔥 Best combo: <b>${bestCombo ? bestCombo + '×' : '—'}</b></span>`
@@ -661,6 +703,7 @@ function endGame() {
   saveMeta();
   const newAch = grantAchievements(false);
   const rec = recordBest();
+  if (daily) recordDailyStreak();   // a finished daily (any outcome) keeps the streak alive
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   renderEndScreen(false, earned, newAch);
   document.getElementById('ovContinue').style.display = 'none';
@@ -680,6 +723,7 @@ function winGame() {
   saveMeta();
   const newAch = grantAchievements(true);
   const rec = recordBest();
+  if (daily) recordDailyStreak();   // a finished daily (any outcome) keeps the streak alive
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   renderEndScreen(true, earned, newAch);
   if (gameMode === 'campaign') {

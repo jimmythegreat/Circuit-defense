@@ -62,9 +62,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       mods) but with a **fixed** map (no every-5-waves shift → comparable scores). Own additive
       best key `cd_daily_<YYYYMMDD>` (on the button + Records panel). One-off, not resumable,
       and never touches the player's normal save (`saveRun`/`clearRun` skip when `daily`).
-      Offline-safe (local date, no network). Test [47]. **Follow-ups:** *a daily streak counter*
-      (consecutive days played/cleared), *a per-day score key* (not just best wave) since
-      `computeScore()` already exists, and *a small "today's modifiers" preview* on the button.
+      Offline-safe (local date, no network). Test [47]. **Follow-ups:** *a daily streak counter* ✅
+      **shipped v1.31.0** — consecutive calendar days the player finishes a daily (any outcome);
+      additive `cd_daily_streak` key, `🔥{n}d` on the Daily button + a Records row, lapses to 0 after
+      a missed day (`dailyDayBefore`/`recordDailyStreak`/`currentDailyStreak`, test [50]). Still open:
+      *a per-day score key* (not just best wave) since `computeScore()` already exists, *a small
+      "today's modifiers" preview* on the button, and *a streak achievement badge* (e.g. 7-day streak).
 
 ## Content & variety
 

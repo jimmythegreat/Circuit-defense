@@ -3,6 +3,38 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.31.0 — 2026-06-13 — 🔥 Daily streak counter
+
+**What:** The v1.28.0 Daily Challenge now tracks a **consecutive-day streak**. Each calendar day
+you *finish* a daily run — win, loss, or playing on into endless; any finish counts — your streak
+grows by one; miss a day and it resets to 1 on your next finish. Replaying the daily multiple times
+in a day is a no-op (one per calendar day). The current streak is surfaced on the 🗓 Daily Challenge
+button (e.g. `🔥5d`, with a "keep it alive" tooltip) and as a `🔥 Daily streak` row in the 🏆 Records
+panel. A streak that has lapsed (last finish older than yesterday) reads 0.
+
+**Why:** ROADMAP — *Daily Challenge follow-up: "a daily streak counter"* (listed first under the
+v1.28.0 Daily Challenge item). The owner loves addictive progression loops; "come back tomorrow to
+keep your streak" is exactly that, with zero balance risk.
+
+**How:**
+- `cd-maps.js`: `dailyDayBefore(key)` — `'YYYYMMDD'` for the calendar day before a key (parses to a
+  local `Date`, steps back one day for DST/month/year safety, reformats).
+- `cd-update.js`: `loadDailyStreak()` / `currentDailyStreak()` (read-only, lapses to 0 if the last
+  finish is older than yesterday) / `recordDailyStreak(todayKey?)` (one-per-day, extend-or-reset).
+  `endGame()` and `winGame()` call `recordDailyStreak()` when `daily`. `renderBests()` shows the row.
+- `cd-game.js`: `renderStartScreen()` appends `🔥{n}d` + a streak tooltip to the Daily button when
+  the streak is ≥2.
+- `cd-core.js`: `GAME_VERSION` → v1.31.0 + changelog entry.
+
+**Save-safe:** one new additive localStorage key `cd_daily_streak = {count, last:'YYYYMMDD'}`; old
+saves lack it and default to 0. `resetAllData()` already clears it (cd_-prefix sweep). No gameplay,
+balance, economy, chip, or schema impact. Offline (local date, no network).
+
+**Tests:** new group **[50]** (15 checks) — `dailyDayBefore` arithmetic incl. month/year rollover,
+start/grow/reset-on-miss, same-day no-op, yesterday/today still-standing, lapsed/missing/malformed
+defaults to 0, and the live `endGame()` path records the streak. Full suite **456/0 green**, zero
+console errors.
+
 ## v1.30.0 — 2026-06-13 — 📲 PWA — installable + offline-cacheable (hosted)
 
 **What:** Made the game an installable Progressive Web App for the **hosted** (http/https)
