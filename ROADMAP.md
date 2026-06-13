@@ -38,6 +38,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the legacy per-diff bests, plus campaign progress, lifetime damage, runs and
       chips. Follow-ups: *"new record!" flourish on the end-of-run screen when a
       cell is beaten*, and highlight the player's single all-time best in the grid.
+- [x] **New enemy type: "warden"** — shipped **v1.35.0**. A ◈ blue **support** enemy from
+      wave 15+ in **all** modes (Classic/Campaign/Mayhem). Projects a 75px protective aura that
+      tags nearby enemies `warded` each frame; a warded enemy takes **40% less damage** (`damage()`
+      `×0.6`). The timer decays out of range / when the Warden dies, so popping it instantly
+      un-shields its cluster — a **target-priority / AoE** decision that raises the skill floor off
+      the HP axis (the norm-HP curve is invariant-capped; see Balance). Freeze pauses the aura;
+      Wardens never shield themselves/each other (always killable). Run-only fields, no save impact.
+      `buildWave`/`waveComposition` (cd-game.js), aura+reduction (cd-update.js), aura/cue rings +
+      glyph/colour (cd-render.js). Test [52]. **Follow-ups:** *a Mayhem "warden surge" wave-mod*
+      (extra wardens), and *a tower spec/targeting mode that prioritises support enemies*.
 - [x] **New enemy type: "phantom"** — shipped v1.9.0. Teal blinker from wave 13+;
       teleports 58px forward every ~2s and is intangible (untargetable + immune)
       for 0.35s mid-blink, punishing slow single-target towers. Frost/freeze pauses
@@ -229,6 +239,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (see ⚠ below). **v1.25.0 took the off-HP lever: boss ARCHETYPES** (regen/bulwark/
       summoner from w20+, see "Boss variety" above) harden deep/late-campaign waves through
       *behaviour* rather than more HP — exactly the "boss mechanics" candidate below.
+      **v1.35.0 added the ◈ Warden support enemy (w15+, ALL modes)** — a damage-shield aura
+      (warded enemies take −40%) that pressures **target priority / AoE** rather than raw HP, and
+      crucially hits **Classic & Campaign** (the modes the owner called too easy), not just
+      Mayhem/late bosses. See "New enemy type: warden" above.
       Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
       **lower the archetype threshold** (w20 → w15) or add a 4th archetype, the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate

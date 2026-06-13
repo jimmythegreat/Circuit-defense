@@ -13,6 +13,7 @@ function enemyGlyph(e) {
     case 'shield': return '🛡';
     case 'split': return '✂';
     case 'phantom': return '👻';
+    case 'warden': return '◈';
     case 'fast': return colorblindAid ? '»' : '';
     case 'tank': return colorblindAid ? '◆' : '';
     default: return '';
@@ -22,13 +23,13 @@ function enemyGlyph(e) {
 // KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
 const PREVIEW_COLOR = {
   norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
-  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', boss:'#f85149',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', boss:'#f85149',
 };
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
   '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
-  '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif',
+  '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
 };
 // Tooltip for a hovered run-perk icon: name (in rarity colour) + what it does.
 // Description is looked up from PERKS by id so it works for old saves too.
@@ -351,6 +352,24 @@ function draw() {
       ctx.arc(e.x, e.y, 70, 0, Math.PI*2);
       ctx.strokeStyle = 'rgba(86,211,100,0.12)';
       ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // Warden support enemy (v1.35.0): a soft blue aura disc shows its protection radius
+    // (mirrors the heal aura above); colour matches the warden sphere so the source reads
+    // clearly. Pop the warden and the disc — and the protection — vanish.
+    if (e.kind === 'warden') {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 75, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(88,166,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // Warded cue (v1.35.0): a faint blue ring marks an enemy currently shielded by a warden.
+    if (e.warded > 0 && e.kind !== 'warden') {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(88,166,255,0.6)';
+      ctx.lineWidth = 1.5;
       ctx.stroke();
     }
     // Regeneration wave-mod cue (v1.33.0): a tight green halo marks self-healing enemies.

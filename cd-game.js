@@ -152,6 +152,7 @@ function buildWave(w) {
     if (w >= 9 && i % 8 === 7)  e = { kind:'shield', hp:t.hp*1.8, spd:t.speed*0.75, r:13, bounty:Math.ceil(t.bounty*2), color:'#8b949e', armor: 3 + w*0.5, gap:0.85 };
     if (w >= 11 && i % 10 === 9) e = { kind:'split', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*1.5), color:'#e3b341', armor:0, gap:0.9 };
     if (w >= 13 && i % 6 === 5)  e = { kind:'phantom', hp:t.hp*0.9, spd:t.speed*1.15, r:10, bounty:Math.ceil(t.bounty*1.8), color:'#39d0d8', armor:0, gap:0.6 };
+    if (w >= 15 && i % 11 === 10) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
@@ -204,9 +205,10 @@ function waveComposition(w) {
     if (w >= 9  && i % 8  === 7) k = 'shield';
     if (w >= 11 && i % 10 === 9) k = 'split';
     if (w >= 13 && i % 6  === 5) k = 'phantom';
+    if (w >= 15 && i % 11 === 10) k = 'warden';
     tally[k] = (tally[k] || 0) + 1;
   }
-  const order = ['norm','fast','tank','heal','shield','split','phantom'];
+  const order = ['norm','fast','tank','heal','shield','split','phantom','warden'];
   const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;

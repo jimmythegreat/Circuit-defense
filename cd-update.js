@@ -55,6 +55,7 @@ function update(dt) {
     e.flash = Math.max(0, e.flash - dt);
     e.frozen = Math.max(0, (e.frozen || 0) - dt);
     e.hasted = Math.max(0, (e.hasted || 0) - dt);   // enrager haste aura (v1.34.0), decays when out of range
+    e.warded = Math.max(0, (e.warded || 0) - dt);   // warden damage-shield aura (v1.35.0), decays out of range / when the warden dies
     let slowMul = perkState.slowGlobal;
     if (e.frozen > 0) slowMul = 0;
     else if (e.slow > 0) {
@@ -93,6 +94,19 @@ function update(dt) {
       for (const o of enemies) {
         if (o === e || o.dead || o.hp >= o.maxHp) continue;
         if (Math.hypot(o.x-e.x, o.y-e.y) < 70) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.04 * dt);
+      }
+    }
+    // Warden support enemy (v1.35.0): projects a protective aura that refreshes a short
+    // `warded` timer on nearby enemies each frame; a warded enemy takes 40% less damage
+    // (applied in damage()). The timer decays once a target leaves the aura or the warden
+    // dies, so popping the warden immediately unshields its cluster — a focus-fire / AoE
+    // decision that pressures DPS without raw HP (re: the recurring "too easy" feedback).
+    // Other wardens are EXCLUDED so a warden is always killable, and frozen wardens pause
+    // (freeze counters it, like heal/boss mechanics). Run-only — enemies are never saved.
+    if (e.kind === 'warden' && e.frozen <= 0) {
+      for (const o of enemies) {
+        if (o === e || o.dead || o.kind === 'warden') continue;
+        if (Math.hypot(o.x-e.x, o.y-e.y) < 75) o.warded = 0.25;
       }
     }
     // Regeneration wave mod (mayhem, v1.33.0): every tagged enemy self-heals 2%/s of its
@@ -343,6 +357,7 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
   if (e.hp <= 0 || e.dead) return;
   if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
+  if (e.warded > 0) dmg *= 0.6;   // warden aura (v1.35.0): protected enemies take 40% less damage
   const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) - 2 * tRank('piercing'));
   const actual = Math.max(0.5, dmg - armor * (dmg > 2 ? 1 : 0.05));
   const applied = Math.min(e.hp, actual);
@@ -578,7 +593,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

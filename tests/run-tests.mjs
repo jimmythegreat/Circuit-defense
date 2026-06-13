@@ -2958,6 +2958,98 @@ async function main() {
     await page.close();
   }
 
+  // [52] Warden enemy — protective damage-shield aura (v1.35.0)
+  console.log('\n[52] Warden enemy (damage-shield aura)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w15, present from w15
+      const w14 = buildWave(14).some(e => e.kind === 'warden');
+      const w15 = buildWave(15).filter(e => e.kind === 'warden').length;
+
+      // (b) focused aura mechanics: a warden + victims, no movement so positions stick
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;   // no auto-start polluting `enemies`
+      const mid = pathLen * 0.4;
+      // x/y are set explicitly from the path point (like the phantom test) so the aura's
+      // distance check is valid on the very first frame regardless of array order — update()
+      // refreshes e.x/e.y per-enemy at the start of its own iteration, so a brand-new mock
+      // enemy processed AFTER the warden would otherwise have undefined x/y that frame.
+      const mk = (kind, dist, extra = {}) => { const p = pointAt(dist); return ({ kind,
+        hp:1000, maxHp:1000, spd:0, r:11, bounty:1, color:'#58a6ff', armor:0, gap:0, dist,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      const warden  = mk('warden', mid);
+      const victim  = mk('norm', mid);   // same point on the path -> inside the aura
+      const far     = mk('norm', 0);     // start of path -> well outside the aura
+      const warden2 = mk('warden', mid); // a second warden -> must NOT be warded
+      enemies.push(warden, victim, far, warden2);
+      update(1/60);                       // aura tags this frame
+      const victimWarded   = victim.warded > 0;
+      const wardenSelfFree = !(warden.warded > 0);   // wardens never ward themselves...
+      const wardenPeerFree = !(warden2.warded > 0);  // ...nor each other (always killable)
+      const farUnwarded    = !(far.warded > 0);
+
+      // damage reduction: a warded enemy takes 40% less (×0.6); an unwarded one takes full
+      const hpW = victim.hp; damage(victim, 100, null);
+      const wardedTook = hpW - victim.hp;            // expect 60
+      const hpF = far.hp;    damage(far, 100, null);
+      const unwardedTook = hpF - far.hp;             // expect 100
+
+      // frozen warden pauses the aura (freeze counters it, like heal/boss mechanics)
+      enemies.length = 0;
+      const fw = mk('warden', mid, { frozen: 5 });
+      const fv = mk('norm', mid);
+      enemies.push(fw, fv);
+      update(1/60);
+      const frozenNoWard = !(fv.warded > 0);
+
+      // the warded timer decays once the warden is gone (pop it -> cluster un-shields)
+      enemies.length = 0;
+      const v2 = mk('norm', mid, { warded: 0.25 });
+      enemies.push(v2);                  // no warden present
+      for (let i = 0; i < 20; i++) update(1/60);
+      const decays = v2.warded === 0;
+      enemies.length = 0;
+
+      // (c) preview/render plumbing: composition + glyph + colour all know the warden
+      const compHasWarden = waveComposition(15).some(c => c.kind === 'warden');
+      const glyph = enemyGlyph({ kind:'warden', frozen:0 });
+      const hasColor = !!PREVIEW_COLOR.warden;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (d) integration: a real wave-15+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 16 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w14, w15, victimWarded, wardenSelfFree, wardenPeerFree, farUnwarded,
+               wardedTook, unwardedTook, frozenNoWard, decays, compHasWarden, glyph, hasColor, run };
+    });
+    check('no wardens before wave 15', r.w14 === false);
+    check('wardens spawn from wave 15', r.w15 >= 1, 'count=' + r.w15);
+    check('warden tags a nearby enemy as warded', r.victimWarded);
+    check('a warden does not ward itself', r.wardenSelfFree);
+    check('a warden does not ward other wardens (stays killable)', r.wardenPeerFree);
+    check('an enemy outside the aura is not warded', r.farUnwarded);
+    check('warded enemy takes 40% less damage (×0.6)', Math.abs(r.wardedTook - 60) < 1e-6, 'took=' + r.wardedTook);
+    check('unwarded enemy takes full damage', Math.abs(r.unwardedTook - 100) < 1e-6, 'took=' + r.unwardedTook);
+    check('frozen warden does not project its aura', r.frozenNoWard);
+    check('warded timer decays once the warden is gone', r.decays);
+    check('waveComposition includes warden at wave 15', r.compHasWarden);
+    check('enemyGlyph returns ◈ for warden', r.glyph === '◈', 'glyph=' + r.glyph);
+    check('PREVIEW_COLOR has a warden colour', r.hasColor);
+    check('wave-15+ run with wardens reaches w>=16 alive', r.run.wave >= 16 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during warden tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

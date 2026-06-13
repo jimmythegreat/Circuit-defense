@@ -3,6 +3,44 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.35.0 — 2026-06-13 — ◈ Warden (support enemy with a damage-shield aura)
+
+**Type:** Content (new enemy type; serves the recurring "too easy" feedback off the HP axis, across **all** modes).
+
+**What:** Added an 8th enemy kind — **◈ Warden** — that appears from **wave 15+** in every mode
+(Classic / Campaign / Mayhem). Slotted into `buildWave` (`cd-game.js`) at `i % 11 === 10` as the
+last kind-`if` so it wins its slot (~9% of a wave, ~3 wardens at w15). Stats: `hp t.hp×1.3`,
+`spd t.speed×0.85`, `r 13`, `bounty t.bounty×2.4` (a fat reward for popping it), `color #58a6ff`.
+A Warden projects a **protective aura** (radius 75) that refreshes a short `e.warded` timer on every
+nearby enemy each frame (`cd-update.js`, mirrors the heal aura); a warded enemy takes **40% less
+damage** — one line in `damage()` (`if (e.warded > 0) dmg *= 0.6`, alongside the bulwark `shieldOn`
+soak). The timer **decays** (`e.warded -= dt`, like `hasted`) so it lapses the instant a target leaves
+the aura **or the Warden dies** — popping the Warden instantly un-shields its whole cluster.
+`cd-render.js` draws a soft blue aura disc on the Warden and a faint blue ring on each warded enemy;
+`enemyGlyph()`/`GLYPH_FONT`/`PREVIEW_COLOR` and the wave-preview `waveComposition()` all learn the
+new kind, and the colorblind legend gains `◈ warden`.
+
+**Why:** Difficulty has been raised on the HP axis to its design ceiling (the norm-HP curve is
+invariant-capped by test `[16]`; economy levers are near-exhausted — see FEEDBACK/ROADMAP), so this
+adds pressure on a **fresh axis: target priority**. A Warden makes a modest pack a slog until you
+focus it down or splash it with AoE, raising the skill floor without piling on raw HP — and unlike the
+recent boss/Mayhem additions it shows up in **Classic and Campaign too**, the exact modes the owner
+called too easy. Distinct from the existing support enemy (heal restores HP) and the bulwark boss
+(self-soak): the Warden is an *aura* damage-shield on *others*.
+
+**Counters:** freezing a Warden pauses its aura entirely (gated `e.frozen <= 0`, like heal/boss
+mechanics); Frost slows keep the cluster bunched for AoE; Wardens **never** shield themselves or each
+other (excluded in the aura loop), so a Warden is always killable.
+
+**Save-safe:** all fields (`warded` on victims, the Warden kind itself) are run-only — enemies are
+never persisted, so no save/schema change. PWA cache const (`sw.js`) bumped to `v1.35.0` to match
+`GAME_VERSION` (test `[49]`).
+
+**Test evidence:** new group `[52]` — wave gating (none < w15, present from w15), aura tagging,
+self/peer exclusion (always killable), out-of-aura enemies untouched, the ×0.6 damage reduction vs full
+damage, frozen-Warden pause, timer decay once the Warden is gone, preview/glyph/colour plumbing, and a
+live wave-15+ god-tower drive to w≥16. Full suite green (subagent-run).
+
 ## v1.34.0 — 2026-06-13 — 😡 Enrager (4th boss archetype)
 
 **Type:** Content / balance (new boss mechanic; serves the recurring "too easy" feedback off the HP axis).
