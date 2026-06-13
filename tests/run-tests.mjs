@@ -3446,6 +3446,40 @@ async function main() {
     await page.close();
   }
 
+  // [60] Start-screen config card — MODE/MAP/DIFFICULTY grouped into one bordered panel (v1.42.0)
+  console.log('\n[60] Start-screen config card (menu revamp slice 3)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const card = document.querySelector('#startScreen .startOpts');
+      const cs = card ? getComputedStyle(card) : null;
+      const lbl = card ? card.querySelector('.optLabel') : null;
+      return {
+        hasCard: !!card,
+        // the three selectors live INSIDE the card (grouped), not loose in #startScreen
+        modeInCard: !!(card && card.querySelector('#modeRow')),
+        mapInCard: !!(card && card.querySelector('#mapRow')),
+        diffInCard: !!(card && card.querySelector('#diffRow')),
+        bordered: cs ? cs.borderTopStyle !== 'none' && cs.borderTopWidth !== '0px' : false,
+        rounded: cs ? parseFloat(cs.borderTopLeftRadius) > 0 : false,
+        column: cs ? cs.flexDirection === 'column' : false,
+        labelLeft: lbl ? getComputedStyle(lbl).textAlign : null,
+        // test [58] invariant: #startScreen's last child stays the util toolbar
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+      };
+    });
+    check('config card .startOpts exists on the start screen', d.hasCard);
+    check('card groups MODE + MAP + DIFFICULTY rows together', d.modeInCard && d.mapInCard && d.diffInCard,
+      `mode=${d.modeInCard} map=${d.mapInCard} diff=${d.diffInCard}`);
+    check('card is a bordered, rounded, column panel', d.bordered && d.rounded && d.column,
+      `border=${d.bordered} round=${d.rounded} col=${d.column}`);
+    check('option labels left-align inside the card', d.labelLeft === 'left', d.labelLeft);
+    check('#startScreen last child is still the util toolbar (test [58] invariant)', d.lastChildUtil);
+    check('no console errors during config-card test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

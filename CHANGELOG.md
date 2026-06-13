@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.42.0 — 2026-06-13 — 🗂️ Start-screen config card — MODE/MAP/DIFFICULTY grouped into one panel (menu revamp slice 3)
+
+**Type:** UX / layout polish. Minor bump. Third slice of the owner's active (`[low priority]`) "revamp the whole starting menu" FEEDBACK — after v1.39.1 (two-tier button hierarchy) and v1.41.0 (animated PLAY button), this one restructures the run-setup controls themselves.
+
+**What changed:** the three setup selectors (MODE, MAP, DIFFICULTY) used to sit as three rows of floating, centered labels + button rows drifting loose in the middle of the start screen. They're now wrapped in a single bordered **config card** (`<div class="startOpts">` in `tower-defense.html`) so the menu reads as one structured "set up your run" panel. Inside the card, the labels and their option buttons **left-align** (`justify-content: flex-start`, `text-align: left`) for a clean settings-form feel, with consistent group spacing. The card is a subtle rounded panel (`background: rgba(22,27,34,.5)`, `1px solid #30363d`, `border-radius: 14px`, soft shadow), capped at `max-width: 720px` and centered on desktop; on ≤920px it goes full-width with tighter padding.
+
+**Scope:** markup + CSS only (`tower-defense.html`, `tower-defense.css`). The load-bearing IDs (`modeRow`/`mapRow`/`diffRow`/`mapLabel`) are preserved inside the wrapper, so every `getElementById` in `renderStartScreen()` still resolves; `#startScreen`'s last child stays the `.startUtil` toolbar (a test `[58]` invariant). No JS logic, save/economy/balance/schema impact — purely visual grouping. SW cache bumped `v1.41.0 → v1.42.0`.
+
+**Why the FEEDBACK item stays PENDING:** the owner prefers PENDING items left as-written until the *full* ask lands. The broader revamp (cleaner title/version treatment, possible card/rail layout for the utility buttons) is still open in ROADMAP; this is the run-setup slice of it.
+
+**Test evidence:** new group `[60]` — the `.startOpts` card exists, groups the MODE/MAP/DIFFICULTY rows, is a bordered/rounded/column panel with left-aligned labels, and `#startScreen`'s last child is still the util toolbar; zero console errors. Full suite **556/0 green** (subagent-verified before commit). Verified in-preview: card renders centered at 720px on desktop and full-width on mobile, campaign's long "LEVEL —" label + 40 level buttons fit with no horizontal overflow, zero console errors.
+
 ## v1.41.0 — 2026-06-13 — ✨ Idle start-screen PLAY sheen (menu polish)
 
 **Type:** UX / game-feel polish. Minor bump. Serves the owner's active (`[low priority]`) "revamp the starting menu" FEEDBACK — a small slice continuing v1.39.1's button-hierarchy work — and ticks the ROADMAP "Idle start-screen sheen" item.

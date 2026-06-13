@@ -166,10 +166,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       **Second slice shipped v1.41.0:** an animated PLAY sheen — the primary button now breathes a
       glow + sweeps a light glint on the dimmed menu (the "Idle start-screen sheen" item below, now
       done; reduced-motion-gated; test [59]).
-      **Remaining (the broader "revamp"):** the MODE/MAP/DIFFICULTY option blocks + the title/version
-      area could get a cleaner visual treatment (cards, grouping, spacing); consider a panel-style
-      layout or a left rail for the utility buttons. FEEDBACK item stays PENDING (as-written, per
-      owner pref) until the fuller revamp lands.
+      **Third slice shipped v1.42.0:** the MODE/MAP/DIFFICULTY selectors are now grouped into one
+      bordered **config card** (`.startOpts` wrapper) with left-aligned, settings-form-style labels +
+      options, so the run-setup controls read as a single structured panel instead of three rows of
+      floating centered labels. Markup + CSS only, save-safe, desktop (720px centered) + mobile
+      (full-width) verified; test [60].
+      **Remaining (the broader "revamp"):** the title/version area could get a cleaner visual
+      treatment, and the utility toolbar could move to a left rail / panel layout; consider per-block
+      visual polish (icons, hover states). FEEDBACK item stays PENDING (as-written, per owner pref)
+      until the fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
       to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`

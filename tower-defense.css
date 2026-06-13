@@ -228,6 +228,20 @@
   .optBtn.sel { border-color: #58a6ff; background: #1c2a3f; box-shadow: 0 0 10px rgba(88,166,255,.4); }
   .optBtn small { display: block; color: #8b949e; font-size: 11px; margin-top: 2px; }
   .optLabel { color: #8b949e; font-size: 12px; margin-bottom: 5px; letter-spacing: 2px; }
+  /* Start-screen config card (v1.42.0) — group the MODE / MAP / DIFFICULTY selectors
+     into one bordered panel so the menu reads as a single structured "set up your run"
+     card instead of three rows of floating centered labels (owner FEEDBACK "revamp the
+     starting menu", third slice — after v1.39.1 button hierarchy + v1.41.0 PLAY sheen).
+     Labels & options left-align inside the card for a clean settings-form feel. */
+  .startOpts {
+    display: flex; flex-direction: column; align-items: stretch;
+    width: 100%; max-width: 720px; margin: 8px 0 14px; padding: 14px 22px 8px;
+    background: rgba(22,27,34,.5); border: 1px solid #30363d; border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  }
+  .startOpts .optLabel { text-align: left; margin: 9px 0 6px; }
+  .startOpts .optLabel:first-child { margin-top: 0; }
+  .startOpts .optRow { justify-content: flex-start; max-width: none; margin-bottom: 4px; }
   /* draft cards */
   #draftModal h2 { color: #ffd866; font-size: 26px; margin-bottom: 4px; text-shadow: 0 0 16px rgba(255,216,102,.4); }
   #draftCards { display: flex; gap: 14px; margin-top: 14px; }
@@ -380,6 +394,7 @@
     #startScreen h2 { font-size: 26px; }
     #overlay h2 { font-size: 30px; }
     .optRow { gap: 7px; margin-bottom: 10px; }
+    .startOpts { padding: 12px 14px 4px; max-width: 100%; }
     .optBtn { padding: 8px 12px; font-size: 13px; }
     .lvlBtn { width: 48px; font-size: 12px; }
     /* Talent / achievement grids: 2 columns, cards fill their cell, the whole
