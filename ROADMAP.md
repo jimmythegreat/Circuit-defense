@@ -127,7 +127,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       boss aura + per-enemy ring). Cycle now `(w/5−4)%4` (w35→enrager, w40→regen). Test `[45]` extended.
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
       a 5th archetype (teleporter); per-campaign-tier *fixed* archetypes (vs the current wave-number
-      cycle); and a *boss-bar badge* naming the active mechanic.
+      cycle). ✅ **boss-bar mechanic badge shipped v1.36.0** — the boss HP bar now names the
+      active archetype under "OVERLORD — WAVE N", colour-matched to the aura ring (green
+      REGENERATING / red SUMMONER / blue BULWARK↔SHIELDED / orange ENRAGED); `bossMechanicBadge()`
+      in `cd-render.js`, render-only, test [53]. Still open: a 5th archetype (teleporter) and
+      per-campaign-tier *fixed* archetypes.
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -391,7 +395,7 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
 - [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 health checks) —
-      `tests/run-tests.mjs` has grown to **~2920 lines (51 groups `[0]`–`[51]`, 464 checks)** in a
+      `tests/run-tests.mjs` has grown to **~3000 lines (53 groups `[0]`–`[53]`, 496 checks)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing

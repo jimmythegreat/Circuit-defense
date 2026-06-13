@@ -3,6 +3,19 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.36.0 — 2026-06-13 — 🏷️ Boss-bar mechanic badge (names the active archetype)
+
+**Type:** UX / readability polish (ROADMAP "Boss variety" follow-up: *a boss-bar badge naming the active mechanic*). Render-only — no gameplay/balance/economy/save impact.
+
+**Why:** The boss-archetype system has grown to **four** mechanics (v1.25.0 regen/summoner/bulwark → v1.34.0 enrager) carried by every wave-20+ boss, but the only in-game cue was a colour-coded aura ring around the boss — easy to miss and impossible to decode mid-fight. Players couldn't tell a Regenerator from a Bulwark without memorising the colour key. Naming the mechanic on the always-visible boss HP bar closes that readability gap without touching difficulty.
+
+**What:**
+- New `bossMechanicBadge(e)` helper in `cd-render.js` (beside `enemyGlyph`/`PREVIEW_COLOR`/`GLYPH_FONT`) — the single source of truth for the badge `{label, c}`. Returns `null` for vanilla (pre-w20) bosses with no `bossType`, and for `null`/unknown input (no crash). Maps: `regen`→`REGENERATING` (green `86,211,100`), `summoner`→`SUMMONER` (red `255,148,146`), `bulwark`→`BULWARK` / `SHIELDED` while `shieldOn` (blue `121,192,255`), `enrager`→`ENRAGED` (orange `255,180,84`). **Colours match the existing aura-ring colours** in the same file, so the bar and the ring read as one cue.
+- The boss-bar block in `draw()` now renders the badge as a bold 10px second line under `☠ OVERLORD — WAVE N` (at `by+26`), and **expands the bar's background box** from height 24→36 only when an archetype is present (`bh = mech ? 36 : 24`). Vanilla bosses (waves 5/10/15, campaign L1–5 finals) keep the original compact bar, byte-identical.
+- Bulwark's label flips to **SHIELDED** for the ~2s its damage-soak shield is up, so the hold-your-big-hits window is readable from the bar (mirrors the ring's flare).
+
+**Test evidence:** new group `[53]` (9 checks) — vanilla/null/unknown → no badge; each archetype's exact label + aura-matched colour; bulwark BULWARK↔SHIELDED flip; zero console errors. Full suite **496/0 green across 53 groups**. Verified live over http (`GAME_VERSION=v1.36.0`, badges correct, `draw()` runs clean with a live wave-20 archetype boss + boss bar, zero console errors). PWA `CACHE` bumped to `circuit-defense-v1.36.0` to match `GAME_VERSION` (test `[49]`).
+
 ## v1.35.0 — 2026-06-13 — ◈ Warden (support enemy with a damage-shield aura)
 
 **Type:** Content (new enemy type; serves the recurring "too easy" feedback off the HP axis, across **all** modes).

@@ -3050,6 +3050,41 @@ async function main() {
     await page.close();
   }
 
+  // [53] Boss-bar mechanic badge — names the active archetype on the boss HP bar (v1.36.0)
+  console.log('\n[53] Boss-bar mechanic badge');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const mk = (over = {}) => Object.assign(
+        { kind:'boss', hp:1000, maxHp:2000, x:W/2, y:H/2 }, over);
+      const out = {
+        // vanilla (pre-w20) boss has no archetype → no badge
+        vanilla: bossMechanicBadge(mk({})),
+        regen: bossMechanicBadge(mk({ bossType:'regen' })),
+        summoner: bossMechanicBadge(mk({ bossType:'summoner' })),
+        bulwark: bossMechanicBadge(mk({ bossType:'bulwark' })),
+        bulwarkShielded: bossMechanicBadge(mk({ bossType:'bulwark', shieldOn:true })),
+        enrager: bossMechanicBadge(mk({ bossType:'enrager' })),
+        nullBoss: bossMechanicBadge(null),
+        unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
+      };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('vanilla boss (no archetype) shows no badge', r.vanilla === null);
+    check('null boss → no badge (no crash)', r.nullBoss === null);
+    check('unknown archetype → no badge', r.unknown === null);
+    check('regen badge labelled REGENERATING (green)', r.regen && r.regen.label === 'REGENERATING' && r.regen.c === '86,211,100', JSON.stringify(r.regen));
+    check('summoner badge labelled SUMMONER (red)', r.summoner && r.summoner.label === 'SUMMONER' && r.summoner.c === '255,148,146', JSON.stringify(r.summoner));
+    check('bulwark badge labelled BULWARK when shield down (blue)', r.bulwark && r.bulwark.label === 'BULWARK' && r.bulwark.c === '121,192,255', JSON.stringify(r.bulwark));
+    check('bulwark badge flips to SHIELDED while shield is up', r.bulwarkShielded && r.bulwarkShielded.label === 'SHIELDED', JSON.stringify(r.bulwarkShielded));
+    check('enrager badge labelled ENRAGED (orange)', r.enrager && r.enrager.label === 'ENRAGED' && r.enrager.c === '255,180,84', JSON.stringify(r.enrager));
+    check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

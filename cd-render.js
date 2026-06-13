@@ -31,6 +31,20 @@ const GLYPH_FONT = {
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
 };
+// Boss-bar mechanic badge (v1.36.0): names the active boss archetype (v1.25.0/v1.34.0)
+// so the colour-coded aura ring isn't the only cue — colour matches the aura. Bulwark
+// flips to SHIELDED while its damage-soak window is up. Returns null for vanilla
+// (pre-wave-20) bosses with no archetype. Render-only, no save/economy impact.
+function bossMechanicBadge(e) {
+  if (!e || !e.bossType) return null;
+  switch (e.bossType) {
+    case 'regen':    return { label: 'REGENERATING', c: '86,211,100' };
+    case 'summoner': return { label: 'SUMMONER', c: '255,148,146' };
+    case 'bulwark':  return { label: e.shieldOn ? 'SHIELDED' : 'BULWARK', c: '121,192,255' };
+    case 'enrager':  return { label: 'ENRAGED', c: '255,180,84' };
+    default:         return null;
+  }
+}
 // Tooltip for a hovered run-perk icon: name (in rarity colour) + what it does.
 // Description is looked up from PERKS by id so it works for old saves too.
 function drawPerkTooltip(iconX, p) {
@@ -439,12 +453,13 @@ function draw() {
 
   // boss bar
   if (bossAlive) {
-    const bw = 320, bx = (W-bw)/2, by = 14;
+    const mech = bossMechanicBadge(bossAlive);   // archetype name (null for vanilla bosses)
+    const bw = 320, bx = (W-bw)/2, by = 14, bh = mech ? 36 : 24;
     ctx.fillStyle = 'rgba(13,17,23,0.8)';
-    ctx.fillRect(bx-6, by-6, bw+12, 24);
+    ctx.fillRect(bx-6, by-6, bw+12, bh);
     ctx.strokeStyle = '#f85149';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(bx-6, by-6, bw+12, 24);
+    ctx.strokeRect(bx-6, by-6, bw+12, bh);
     ctx.fillStyle = 'rgba(248,81,73,0.25)';
     ctx.fillRect(bx, by, bw, 12);
     ctx.fillStyle = '#f85149';
@@ -453,6 +468,11 @@ function draw() {
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`☠ OVERLORD — WAVE ${wave}`, W/2, by + 10);
+    if (mech) {
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillStyle = `rgb(${mech.c})`;
+      ctx.fillText(mech.label, W/2, by + 26);
+    }
     ctx.textAlign = 'left';
   }
 
