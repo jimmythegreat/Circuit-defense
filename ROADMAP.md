@@ -294,7 +294,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 health checks)
+## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 health checks)
 
 _Still-unaddressed, in priority order: **gamepad** → **bigger HTML tap targets on small phones**.
 Done: **PWA install (v1.30.0)** — installable + offline-cacheable when hosted via `manifest.webmanifest`
@@ -397,8 +397,8 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
-- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 health checks) —
-      `tests/run-tests.mjs` has grown to **~3000 lines (53 groups `[0]`–`[53]`, 496 checks)** in a
+- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 health checks) —
+      `tests/run-tests.mjs` has grown to **3180 lines (54 groups `[0]`–`[54]`, 505 checks)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing

@@ -3,6 +3,26 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.37.1 — 2026-06-13 — 🩺 Health check (all green — 505/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump.
+
+**Why:** Five feature releases since the last health check (v1.32.1 → v1.33.0/1.34.0/1.35.0/1.36.0/1.37.0), so the routine triggers a checkpoint to confirm the project is still pointed in the right direction before piling on more content.
+
+**Refactor audit:** All seven game files remain comfortably under the ~1500-line cap — largest is `cd-update.js` at 829 lines (others: cd-render 692, cd-game 604, cd-core 385, cd-defs 326, cd-maps 266, cd-state 165). No dead code or domain-misplaced functions spotted. The dev-only test harness `tests/run-tests.mjs` is now **3180 lines / 54 groups / 505 checks** — already tracked under ROADMAP "Tech/tooling → Split the test harness file"; left as-is (it's tooling, not the shipped game).
+
+**Docs coherence:** No drift found. `GAME_VERSION` (v1.37.0→**v1.37.1**) == in-game `CHANGELOG_ENTRIES[0]` == `sw.js` `CACHE` (all bumped together this run; test `[49]` enforces the last). Verified every count CLAUDE.md/ROADMAP claims against the code: **13** achievements, **11** WAVE_MODS (frenzy/swarm/titans/goldrush/surge/fog/armored/brownout/regen/emp/meteors), **4** BOSS_ARCHETYPES (regen/summoner/bulwark/enrager), **8** towers, **21** talents (13 core + 8 mastery) — all match. Vetoed section + Prompt-suggestions section both intact.
+
+**Table-stakes audit:** Done — PWA install (v1.30.0), menu (v1.19.0) + draft (v1.20.0) keyboard a11y, colorblind aid (v1.18.0), reduced-motion (v1.10.0), volume slider (v1.13.2), responsive/mobile (v1.14.0/v1.15.0), touch/pointer (v1.16.3), high-DPI (v1.17.0), document metadata (v1.8.6). Still-open (all already logged in ROADMAP, unchanged): **gamepad support**, **bigger HTML tap targets on small phones**, and a **raster PNG icon set** for stricter Lighthouse installability. Gamepad remains the strongest next table-stakes pick.
+
+**Integrity spot-checks:**
+- **Test suite:** `npm test` → **505 passed, 0 failed**, exit 0.
+- **file:// playability:** no `type="module"` anywhere; classic `<script src>` load order intact (core→maps→defs→state→game→update→render); SW registration guarded to `http/https` only, so double-click play + the headless harness are unaffected.
+- **Old-save migration:** a minimal `cd_meta` (`{chips,talents}` only) loads and gains `achievements`/`stats`/`stats.bestCombo` defaults via `loadMeta()`; a minimal `cd_save` lacking newer fields (`mapTheme`, `perkState.glassCannon`, etc.) loads and rebuilds tower stats from base × level. Both round-trip cleanly.
+- **Visual verification (owner FEEDBACK request):** desktop loads with **zero console errors** (v1.37.0 globals present); a manual `update(1/60)` drive cleared **3 waves** with no leaks; at **375px mobile** there's **no horizontal overflow** and all four start-screen panels (Talents/Records/Achievements/Settings) are `position:fixed` and fit within the viewport.
+
+**Findings → ROADMAP:** none new — the project is coherent and the open backlog items are unchanged. Resets the 5-run health-check counter.
+
 ## v1.37.0 — 2026-06-13 — ⚡ Static Storm (11th Mayhem wave modifier — towers knocked offline)
 
 **Type:** Content (new Mayhem wave modifier; serves the recurring "too easy" feedback on a fresh axis — **tower uptime**, not enemy HP). Mayhem-only, run-only state, save-safe.
