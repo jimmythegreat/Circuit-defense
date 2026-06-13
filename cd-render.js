@@ -607,3 +607,12 @@ resetState();
 setActiveUI();
 initWhatsNew();
 requestAnimationFrame(loop);
+
+// PWA service-worker registration (v1.30.0). Only when HOSTED over http/https — guarded
+// to skip file:// (service workers can't register there, so double-click play + the
+// headless harness are completely unaffected) and any browser without SW support.
+// Failures are swallowed: a missing/blocked SW must never break the game.
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator &&
+    (location.protocol === 'https:' || location.protocol === 'http:')) {
+  try { navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+}

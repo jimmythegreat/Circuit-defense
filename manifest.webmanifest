@@ -1,0 +1,16 @@
+{
+  "name": "Circuit Defense — Browser Tower Defense",
+  "short_name": "Circuit Defense",
+  "description": "A fast, offline browser tower defense — build towers, draft perks every 5 waves, grind chips for permanent talents.",
+  "start_url": "./tower-defense.html",
+  "scope": "./",
+  "id": "./tower-defense.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

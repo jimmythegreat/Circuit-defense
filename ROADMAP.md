@@ -260,7 +260,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 health checks)
 
-_Still-unaddressed, in priority order: **gamepad** → PWA install → **bigger HTML tap targets on small phones**.
+_Still-unaddressed, in priority order: **gamepad** → **bigger HTML tap targets on small phones**.
+Done: **PWA install (v1.30.0)** — installable + offline-cacheable when hosted via `manifest.webmanifest`
++ `sw.js` (precache shell, versioned cache) + maskable `icon.svg`; SW registration is http/https-guarded
+so `file://` double-click play is unaffected; deploy workflow copies the three files. Test [49].
 Done: **draft keyboard a11y (v1.20.0)** — the mid-game perk picker's cards are now focusable
 (`role=button`/`tabIndex`), Enter/Space-pickable, Tab-trapped (`_topTrapPanel()` returns `#draftModal`)
 and Esc-exempt; `:focus-visible` lift + `role=dialog` on the modal — closing the last mouse-only-menu gap.
@@ -273,8 +276,9 @@ reduced-motion (v1.10.0), volume slider (v1.13.2),
 `pointerdown`-driven with a touch-generous tap radius + `touch-action:none` — and **high-DPI
 canvas scaling (v1.17.0)** — the backing store now scales with `devicePixelRatio` (capped 2×) so
 the board is crisp on Retina/4K/scaled displays. v1.14.1 visual pass confirmed desktop & phone
-menus all render correctly. **Next normal run's strongest table-stakes pick: gamepad support**, then
-PWA install (offline manifest, hosted-only). (Keyboard a11y is now complete — start-screen menus
+menus all render correctly. **PWA install shipped v1.30.0** (installable + offline-cacheable when
+hosted). **Next normal run's strongest table-stakes pick: gamepad support** (then bigger HTML tap
+targets on small phones). (Keyboard a11y is now complete — start-screen menus
 v1.19.0 + the mid-game draft cards v1.20.0.)_
 
 
@@ -306,10 +310,17 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       identical rendering with the aid off). Test [36]. **Follow-ups:** *combo-tier
       shape/label* (the meter already shows the `N×` number so it's readable, but the
       colour ramp green→purple is still hue-only), and a *high-contrast path/grid mode*.
-- [ ] **PWA install (offline manifest)** — a `manifest.webmanifest` + minimal
-      service worker so the game is installable and offline-cacheable when *hosted*
-      (it's already offline via `file://`). No build step required. Note: a service
-      worker does nothing on `file://`, so this only helps the hosted case.
+- [x] **PWA install (offline manifest)** — shipped **v1.30.0**. `manifest.webmanifest`
+      (name/short_name/`start_url:./tower-defense.html`/`display:standalone`/theme+bg colors/
+      maskable `icon.svg`), `sw.js` (precache the app shell + cache-first runtime cache, versioned
+      `circuit-defense-v1.30.0` so `activate` evicts stale caches), and `icon.svg` (gold-⚡ maskable
+      app icon). HTML head links the manifest + apple-touch-icon + iOS web-app meta; `cd-render.js`
+      registers the SW **guarded to http/https only** (skips `file://`, so double-click play + the
+      headless harness are untouched). Deploy workflow copies the three files into `_site`. No build
+      step, no localStorage/save change. Test [49]; verified live over http (SW activated, 13 shell
+      assets cached). **Follow-up:** a real PNG icon set (192/512) for stricter installability audits
+      (Lighthouse) — the single SVG icon installs fine in Chrome/Edge/Firefox but some installability
+      checks prefer raster PNGs; would need a binary asset (currently the repo is asset-free).
 - [x] **Volume slider** — shipped v1.13.2. 0–100 master Volume in the ⚙ Settings panel;
       all audio routes through a master GainNode (`masterGain()`), `setVolume()` scales it
       and persists `cd_vol` (default 0.7). Independent of mute. Test [25].

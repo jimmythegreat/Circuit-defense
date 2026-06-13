@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.30.0 — 2026-06-13 — 📲 PWA — installable + offline-cacheable (hosted)
+
+**What:** Made the game an installable Progressive Web App for the **hosted** (http/https)
+deploy. Three new static files — `manifest.webmanifest` (name/short_name/start_url/
+`display:standalone`/theme+background colors/icon), `icon.svg` (a maskable gold-⚡ app icon
+matching the favicon), and `sw.js` (a service worker that precaches the app shell and serves
+cache-first with a same-origin runtime-cache + offline fallback to the game). The HTML head
+links the manifest + an apple-touch-icon and adds the iOS web-app meta tags; `cd-render.js`
+registers the SW **guarded to http/https only**. The deploy workflow now copies the three
+files into `_site`.
+
+**Why:** Table-stakes for a polished browser game (ROADMAP "PWA install"), and especially
+aligned with the owner's repeated mobile focus — players can now "Add to Home Screen" and get
+a real app icon + own-window launch + offline play on the hosted version.
+
+**Guardrails:** `file://` double-click play is **completely unaffected** — service workers
+can't register on `file://`, and the registration is protocol-guarded so it never runs (or
+throws) there; the headless harness (also `file://`) confirms no SW registers and zero console
+errors. No build step (plain static files, classic `<link rel="manifest">`, NOT a module),
+no runtime network dependency for the core game, and **no localStorage / save-schema change**
+(the SW uses the separate Cache API). Cache name is versioned (`circuit-defense-v1.30.0`) so
+the `activate` step evicts stale caches on each release.
+
+**Test evidence:** New test group **[49]** (manifest valid JSON + required install fields,
+maskable icon, `icon.svg` exists, SW has install/activate/fetch handlers + precaches the shell,
+HTML links manifest + apple-touch-icon, SW registration is protocol-guarded, manifest link in
+the live DOM, **no SW registered on `file://`**, zero console errors). Full suite **441/0**.
+Also verified live over http in the preview: SW activated (scope `/`), all 13 shell assets
+precached, manifest + apple-touch-icon present, version v1.30.0, zero console errors; then
+unregistered the dev SW to keep the preview clean.
+
 ## v1.29.0 — 2026-06-12 — 🏅 Four new achievement badges
 
 **What:** Added four new achievements (the roster grows 9 → 13), all evaluated in

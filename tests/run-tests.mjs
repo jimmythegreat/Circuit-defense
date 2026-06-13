@@ -2701,6 +2701,59 @@ async function main() {
     await page.close();
   }
 
+  // ---------------------------------------------------------------------------
+  console.log('\n[49] PWA — installable manifest + offline service worker (table stakes)');
+  {
+    // (a) manifest.webmanifest exists, is valid JSON, has the required install fields.
+    const manRaw = readFileSync(resolve(ROOT, 'manifest.webmanifest'), 'utf8');
+    let man = null, parsed = false;
+    try { man = JSON.parse(manRaw); parsed = true; } catch (e) {}
+    check('manifest.webmanifest is valid JSON', parsed);
+    check('manifest declares name + short_name', !!(man && man.name && man.short_name));
+    check('manifest start_url points at the game', !!(man && /tower-defense\.html/.test(man.start_url || '')));
+    check('manifest display is standalone', !!(man && man.display === 'standalone'));
+    check('manifest sets theme + background colors', !!(man && man.theme_color && man.background_color));
+    check('manifest lists at least one icon', !!(man && Array.isArray(man.icons) && man.icons.length >= 1));
+    check('manifest icon references icon.svg', !!(man && man.icons && man.icons.some(i => /icon\.svg/.test(i.src || ''))));
+    check('manifest icon is maskable', !!(man && man.icons && man.icons.some(i => /maskable/.test(i.purpose || ''))));
+
+    // (b) the referenced icon file exists.
+    check('icon.svg exists', existsSync(resolve(ROOT, 'icon.svg')));
+
+    // (c) service worker exists and has the three lifecycle handlers + caches the shell.
+    const sw = readFileSync(resolve(ROOT, 'sw.js'), 'utf8');
+    check('sw.js registers an install handler', /addEventListener\(['"]install['"]/.test(sw));
+    check('sw.js registers an activate handler', /addEventListener\(['"]activate['"]/.test(sw));
+    check('sw.js registers a fetch handler', /addEventListener\(['"]fetch['"]/.test(sw));
+    check('sw.js precaches the game shell (html + css + js)',
+      /tower-defense\.html/.test(sw) && /tower-defense\.css/.test(sw) && /cd-core\.js/.test(sw));
+    check('sw.js precaches the manifest + icon', /manifest\.webmanifest/.test(sw) && /icon\.svg/.test(sw));
+
+    // (d) HTML head wires the manifest + apple touch icon.
+    const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
+    check('HTML links the manifest', /<link[^>]+rel=["']manifest["'][^>]+href=["']manifest\.webmanifest["']/.test(html));
+    check('HTML declares an apple-touch-icon', /<link[^>]+rel=["']apple-touch-icon["']/.test(html));
+
+    // (e) the SW registration is guarded so it NEVER runs on file:// (double-click play
+    //     + this headless harness must be unaffected — SWs can't register on file://).
+    const render = readFileSync(resolve(ROOT, 'cd-render.js'), 'utf8');
+    check('SW registration is protocol-guarded (http/https only)',
+      /serviceWorker/.test(render) && /location\.protocol\s*===\s*['"]https:['"]/.test(render));
+
+    // (f) live page (served file://): manifest link is in the DOM, no SW controller got
+    //     installed (guard held), and zero console errors.
+    const { page, consoleErrors } = await newPage(browser);
+    const live = await page.evaluate(() => ({
+      hasManifestLink: !!document.querySelector('link[rel="manifest"]'),
+      protocol: location.protocol,
+      swController: !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+    }));
+    check('manifest link present in the live DOM', live.hasManifestLink);
+    check('no service worker registered on file://', live.protocol !== 'file:' || live.swController === false);
+    check('no console errors with PWA wiring', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

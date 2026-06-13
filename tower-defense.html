@@ -12,6 +12,14 @@
 <meta property="og:title" content="Circuit Defense">
 <meta property="og:description" content="A fast, offline browser tower defense — build, upgrade, and don't let them through.">
 <meta property="og:type" content="website">
+<!-- PWA: installable + offline-cacheable when hosted (http/https). The manifest/SW
+     do nothing on file:// — double-click play stays a static, no-network experience. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Circuit Defense">
 <link rel="stylesheet" href="tower-defense.css">
 </head>
 <body>

@@ -26,6 +26,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html tower-defense.html tower-defense.css cd-*.js _site/
+          cp manifest.webmanifest sw.js icon.svg _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

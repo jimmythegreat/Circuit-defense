@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <!-- Full-bleed dark background so the icon survives a circular/rounded mask
+       (maskable). The gold bolt is scaled to ~62% around centre to stay inside
+       the maskable safe zone. Matches the inline favicon for a consistent mark. -->
+  <rect width="100" height="100" fill="#0d1117"/>
+  <g transform="translate(50,50) scale(0.62) translate(-50,-50)">
+    <path d="M55 8 L25 56 L45 56 L38 92 L75 40 L52 40 Z" fill="#e3b341"/>
+  </g>
+</svg>
