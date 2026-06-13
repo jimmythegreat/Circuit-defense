@@ -245,7 +245,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.24.2 health check)
+## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 health checks)
 
 _Still-unaddressed, in priority order: **gamepad** → PWA install → **bigger HTML tap targets on small phones**.
 Done: **draft keyboard a11y (v1.20.0)** — the mid-game perk picker's cards are now focusable
@@ -337,10 +337,12 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
-- [ ] **Split the test harness file** (noted v1.24.2 health check) — `tests/run-tests.mjs`
-      has grown to 2294 lines (43 groups `[0]`–`[43]`) in a single file. Dev-only, doesn't touch
-      the shipped game, but it's past the readability point; could split per-group into
-      `tests/groups/*.mjs` with a small runner. Low priority (suite runs ~20s, green).
+- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 health check) —
+      `tests/run-tests.mjs` has grown to **2559 lines (47 groups `[0]`–`[46]`, 393 checks)** in a
+      single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
+      point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
+      (suite runs ~20s, green) — but it's the largest single file in the repo now and growing
+      ~50 lines per feature run, so worth doing before it doubles.
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card
       `[0]`, and drafts are random, so any test that asserts a numeric bound on gold/dmg
       *after* a draft can flake when a gold/power perk lands in slot 0. v1.20.2 fixed the

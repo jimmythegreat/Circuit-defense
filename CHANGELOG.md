@@ -3,6 +3,43 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.27.1 — 2026-06-12 — 🩺 Health check
+
+Every-6th-run maintenance pass (5 version entries since the v1.24.2 health check: v1.24.3, v1.24.4,
+v1.25.0, v1.26.0, v1.27.0). No new feature — verification only. The PENDING FEEDBACK item is
+`[Low priority]` and not a gameplay-breaking `[bug]`, so the health check takes precedence this run.
+
+**1. Refactor audit.** All seven game files comfortably under the ~1500-line cap:
+`cd-update.js` 713, `cd-render.js` 609, `cd-game.js` 566, `cd-defs.js` 318, `cd-core.js` 370,
+`cd-maps.js` 198, `cd-state.js` 156 (+ `tower-defense.css` 407, `tower-defense.html` 138). No dead
+code, no `console.*`/`debugger` leftovers, no TODO/FIXME. **Finding:** the dev-only test harness
+`tests/run-tests.mjs` grew 2294 → **2559 lines** (47 groups `[0]`–`[46]`, 393 checks) and is now the
+single largest file in the repo — flagged in ROADMAP as the next `[refactor]` (split per-group).
+
+**2. Docs coherence.** Cross-checked CLAUDE.md against the code — every documented number still
+matches: 8 towers, 21 talents, 9 Mayhem wave mods (`frenzy/swarm/titans/goldrush/surge/fog/armored/
+brownout/meteors`), booster aura range `45`, boss HP slope `14 + w*0.6`, norm-HP curve
+`(18 + w*7 + 1.25·w^1.9)·1.80`. No drift found. Versions consistent across `GAME_VERSION`,
+`CHANGELOG_ENTRIES[0]`, and CHANGELOG.md (all v1.27.1). What's New still carries the full 59-entry
+history (owner preference — never trimmed). ROADMAP test-harness + table-stakes notes refreshed.
+
+**3. Table-stakes audit.** Favicon (inline SVG data URI), `viewport`/`description`/`theme-color`/
+Open Graph all present. Done since last audit: a11y (menu v1.19.0 + draft v1.20.0), colorblind aid
+(v1.18.0), responsive/mobile (v1.14.0/v1.15.0), touch/pointer (v1.16.3), high-DPI (v1.17.0), volume
+slider (v1.13.2), reduced-motion (v1.10.0). Still-unaddressed (all in ROADMAP): **gamepad support**,
+**PWA install** (offline manifest, hosted-only), **bigger HTML tap targets on small phones**.
+
+**4. Integrity spot-checks.** Full suite **393/0**, exit 0. `file://` playability intact — classic
+`<script src>` load order (core→maps→defs→state→game→update→render), zero `type="module"`, relative
+paths, data-URI favicon. Live-loaded the page (preview): start screen renders, **zero console
+errors**, all globals present (v1.27.1 / 8 towers / 9 mods / 21 talents / 59 entries); a manual
+god-tower drive cleared wave 1 (9 kills, no lives lost, no exceptions). Old-save migration verified
+in code: `loadMeta()` defaults `achievements/stats/dmg/runs/bestCombo`; `loadRun()` guards `mapTheme`
+and rebuilds `perkState` via `Object.assign(freshPerkState(), …)`. Deploy workflow copies
+`index.html + tower-defense.{html,css} + cd-*.js` (wildcard catches all seven) as a static deploy.
+
+**Result:** project is healthy and on-course. Nothing required fixing; findings logged to ROADMAP.
+
 ## v1.27.0 — 2026-06-12 — 🌀 Two new Mayhem wave modifiers: Armored Surge + Brownout
 
 **New content** (ROADMAP "More wave modifiers for Mayhem"). Mayhem rolls a random per-wave twist
