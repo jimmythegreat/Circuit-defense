@@ -3,6 +3,40 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.34.0 — 2026-06-13 — 😡 Enrager (4th boss archetype)
+
+**Type:** Content / balance (new boss mechanic; serves the recurring "too easy" feedback off the HP axis).
+
+**What:** Added a fourth boss archetype — **😡 Enrager** — to the wave-20+ boss rotation
+(`BOSS_ARCHETYPES` 3 → 4: `['regen','summoner','bulwark','enrager']` in `cd-game.js`). An Enrager
+boss projects a **haste aura**: every enemy within 120px is tagged `hasted` each frame, and a hasted
+enemy moves **+35% faster** (`hasteMul` in `cd-update.js`'s movement line). The tag decays in 0.6s once
+an enemy leaves the aura. The boss pulses `SFX.bossSkill()` + an orange burst every ~2.5s; render
+(`cd-render.js`) draws an **orange** boss aura ring (joining green-regen / red-summoner / blue-bulwark)
+and a faint orange ring on each hasted enemy.
+
+**Why:** Like the v1.25.0 archetypes and the v1.33.0 Regeneration mod, it hardens the **late game through
+behaviour, not raw HP** — the norm-enemy HP curve is invariant-capped by test `[16]` (≤25% vs the v1.10.0
+baseline at every wave), so difficulty is added off the HP axis. A fast escort overwhelms a defense that
+relied on enemies dawdling through tower coverage, pressuring DPS and timing. Explicitly the "4th archetype
+(enrager that speeds nearby enemies)" follow-up listed under ROADMAP → Boss variety.
+
+**Counters:** freezing the Enrager pauses its aura entirely (the boss handler is gated `e.frozen <= 0`,
+like regen/heal/summoner); Frost slows still multiply in on top of the haste (`slowMul × hasteMul`), so
+crowd-control answers it directly.
+
+**Rotation shift:** the cycle is now `(w/5 − 4) % 4`, so w20=regen / w25=summoner / w30=bulwark are
+unchanged, w35 becomes enrager (was regen), w40 becomes regen (was summoner). Early/tutorial bosses
+(w5/10/15, campaign L1–5 finals at `victoryWave < 20`) stay vanilla.
+
+**Save-safe:** all fields (`bossType`, `hasted`, `enrageCd`) are run-only and lazily initialised; enemies
+are never persisted, so no save/schema change. The PWA cache const (`sw.js`) bumped to `v1.34.0` to match
+`GAME_VERSION` (test `[49]`).
+
+**Test evidence:** extended group `[45]` — updated the rotation assertion (regen→summoner→bulwark→**enrager**),
+added "enrager hastes nearby enemies" + "freezing an enrager pauses its haste aura" behaviour checks, and
+added the enrager to the per-archetype killability loop and the live-wave drive. Full suite green (subagent-run).
+
 ## v1.33.0 — 2026-06-13 — 💚 Regeneration (10th Mayhem wave modifier)
 
 **Type:** Content / balance (new Mayhem wave modifier; serves the recurring "too easy" feedback off the HP axis).

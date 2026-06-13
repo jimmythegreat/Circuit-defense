@@ -54,6 +54,7 @@ function update(dt) {
   for (const e of enemies) {
     e.flash = Math.max(0, e.flash - dt);
     e.frozen = Math.max(0, (e.frozen || 0) - dt);
+    e.hasted = Math.max(0, (e.hasted || 0) - dt);   // enrager haste aura (v1.34.0), decays when out of range
     let slowMul = perkState.slowGlobal;
     if (e.frozen > 0) slowMul = 0;
     else if (e.slow > 0) {
@@ -82,7 +83,10 @@ function update(dt) {
       }
     }
     e.px = e.x; e.py = e.y;
-    e.dist += e.spd * slowMul * dt;
+    // enrager haste aura (v1.34.0): an enraged enemy moves +35% faster. slowMul already
+    // zeroes frozen movement, and frost slow multiplies in, so freeze/slow still counter it.
+    const hasteMul = e.hasted > 0 ? 1.35 : 1;
+    e.dist += e.spd * slowMul * hasteMul * dt;
     const p = pointAt(e.dist);
     e.x = p.x; e.y = p.y;
     if (e.kind === 'heal' && e.frozen <= 0) {
@@ -96,10 +100,11 @@ function update(dt) {
     // recurring "too easy" feedback). Tagged at spawn in buildWave (run-only, never saved),
     // so concurrent waves each keep their own mod; freeze pauses it (like heal/boss-regen).
     if (e.regen && e.frozen <= 0 && !e.dead) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.02 * dt);
-    // boss archetypes (v1.25.0): late bosses (w20+) carry a mechanic on top of HP —
+    // boss archetypes (v1.25.0; enrager v1.34.0): late bosses (w20+) carry a mechanic on top of HP —
     //   regen     : self-heal 1.2%/s of max HP (punishes under-investment)
     //   bulwark   : cycles a 2s damage-soak shield (×0.4 incoming) every ~8s
     //   summoner  : periodically spawns weak adds behind it (up to 8 total)
+    //   enrager   : haste aura — nearby enemies move +35% faster (pressures DPS/timing, no HP)
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
@@ -130,6 +135,16 @@ function update(dt) {
           addExplosion(e.x, e.y, '#ff9492', 8, 90);
           SFX.bossSkill();
         }
+      } else if (e.bossType === 'enrager') {
+        // haste aura: refresh a short enrage timer on every nearby enemy each frame, so it
+        // decays once they leave the aura. The boss skips itself. A periodic pulse fires the
+        // SFX + a burst so the buff window is readable without spamming sound every frame.
+        for (const o of enemies) {
+          if (o === e || o.dead) continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < 120) o.hasted = 0.6;
+        }
+        e.enrageCd = (e.enrageCd == null ? 2.5 : e.enrageCd) - dt;
+        if (e.enrageCd <= 0) { e.enrageCd = 2.5; addExplosion(e.x, e.y, '#ffb454', 8, 100); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {

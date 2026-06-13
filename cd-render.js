@@ -361,11 +361,20 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // boss archetype aura (v1.25.0): colour-codes the mechanic — green regen, red
-    // summoner, blue bulwark. The bulwark ring flares bright+thick during its active
-    // shield phase so the damage-soak window is readable at a glance.
+    // enrager haste cue (v1.34.0): a faint orange ring marks an enemy currently sped up
+    // by a nearby enrager boss (matches the boss's own orange aura below).
+    if (e.hasted > 0) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,180,84,0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    // boss archetype aura (v1.25.0; enrager v1.34.0): colour-codes the mechanic — green
+    // regen, red summoner, blue bulwark, orange enrager. The bulwark ring flares bright+thick
+    // during its active shield phase so the damage-soak window is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : '121,192,255';
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6), 0, Math.PI*2);
       ctx.strokeStyle = `rgba(${ac},${e.shieldOn ? 0.85 : 0.4})`;

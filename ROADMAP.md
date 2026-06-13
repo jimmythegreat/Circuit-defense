@@ -112,9 +112,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       capped at 8. Colour-coded boss aura (`cd-render.js`) + `SFX.bossSkill()`. Early/tutorial
       bosses (w5/10/15, campaign L1–5 finals) unchanged. Run-only state, no save impact. Hardens the
       late game through behaviour, not HP (the norm-HP curve is invariant-capped). Test `[45]`.
-      **Follow-ups:** *step the threshold/intensity if late game is still soft*; a **4th archetype**
-      (e.g. an enrager that speeds nearby enemies, or a teleporter); per-campaign-tier *fixed*
-      archetypes (vs the current wave-number cycle); and a *boss-bar badge* naming the active mechanic.
+      **v1.34.0 added the 4th archetype — 😡 Enrager** (haste aura: nearby enemies +35% speed,
+      `hasted` tag decays in 0.6s; frozen boss pauses it, Frost slows still multiply in; orange
+      boss aura + per-enemy ring). Cycle now `(w/5−4)%4` (w35→enrager, w40→regen). Test `[45]` extended.
+      **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
+      a 5th archetype (teleporter); per-campaign-tier *fixed* archetypes (vs the current wave-number
+      cycle); and a *boss-bar badge* naming the active mechanic.
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus

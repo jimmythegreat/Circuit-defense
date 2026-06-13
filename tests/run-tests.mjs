@@ -2382,9 +2382,9 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 3 → regen, summoner, bulwark, regen, ...
+      // Rotation by boss number: (w/5 - 4) % 4 → regen, summoner, bulwark, enrager, regen, ...
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
-                    && bt(30) === 'bulwark' && bt(35) === 'regen' && bt(40) === 'summoner';
+                    && bt(30) === 'bulwark' && bt(35) === 'enrager' && bt(40) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2421,9 +2421,27 @@ async function main() {
       const bossNow = enemies.find(k => k.kind === 'boss');
       const summonerCapped = adds === 8 && bossNow && bossNow.summonsLeft === 0;
 
+      // ENRAGER — hastes nearby enemies (+35% speed); freeze pauses the aura. Pin both
+      // (spd 0 on the boss so it stays in range) and put a mover right on top of it.
+      const enrageRun = (bossFrozen) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        const boss = { kind:'boss', bossType:'enrager', hp:1000, maxHp:2000, spd:0, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:5, x:W/2, y:H/2, px:W/2, py:H/2,
+          slow:0, slowF:0.8, frozen: bossFrozen ? 5 : 0, poison:null, flash:0 };
+        const mover = { kind:'norm', hp:1e9, maxHp:1e9, spd:50, r:11, bounty:1, color:'#3fb950',
+          armor:0, gap:0.8, dist:5, x:W/2, y:H/2, px:W/2, py:H/2, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 };
+        enemies.push(boss, mover);
+        for (let i = 0; i < 30; i++) update(1/60);
+        return enemies.find(k => k.kind === 'norm');
+      };
+      const hm = enrageRun(false);
+      const enrageHastes = hm && hm.hasted > 0;
+      const fm = enrageRun(true);
+      const frozenNoHaste = fm && !(fm.hasted > 0);
+
       enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped };
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste };
     });
     check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
     check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
@@ -2432,6 +2450,8 @@ async function main() {
     check('bulwark active shield soaks 60% of a hit', r.shieldSoaks);
     check('bulwark raises its shield on a cycle', r.shieldRaised);
     check('summoner spawns adds capped at 8 total', r.summonerCapped, `adds=${r.adds}`);
+    check('enrager hastes nearby enemies', r.enrageHastes);
+    check('freezing an enrager pauses its haste aura', r.frozenNoHaste);
 
     // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
     // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
@@ -2442,7 +2462,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2460,6 +2480,7 @@ async function main() {
     check('regen boss is killable (dies under sustained fire)', killable.regen.died, `guard=${killable.regen.guard}`);
     check('bulwark boss is killable (shield only delays, not immortal)', killable.bulwark.died, `guard=${killable.bulwark.guard}`);
     check('summoner boss is killable', killable.summoner.died, `guard=${killable.summoner.guard}`);
+    check('enrager boss is killable', killable.enrager.died, `guard=${killable.enrager.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
