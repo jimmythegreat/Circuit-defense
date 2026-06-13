@@ -242,13 +242,18 @@ const PERKS = [
   // Comeback mechanic (v1.22.0): scales with lives lost this run, so it ONLY rewards a
   // struggling player (a flawless run gets +0%) — a deliberate "too easy"-safe legendary.
   { id:'laststand',rarity:'legendary',icon:'🩸', name:'Last Stand',      desc:'+3% damage per life lost (max +60%)',      apply:s=>s.lastStand = true },
+  // Glass Cannon (v1.32.0): a high-risk/high-reward TRADE-OFF — more damage at the cost of
+  // reach. Deliberately NOT pure power creep (re: "too easy"): −30% range meaningfully cuts
+  // coverage and demands careful placement, so it's a meaningful choice, not a free upgrade.
+  { id:'glasscannon',rarity:'legendary',icon:'🔮', name:'Glass Cannon',   desc:'+50% tower damage, but −30% range',        apply:s=>s.glassCannon = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
 function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
-    orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0 };
+    orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
+    glassCannon:false };
 }
 function ascendTowers() {
   for (const t of towers) {

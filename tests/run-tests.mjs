@@ -2835,6 +2835,67 @@ async function main() {
     await page.close();
   }
 
+  // [51] Glass Cannon legendary perk — +50% damage / −30% range trade-off (v1.32.0)
+  console.log('\n[51] Glass Cannon trade-off perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // perk exists in the pool and is a legendary
+      const def = PERKS.find(p => p.id === 'glasscannon');
+      const inPool = !!def && def.rarity === 'legendary';
+
+      // baseline (perk not held)
+      perkState.glassCannon = false;
+      const dBase = effDmg(gun), rBase = effRange(gun);
+      // perk held: +50% damage, −30% range
+      perkState.glassCannon = true;
+      const dGC = effDmg(gun), rGC = effRange(gun);
+
+      // booster aura range (effBuffRange) is NOT affected by Glass Cannon
+      const booster = { type:'buff', x:400, y:300, level:1, spec:null, range:45, buffPower:0.25 };
+      towers.push(booster);
+      const buffRangeGC = effBuffRange(booster);
+      const buffRangeExpected = booster.range; // mastery_buff rank 0 => ×1
+
+      // freshPerkState default present & save-safe
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.glassCannon === false;
+
+      // save -> restore round-trip
+      perkState.glassCannon = true;
+      saveRun();
+      perkState.glassCannon = false; // clobber
+      const loaded = loadRun();
+      const restored = perkState.glassCannon === true;
+
+      // old-save migration: a cd_save whose perkState lacks the field defaults it to false
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.glassCannon;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.glassCannon === false;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, dBase, dGC, rBase, rGC, buffRangeGC, buffRangeExpected, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Glass Cannon is a legendary perk in the pool', r.inPool);
+    check('Glass Cannon gives +50% damage', Math.abs(r.dGC - r.dBase * 1.5) < 1e-6, `base=${r.dBase} gc=${r.dGC}`);
+    check('Glass Cannon cuts range by 30%', Math.abs(r.rGC - r.rBase * 0.7) < 1e-6, `base=${r.rBase} gc=${r.rGC}`);
+    check('Glass Cannon leaves booster aura range untouched', Math.abs(r.buffRangeGC - r.buffRangeExpected) < 1e-6, `buff=${r.buffRangeGC}`);
+    check('freshPerkState defaults glassCannon:false', r.defaultsOk);
+    check('save/reload round-trips the Glass Cannon flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing glassCannon migrates to default', r.migratedOk);
+    check('no console errors during Glass Cannon test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

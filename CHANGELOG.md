@@ -3,6 +3,40 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.32.0 — 2026-06-13 — 🔮 Glass Cannon legendary perk
+
+**What:** A new **legendary** run-perk in the every-5-waves draft pool (`PERKS` in `cd-defs.js`):
+🔮 **Glass Cannon** — **+50% damage to all towers, but −30% firing range**. A genuine
+high-risk/high-reward trade rather than a free power spike: the extra punch melts tanks and
+bosses, but the shorter reach means each tower covers far less of the path, rewarding tight
+placement, slows, and chokepoints over a snowballing comfortable run.
+
+**Why:** The "Tone of additions" guidance asks to occasionally surprise the owner with *"a weird
+legendary perk,"* and ROADMAP lists *"more quirky legendaries (e.g. a glass-cannon trade-off)"* as
+an open follow-up. Recent runs leaned on features (Daily/PWA/streak) and difficulty/balance; this
+adds replay variety and a meaningful draft choice. Deliberately **"too easy"-safe**: the −30% range
+is a real cost (you lose coverage), so unlike a flat damage perk it doesn't trivially ease an
+already-easy run — it trades survivability/coverage for burst, the classic glass-cannon archetype.
+
+**How:**
+- `cd-defs.js`: new perk `{ id:'glasscannon', rarity:'legendary', icon:'🔮', … apply:s=>s.glassCannon=true }`;
+  `freshPerkState()` gains `glassCannon:false`.
+- `cd-game.js`: `effDmg()` multiplies by `1.5` when held; `effRange()` multiplies by `0.7` when held.
+  The range cut applies to **combat/firing range only** (`effRange`), not booster auras
+  (`effBuffRange`) — buff towers deal no damage, so the perk leaves their aura reach untouched.
+- `cd-core.js`: `GAME_VERSION` → v1.32.0 + changelog entry.
+
+**Save-safe:** `glassCannon` lives **inside `perkState`**, so it's persisted whole by `saveRun()`
+and restored save-safely via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)`; old saves
+lack it and default to `false`. `upgradeKey()` already hashes `effDmg()`, so the upgrade panel
+reflects the +50% (and perks are only ever drafted on an empty field with the panel closed, so the
+range cut is in place before the panel can reopen). No new localStorage key, no economy/chip/schema
+impact.
+
+**Tests:** new group **[51]** (8 checks) — perk is a legendary in the pool, +50% damage, −30% range,
+booster aura range untouched, `freshPerkState` default, save→reload round-trip, old-save migration to
+`false`, zero console errors. Full suite **464/0 green**.
+
 ## v1.31.0 — 2026-06-13 — 🔥 Daily streak counter
 
 **What:** The v1.28.0 Daily Challenge now tracks a **consecutive-day streak**. Each calendar day

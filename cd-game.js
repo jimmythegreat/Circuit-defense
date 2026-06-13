@@ -461,6 +461,8 @@ function effDmg(t) {
   if (modIs('surge')) d *= 1.3;
   // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
+  // Glass Cannon legendary (v1.32.0): +50% damage (paired with a −30% range cut in effRange).
+  if (perkState.glassCannon) d *= 1.5;
   return d;
 }
 function effRate(t) {
@@ -470,7 +472,9 @@ function effRate(t) {
   return r;
 }
 function effRange(t) {
-  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1);
+  // Glass Cannon legendary (v1.32.0): −30% combat range (the cost of the +50% damage in effDmg).
+  // Applies to firing range only, not booster auras (effBuffRange) — buff towers deal no damage.
+  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1);
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');

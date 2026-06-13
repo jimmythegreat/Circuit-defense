@@ -92,8 +92,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       already-easy run easier (respects the "too easy" feedback); it's a pure rubber-band for
       a near-loss. `lastStand`/`livesLost` live in `perkState` (save-safe via `freshPerkState()`);
       counter incremented at the leak site in `cd-update.js`; `effDmg()` applies the multiplier.
-      Test [41]. Follow-up: *more quirky legendaries* (e.g. a true random "Wildcard", or a
-      glass-cannon trade-off), and maybe a hidden unlock condition for a secret one.
+      Test [41]. **Follow-up done v1.32.0:** 🔮 **Glass Cannon** (legendary) — the glass-cannon
+      trade-off: **+50% tower damage, −30% firing range** (`s.glassCannon` flag; `effDmg ×1.5` +
+      `effRange ×0.7`; aura range untouched). A meaningful draft choice, not power creep — the
+      coverage loss is a real cost, so it's "too easy"-safe. Test [51]. **Tuning watch:** on
+      chokepoint-heavy maps the range cost is partly mitigated, so it can skew toward a near-free
+      +50% there — if it ever reads as too strong, nudge the damage (`×1.5 → ×1.4`) or deepen the
+      range cut (`×0.7 → ×0.65`), ≤25%/run. Still open: *a true random "Wildcard" perk*, and maybe
+      a *hidden unlock condition* for a secret legendary.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes.
 - [x] **Boss variety** — shipped **v1.25.0**. From wave 20+ each every-5th-wave boss carries a
