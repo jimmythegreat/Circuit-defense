@@ -519,11 +519,19 @@ cv.addEventListener('pointerdown', e => {
   const r = cv.getBoundingClientRect();
   mouseX = (e.clientX - r.left) * (W / r.width);
   mouseY = (e.clientY - r.top) * (H / r.height);
+  boardPress(mouseX, mouseY);
+});
+// Shared board-press logic for a primary press at board point (x,y) — used by the
+// pointerdown handler (mouse/touch) AND the gamepad A button (v1.43.0). Extracting it
+// keeps the two input paths byte-identical: aim an armed meteor, else select a tower
+// under the point, else place the selected shop tower (grid-snapped, v1.24.0).
+function boardPress(x, y) {
+  if (gameOver || !started || draftOpen) return;
   if (armedAbility === 'meteor' && !paused) {
-    castMeteor(mouseX, mouseY);
+    castMeteor(x, y);
     return;
   }
-  const hit = towerAt(mouseX, mouseY);
+  const hit = towerAt(x, y);
   if (hit) { selectedShop = null; renderShop(); showUpgrade(hit); return; }
   hideUpgrade();
   if (!selectedShop) return;
@@ -532,7 +540,7 @@ cv.addEventListener('pointerdown', e => {
   // Snap to the placement grid when grid-snap is on (default), so towers line up cleanly
   // (owner FEEDBACK, v1.24.0). canPlace runs on the snapped point so spacing/path checks
   // match exactly where the tower lands.
-  const p = placeCoord(mouseX, mouseY);
+  const p = placeCoord(x, y);
   if (!canPlace(p.x, p.y)) return;
   const def = TOWER_TYPES[selectedShop];
   gold -= cost;
@@ -546,7 +554,7 @@ cv.addEventListener('pointerdown', e => {
   SFX.place();
   if (gold < cost) selectedShop = null;
   updateHud();
-});
+}
 // The tower (if any) under a board point, using the same hit radius as tower selection.
 // Bigger tap target on a finger: the forbidden placement gap is 32, so a 30px select
 // radius still can't steal a tap meant to place an adjacent tower (desktop keeps 18).
@@ -586,6 +594,65 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') { selectedShop = null; armedAbility = null; refreshAbilityBar(); hideUpgrade(); renderShop(); }
 });
+
+// ===== Gamepad support (v1.43.0) =====
+// A controller drives the same board cursor (mouseX/mouseY) and the same actions as
+// mouse/keyboard, so it's pure additive input — no new game state, no save/economy
+// impact. pollGamepad() is called once per frame from the rAF loop (cd-render.js) and is
+// a COMPLETE no-op when no pad is connected (navigator.getGamepads() empty), so standard
+// mouse/touch play AND the headless harness are byte-identical. Standard (Xbox-style)
+// button layout: A place/select · B cancel · X cycle tower · Start add-wave · Back pause ·
+// LB/RB/LT abilities Q/W/E. Left stick + D-pad move the cursor.
+let gamepadActive = false;        // a pad is connected → draw the on-board reticle
+let gpPrev = [];                  // previous per-button pressed state, for press-edge detection
+const GP_DEAD = 0.25;             // analog-stick dead zone
+const GP_SPEED = 520;             // cursor px/sec at full stick deflection
+function gpButton(gp, i) { const b = gp.buttons[i]; return !!(b && (b.pressed || b.value > 0.5)); }
+function pollGamepad(dt) {
+  if (typeof navigator === 'undefined' || !navigator.getGamepads) return;
+  let gp = null;
+  const pads = navigator.getGamepads();
+  for (let i = 0; i < pads.length; i++) { if (pads[i]) { gp = pads[i]; break; } }
+  if (!gp) { gamepadActive = false; gpPrev = []; return; }
+  gamepadActive = true;
+  // Compute every button's press-edge up front and refresh gpPrev in one pass, so a held
+  // button never auto-repeats and resuming play can't replay a button held down meanwhile.
+  const n = gp.buttons ? gp.buttons.length : 0;
+  const edge = [];
+  for (let i = 0; i < n; i++) { const cur = gpButton(gp, i); edge[i] = cur && !gpPrev[i]; gpPrev[i] = cur; }
+  const E = i => !!edge[i];
+  if (!started || gameOver || draftOpen) return;      // no board actions outside live play
+  if (paused) { if (E(8) || E(9)) togglePause(); return; }   // Back/Start resume
+
+  // ----- cursor (left stick + D-pad) -----
+  let ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  if (Math.abs(ax) < GP_DEAD) ax = 0;
+  if (Math.abs(ay) < GP_DEAD) ay = 0;
+  if (gpButton(gp, 14)) ax = -1; else if (gpButton(gp, 15)) ax = 1;   // D-pad L/R
+  if (gpButton(gp, 12)) ay = -1; else if (gpButton(gp, 13)) ay = 1;   // D-pad U/D
+  if (ax || ay) {
+    if (mouseX < 0 || mouseY < 0) { mouseX = W / 2; mouseY = H / 2; }   // appear at centre
+    mouseX = Math.max(0, Math.min(W, mouseX + ax * GP_SPEED * dt));
+    mouseY = Math.max(0, Math.min(H, mouseY + ay * GP_SPEED * dt));
+  }
+  // ----- buttons (press-edge) -----
+  if (E(0)) boardPress(mouseX, mouseY);                       // A: place / select / aim meteor
+  if (E(1)) { selectedShop = null; armedAbility = null; refreshAbilityBar(); hideUpgrade(); renderShop(); }  // B: cancel
+  if (E(2)) gpCycleTower();                                   // X: cycle affordable tower type
+  if (E(9)) startWave();                                      // Start: start/add wave (self-guards on cap)
+  if (E(8)) togglePause();                                    // Back: pause
+  if (E(4)) triggerAbility('meteor');                         // LB
+  if (E(5)) triggerAbility('freeze');                         // RB
+  if (E(6)) triggerAbility('rush');                           // LT
+}
+// Cycle the shop selection to the next tower type the player can currently afford (X button).
+function gpCycleTower() {
+  const start = selectedShop ? TYPE_KEYS.indexOf(selectedShop) : -1;
+  for (let n = 1; n <= TYPE_KEYS.length; n++) {
+    const key = TYPE_KEYS[(start + n) % TYPE_KEYS.length];
+    if (gold >= costOf(key)) { selectedShop = key; hideUpgrade(); renderShop(); return; }
+  }
+}
 
 function toggleSpeed() {
   speed = speed === 1 ? 2 : speed === 2 ? 3 : 1;

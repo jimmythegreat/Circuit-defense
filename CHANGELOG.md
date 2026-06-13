@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.43.0 — 2026-06-13 — 🎮 Gamepad support (controller play — towers, abilities, waves)
+
+**Type:** Feature / table-stakes engineering. Minor bump. Clears the long-standing **gamepad** table-stakes gap (the explicitly-flagged "next strongest pick" in ROADMAP, re-noted across the v1.24.2/v1.27.1/v1.37.1/v1.40.1 health checks).
+
+**What changed:** you can now play with a standard (Xbox-style) controller. `pollGamepad(dt)` (`cd-game.js`) is called once per frame from the rAF `loop` (`cd-render.js`) and reads `navigator.getGamepads()`. A connected pad drives the **same board cursor** (`mouseX`/`mouseY`) and the **same actions** as mouse/keyboard:
+- **Left stick + D-pad** → move the cursor (a crosshair reticle is drawn on the board so you can see where A will act). Dead-zone `0.25`, speed `520px/s` at full deflection, clamped to the board.
+- **A** (button 0) → primary press at the cursor — aims an armed meteor, else selects the tower under the cursor, else places the selected shop tower (grid-snapped). Routed through a new shared `boardPress(x,y)` helper extracted verbatim from the `pointerdown` handler, so mouse/touch and gamepad placement are byte-identical.
+- **B** (1) → cancel (deselect shop / un-arm ability / hide upgrade — same as Esc).
+- **X** (2) → cycle to the next *affordable* tower type (`gpCycleTower()`).
+- **LB / RB / LT** (4/5/6) → abilities Meteor / Freeze / Gold Rush (= Q/W/E).
+- **Start** (9) → start/add a wave (self-guards on the concurrent-wave cap). **Back** (8) → pause; **Back or Start** un-pauses.
+
+Press-edge detection (`gpPrev[]`, computed in one pass per frame) means held buttons never auto-repeat, and a button held across a pause/menu can't replay on resume.
+
+**Scope / safety:** pure **additive input** sitting alongside mouse, touch and keyboard. `pollGamepad()` is a **complete no-op when no pad is connected** (`getGamepads()` empty → early return), so standard play and the **headless test harness are byte-identical**. No new game state, **no save/economy/balance/schema impact**, no new localStorage key. The reticle only draws when `gamepadActive && started && !gameOver && !paused`. Hotkey hint line updated with the controller map. SW cache bumped `v1.42.0 → v1.43.0`.
+
+**Test evidence:** new group `[61]` drives a mocked `navigator.getGamepads()` and calls `pollGamepad(1/60)` directly — left stick moves the cursor (and clamps), A places a selected tower / selects a hovered tower / aims an armed meteor, X cycles affordable towers, LB/RB/LT arm abilities, Start adds a wave, Back pauses & resumes, held buttons fire once (press-edge), and a no-pad poll is a no-op. Full suite green (subagent-verified before commit); double-click `file://` play re-verified (no pad → unchanged).
+
 ## v1.42.0 — 2026-06-13 — 🗂️ Start-screen config card — MODE/MAP/DIFFICULTY grouped into one panel (menu revamp slice 3)
 
 **Type:** UX / layout polish. Minor bump. Third slice of the owner's active (`[low priority]`) "revamp the whole starting menu" FEEDBACK — after v1.39.1 (two-tier button hierarchy) and v1.41.0 (animated PLAY button), this one restructures the run-setup controls themselves.

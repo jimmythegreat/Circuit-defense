@@ -3480,6 +3480,139 @@ async function main() {
     await page.close();
   }
 
+  // [61] Gamepad support — controller drives the board cursor + actions (v1.43.0)
+  console.log('\n[61] Gamepad support (v1.43.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      gold = 1e9; towers.length = 0; selectedTower = null; selectedShop = null;
+      armedAbility = null; abilityCd = { meteor: 0, freeze: 0, rush: 0 };
+      mouseX = -100; mouseY = -100;
+
+      const hasFn = typeof pollGamepad === 'function';
+
+      // a fake standard (17-button) pad + an overridable getGamepads
+      const pad = { axes: [0, 0, 0, 0], buttons: [], connected: true, index: 0, id: 'mock' };
+      for (let i = 0; i < 17; i++) pad.buttons.push({ pressed: false, value: 0, touched: false });
+      const press = i => { pad.buttons[i] = { pressed: true, value: 1, touched: true }; };
+      const release = i => { pad.buttons[i] = { pressed: false, value: 0, touched: false }; };
+      const allUp = () => { for (let i = 0; i < pad.buttons.length; i++) release(i); };
+      navigator.getGamepads = () => [pad];
+
+      // 1. No pad connected → complete no-op (clears gamepadActive, touches nothing).
+      navigator.getGamepads = () => [];
+      gamepadActive = true;
+      pollGamepad(1 / 60);
+      const noPadNoop = gamepadActive === false;
+      navigator.getGamepads = () => [pad];
+
+      // 2. Left stick moves the cursor (appears at centre, then drifts), and clamps to board.
+      mouseX = -100; mouseY = -100;
+      pad.axes[0] = 1; pad.axes[1] = 0;
+      pollGamepad(1 / 60);
+      const cursorAppeared = gamepadActive && mouseX > W / 2 && mouseY >= 0 && mouseY <= H;
+      for (let i = 0; i < 600; i++) pollGamepad(1 / 60);     // drive far right
+      const clampedX = mouseX <= W && mouseX >= W - 1;
+      pad.axes[0] = 0; pad.axes[1] = 0;
+
+      // helper: find a placeable cell
+      const findCell = (sx, sy) => {
+        for (let yy = sy; yy < H - 80; yy += 10)
+          for (let xx = sx; xx < W - 80; xx += 10) {
+            const sp = placeCoord(xx, yy);
+            if (canPlace(sp.x, sp.y)) return { x: xx, y: yy };
+          }
+        return null;
+      };
+
+      // 3. X cycles to an affordable tower type (none selected → picks the first affordable).
+      mouseX = W / 2; mouseY = H / 2; selectedShop = null;
+      allUp(); pollGamepad(1 / 60);
+      press(2); pollGamepad(1 / 60); release(2);
+      const xCycled = !!selectedShop && gold >= costOf(selectedShop);
+
+      // 4. A places the selected tower at the cursor.
+      const c1 = findCell(80, 80);
+      selectedShop = 'gun'; mouseX = c1.x; mouseY = c1.y;
+      const beforePlace = towers.length;
+      allUp(); pollGamepad(1 / 60);
+      press(0); pollGamepad(1 / 60);
+      const aPlaced = towers.length === beforePlace + 1;
+      const placedT = towers[towers.length - 1];
+
+      // 5. A HELD does not place again (press-edge), even moved over a fresh placeable cell.
+      const c2 = findCell(c1.x + 120, 80) || findCell(80, c1.y + 120);
+      mouseX = c2.x; mouseY = c2.y;
+      const beforeHold = towers.length;
+      pollGamepad(1 / 60);                                   // A still held → no new edge
+      const heldNoRepeat = towers.length === beforeHold;
+      release(0);
+
+      // 6. A over an existing tower (no shop type) selects it (opens upgrade).
+      selectedShop = null; selectedTower = null;
+      mouseX = placedT.x; mouseY = placedT.y;
+      allUp(); pollGamepad(1 / 60);
+      press(0); pollGamepad(1 / 60); release(0);
+      const aSelected = selectedTower === placedT;
+
+      // 7. B cancels (deselect shop + un-arm ability + hide upgrade).
+      selectedShop = 'gun'; armedAbility = 'meteor';
+      allUp(); pollGamepad(1 / 60);
+      press(1); pollGamepad(1 / 60); release(1);
+      const bCancelled = selectedShop === null && armedAbility === null;
+
+      // 8. LB arms meteor; RB triggers freeze (cooldown set); LT grants rush gold.
+      abilityCd = { meteor: 0, freeze: 0, rush: 0 }; armedAbility = null;
+      allUp(); pollGamepad(1 / 60);
+      press(4); pollGamepad(1 / 60); release(4);
+      const lbMeteor = armedAbility === 'meteor';
+      armedAbility = null;
+      allUp(); pollGamepad(1 / 60);
+      press(5); pollGamepad(1 / 60); release(5);
+      const rbFreeze = abilityCd.freeze > 0;
+      const goldBeforeRush = gold;
+      allUp(); pollGamepad(1 / 60);
+      press(6); pollGamepad(1 / 60); release(6);
+      const ltRush = gold > goldBeforeRush;
+
+      // 9. Start adds a wave; Back pauses then Start/Back resumes.
+      const waveBefore = wave;
+      allUp(); pollGamepad(1 / 60);
+      press(9); pollGamepad(1 / 60); release(9);
+      const startWaved = wave > waveBefore;
+      allUp(); pollGamepad(1 / 60);
+      press(8); pollGamepad(1 / 60); release(8);
+      const backPaused = paused === true;
+      allUp(); pollGamepad(1 / 60);                          // settle (paused branch, no edge)
+      press(9); pollGamepad(1 / 60); release(9);
+      const startResumed = paused === false;
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasFn, noPadNoop, cursorAppeared, clampedX, xCycled, aPlaced,
+        heldNoRepeat, aSelected, bCancelled, lbMeteor, rbFreeze, ltRush,
+        startWaved, backPaused, startResumed };
+    });
+    check('pollGamepad() function exists', r.hasFn);
+    check('no pad connected → poll is a no-op (gamepadActive false)', r.noPadNoop);
+    check('left stick moves the board cursor (appears at centre)', r.cursorAppeared);
+    check('cursor clamps to the board edge', r.clampedX);
+    check('X cycles to an affordable tower type', r.xCycled);
+    check('A places the selected tower at the cursor', r.aPlaced);
+    check('A held does not place again (press-edge)', r.heldNoRepeat);
+    check('A over a tower selects it (opens upgrade)', r.aSelected);
+    check('B cancels (deselect + un-arm)', r.bCancelled);
+    check('LB arms the meteor', r.lbMeteor);
+    check('RB triggers freeze (cooldown set)', r.rbFreeze);
+    check('LT grants gold rush', r.ltRush);
+    check('Start adds a wave', r.startWaved);
+    check('Back pauses', r.backPaused);
+    check('Start/Back resumes from pause', r.startResumed);
+    check('no console errors during gamepad test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -200,6 +200,22 @@ function draw() {
     ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
   }
 
+  // Gamepad cursor reticle (v1.43.0): a controller drives mouseX/mouseY but has no OS
+  // pointer, so draw a crosshair so the player can see where A will act (select/place/aim).
+  if (gamepadActive && started && !gameOver && !paused && mouseX > 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(88,166,255,0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(mouseX, mouseY, 9, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(mouseX - 14, mouseY); ctx.lineTo(mouseX - 4, mouseY);
+    ctx.moveTo(mouseX + 4, mouseY); ctx.lineTo(mouseX + 14, mouseY);
+    ctx.moveTo(mouseX, mouseY - 14); ctx.lineTo(mouseX, mouseY - 4);
+    ctx.moveTo(mouseX, mouseY + 4); ctx.lineTo(mouseX, mouseY + 14);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // shop hover: preview a tower's range at board centre before you select/place it,
   // so you can compare coverage. (The placement preview above follows the cursor once
   // a tower is actually selected.)
@@ -674,6 +690,7 @@ let last = performance.now();
 function loop(now) {
   let dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+  pollGamepad(dt);                       // controller input (no-op unless a pad is connected, v1.43.0)
   for (let i = 0; i < speed; i++) update(dt);
   draw();
   requestAnimationFrame(loop);

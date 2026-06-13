@@ -321,7 +321,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 health checks)
 
-_Still-unaddressed, in priority order: **gamepad** → **bigger HTML tap targets on small phones**.
+_Still-unaddressed, in priority order: **bigger HTML tap targets on small phones**.
+Done: **gamepad support (v1.43.0)** — a controller drives the same board cursor + actions as mouse/keyboard
+(`pollGamepad(dt)` in `cd-game.js`, called from the rAF loop; no-op without a pad). Test [61].
 Done: **PWA install (v1.30.0)** — installable + offline-cacheable when hosted via `manifest.webmanifest`
 + `sw.js` (precache shell, versioned cache) + maskable `icon.svg`; SW registration is http/https-guarded
 so `file://` double-click play is unaffected; deploy workflow copies the three files. Test [49].
@@ -382,6 +384,17 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       assets cached). **Follow-up:** a real PNG icon set (192/512) for stricter installability audits
       (Lighthouse) — the single SVG icon installs fine in Chrome/Edge/Firefox but some installability
       checks prefer raster PNGs; would need a binary asset (currently the repo is asset-free).
+- [x] **Gamepad support** — shipped **v1.43.0**. `pollGamepad(dt)` (`cd-game.js`) is called once per
+      frame from the rAF `loop` (`cd-render.js`) and reads `navigator.getGamepads()`; a standard
+      (Xbox-style) pad drives the **same board cursor** (`mouseX`/`mouseY`) and the **same actions** as
+      mouse/keyboard — **left stick + D-pad** move a drawn crosshair, **A** place/select (or aim an
+      armed meteor) via a shared `boardPress(x,y)` helper extracted from the `pointerdown` handler,
+      **B** cancel, **X** cycle affordable tower, **LB/RB/LT** abilities (Meteor/Freeze/Rush), **Start**
+      add-wave, **Back** pause (Back/Start un-pause). Press-edge detection (`gpPrev[]`) so held buttons
+      don't repeat. **Complete no-op when no pad is connected** → standard play + the headless harness are
+      byte-identical; no new game state, no save/economy/balance impact. Hotkey hint + reticle render added.
+      Test [61]. **Follow-ups (optional):** *remappable buttons*, *right-stick fine-aim / cursor-speed
+      setting*, *menu navigation with the pad* (start-screen panels + draft are still mouse/keyboard).
 - [x] **Volume slider** — shipped v1.13.2. 0–100 master Volume in the ⚙ Settings panel;
       all audio routes through a master GainNode (`masterGain()`), `setVolume()` scales it
       and persists `cd_vol` (default 0.7). Independent of mute. Test [25].
