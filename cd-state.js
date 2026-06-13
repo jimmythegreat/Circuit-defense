@@ -2,6 +2,9 @@
 // ================= State =================
 let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters, beams, pendingSpawns;
 let livesLostThisRun = false;
+// Pacifist tracking (v1.29.0): true once any ability (meteor/freeze/rush) is cast this run.
+// Run-only, never saved; forced true on resume (loadRun) so a resumed run can't earn Pacifist.
+let abilityUsedThisRun = false;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -43,6 +46,7 @@ function resetState() {
   abilityCd = { meteor: 0, freeze: 0, rush: 0 };
   armedAbility = null;
   livesLostThisRun = false;
+  abilityUsedThisRun = false;
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
@@ -126,6 +130,7 @@ function loadRun() {
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
   lastSettledWave = wave;  // resumed at a clean boundary — all prior waves are settled
   livesLostThisRun = true; // resumed runs can't verify earlier waves were flawless
+  abilityUsedThisRun = true; // …nor that no ability was cast earlier — Pacifist unearnable on resume
   // restore the saved palette so a resumed run looks identical (campaign rolls random
   // per attempt, so without this a resume would re-roll a different colour). Old saves
   // lack the field — resetState's pickMapTheme() default already covers them.

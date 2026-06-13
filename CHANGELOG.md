@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.29.0 — 2026-06-12 — 🏅 Four new achievement badges
+
+**What:** Added four new achievements (the roster grows 9 → 13), all evaluated in
+`grantAchievements()` (`cd-update.js`) at end of run:
+- 🕊️ **Pacifist** — win without casting a single ability (meteor/freeze/rush).
+- 🧩 **Specialist** — win using only one type of tower.
+- ⚖️ **Minimalist** — win with 5 or fewer towers placed.
+- 🗓️ **Daily Devotee** — reach wave 20 in a Daily Challenge (granted on any finish, win or loss).
+
+To support Pacifist, a run-only `abilityUsedThisRun` flag (declared in `cd-state.js` next to
+`livesLostThisRun`, reset in `resetState()`) is set `true` whenever an ability actually fires —
+in `triggerAbility()`'s freeze/rush branches and in `castMeteor()` (`cd-defs.js`). Arming the
+meteor without casting does **not** count. Like Flawless, the flag is forced `true` in `loadRun()`
+so **Pacifist can't be earned on a resumed run** (earlier waves can't be verified ability-free).
+Specialist/Minimalist read the final `towers` board at the moment of victory (a degenerate
+zero-tower finish grants neither). Daily Devotee reads the existing run-only `daily` flag + `wave`.
+
+**Why:** ROADMAP "Achievements system" follow-ups explicitly listed *"more badges (no-ability win,
+all-one-tower-type, …)"*. Adds fresh, addictive completion goals (the owner likes progression
+loops + meaningful constraints), and Daily Devotee gives the new v1.28.0 Daily Challenge something
+extra to chase. The badge panel + `#achBtn` done/total counter auto-generate from the
+`ACHIEVEMENTS` array, so this is purely additive.
+
+**Save safety:** `meta.achievements` is an additive id→true map (new ids just start absent/false);
+no schema change, no migration needed. `abilityUsedThisRun` is run-only and never persisted. No
+balance/economy/gameplay impact — winning is unchanged; the badges only *observe* how you won.
+
+**Tests:** New test group `[48]` (11 checks) drives wins under each scenario and asserts each badge
+is granted only when its condition holds (and withheld otherwise), plus the zero-tower guard, the
+non-daily guard, and the roster size (13). Full suite **421/0 green**, zero console errors.
+
 ## v1.28.0 — 2026-06-12 — 🗓 Daily Challenge
 
 **What:** A new **Daily Challenge** game mode (start-screen button, `beginDaily()`). Today's run is

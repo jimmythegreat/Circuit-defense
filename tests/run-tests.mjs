@@ -2638,6 +2638,69 @@ async function main() {
     await page.close();
   }
 
+  // [48] New achievement badges — Pacifist / Specialist / Minimalist / Daily Devotee (v1.29.0)
+  console.log('\n[48] New achievements (pacifist/specialist/minimalist/daily)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0 }; };
+      // Set up a winnable run, apply the scenario, and return the freshly-granted badge ids.
+      const win = (setup) => {
+        gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+        beginGame();              // resetState clears daily + abilityUsedThisRun
+        wave = victoryWave();
+        daily = false;
+        towers = [];
+        setup();
+        return grantAchievements(true).map(a => a.id);
+      };
+
+      // PACIFIST — win without casting any ability.
+      fresh(); const pacifistYes = win(() => { abilityUsedThisRun = false; towers.push({ type:'gun', dealt:100, kills:1 }); }).includes('pacifist');
+      fresh(); const pacifistNo  = win(() => { abilityUsedThisRun = true;  towers.push({ type:'gun', dealt:100, kills:1 }); }).includes('pacifist');
+
+      // SPECIALIST — win using only one tower type.
+      fresh(); const monoYes = win(() => { abilityUsedThisRun = true; towers.push({type:'gun'},{type:'gun'},{type:'gun'}); }).includes('monotower');
+      fresh(); const monoNo  = win(() => { abilityUsedThisRun = true; towers.push({type:'gun'},{type:'frost'}); }).includes('monotower');
+
+      // MINIMALIST — win with 5 or fewer towers.
+      fresh(); const miniYes = win(() => { abilityUsedThisRun = true; for (let i=0;i<5;i++) towers.push({type:'gun'}); }).includes('minimalist');
+      fresh(); const miniNo  = win(() => { abilityUsedThisRun = true; for (let i=0;i<6;i++) towers.push({type:'gun'}); }).includes('minimalist');
+      // a (degenerate) zero-tower finish must grant neither board badge.
+      fresh(); const zero = win(() => { abilityUsedThisRun = true; });
+      const zeroNoBadge = !zero.includes('minimalist') && !zero.includes('monotower');
+
+      // DAILY DEVOTEE — reach wave 20 in a daily run (granted on ANY finish, win or loss).
+      fresh();
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; beginGame();
+      daily = true; wave = 20; towers.push({type:'gun'});
+      const dailyYes = grantAchievements(false).map(a => a.id).includes('daily20');
+      fresh();
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; beginGame();
+      daily = false; wave = 25; towers.push({type:'gun'});
+      const dailyNoFlag = grantAchievements(false).map(a => a.id).includes('daily20');
+
+      const total = ACHIEVEMENTS.length;
+      daily = false;
+      backToMenu();
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
+      return { pacifistYes, pacifistNo, monoYes, monoNo, miniYes, miniNo, zeroNoBadge, dailyYes, dailyNoFlag, total };
+    });
+    check('Pacifist granted on an ability-free win', r.pacifistYes);
+    check('Pacifist withheld when an ability was cast', !r.pacifistNo);
+    check('Specialist granted for a mono-type win', r.monoYes);
+    check('Specialist withheld for a mixed-type win', !r.monoNo);
+    check('Minimalist granted for a ≤5-tower win', r.miniYes);
+    check('Minimalist withheld for a 6-tower win', !r.miniNo);
+    check('board badges withheld when no towers exist', r.zeroNoBadge);
+    check('Daily Devotee granted at wave 20 in a daily run', r.dailyYes);
+    check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
+    check('achievement roster grew to 13 badges', r.total === 13, `total=${r.total}`);
+    check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

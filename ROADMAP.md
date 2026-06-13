@@ -25,9 +25,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [x] **Achievements system** — shipped v1.5.0. 8 badges (First Victory, Flawless,
       No Mercy, Mountaineer L10, Conqueror L40, Endless w50, Megadamage 1M, Veteran
       25 runs), persisted in additive `meta.achievements`/`meta.stats`, with a 🏅
-      start-screen panel and end-of-run unlock toasts. Follow-ups: *toast/sound when
-      a badge unlocks mid-menu*, more badges (no-ability win, all-one-tower-type,
-      speedrun), and a per-achievement chip reward.
+      start-screen panel and end-of-run unlock toasts. **v1.29.0 added 4 more badges**
+      (roster 9→13): 🕊️ Pacifist (ability-free win), 🧩 Specialist (mono-tower win),
+      ⚖️ Minimalist (≤5-tower win), 🗓️ Daily Devotee (reach wave 20 in a Daily Challenge).
+      Pacifist uses a run-only `abilityUsedThisRun` flag (forced true on resume, like Flawless).
+      Test [48]. Follow-ups still open: *toast/sound when a badge unlocks mid-menu*, a
+      **speedrun** badge (needs a per-run clock — none exists yet), and a **per-achievement
+      chip reward** (would touch the chip economy — needs a balance pass first).
 - [x] **Endless-mode leaderboard / personal bests panel** — shipped v1.6.0. A
       🏆 Records start-screen panel shows highest wave per quick-mode map ×
       difficulty (new additive `cd_best_<map>_<diff>` keys), an "Any map" row from

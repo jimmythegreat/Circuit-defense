@@ -173,12 +173,14 @@ function triggerAbility(k) {
   }
   if (k === 'freeze') {
     abilityCd.freeze = ABILITIES.freeze.cd * metaCdMult();
+    abilityUsedThisRun = true;
     for (const e of enemies) e.frozen = 4;
     addFloater(W/2, H/2, '🧊 TIME FREEZE', '#79c0ff', 26);
     SFX.freeze();
   }
   if (k === 'rush') {
     abilityCd.rush = ABILITIES.rush.cd * metaCdMult();
+    abilityUsedThisRun = true;
     const amount = 50 + wave * 5;
     gold += amount;
     addFloater(W/2, H/2, `💰 +${amount} GOLD`, '#ffd866', 24);
@@ -190,6 +192,7 @@ function triggerAbility(k) {
 function castMeteor(x, y) {
   abilityCd.meteor = ABILITIES.meteor.cd * metaCdMult() * perkState.meteorCdMult;
   armedAbility = null;
+  abilityUsedThisRun = true;
   const dmg = (120 + wave * 14) * perkState.meteorMult;
   shake = Math.max(shake, 18);
   SFX.meteor();

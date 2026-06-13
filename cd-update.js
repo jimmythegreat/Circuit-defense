@@ -397,6 +397,10 @@ const ACHIEVEMENTS = [
   { id:'million',   icon:'⚡', name:'Megadamage',       desc:'Deal 1,000,000 total damage (lifetime)' },
   { id:'veteran',   icon:'🎖️', name:'Veteran',          desc:'Finish 25 runs' },
   { id:'combo30',   icon:'💥', name:'Combo Master',     desc:'Reach a 30× kill-streak in a single run' },
+  { id:'pacifist',  icon:'🕊️', name:'Pacifist',         desc:'Win without casting a single ability' },
+  { id:'monotower', icon:'🧩', name:'Specialist',        desc:'Win using only one type of tower' },
+  { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
+  { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -417,6 +421,10 @@ function grantAchievements(won) {
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
   if (comboBest >= 30) give('combo30');
+  if (won && !abilityUsedThisRun) give('pacifist');
+  if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
+  if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
+  if (daily && wave >= 20) give('daily20');
   saveMeta();
   return newly;
 }
