@@ -97,11 +97,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       pressuring DPS without raw HP (re: the recurring "too easy" feedback). Then **⚡ Static Storm** in
       **v1.37.0** (`emp`: every 3.5s the storm knocks one random *firing* tower offline for 2.2s —
       `t.empT` timer, buff towers immune, recovers on its own; cyan crackle ring + `SFX.zap()`) — the
-      genuinely-new "EMP/stun" idea, pressuring **tower uptime/coverage** on a fresh axis. Pool 7→9→10→**11**.
-      Test [46] + [54].
+      genuinely-new "EMP/stun" idea, pressuring **tower uptime/coverage** on a fresh axis. Then
+      **🏜️ Bounty Drought** in **v1.39.0** (`drought`: every enemy + boss pays **50% less** gold — the
+      mirror of `goldrush` and the **first economy-*denial* mod**, pressuring the build on a fresh axis
+      (can't farm out of trouble); one line each in `buildWave`'s enemy loop + boss block, baked into
+      `e.bounty`/`boss.bounty` at spawn). Pool 7→9→10→11→**12**. Test [46] + [54] + [57].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
-      (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and genuinely new ones:
-      *bounty drought* (−50% gold this wave), or a *path swap* (direction reverses).
+      (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
+      a *path swap* (direction reverses).
 - [x] **A secret / easter-egg legendary perk** — shipped **v1.22.0**: 🩸 **Last Stand**,
       a comeback perk that gives ALL towers +3% damage per life lost this run (cap +60% at
       20 lives lost). Deliberately conditional — a flawless run gets +0%, so it can't make an

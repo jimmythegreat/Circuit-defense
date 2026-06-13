@@ -3284,6 +3284,58 @@ async function main() {
     await page.close();
   }
 
+  // [57] Bounty Drought wave mod — enemies drop 50% less gold (v1.39.0)
+  console.log('\n[57] Bounty Drought (economy-denial wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasDrought = WAVE_MODS.some(m => m.id === 'drought');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) bounty for a wave-10 normal enemy + the boss.
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainNorm = plainWave.find(e => e.kind === 'norm');
+      const plainBoss = plainWave.find(e => e.kind === 'boss');
+
+      // DROUGHT — every enemy + the boss pays HALF (floored, min 1).
+      setMod('drought');
+      const droughtWave = buildWave(10);
+      const droughtNorm = droughtWave.find(e => e.kind === 'norm');
+      const droughtBoss = droughtWave.find(e => e.kind === 'boss');
+      const expectNorm = Math.max(1, Math.floor(plainNorm.bounty * 0.5));
+      const expectBoss = Math.max(1, Math.floor(plainBoss.bounty * 0.5));
+      const normHalved = droughtNorm.bounty === expectNorm && droughtNorm.bounty < plainNorm.bounty;
+      const bossHalved = droughtBoss.bounty === expectBoss && droughtBoss.bounty < plainBoss.bounty;
+      // Every enemy in the wave is reduced, none drop below 1.
+      const allReduced = droughtWave.every((e, i) => e.bounty >= 1 && e.bounty <= Math.max(1, plainWave[i].bounty));
+
+      // Drought leaves enemy HP/speed/armor untouched — it ONLY squeezes the economy.
+      const statsUnchanged = droughtNorm.hp === plainNorm.hp && droughtNorm.spd === plainNorm.spd &&
+        droughtNorm.armor === plainNorm.armor;
+
+      // Inert when the mod is off (sanity that menu/non-mayhem can't apply it).
+      setMod(null);
+      const inertOff = buildWave(10).find(e => e.kind === 'norm').bounty === plainNorm.bounty;
+
+      waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasDrought, normHalved, bossHalved, allReduced, statsUnchanged, inertOff,
+               plainNorm: plainNorm.bounty, droughtNorm: droughtNorm.bounty };
+    });
+    check('WAVE_MODS includes Bounty Drought', r.hasDrought);
+    check('Bounty Drought halves a normal enemy\'s gold', r.normHalved, `${r.plainNorm}->${r.droughtNorm}`);
+    check('Bounty Drought halves the boss bounty too', r.bossHalved);
+    check('every enemy reduced, none below 1 gold', r.allReduced);
+    check('Bounty Drought leaves HP/speed/armor untouched (economy only)', r.statsUnchanged);
+    check('Bounty Drought is inert when the mod is off', r.inertOff);
+    check('no console errors during Bounty Drought test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

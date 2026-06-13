@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.39.0 — 2026-06-13 — 🏜️ Bounty Drought (12th Mayhem wave modifier — economy denial)
+
+**Type:** Content (new Mayhem wave modifier). Minor bump. **Self-directed** (ROADMAP "More wave modifiers" → *bounty drought (−50% gold this wave)*; FEEDBACK only had a low-priority menu-revamp item).
+
+**What changed:** a twelfth Mayhem wave modifier, 🏜️ **Bounty Drought** (`drought`). When it rolls on a wave (78% per-wave chance, Mayhem-only), **every enemy + the boss pays out 50% less gold** (`Math.max(1, floor(bounty*0.5))`, floored so nothing drops below 1). It's the direct mirror of 💰 Gold Rush and — crucially — the **first wave modifier that squeezes the economy *downward*.** Every existing mod either scales enemy stats (frenzy/swarm/titans/armored/regen/emp) or hands the player *more* gold (goldrush/titans); none denied income. Drought pressures the build on a **fresh axis**: you can't farm your way out of trouble, and a drought right before a boss can leave you short on firepower — rewarding spending discipline and a reserve.
+
+**Implementation** (mirrors the `goldrush`/`titans` pattern exactly — minimal, low-risk):
+- `cd-maps.js` — one `WAVE_MODS` entry (pool **11 → 12**), inserted next to its opposite, Gold Rush.
+- `cd-game.js` `buildWave` — one line in the enemy loop + one in the boss block, baking the ×0.5 into `e.bounty`/`boss.bounty` at spawn (so the kill floater, Fortune ×2, and Midas ×5 all scale off the already-reduced base, same as Gold Rush). Drought and Gold Rush/Titans are mutually exclusive (one mod per wave), so no stacking.
+
+**Scope / save-safety:** Mayhem-only and per-wave — never touches Classic/Campaign, saves, or the economy outside the drought wave. End-of-run **chips are unaffected** (this only cuts in-run gold from kills during the wave). It also joins the seeded **Daily Challenge** rotation (everyone faces it on the same day). Transient run state, no schema/persistence change.
+
+**Tests:** new group **[57]** — `WAVE_MODS` includes Bounty Drought; a wave-10 normal enemy and the boss are both halved (floored, min 1); every enemy in the wave is reduced and none drop below 1; HP/speed/armor are left untouched (economy-only); inert when the mod is off. Full suite green (spawned subagent). SW cache bumped to `v1.39.0` (test [49]).
+
 ## v1.38.1 — 2026-06-13 — 🐛 Resume-after-win reset + tower-select flicker fix
 
 **Type:** Bug fix. Patch bump. **Owner FEEDBACK** (bug): *"Completing a level doesn't reset 'resume'. You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower you're trying to click on and off."*

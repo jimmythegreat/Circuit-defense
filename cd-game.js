@@ -157,6 +157,7 @@ function buildWave(w) {
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
     if (modIs('goldrush')) e.bounty *= 2;
+    if (modIs('drought'))  e.bounty = Math.max(1, Math.floor(e.bounty * 0.5));
     if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   e.regen = true;
     e.maxHp = e.hp;
@@ -182,6 +183,7 @@ function buildWave(w) {
     if (w >= 20) boss.bossType = BOSS_ARCHETYPES[(w/5 - 4) % BOSS_ARCHETYPES.length];
     if (modIs('titans')) { boss.hp *= 1.5; boss.bounty = Math.ceil(boss.bounty * 1.5); }
     if (modIs('goldrush')) boss.bounty *= 2;
+    if (modIs('drought'))  boss.bounty = Math.max(1, Math.floor(boss.bounty * 0.5));
     if (modIs('frenzy')) boss.spd *= 1.35;
     if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   boss.regen = true;

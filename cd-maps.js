@@ -149,6 +149,7 @@ const WAVE_MODS = [
   { id:'swarm',   icon:'🐝', name:'Swarm',         desc:'+60% enemies at -35% HP' },
   { id:'titans',  icon:'🗿', name:'Titans',        desc:'Enemies +50% HP, +50% bounty' },
   { id:'goldrush',icon:'💰', name:'Gold Rush',     desc:'Double bounty this wave' },
+  { id:'drought', icon:'🏜️', name:'Bounty Drought', desc:'Enemies drop 50% less gold' },
   { id:'surge',   icon:'⚡', name:'Power Surge',   desc:'Towers +30% damage' },
   { id:'fog',     icon:'🌫️', name:'Fog',           desc:'Tower range -20%' },
   { id:'armored', icon:'🛡️', name:'Armored Surge', desc:'Enemies gain heavy armor' },
