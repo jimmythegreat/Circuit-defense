@@ -127,6 +127,7 @@ function buildWave(w) {
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
     if (modIs('goldrush')) e.bounty *= 2;
+    if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
     e.maxHp = e.hp;
     q.push(e);
   }
@@ -150,6 +151,7 @@ function buildWave(w) {
     if (modIs('titans')) { boss.hp *= 1.5; boss.bounty = Math.ceil(boss.bounty * 1.5); }
     if (modIs('goldrush')) boss.bounty *= 2;
     if (modIs('frenzy')) boss.spd *= 1.35;
+    if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
     boss.maxHp = boss.hp;
     q.push(boss);
   }
@@ -436,6 +438,7 @@ function effDmg(t) {
 function effRate(t) {
   let r = t.rate * perkState.rateMult;
   if (t.spec === 'minigun') r *= 0.55;
+  if (modIs('brownout')) r *= 1.25;  // mayhem debuff: +25% reload = slower fire
   return r;
 }
 function effRange(t) {

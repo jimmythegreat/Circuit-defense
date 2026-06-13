@@ -2478,6 +2478,71 @@ async function main() {
     await page.close();
   }
 
+  // [46] New Mayhem wave modifiers — Armored Surge + Brownout (v1.27.0)
+  console.log('\n[46] Mayhem wave mods (armored / brownout)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasArmored  = WAVE_MODS.some(m => m.id === 'armored');
+      const hasBrownout = WAVE_MODS.some(m => m.id === 'brownout');
+
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // ARMORED SURGE — every enemy (and the boss) gains flat armor on top of its base.
+      setMod(null);
+      const wave10Plain = buildWave(10);
+      const plainNorm = wave10Plain.find(e => e.kind === 'norm');
+      setMod('armored');
+      const wave10Armored = buildWave(10);
+      const armoredNorm = wave10Armored.find(e => e.kind === 'norm');
+      const armoredBoss = buildWave(10).find(e => e.kind === 'boss');
+      // +5 + floor(10*0.3) = +8 at wave 10.
+      const armorAdds = armoredNorm.armor - plainNorm.armor === 8;
+      const bossArmorAdds = armoredBoss.armor === (10 * 0.4) + 8;
+
+      // BROWNOUT — towers fire 25% slower (effRate ×1.25). Inert when the mod is off.
+      const t = { type:'gun', rate:1.0, spec:null, level:1 };
+      setMod(null);     const rateNormal   = effRate(t);
+      setMod('brownout'); const rateBrownout = effRate(t);
+      const brownoutSlows = Math.abs(rateBrownout - rateNormal * 1.25) < 1e-9;
+
+      // Mods are inert in NON-mayhem mode (rollWaveMod bails) — sanity that the menu
+      // path can't accidentally apply them. effRate with no waveMod is the base rate.
+      setMod(null);
+      const inertOff = Math.abs(effRate(t) - rateNormal) < 1e-9;
+
+      waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasArmored, hasBrownout, armorAdds, bossArmorAdds, brownoutSlows, inertOff,
+               plainArmor: plainNorm.armor, armoredArmor: armoredNorm.armor };
+    });
+    check('WAVE_MODS includes Armored Surge', r.hasArmored);
+    check('WAVE_MODS includes Brownout', r.hasBrownout);
+    check('Armored Surge adds +8 armor to enemies at wave 10', r.armorAdds, `${r.plainArmor}->${r.armoredArmor}`);
+    check('Armored Surge adds armor to the boss too', r.bossArmorAdds);
+    check('Brownout slows tower fire-rate by 25%', r.brownoutSlows);
+    check('wave mods are inert when waveMod is cleared', r.inertOff);
+
+    // A real Mayhem run still drives to completion with these mods in the pool (the
+    // 78% roll can land either new mod) — no hang, no console error.
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 8 });
+      const out = { reached: wave >= 7, wave, hitCap: res.hitCap };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Mayhem run drives clean with new mods in pool', drove.reached && !drove.hitCap,
+      `wave=${drove.wave} hitCap=${drove.hitCap}`);
+    check('no console errors during wave-mod test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

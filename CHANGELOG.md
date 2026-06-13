@@ -3,6 +3,29 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.27.0 — 2026-06-12 — 🌀 Two new Mayhem wave modifiers: Armored Surge + Brownout
+
+**New content** (ROADMAP "More wave modifiers for Mayhem"). Mayhem rolls a random per-wave twist
+(78% chance) from `WAVE_MODS`; the pool grew from 7 → 9. Both new mods introduce an axis none of the
+existing seven touched.
+
+- **🛡️ Armored Surge (`armored`)** — every enemy in the wave (and the boss) gains flat armor
+  `+5 + floor(w·0.3)` on top of its base (+8 at w10, +14 at w30). Armor subtracts from each hit
+  (reduced by the Piercing talent), so it disproportionately blunts fast low-damage towers. Hard
+  counters already in the game: **Mortar** (shells force `ignoreArmor`), **Poison** (corrodes −3
+  armor/hit), and the Sniper's **AP** spec / **Piercing** talent. Wired in `buildWave()` (cd-game.js)
+  for both the per-enemy loop and the boss, mirroring the existing `titans`/`goldrush` lines.
+- **🔌 Brownout (`brownout`)** — all towers fire **25% slower** that wave (`effRate ×1.25`). Completes
+  the tower-stat-twist trio: **Power Surge** (+30% dmg) / **Fog** (−20% range) / **Brownout**
+  (−rate). One line in `effRate()` (cd-game.js); auto-reflected in the upgrade panel since `effRate`
+  is hashed into `upgradeKey()`.
+
+Both are **Mayhem-only** (rolled by `rollWaveMod()`, which bails outside mayhem) and **per-wave**
+(transient run state, never persisted) — zero impact on normal/campaign modes, saves, or the economy.
+The floater banner + name/desc surface automatically. New test group **[46]** (mod presence, armor
+math at w10 incl. boss, the 25% rate slow, inertness when cleared, and a full Mayhem run driving
+clean with the mods in the pool). Suite green; zero console errors.
+
 ## v1.26.0 — 2026-06-12 — 🎯 Executioner sniper spec un-dominated (+60% → +90% vs tanks & bosses)
 
 **Balance / meaningful-choice** (ROADMAP "Tower spec pass" — audit the 2 specs per tower for a

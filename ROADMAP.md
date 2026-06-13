@@ -62,8 +62,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       palette (static under reduce-motion). Theme key saved/restored for resume parity.
       Test [28]. Follow-ups: *actual ground textures/patterns* (currently solid-colour path
       fills), and *per-theme star density / parallax* for more visual identity.
-- [ ] **More wave modifiers** for Mayhem (fog/limited range, double-speed,
-      armored surge, bounty boom).
+- [~] **More wave modifiers** for Mayhem. Shipped 2 more in **v1.27.0** — **🛡️ Armored Surge**
+      (`armored`: every enemy + boss gains `+5+floor(w·0.3)` flat armor — the first mod on the armor
+      axis; countered by Mortar/Poison/AP) and **🔌 Brownout** (`brownout`: all towers fire 25%
+      slower — completes the Surge/Fog/Brownout tower-stat trio). Pool 7→9. Test [46]. **Still open
+      from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed* (≈
+      existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and genuinely new ones:
+      *EMP/stun* (a tower offline for N seconds), *bounty drought* (−50% gold this wave),
+      *regen wave* (enemies self-heal), or a *path swap* (direction reverses).
 - [x] **A secret / easter-egg legendary perk** — shipped **v1.22.0**: 🩸 **Last Stand**,
       a comeback perk that gives ALL towers +3% damage per life lost this run (cap +60% at
       20 lives lost). Deliberately conditional — a flawless run gets +0%, so it can't make an

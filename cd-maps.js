@@ -92,6 +92,8 @@ const WAVE_MODS = [
   { id:'goldrush',icon:'💰', name:'Gold Rush',     desc:'Double bounty this wave' },
   { id:'surge',   icon:'⚡', name:'Power Surge',   desc:'Towers +30% damage' },
   { id:'fog',     icon:'🌫️', name:'Fog',           desc:'Tower range -20%' },
+  { id:'armored', icon:'🛡️', name:'Armored Surge', desc:'Enemies gain heavy armor' },
+  { id:'brownout',icon:'🔌', name:'Brownout',       desc:'Towers fire 25% slower' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
 let waveMod = null, meteorRainTimer = 0;
