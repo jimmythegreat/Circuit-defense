@@ -3,6 +3,50 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.32.1 — 2026-06-13 — 🩺 Health check (+ PWA cache-version fix)
+
+**Type:** Health check (every-6th-run maintenance pass — 5 normal runs since the v1.27.1 health
+check: v1.28.0, v1.29.0, v1.30.0, v1.31.0, v1.32.0). Ships no new feature; one small correctness fix.
+
+**Fix — PWA offline cache version had drifted.** `sw.js`'s `CACHE` const was still
+`circuit-defense-v1.30.0` even though the game had advanced to v1.32.0 (CLAUDE.md's convention is
+to bump it every release so the service worker's `activate` step evicts the previous cache). With a
+cache-first strategy and a name that never changed, a player who installed the **hosted** PWA at
+v1.30.0 would keep being served the stale v1.30.0 shell offline and never pick up v1.31.0/v1.32.0.
+Bumped `CACHE → circuit-defense-v1.32.1` to match `GAME_VERSION`. **Regression guard:** test `[49]`
+now extracts `GAME_VERSION` from `cd-core.js` and the `circuit-defense-vX.Y.Z` version from `sw.js`
+and asserts they're equal, so a forgotten bump fails the suite from now on. Only affects the
+hosted/installed web-app — `file://` double-click play, the headless harness, and saves are
+untouched (the SW never registers on `file://`).
+
+**Health-check audit results (all clean):**
+- **Tests:** full suite green — **465 checks across 51 groups `[0]`–`[51]`, 0 failures, 0 console
+  errors** (was 393/47 at v1.27.1; +72 checks / +4 groups from v1.28.0–v1.32.0, incl. the new
+  cache-version guard added this run).
+- **Refactor audit:** every game source file well under the ~1500-line cap (largest `cd-update.js`
+  774, `cd-render.js` 618, `cd-game.js` 598). No dead code, no debug logging, no real TODOs (the
+  only `TODO` grep hit is the word inside a changelog string). The dev-only `tests/run-tests.mjs` is
+  now ~2920 lines / 51 groups — re-flagged on ROADMAP as the split candidate (numbers refreshed
+  from the stale 2559/47/393).
+- **Docs coherence:** CLAUDE.md numbers re-verified against code and all match — 8 towers, 21
+  talents, 9 Mayhem wave modifiers, 13 achievements, booster aura range 45, boss HP slope
+  `14 + w*0.6`, Glass Cannon (`effDmg ×1.5`, `effRange ×0.7`, aura range untouched). Fixed the one
+  drift found: CLAUDE.md hardcoded the SW cache name `circuit-defense-v1.30.0` → now documents the
+  `circuit-defense-<GAME_VERSION>` convention + the new guard test. `GAME_VERSION` consistent
+  everywhere (v1.32.1).
+- **Integrity spot-checks:** `file://` playability intact — no `type="module"`, seven classic
+  `<script src>` tags in dependency order, inline-SVG favicon, all relative paths, SW registration
+  protocol-guarded to http/https (the migration/old-save and offline-play assertions are covered by
+  the green suite). Deploy workflow still copies the PWA trio (`manifest.webmanifest` + `sw.js` +
+  `icon.svg`) into `_site` as a static deploy.
+- **Table-stakes audit:** still-open gaps, priority order — **gamepad support**, then **bigger HTML
+  tap targets on small phones**. PWA install (v1.30.0), keyboard a11y (v1.19.0/v1.20.0), colorblind
+  aid (v1.18.0), high-DPI (v1.17.0), touch/pointer (v1.16.3), reduced-motion (v1.10.0), volume
+  slider (v1.13.2), responsive layout (v1.14.0/v1.15.0), document metadata (v1.8.6) all done.
+
+**Test evidence:** `npm test` → `Results: 465 passed, 0 failed`, `All green ✅`, exit 0. The new
+`[49]` cache-version assertion passes (GAME_VERSION=v1.32.1, CACHE=v1.32.1).
+
 ## v1.32.0 — 2026-06-13 — 🔮 Glass Cannon legendary perk
 
 **What:** A new **legendary** run-perk in the every-5-waves draft pool (`PERKS` in `cd-defs.js`):

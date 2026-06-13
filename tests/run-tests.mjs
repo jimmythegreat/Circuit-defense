@@ -2728,6 +2728,14 @@ async function main() {
     check('sw.js precaches the game shell (html + css + js)',
       /tower-defense\.html/.test(sw) && /tower-defense\.css/.test(sw) && /cd-core\.js/.test(sw));
     check('sw.js precaches the manifest + icon', /manifest\.webmanifest/.test(sw) && /icon\.svg/.test(sw));
+    // (c2) the versioned cache name must track GAME_VERSION so `activate` evicts the stale
+    //      shell on every release — else hosted/installed PWA users keep an old cached game
+    //      offline (this drifted v1.30.0→v1.32.0 before the v1.32.1 health check caught it).
+    const coreSrc = readFileSync(resolve(ROOT, 'cd-core.js'), 'utf8');
+    const gameVer = (coreSrc.match(/GAME_VERSION\s*=\s*['"](v[\d.]+)['"]/) || [])[1];
+    const cacheVer = (sw.match(/circuit-defense-(v[\d.]+)/) || [])[1];
+    check('sw.js cache version matches GAME_VERSION (no stale offline cache)',
+      !!gameVer && cacheVer === gameVer, `GAME_VERSION=${gameVer} CACHE=${cacheVer}`);
 
     // (d) HTML head wires the manifest + apple touch icon.
     const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
