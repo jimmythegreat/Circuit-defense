@@ -3408,6 +3408,44 @@ async function main() {
     await page.close();
   }
 
+  // [59] Idle start-screen sheen — animated glow + light glint on the PLAY button (v1.41.0)
+  console.log('\n[59] Idle start-screen PLAY sheen (menu polish)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const play = document.querySelector('.startPlay .ctl.play');
+      const cs = getComputedStyle(play);
+      const after = getComputedStyle(play, '::after');
+      return {
+        hasPlay: !!play,
+        glowAnim: cs.animationName,                 // 'playGlow'
+        clipped: cs.overflow === 'hidden',          // sheen stays inside the button
+        positioned: cs.position === 'relative',
+        sheenAnim: after.animationName,             // 'playSheen'
+        sheenContent: after.content,                // '""' — pseudo exists
+      };
+    });
+    // prefers-reduced-motion: reduce → both animations switched off.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const r = await page.evaluate(() => {
+      const play = document.querySelector('.startPlay .ctl.play');
+      return {
+        glow: getComputedStyle(play).animationName,
+        sheen: getComputedStyle(play, '::after').animationName,
+        sheenDisplay: getComputedStyle(play, '::after').display,
+      };
+    });
+    check('PLAY button carries the breathing glow animation', d.glowAnim === 'playGlow', d.glowAnim);
+    check('PLAY button has a sheen ::after pseudo-element', d.sheenContent === '""' || d.sheenContent === "''", d.sheenContent);
+    check('sheen pseudo runs the glint sweep animation', d.sheenAnim === 'playSheen', d.sheenAnim);
+    check('PLAY button clips the sheen (overflow:hidden + relative)', d.clipped && d.positioned, `overflow/position`);
+    check('reduce-motion disables the PLAY glow', r.glow === 'none', r.glow);
+    check('reduce-motion disables the PLAY sheen', r.sheen === 'none' && r.sheenDisplay === 'none', `${r.sheen}/${r.sheenDisplay}`);
+    check('no console errors during PLAY sheen test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

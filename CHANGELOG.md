@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.41.0 — 2026-06-13 — ✨ Idle start-screen PLAY sheen (menu polish)
+
+**Type:** UX / game-feel polish. Minor bump. Serves the owner's active (`[low priority]`) "revamp the starting menu" FEEDBACK — a small slice continuing v1.39.1's button-hierarchy work — and ticks the ROADMAP "Idle start-screen sheen" item.
+
+**What changed:** the start screen's primary ▶ PLAY button now animates while you're on the (otherwise dimmed) menu — it breathes a soft green glow (`playGlow`, a pulsing box-shadow) and a thin diagonal band of light sweeps across it every few seconds (`playSheen`, a `::after` gradient that translates left→right then rests off-canvas). With the rest of the chrome dimmed via the `.idle` class, this draws the eye to the one live action. The sheen is clipped to the button (`overflow:hidden` + `position:relative`) so it stays inside the rounded shape.
+
+**Reduced-motion safe:** a `@media (prefers-reduced-motion: reduce)` block switches both animations off entirely (`animation:none`; the sheen pseudo is `display:none`) — this is the new-motion piece the v1.10.0 reduce-motion work left open for the menu.
+
+**Scope:** CSS-only (`tower-defense.css`), no markup/JS change. No save/economy/balance/schema impact — purely cosmetic. Desktop and mobile unaffected structurally (the ≤920px `!important` sizing rule doesn't touch animation). SW cache bumped `v1.40.1 → v1.41.0`.
+
+**Test evidence:** new group `[59]` — PLAY carries `playGlow`, its `::after` exists and runs `playSheen`, the button clips the sheen (`overflow:hidden` + `relative`), and under emulated `prefers-reduced-motion: reduce` both the glow and sheen go `none` (sheen `display:none`). Suite green (subagent-verified before commit). Verified in-preview: glow/sheen render on the menu, zero console errors.
+
 ## v1.40.1 — 2026-06-13 — 🩺 Health check — all green (543/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. Resets the 5-run counter (5 normal runs since v1.37.1: v1.38.0, v1.38.1, v1.39.0, v1.39.1, v1.40.0).

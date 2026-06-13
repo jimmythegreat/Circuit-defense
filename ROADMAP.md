@@ -163,11 +163,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       was split into a two-tier hierarchy — a prominent `.startPlay` row (▶ PLAY 18px + ⏯ Resume +
       🗓 Daily) over a smaller, muted `.startUtil` toolbar (Talents/Achievements/Records/What's New/
       Settings/Reset at 13px). Markup + CSS only, save-safe, desktop & mobile verified. Test [58].
+      **Second slice shipped v1.41.0:** an animated PLAY sheen — the primary button now breathes a
+      glow + sweeps a light glint on the dimmed menu (the "Idle start-screen sheen" item below, now
+      done; reduced-motion-gated; test [59]).
       **Remaining (the broader "revamp"):** the MODE/MAP/DIFFICULTY option blocks + the title/version
       area could get a cleaner visual treatment (cards, grouping, spacing); consider a panel-style
-      layout or a left rail for the utility buttons; possibly an animated PLAY sheen (see "Idle
-      start-screen sheen" below). FEEDBACK item stays PENDING (as-written, per owner pref) until the
-      fuller revamp lands.
+      layout or a left rail for the utility buttons. FEEDBACK item stays PENDING (as-written, per
+      owner pref) until the fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
       to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`
@@ -222,9 +224,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       button draws a dashed range ring + label at board centre (`hoveredShop`); tooltips
       show the range number. (Placement preview still follows the cursor once selected.)
       Test [24].
-- [ ] **Idle start-screen sheen** — now that the chrome dims on the menu (v1.5.1),
-      consider a subtle animated glow or pulse on the PLAY button to draw the eye
-      to the one live surface, reinforcing the new focus.
+- [x] **Idle start-screen sheen** — shipped **v1.41.0**. The primary ▶ PLAY button now
+      breathes a soft green glow (`playGlow`) and sweeps a periodic diagonal light glint
+      (`playSheen` on a clipped `::after`) while you're on the dimmed menu, drawing the eye to
+      the one live action. CSS-only (`tower-defense.css`), reduced-motion-gated (both animations
+      go `none` under `prefers-reduced-motion: reduce`). No save/economy/balance impact. Test [59].
 - [x] **Wave preview** — shipped **v1.21.0**. The between-waves bottom-left `Next:` line
       now shows an **icon roster** — a colour disc (+ the same `enemyGlyph()` symbol the
       sphere uses) and `×count` per enemy kind, boss appended on every 5th wave — instead of
