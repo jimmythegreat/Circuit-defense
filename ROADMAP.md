@@ -247,10 +247,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
       `.hint` margins). Minor cosmetic gap between the canvas and the panel; could
       tighten by constraining the column width to the canvas. (Height overhang was
       fixed separately in v1.5.2 — the panel now caps to the game's height.)
-- [ ] **What's New "new since last visit" marker** — now that the panel caps to
-      the game height (v1.5.2), highlight entries newer than the last-seen version
-      (persist `cd_wnseen`) with a dot/badge so players notice fresh changelog
-      items, and auto-scroll the list to the top on open.
+- [x] **What's New "new since last visit" marker** — shipped **v1.44.0**. A new additive
+      `cd_wnseen` key stores the newest version the player has viewed; since `CHANGELOG_ENTRIES`
+      is newest-first, every entry above its index is "unseen." `unseenWhatsNewCount()`/
+      `markWhatsNewSeen()`/`refreshWhatsNewBadge()` (cd-core.js) drive it: `renderWnList()` tags the
+      unseen rows with a `.wnFresh` gold accent + a `NEW` pill, the ✨ What's New button (`#wnBtn`)
+      shows a gold count pill, the version tag gets a `●` dot (`.hasNew`), and `openWhatsNew()`
+      auto-scrolls `#wnList` to the top then marks everything seen. `initWhatsNew()` seeds the baseline
+      on an absent key so old saves / new players start caught-up (no NEW flood). One additive key,
+      swept by `resetAllData()`. Test [62]. **Follow-up:** *a per-entry "seen" tracking* (mark
+      individual entries rather than a single high-water version) is overkill; this water-mark approach
+      is sufficient.
 - [x] **"New record!" end-of-run flourish** — shipped v1.6.1. Beating a quick-mode
       Records cell now fires a golden 🏆 banner (old→new wave delta), an `SFX.record`
       fanfare, and a shake/particle burst on the game-over/victory overlay. First-ever

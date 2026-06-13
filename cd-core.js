@@ -64,10 +64,11 @@ function snapGridCoord(v) { return Math.floor(v / PLACE_GRID) * PLACE_GRID + PLA
 function placeCoord(x, y) { return gridSnap ? { x: snapGridCoord(x), y: snapGridCoord(y) } : { x, y }; }
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v1.43.0';
+const GAME_VERSION = 'v1.44.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v1.44.0', date: '2026-06-13', time: '19:45 EDT', body: "Polish — the ✨ What's New panel now tells you what's actually new. When an update ships that you haven't read yet, those entries are highlighted at the top of the list with a gold NEW tag and a brighter accent stripe, so you can spot the fresh notes at a glance instead of trying to remember where you left off. The start screen flags it too: the ✨ What's New button shows a little gold count of how many updates are new since you last looked, and the version tag gets a small dot. Open the panel and everything is marked read — the count clears and the highlights fade on your next visit. The list also jumps back to the top each time you open it (newest first), so the latest change is always the first thing you see. Existing players and brand-new ones start 'caught up' (no wall of NEW tags on the whole back-catalogue) — only updates released from here on light up. Purely a UI nicety — no effect on gameplay, your saves, chips, or balance." },
   { v: 'v1.43.0', date: '2026-06-13', time: '18:30 EDT', body: "New feature — 🎮 gamepad support! You can now play with a controller. Plug in (or wake up) any standard Xbox-style pad, press a button, and a crosshair appears on the board — that's your cursor. Move it with the left stick or the D-pad. The buttons map like this: A places the selected tower (or, with no tower picked, selects the tower you're hovering — and it also aims the meteor when the meteor is armed); B cancels (deselects / un-arms); X cycles to the next tower you can afford; the bumpers and left trigger fire your three abilities (LB = Meteor, RB = Freeze, LT = Gold Rush); Start begins or stacks a wave; and Back pauses (Back or Start un-pauses). It's pure extra input sitting alongside mouse, touch and keyboard — nothing changes if you don't have a controller, and it has no effect on your saves, chips, gold or balance. (When no controller is connected the game behaves exactly as before.)" },
   { v: 'v1.42.0', date: '2026-06-13', time: '17:40 EDT', body: "Menu polish — the start screen's three setup choices (MODE, MAP and DIFFICULTY) are now grouped together inside one tidy bordered card, instead of sitting as three rows of floating labels and buttons drifting in the middle of the screen. The labels and their option buttons line up neatly on the left edge of the card, so the menu reads like a clean 'set up your run' panel — pick your mode, pick your map, pick your difficulty — rather than a loose pile of controls. Everything still works exactly as before: the same modes, maps, levels and difficulties, the same selections, no change to your saves, chips, or balance. It also shrinks and stays readable on phones. (Third slice of the ongoing 'revamp the starting menu' request — after the two-tier button layout and the animated PLAY button.)" },
   { v: 'v1.41.0', date: '2026-06-13', time: '16:12 EDT', body: "Menu polish — the start screen's ▶ PLAY button now has a little life to it. While you're sitting on the menu (where everything else is dimmed down), PLAY gently breathes a soft green glow and a thin band of light sweeps across it every few seconds, so your eye is drawn straight to the one thing you came to press. Purely cosmetic — the button does exactly what it always did, and nothing about your saves, chips, or balance changes. It also respects your system's 'reduce motion' setting: turn that on and the glow and glint are switched off entirely. (Another small slice of the ongoing 'revamp the starting menu' polish.)" },
@@ -152,16 +153,44 @@ const CHANGELOG_ENTRIES = [
 ];
 // Open by default; only stays hidden if the player explicitly closes it (persisted).
 let wnClosed = localStorage.getItem('cd_wnclosed') === '1';
+// "New since last visit" marker (v1.44.0): cd_wnseen stores the newest version the
+// player has already seen in the panel. CHANGELOG_ENTRIES is newest-first, so every
+// entry ABOVE that version's index is unseen. The key is absent for old saves / new
+// players — initWhatsNew() then seeds it to the current version (treat them as caught
+// up) so they aren't flooded with a wall of NEW badges; only genuinely-newer updates
+// flag from then on. Additive key, swept by resetAllData's cd_-prefix wipe.
+function unseenWhatsNewCount() {
+  const seen = localStorage.getItem('cd_wnseen');
+  if (!seen || !CHANGELOG_ENTRIES.length) return 0;
+  const idx = CHANGELOG_ENTRIES.findIndex(e => e.v === seen);
+  return idx < 0 ? 0 : idx;   // entries [0..idx) are newer than the last-seen version
+}
+function markWhatsNewSeen() {
+  if (CHANGELOG_ENTRIES.length) {
+    try { localStorage.setItem('cd_wnseen', CHANGELOG_ENTRIES[0].v); } catch (e) {}
+  }
+}
+// Update the start-screen "fresh updates" cue: a count pill on the ✨ What's New
+// button + a dot on the version tag. Safe to call any time (no-ops if absent).
+function refreshWhatsNewBadge() {
+  const n = unseenWhatsNewCount();
+  const btn = document.getElementById('wnBtn');
+  if (btn) btn.innerHTML = "✨ What's New" + (n > 0 ? ` <span class="wnBadge">${n}</span>` : '');
+  const vt = document.getElementById('verTag');
+  if (vt) vt.classList.toggle('hasNew', n > 0);
+}
 function renderWnList() {
   const list = document.getElementById('wnList');
   list.innerHTML = '';
-  for (const e of CHANGELOG_ENTRIES) {
+  const unseen = unseenWhatsNewCount();   // first `unseen` entries are new since last visit
+  CHANGELOG_ENTRIES.forEach((e, i) => {
     const d = document.createElement('div');
-    d.className = 'wnEntry';
+    d.className = 'wnEntry' + (i < unseen ? ' wnFresh' : '');
     const when = e.time ? `${e.date} · ${e.time}` : e.date;
-    d.innerHTML = `<span class="wnver">${e.v}</span><span class="wndate">${when}</span><div class="wnbody">${e.body}</div>`;
+    const badge = i < unseen ? '<span class="wnNew">NEW</span>' : '';
+    d.innerHTML = `<span class="wnver">${e.v}</span><span class="wndate">${when}</span>${badge}<div class="wnbody">${e.body}</div>`;
     list.appendChild(d);
-  }
+  });
 }
 // Cap the panel to the game's height so it never grows past the game — it
 // scrolls internally instead (the #gameCol drives the row height since the row
@@ -173,12 +202,17 @@ function syncWhatsNewHeight() {
   wn.style.maxHeight = gc.offsetHeight + 'px';
 }
 function openWhatsNew() {
-  renderWnList();
+  renderWnList();   // render BEFORE marking seen so this view still shows the NEW badges
   wnClosed = false;
   localStorage.removeItem('cd_wnclosed');
   localStorage.setItem('cd_wnopen', '1');   // explicit opt-in (drives the small-screen default below)
-  document.getElementById('whatsnew').style.display = 'flex';
+  const panel = document.getElementById('whatsnew');
+  panel.style.display = 'flex';
   syncWhatsNewHeight();
+  const list = document.getElementById('wnList');
+  if (list) list.scrollTop = 0;   // newest is at the top — start there on open
+  markWhatsNewSeen();             // now caught up; clears badges on the next render/load
+  refreshWhatsNewBadge();         // drop the start-screen count pill / version dot
 }
 function closeWhatsNew() {
   wnClosed = true;
@@ -192,10 +226,15 @@ function closeWhatsNew() {
 // defaults to CLOSED unless the player has explicitly opened it (cd_wnopen). On
 // desktop `small` is false, so this is byte-identical to the old open-by-default.
 function initWhatsNew() {
+  // First encounter (old save / new player): seed cd_wnseen to the current version so
+  // the whole back-catalogue isn't flagged NEW. Only updates shipped AFTER this point
+  // light up. Must run before any renderWnList so the baseline is in place.
+  if (localStorage.getItem('cd_wnseen') === null) markWhatsNewSeen();
   const small = typeof matchMedia === 'function' && matchMedia('(max-width: 920px)').matches;
   const optedIn = localStorage.getItem('cd_wnopen') === '1';
   if (wnClosed || (small && !optedIn)) document.getElementById('whatsnew').style.display = 'none';
   else openWhatsNew();
+  refreshWhatsNewBadge();   // reflect any unseen entries on the start-screen cue
 }
 // Keep the cap in sync as the viewport (and thus the game's height) changes.
 window.addEventListener('resize', syncWhatsNewHeight);

@@ -3613,6 +3613,71 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 62: What's New "new since last visit" marker (v1.44.0) ----
+  console.log("\n[62] What's New 'new' marker");
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const newest = CHANGELOG_ENTRIES[0].v;
+      // A fresh load with no cd_wnseen seeds it to the current version (initWhatsNew on the
+      // absent key), so an old save / new player is "caught up" — no wall of NEW badges.
+      const seededOnInit = localStorage.getItem('cd_wnseen') === newest;
+      const caughtUpCount = unseenWhatsNewCount();   // 0 when seen === newest
+
+      // Simulate having last seen an older version (4th entry back → 3 newer entries).
+      const olderVer = CHANGELOG_ENTRIES[3].v;
+      localStorage.setItem('cd_wnseen', olderVer);
+      const unseenN = unseenWhatsNewCount();
+      renderWnList();
+      const list = document.getElementById('wnList');
+      const freshRows = [...list.children].filter(c => c.classList.contains('wnFresh')).length;
+      const firstHasBadge = !!list.children[0].querySelector('.wnNew');
+      const seenRowNoBadge = !list.children[unseenN].querySelector('.wnNew');
+
+      // Start-screen cue reflects the count.
+      refreshWhatsNewBadge();
+      const btnBadge = document.getElementById('wnBtn').querySelector('.wnBadge');
+      const btnShowsCount = !!btnBadge && btnBadge.textContent === String(unseenN);
+      const verHasDot = document.getElementById('verTag').classList.contains('hasNew');
+
+      // Opening the panel: render shows badges, then mark seen, scroll to top, clear cue.
+      openWhatsNew();
+      const markedSeen = localStorage.getItem('cd_wnseen') === newest;
+      const scrolledTop = document.getElementById('wnList').scrollTop === 0;
+      const afterCount = unseenWhatsNewCount();
+      const btnCleared = !document.getElementById('wnBtn').querySelector('.wnBadge');
+      renderWnList();   // re-render now that we're caught up
+      const noFreshAfter = [...document.getElementById('wnList').children]
+        .filter(c => c.classList.contains('wnFresh')).length;
+
+      // A stale/unknown seen version must be safe (0 unseen, never a flood).
+      localStorage.setItem('cd_wnseen', 'v0.0.0-nonexistent');
+      const unknownSafe = unseenWhatsNewCount() === 0;
+
+      document.getElementById('whatsnew').style.display = 'none';
+      localStorage.removeItem('cd_wnseen');
+      return { seededOnInit, caughtUpCount, unseenN, freshRows, firstHasBadge,
+        seenRowNoBadge, btnShowsCount, verHasDot, markedSeen, scrolledTop,
+        afterCount, btnCleared, noFreshAfter, unknownSafe };
+    });
+    check('absent key seeds cd_wnseen to current version on init', r.seededOnInit);
+    check('caught-up player has 0 unseen entries', r.caughtUpCount === 0);
+    check('stale seen version → unseen = count of newer entries', r.unseenN === 3);
+    check('exactly the unseen rows get the wnFresh highlight', r.freshRows === r.unseenN);
+    check('newest entry carries a NEW badge when unseen', r.firstHasBadge);
+    check('the last-seen entry has no NEW badge', r.seenRowNoBadge);
+    check("What's New button shows the unseen count pill", r.btnShowsCount);
+    check('version tag gets the new-update dot', r.verHasDot);
+    check('opening the panel marks everything seen', r.markedSeen);
+    check('list auto-scrolls to the top on open', r.scrolledTop);
+    check('unseen count clears to 0 after opening', r.afterCount === 0);
+    check('button count pill clears after opening', r.btnCleared);
+    check('no NEW highlights remain after catch-up', r.noFreshAfter === 0);
+    check('unknown/stale seen version is safe (no flood)', r.unknownSafe);
+    check("no console errors during what's-new marker test", consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

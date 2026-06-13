@@ -335,8 +335,13 @@
   .wnEntry .wnver { color: #3fb950; font-weight: bold; font-size: 13px; }
   .wnEntry .wndate { color: #8b949e; font-size: 11px; margin-left: 6px; }
   .wnEntry .wnbody { color: #c9d1d9; font-size: 12.5px; margin-top: 4px; }
+  /* "New since last visit" highlight (v1.44.0): unseen entries glow a brighter rail + carry a NEW pill. */
+  .wnEntry.wnFresh { border-left-color: #f0b429; border-left-width: 4px; background: #1b1c14; box-shadow: 0 0 10px rgba(240,180,41,.12); }
+  .wnEntry .wnNew { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: #f0b429; color: #161b22; font-size: 9.5px; font-weight: bold; letter-spacing: 1px; vertical-align: middle; }
+  .wnBadge { display: inline-block; min-width: 16px; padding: 0 5px; border-radius: 9px; background: #f0b429; color: #161b22; font-size: 11px; font-weight: bold; line-height: 16px; text-align: center; }
   #verTag { color: #8b949e; font-size: 12px; letter-spacing: 1px; cursor: pointer; }
   #verTag:hover { color: #3fb950; }
+  #verTag.hasNew::after { content: '●'; color: #f0b429; font-size: 9px; margin-left: 5px; vertical-align: middle; }
   .hint { color: #8b949e; font-size: 11.5px; margin: 6px 12px; text-align: center; max-width: 920px; }
   /* Portrait-only nudge toward the landscape layout (shown via media query below). */
   #rotateHint { display: none; color: #58a6ff; font-size: 12px; text-align: center; margin: 7px 0 0; opacity: .85; }

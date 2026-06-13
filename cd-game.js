@@ -4,6 +4,7 @@ function renderStartScreen() {
   document.getElementById('chipsBtn').textContent = meta.chips;
   document.getElementById('achBtn').textContent = `${achDone()}/${ACHIEVEMENTS.length}`;
   document.getElementById('verTag').textContent = GAME_VERSION;
+  refreshWhatsNewBadge();   // "fresh updates" count pill on ✨ What's New + version-tag dot
   // Daily Challenge button: show today's date + this player's best wave so far today.
   const dBtn = document.getElementById('dailyBtn');
   if (dBtn) {

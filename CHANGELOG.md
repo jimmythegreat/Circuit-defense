@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.44.0 — 2026-06-13 — 🆕 What's New "new since last visit" marker
+
+**Type:** UX / game-feel polish. Minor bump. Ships the ROADMAP "What's New 'new since last visit' marker" item (under *Game feel / polish* — "highlight entries newer than the last-seen version (persist `cd_wnseen`) with a dot/badge … and auto-scroll the list to the top on open"). Chosen over a 4th consecutive start-menu slice (the only PENDING FEEDBACK item is `[low priority]`, skippable, and already had three back-to-back slices in v1.39.1/v1.41.0/v1.42.0) per the routine's "don't just follow up the most recent change."
+
+**What changed:** the ✨ What's New panel now flags the updates you haven't read yet.
+- A new additive **`cd_wnseen`** localStorage key stores the newest version string the player has already viewed in the panel. Since `CHANGELOG_ENTRIES` is newest-first, every entry **above** that version's index is "unseen."
+- **`unseenWhatsNewCount()`** (cd-core.js) returns that count (0 when caught up; 0 for an absent or stale/unknown seen-version — never a flood). **`markWhatsNewSeen()`** writes the current newest version. **`refreshWhatsNewBadge()`** updates the start-screen cue.
+- **`renderWnList()`** tags the first `unseen` rows with a `.wnFresh` class (brighter gold accent rail + faint glow) and a gold **`NEW`** pill beside the version.
+- **`openWhatsNew()`** renders *before* marking seen (so the current view still shows the badges), then **auto-scrolls `#wnList` to the top**, calls `markWhatsNewSeen()` and `refreshWhatsNewBadge()` — so the highlights/cue clear on the next render/visit.
+- Start-screen cue: the **✨ What's New button** (`#wnBtn`) shows a gold count pill of the unseen total, and the **version tag** (`#verTag`) gets a small gold `●` dot (`.hasNew::after`). Refreshed from `renderStartScreen()`.
+- **First-encounter baseline:** `initWhatsNew()` seeds `cd_wnseen` to the current version when the key is absent (old saves / new players), so the whole back-catalogue isn't flagged NEW — only updates shipped from here on light up.
+
+**Scope / safety:** pure DOM/CSS/localStorage UX. **One additive key (`cd_wnseen`)**, swept by `resetAllData()`'s existing `cd_`-prefix wipe — no migration needed, old saves load unchanged. No gameplay/economy/balance/schema impact. SW cache bumped `v1.43.0 → v1.44.0`.
+
+**Test evidence:** new group `[62]` (15 checks) — absent key seeds the baseline (caught-up, 0 unseen); a stale seen-version flags exactly the newer entries with the `wnFresh` highlight + `NEW` pill (and the last-seen row has none); the button shows the count pill and the version tag the dot; opening marks everything seen, auto-scrolls to top, and clears the count to 0; an unknown/stale seen-version is safe (no flood). Full suite **587/0 green** (ran directly + subagent-verified); verified in-browser (gold `NEW` rail `rgb(240,180,41)` vs seen rows' green, `✨ What's New 3` count pill, `hasNew` version dot, scrollTop 0, zero console errors).
+
 ## v1.43.0 — 2026-06-13 — 🎮 Gamepad support (controller play — towers, abilities, waves)
 
 **Type:** Feature / table-stakes engineering. Minor bump. Clears the long-standing **gamepad** table-stakes gap (the explicitly-flagged "next strongest pick" in ROADMAP, re-noted across the v1.24.2/v1.27.1/v1.37.1/v1.40.1 health checks).
