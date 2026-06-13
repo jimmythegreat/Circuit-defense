@@ -2,28 +2,36 @@
 // ================= Meta / Talents =================
 const TALENTS = {
   // — core —
-  funding:    { sect:'CORE', name:'Funding',     icon:'💰', max:8,  cost: r => 5 + r*4,   desc: r => `+${25*r} starting gold` },
-  firepower:  { sect:'CORE', name:'Firepower',   icon:'⚔️', max:10, cost: r => 6 + r*5,   desc: r => `+${3*r}% tower damage` },
-  engineering:{ sect:'CORE', name:'Engineering', icon:'🛠️', max:8,  cost: r => 6 + r*5,   desc: r => `-${3*r}% tower cost` },
-  fortitude:  { sect:'CORE', name:'Fortitude',   icon:'❤️', max:8,  cost: r => 5 + r*4,   desc: r => `+${2*r} starting lives` },
-  banking:    { sect:'CORE', name:'Banking',     icon:'📈', max:5,  cost: r => 6 + r*5,   desc: r => `interest cap +${10*r}` },
-  surge:      { sect:'CORE', name:'Surge',       icon:'⚡', max:8,  cost: r => 5 + r*4,   desc: r => `-${6*r}% ability cooldowns` },
-  fortune:    { sect:'CORE', name:'Fortune',     icon:'🎲', max:6,  cost: r => 5 + r*4,   desc: r => `${8*r}% double bounty chance` },
-  scholar:    { sect:'CORE', name:'Scholar',     icon:'📚', max:5,  cost: r => 8 + r*6,   desc: r => `+${10*r}% chips earned` },
-  salvage:    { sect:'CORE', name:'Salvage',     icon:'♻️', max:6,  cost: r => 5 + r*4,   desc: r => `sell refund +${5*r}%` },
-  momentum:   { sect:'CORE', name:'Momentum',    icon:'🚀', max:6,  cost: r => 6 + r*5,   desc: r => `wave-clear bonus +${10*r}%` },
-  critlab:    { sect:'CORE', name:'Crit Lab',    icon:'🔬', max:5,  cost: r => 7 + r*6,   desc: r => `+${2*r}% crit chance (×2.5)` },
-  piercing:   { sect:'CORE', name:'Piercing',    icon:'🗡️', max:5,  cost: r => 7 + r*6,   desc: r => `towers ignore ${2*r} armor` },
-  overdrive:  { sect:'CORE', name:'Overdrive',   icon:'🌟', max:2,  cost: r => 80 + r*120, desc: r => `tower max level +${r}` },
-  // — tower mastery: upgrade your towers permanently —
-  mastery_gun:    { sect:'TOWER MASTERY', name:'Gunner Mastery', icon:'🔫', max:5, cost: r => 4 + r*4, desc: r => `Gunners +${6*r}% dmg, +${2*r}% range` },
-  mastery_sniper: { sect:'TOWER MASTERY', name:'Sniper Mastery', icon:'🎯', max:5, cost: r => 4 + r*4, desc: r => `Snipers +${6*r}% dmg, +${2*r}% range` },
-  mastery_frost:  { sect:'TOWER MASTERY', name:'Frost Mastery',  icon:'❄️', max:5, cost: r => 4 + r*4, desc: r => `Frost +${6*r}% dmg, +${2*r}% range` },
-  mastery_cannon: { sect:'TOWER MASTERY', name:'Cannon Mastery', icon:'💣', max:5, cost: r => 4 + r*4, desc: r => `Cannons +${6*r}% dmg, +${2*r}% range` },
-  mastery_tesla:  { sect:'TOWER MASTERY', name:'Tesla Mastery',  icon:'⚡', max:5, cost: r => 4 + r*4, desc: r => `Teslas +${6*r}% dmg, +${2*r}% range` },
-  mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 4 + r*4, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
-  mastery_mortar: { sect:'TOWER MASTERY', name:'Mortar Mastery', icon:'🎇', max:5, cost: r => 4 + r*4, desc: r => `Mortars +${6*r}% dmg, +${2*r}% range` },
-  mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 4 + r*4, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
+  // Talent cost curves rebalanced v1.38.0 (owner FEEDBACK "talents … way too easy to get …
+  // after a few rounds you become way better and the game is easy and boring"). The lever is
+  // PRICE, not power: every talent costs more (≥~25% general uplift the owner asked for) and the
+  // damage/power outliers (firepower, the eight masteries, crit lab, overdrive) cost a LOT more
+  // (~+50–100%) with a steeper per-rank slope, so the first few runs no longer snowball you to
+  // trivialising the game. None removed (each maps to a distinct mechanic + removing one would
+  // silently strip already-spent chips — save-unsafe). Owner waived the ≤25%/run swing rule here.
+  funding:    { sect:'CORE', name:'Funding',     icon:'💰', max:8,  cost: r => 6 + r*5,    desc: r => `+${25*r} starting gold` },
+  firepower:  { sect:'CORE', name:'Firepower',   icon:'⚔️', max:10, cost: r => 11 + r*9,   desc: r => `+${3*r}% tower damage` },
+  engineering:{ sect:'CORE', name:'Engineering', icon:'🛠️', max:8,  cost: r => 8 + r*6,    desc: r => `-${3*r}% tower cost` },
+  fortitude:  { sect:'CORE', name:'Fortitude',   icon:'❤️', max:8,  cost: r => 6 + r*5,    desc: r => `+${2*r} starting lives` },
+  banking:    { sect:'CORE', name:'Banking',     icon:'📈', max:5,  cost: r => 8 + r*6,    desc: r => `interest cap +${10*r}` },
+  surge:      { sect:'CORE', name:'Surge',       icon:'⚡', max:8,  cost: r => 6 + r*5,    desc: r => `-${6*r}% ability cooldowns` },
+  fortune:    { sect:'CORE', name:'Fortune',     icon:'🎲', max:6,  cost: r => 6 + r*5,    desc: r => `${8*r}% double bounty chance` },
+  scholar:    { sect:'CORE', name:'Scholar',     icon:'📚', max:5,  cost: r => 10 + r*8,   desc: r => `+${10*r}% chips earned` },
+  salvage:    { sect:'CORE', name:'Salvage',     icon:'♻️', max:6,  cost: r => 6 + r*5,    desc: r => `sell refund +${5*r}%` },
+  momentum:   { sect:'CORE', name:'Momentum',    icon:'🚀', max:6,  cost: r => 8 + r*6,    desc: r => `wave-clear bonus +${10*r}%` },
+  critlab:    { sect:'CORE', name:'Crit Lab',    icon:'🔬', max:5,  cost: r => 11 + r*10,  desc: r => `+${2*r}% crit chance (×2.5)` },
+  piercing:   { sect:'CORE', name:'Piercing',    icon:'🗡️', max:5,  cost: r => 9 + r*7,    desc: r => `towers ignore ${2*r} armor` },
+  overdrive:  { sect:'CORE', name:'Overdrive',   icon:'🌟', max:2,  cost: r => 120 + r*180, desc: r => `tower max level +${r}` },
+  // — tower mastery: upgrade your towers permanently — (cheapest big-damage talents pre-v1.38.0;
+  //   doubled in cost so stacking +30% dmg across eight tower types is a real grind, not a freebie)
+  mastery_gun:    { sect:'TOWER MASTERY', name:'Gunner Mastery', icon:'🔫', max:5, cost: r => 8 + r*8, desc: r => `Gunners +${6*r}% dmg, +${2*r}% range` },
+  mastery_sniper: { sect:'TOWER MASTERY', name:'Sniper Mastery', icon:'🎯', max:5, cost: r => 8 + r*8, desc: r => `Snipers +${6*r}% dmg, +${2*r}% range` },
+  mastery_frost:  { sect:'TOWER MASTERY', name:'Frost Mastery',  icon:'❄️', max:5, cost: r => 8 + r*8, desc: r => `Frost +${6*r}% dmg, +${2*r}% range` },
+  mastery_cannon: { sect:'TOWER MASTERY', name:'Cannon Mastery', icon:'💣', max:5, cost: r => 8 + r*8, desc: r => `Cannons +${6*r}% dmg, +${2*r}% range` },
+  mastery_tesla:  { sect:'TOWER MASTERY', name:'Tesla Mastery',  icon:'⚡', max:5, cost: r => 8 + r*8, desc: r => `Teslas +${6*r}% dmg, +${2*r}% range` },
+  mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 8 + r*8, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
+  mastery_mortar: { sect:'TOWER MASTERY', name:'Mortar Mastery', icon:'🎇', max:5, cost: r => 8 + r*8, desc: r => `Mortars +${6*r}% dmg, +${2*r}% range` },
+  mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 8 + r*8, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
 };
 let meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
 function loadMeta() {

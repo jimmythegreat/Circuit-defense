@@ -3164,6 +3164,53 @@ async function main() {
     await page.close();
   }
 
+  // [55] Talent cost rebalance — every talent costs more; OP ones cost a lot more (v1.38.0)
+  console.log('\n[55] Talent cost rebalance');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // Pre-v1.38.0 rank-0 costs — the rebalance must raise EVERY talent's entry price.
+      const OLD0 = { funding:5, firepower:6, engineering:6, fortitude:5, banking:6, surge:5,
+        fortune:5, scholar:8, salvage:5, momentum:6, critlab:7, piercing:7, overdrive:80,
+        mastery_gun:4, mastery_sniper:4, mastery_frost:4, mastery_cannon:4, mastery_tesla:4,
+        mastery_poison:4, mastery_mortar:4, mastery_buff:4 };
+      const allRaised = Object.keys(OLD0).every(k => TALENTS[k].cost(0) > OLD0[k]);
+
+      // Damage/power outliers cost a LOT more (≥ ~1.5× the old entry price).
+      const opSteep = TALENTS.firepower.cost(0) >= 11 && TALENTS.critlab.cost(0) >= 11 &&
+        TALENTS.overdrive.cost(0) >= 120 && TALENTS.mastery_gun.cost(0) >= 8;
+
+      // Total cost to max each OP talent went up sharply.
+      const sumMax = k => { let s = 0; for (let i = 0; i < TALENTS[k].max; i++) s += TALENTS[k].cost(i); return s; };
+      const fpTotal = sumMax('firepower');          // 11+20+...+92 = 515 (was 285)
+      const masteryTotal = sumMax('mastery_gun');   // 8+16+24+32+40 = 120 (was 60)
+      const opTotalUp = fpTotal >= 500 && masteryTotal === 120;
+
+      // No talent was removed — all 21 keys survive (each maps to a distinct mechanic).
+      const keptAll = Object.keys(TALENTS).length === 21;
+
+      // buyTalent deducts the NEW cost and ranks up.
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 1000, talents: {} }));
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
+      loadMeta();
+      const before = meta.chips, cost0 = TALENTS.firepower.cost(0);
+      buyTalent('firepower');
+      const deductOk = meta.chips === before - cost0 && tRank('firepower') === 1;
+
+      localStorage.removeItem('cd_meta');
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
+      loadMeta();
+      return { allRaised, opSteep, fpTotal, masteryTotal, opTotalUp, keptAll, deductOk };
+    });
+    check('every talent rank-0 cost increased vs pre-v1.38.0', r.allRaised);
+    check('OP talents (firepower/critlab/overdrive/mastery) cost a lot more', r.opSteep);
+    check('OP max-out totals rose (firepower 285→515, mastery 60→120)', r.opTotalUp, `fp=${r.fpTotal} mastery=${r.masteryTotal}`);
+    check('all 21 talents retained (none removed)', r.keptAll);
+    check('buyTalent deducts the new cost and ranks up', r.deductOk);
+    check('no console errors during talent-cost test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

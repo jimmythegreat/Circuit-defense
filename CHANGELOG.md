@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.38.0 — 2026-06-13 — ⚖️ Talent cost rework (slow the snowball)
+
+**Type:** Balance / meta-economy. Minor bump. **Owner FEEDBACK** (medium priority): *"The talents are way over powered, which is good but they are way too easy to get … after a few rounds you become way better and the game is easy and boring … Review all the talents: which ones are OP→increase cost a lot, which ones could be removed→remove. I think a general 25% cost increase would be good. Ignore the ~25% swing rule for this run."*
+
+**What changed (cost only — power untouched):** every talent's per-rank price went up. The lever is *acquisition speed*, not strength — talents stay exactly as powerful, they just take longer to earn, which is the design intent (CLAUDE.md: talents are deliberately grindy).
+
+- **General uplift (~25%, all CORE talents):** Funding `5+4r→6+5r`, Engineering `6+5r→8+6r`, Fortitude `5+4r→6+5r`, Banking `6+5r→8+6r`, Surge `5+4r→6+5r`, Fortune `5+4r→6+5r`, Scholar `8+6r→10+8r`, Salvage `5+4r→6+5r`, Momentum `6+5r→8+6r`, Piercing `7+6r→9+7r`.
+- **OP damage/power talents — a lot more (~+50–100%, steeper slope):** ⚔️ Firepower `6+5r→11+9r` (max-out **285→515 chips**, +81%); 🔬 Crit Lab `7+6r→11+10r` (95→155, +63%); 🌟 Overdrive `80+120r→120+180r` (280→420, +50%); the **eight 🛡 Tower Mastery** talents `4+4r→8+8r` (each **60→120**, doubled — these were the cheapest big-damage picks, and 8 of them stack across tower types).
+- **Whole tree to max:** ≈ **2,350 → 3,550 chips** (+51%, ~47 → ~71 winning runs), with the steepest hikes on exactly the early upgrades that were trivialising the game.
+
+**None removed.** Reviewed every talent for redundancy — each maps to a distinct mechanic, and deleting one would silently strip chips a player already spent on it (no respec/refund path mid-tree), which is save-unsafe. Cost increase is the lever the owner emphasised.
+
+**Save-safe.** Only the cost *functions* changed; ranks/chips/`cd_meta` are untouched and load unchanged (`loadMeta` migration intact). `resetTalents()` refunds at current prices, so an already-maxed player who respecs after this update gets a one-time windfall (= new total − old total); not a repeatable fountain (buy↔reset is break-even at any single price). Owner waived the ≤25%/run swing guardrail for this run.
+
+**Tests:** new group **[55]** — every rank-0 cost rose vs the pre-v1.38.0 table, OP talents cost a lot more, OP max-out totals (firepower 515, mastery 120) verified, all 21 talents retained, `buyTalent` deducts the new cost and ranks up. Full suite green (spawned subagent). SW cache bumped to `v1.38.0` (test [49]).
+
 ## v1.37.1 — 2026-06-13 — 🩺 Health check (all green — 505/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump.
