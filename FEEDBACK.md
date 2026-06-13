@@ -5,37 +5,9 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[Low priority] The game is still a too easy. I'm able to clear classic-normal with money I got from the first 10 rounds. Another example: campaign 6 on hard can be completed with a single gunner and booster at max level (only losing 5 hp to the final boss). I did have a few milestone upgrades and several talents.
+[Low priority] The game should get harder the farther along you on in a round. I think exponential scaling towards the end might be a good idea (but use your best judgement). I just did a hard mayhem, got S teir and had 20k gold left.
 
-  > _Progress (kept in PENDING — recurring, iterative; ≤25%/number per run):_
-  > - **v1.16.1 (2026-06-12)** — addressed the **"money from the first 10 rounds"** half: trimmed
-  >   the front-loaded gold snowball. Measured it first (kills = ~69% of early income), then cut
-  >   per-kill bounty `(4+w*0.6)→(3+w*0.6)` (−20% w1, fading late) and the wave-clear bonus
-  >   `(25+w*5)→(20+w*4)` (−20%). Net: 10-wave war chest **−13%** (2658→2312). See CHANGELOG v1.16.1.
-  > - **v1.16.2 (2026-06-12)** — addressed the **single-tower carry** half (your campaign-6-hard
-  >   "one gunner + max booster" example, a tower-power outlier). Tapered the booster aura's
-  >   per-level scaling `+0.1 → +0.08`/level: a low-level booster is unchanged, but a **maxed**
-  >   booster now gives **+65% instead of +75%** aura damage, so a buffed tower does ~6% less at
-  >   max. Simulated in-engine (buffed gunner 14.0→13.2 at L6). Modest so it doesn't gut a real
-  >   multi-tower build. See CHANGELOG v1.16.2.
-  > - **v1.24.4 (2026-06-12)** — took the **steepen-late-difficulty** half. Steepened the **boss HP
-  >   slope** `14 + w·0.5 → 14 + w·0.6` (bosses are every 5th wave; HP = template × this mult), so bosses
-  >   get relatively tankier deeper in: +3% at w5 → +10% at w30, bounded to a +20% asymptote (≤25%/run).
-  >   Targets the mid-/late-game plateau (the early game already feels right). Chose the **boss** lever
-  >   because the regular-enemy HP curve is already at its design ceiling — test `[16]` caps its cumulative
-  >   boost at ≤25% vs the v1.10.0 baseline, and the `1.25·w^1.9` coefficient already sits at that asymptote
-  >   (so pushing it further toward the ROADMAP's "1.55" would break that invariant — flagged for you in
-  >   ROADMAP). See CHANGELOG v1.24.4.
-  > - **Economy lever is now near-exhausted:** measured the 10-wave war chest in-engine (god towers, no
-  >   spend, classic-normal) = **2613 gold**, of which ~**70% is kill bounty** (already trimmed v1.16.1),
-  >   ~16% wave-clear bonus (also trimmed), ~9% interest, ~5% start gold. The only untrimmed levers
-  >   (interest, start gold) each move the chest <2%, so further economy trimming has low leverage — the
-  >   better remaining levers are tower-power (below) and the boss/late-HP difficulty above.
-  > - **Still to do:** re-test the campaign-6-hard solo-carry — if a single booster still carries, the next
-  >   levers are Frost Mastery's per-rank dmg or a booster soft-cap (ROADMAP "Frost/booster damage snowball").
-  >   For the late game, the boss slope can step `0.6 → ~0.7` next run if w20+ still falls easily, and
-  >   boss **mechanics** (regen/shield behaviors, ROADMAP "Boss variety") would harden late waves without
-  >   touching the HP-curve invariant at all.
+[bug] Completing a level doesn't reset "resume". You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower youre trying to click on and off.
 
 ## DONE
 
