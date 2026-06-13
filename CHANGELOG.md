@@ -3,6 +3,32 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.33.0 — 2026-06-13 — 💚 Regeneration (10th Mayhem wave modifier)
+
+**Type:** Content / balance (new Mayhem wave modifier; serves the recurring "too easy" feedback off the HP axis).
+
+**What:** Added a tenth Mayhem wave modifier — **💚 Regeneration** (`WAVE_MODS` pool 9 → 10, `cd-maps.js`).
+When it rolls on a wave, **every enemy in that wave (boss included) self-heals 2% of its max HP per
+second** while alive on the path. A tight green halo marks regenerating enemies (`cd-render.js`).
+
+**Why:** It's the first off-HP *difficulty* modifier (the existing pool had speed/count/HP/bounty/armor/
+tower-stat twists + friendly meteors, but nothing that pressures sustained kill-throughput). Regen
+punishes an under-built or marginal-DPS defense — stragglers patch themselves up and start leaking —
+without adding raw HP (the norm-enemy HP curve is already invariant-capped by test `[16]`, see CLAUDE.md).
+It rewards burst and is hard-countered by freeze (Frost towers / the Freeze ability **pause** the heal,
+exactly like the boss-regen archetype and the heal enemy) and by any tower that out-DPSes the 2%/s tick.
+
+**How:** `buildWave()` (cd-game.js) tags each enemy + the boss with `e.regen = true` under `modIs('regen')`
+(baked at spawn so concurrent waves keep their own mod — mirrors `armored`/`titans`). `update()`'s enemy
+loop (cd-update.js) heals tagged enemies: `e.hp = min(maxHp, hp + maxHp×0.02·dt)`, gated
+`e.regen && e.frozen<=0 && !e.dead`. Render draws a green ring. The `regen` tag rides the run-only enemy
+object (enemies are never persisted), so there's **no save/schema/economy impact**. Also appears in the
+seeded Daily Challenge's modifier rotation automatically (it's just another `WAVE_MODS` entry).
+
+**Tests:** Extended group `[46]` — `WAVE_MODS` includes `regen`; `buildWave` tags every enemy + boss only
+when the mod is on; a tagged enemy actually heals over time in `update()`; and a **frozen** regen enemy does
+NOT heal (freeze-pauses-it invariant). Full suite green via subagent; zero console errors.
+
 ## v1.32.1 — 2026-06-13 — 🩺 Health check (+ PWA cache-version fix)
 
 **Type:** Health check (every-6th-run maintenance pass — 5 normal runs since the v1.27.1 health

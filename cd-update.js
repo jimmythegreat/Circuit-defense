@@ -91,6 +91,11 @@ function update(dt) {
         if (Math.hypot(o.x-e.x, o.y-e.y) < 70) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.04 * dt);
       }
     }
+    // Regeneration wave mod (mayhem, v1.33.0): every tagged enemy self-heals 2%/s of its
+    // max HP while alive — pressures under-investment in DPS without adding raw HP (re: the
+    // recurring "too easy" feedback). Tagged at spawn in buildWave (run-only, never saved),
+    // so concurrent waves each keep their own mod; freeze pauses it (like heal/boss-regen).
+    if (e.regen && e.frozen <= 0 && !e.dead) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.02 * dt);
     // boss archetypes (v1.25.0): late bosses (w20+) carry a mechanic on top of HP —
     //   regen     : self-heal 1.2%/s of max HP (punishes under-investment)
     //   bulwark   : cycles a 2s damage-soak shield (×0.4 incoming) every ~8s

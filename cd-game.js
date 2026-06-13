@@ -156,6 +156,7 @@ function buildWave(w) {
     if (modIs('frenzy')) e.spd *= 1.35;
     if (modIs('goldrush')) e.bounty *= 2;
     if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
+    if (modIs('regen'))   e.regen = true;
     e.maxHp = e.hp;
     q.push(e);
   }
@@ -180,6 +181,7 @@ function buildWave(w) {
     if (modIs('goldrush')) boss.bounty *= 2;
     if (modIs('frenzy')) boss.spd *= 1.35;
     if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
+    if (modIs('regen'))   boss.regen = true;
     boss.maxHp = boss.hp;
     q.push(boss);
   }

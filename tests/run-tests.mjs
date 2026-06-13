@@ -2488,8 +2488,17 @@ async function main() {
 
       const hasArmored  = WAVE_MODS.some(m => m.id === 'armored');
       const hasBrownout = WAVE_MODS.some(m => m.id === 'brownout');
+      const hasRegen    = WAVE_MODS.some(m => m.id === 'regen');
 
       const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // REGENERATION — every enemy (and the boss) of the wave is tagged to self-heal.
+      setMod(null);
+      const plainTagged = buildWave(10).some(e => e.regen);
+      setMod('regen');
+      const regenWave = buildWave(10);
+      const regenNormTagged = regenWave.filter(e => e.kind === 'norm').every(e => e.regen === true);
+      const regenBossTagged = buildWave(10).find(e => e.kind === 'boss').regen === true;
 
       // ARMORED SURGE — every enemy (and the boss) gains flat armor on top of its base.
       setMod(null);
@@ -2514,13 +2523,37 @@ async function main() {
       setMod(null);
       const inertOff = Math.abs(effRate(t) - rateNormal) < 1e-9;
 
+      // A regen-tagged enemy actually heals over time in update() — and freeze pauses it.
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;   // no auto-start polluting `enemies`
+      const mk = (frozen) => ({ kind:'norm', hp:50, maxHp:100, spd:0, r:11, bounty:1, color:'#3fb950',
+        armor:0, gap:0, dist:0, slow:0, slowF:0.6, frozen, poison:null, flash:0, px:0, py:0, regen:true });
+      const heals = mk(0);
+      enemies.push(heals);
+      const hpBefore = heals.hp;
+      for (let i = 0; i < 60; i++) update(1/60);   // ~1s -> +~2 HP
+      const healedUp = heals.hp > hpBefore && heals.hp <= heals.maxHp;
+      // Frozen regen enemy does NOT heal (freeze pauses it, like boss-regen/heal).
+      enemies.length = 0;
+      const frozenE = mk(5);
+      enemies.push(frozenE);
+      const fBefore = frozenE.hp;
+      for (let i = 0; i < 60; i++) update(1/60);
+      const frozenNoHeal = Math.abs(frozenE.hp - fBefore) < 1e-6;
+      enemies.length = 0;
+
       waveMod = null;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { hasArmored, hasBrownout, armorAdds, bossArmorAdds, brownoutSlows, inertOff,
-               plainArmor: plainNorm.armor, armoredArmor: armoredNorm.armor };
+      return { hasArmored, hasBrownout, hasRegen, armorAdds, bossArmorAdds, brownoutSlows, inertOff,
+               plainArmor: plainNorm.armor, armoredArmor: armoredNorm.armor,
+               plainTagged, regenNormTagged, regenBossTagged, healedUp, frozenNoHeal };
     });
     check('WAVE_MODS includes Armored Surge', r.hasArmored);
     check('WAVE_MODS includes Brownout', r.hasBrownout);
+    check('WAVE_MODS includes Regeneration', r.hasRegen);
+    check('Regeneration tags every enemy + boss (and not when off)', !r.plainTagged && r.regenNormTagged && r.regenBossTagged);
+    check('Regeneration enemy self-heals over time', r.healedUp);
+    check('Frozen regen enemy does not heal (freeze pauses it)', r.frozenNoHeal);
     check('Armored Surge adds +8 armor to enemies at wave 10', r.armorAdds, `${r.plainArmor}->${r.armoredArmor}`);
     check('Armored Surge adds armor to the boss too', r.bossArmorAdds);
     check('Brownout slows tower fire-rate by 25%', r.brownoutSlows);

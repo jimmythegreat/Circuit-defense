@@ -353,6 +353,14 @@ function draw() {
       ctx.lineWidth = 1;
       ctx.stroke();
     }
+    // Regeneration wave-mod cue (v1.33.0): a tight green halo marks self-healing enemies.
+    if (e.regen) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(86,211,100,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     // boss archetype aura (v1.25.0): colour-codes the mechanic — green regen, red
     // summoner, blue bulwark. The bulwark ring flares bright+thick during its active
     // shield phase so the damage-soak window is readable at a glance.
