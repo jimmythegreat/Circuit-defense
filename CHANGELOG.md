@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.37.0 — 2026-06-13 — ⚡ Static Storm (11th Mayhem wave modifier — towers knocked offline)
+
+**Type:** Content (new Mayhem wave modifier; serves the recurring "too easy" feedback on a fresh axis — **tower uptime**, not enemy HP). Mayhem-only, run-only state, save-safe.
+
+**Why:** Difficulty has been pushed to the design ceiling on the HP axis (the norm-HP curve is invariant-capped by test `[16]`; the economy lever is near-exhausted — see FEEDBACK/ROADMAP). The existing tower-debuff mods only *scale* tower stats (Fog −20% range, Brownout +25% reload). Static Storm is the first mod that intermittently **removes** a tower from the fight, pressuring coverage redundancy and placement rather than raw stats. It's listed under ROADMAP "More wave modifiers" as the genuinely-new "EMP/stun (a tower offline for N seconds)" idea.
+
+**What:**
+- New `WAVE_MODS` entry (`cd-maps.js`) — `{ id:'emp', icon:'⚡', name:'Static Storm', desc:'Towers randomly knocked offline' }`. Pool **10 → 11**.
+- Striker logic in `update()` (`cd-update.js`): while the mod is active, an `empStrikeTimer` fires every **3.5s** and knocks one random **firing** tower offline (`t.empT = 2.2s`); buff/support towers are excluded (always immune). Each strike does a cyan burst + `SFX.zap()` + light shake.
+- Firing-loop gate (`cd-update.js`): `t.empT` decays every frame for all tower types; a firing tower with `empT > 0` skips its shot (`continue`). The timer decays unconditionally, so a tower always recovers even if the mod ends mid-strike.
+- `empStrikeTimer` global declared beside `meteorRainTimer` (`cd-maps.js`); seeded to `2.5` in `rollWaveMod()` (short grace before the first zap).
+- New `SFX.zap()` (`cd-core.js`) — a sharp electric crackle + buzzing tail.
+- Render (`cd-render.js`): an offline tower dims (translucent overlay) with a flickering cyan crackle ring + a ⚡ glyph above it.
+
+**Save-safety:** `empT` is **not** among the serialized tower fields in `saveRun()` (type/x/y/level/mode/spec/invested/dealt/kills), so it never persists; on resume towers default to online (`empT` undefined → falsy). Even a mid-strike quit would decay to 0 within ~2s of resuming. No new localStorage key, no schema/economy change.
+
+**Test evidence:** new group `[54]` (9 checks) — `WAVE_MODS` includes `emp`; an offline tower can't fire with a target in range; it fires again once back online; the storm actually disables a firing tower; the offline timer stays within the 2.2s duration; buff towers are immune; timers decay to 0 after the storm; nothing disabled when the mod is off; zero console errors. (Group `[46]`'s Mayhem god-tower drive also exercises the larger pool.) Full suite expected green. PWA `CACHE` (`sw.js`) bumped to `circuit-defense-v1.37.0` to match `GAME_VERSION` (test `[49]`).
+
 ## v1.36.0 — 2026-06-13 — 🏷️ Boss-bar mechanic badge (names the active archetype)
 
 **Type:** UX / readability polish (ROADMAP "Boss variety" follow-up: *a boss-bar badge naming the active mechanic*). Render-only — no gameplay/balance/economy/save impact.

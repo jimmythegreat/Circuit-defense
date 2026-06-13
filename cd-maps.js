@@ -154,9 +154,10 @@ const WAVE_MODS = [
   { id:'armored', icon:'🛡️', name:'Armored Surge', desc:'Enemies gain heavy armor' },
   { id:'brownout',icon:'🔌', name:'Brownout',       desc:'Towers fire 25% slower' },
   { id:'regen',   icon:'💚', name:'Regeneration',   desc:'Enemies self-heal over time' },
+  { id:'emp',     icon:'⚡', name:'Static Storm',   desc:'Towers randomly knocked offline' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
-let waveMod = null, meteorRainTimer = 0;
+let waveMod = null, meteorRainTimer = 0, empStrikeTimer = 0;
 function shiftWorld() {
   MAPS.mayhem.pts = genMayhemPath();
   buildPath();
@@ -198,6 +199,7 @@ function rollWaveMod() {
   }
   if (waveMod) {
     meteorRainTimer = 3;
+    empStrikeTimer = 2.5;   // Static Storm: short grace before the first tower is zapped offline
     addFloater(W/2, 110, `${waveMod.icon} ${waveMod.name}: ${waveMod.desc}`, '#ffd866', 18);
     SFX.perk();
   }

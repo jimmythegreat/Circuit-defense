@@ -94,11 +94,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       slower — completes the Surge/Fog/Brownout tower-stat trio). Then **💚 Regeneration** in **v1.33.0**
       (`regen`: every enemy + boss self-heals 2%/s of max HP, `e.regen` tagged in `buildWave`, ticked in
       `update()`, freeze pauses it; tight green halo in render) — the first *off-HP difficulty* mod,
-      pressuring DPS without raw HP (re: the recurring "too easy" feedback). Pool 7→9→**10**. Test [46].
+      pressuring DPS without raw HP (re: the recurring "too easy" feedback). Then **⚡ Static Storm** in
+      **v1.37.0** (`emp`: every 3.5s the storm knocks one random *firing* tower offline for 2.2s —
+      `t.empT` timer, buff towers immune, recovers on its own; cyan crackle ring + `SFX.zap()`) — the
+      genuinely-new "EMP/stun" idea, pressuring **tower uptime/coverage** on a fresh axis. Pool 7→9→10→**11**.
+      Test [46] + [54].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and genuinely new ones:
-      *EMP/stun* (a tower offline for N seconds), *bounty drought* (−50% gold this wave), or a
-      *path swap* (direction reverses).
+      *bounty drought* (−50% gold this wave), or a *path swap* (direction reverses).
 - [x] **A secret / easter-egg legendary perk** — shipped **v1.22.0**: 🩸 **Last Stand**,
       a comeback perk that gives ALL towers +3% damage per life lost this run (cap +60% at
       20 lives lost). Deliberately conditional — a flawless run gets +0%, so it can't make an

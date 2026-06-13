@@ -331,6 +331,24 @@ function draw() {
     for (let i = 0; i < t.level - 1; i++) {
       ctx.fillRect(t.x - 13 + i*4.5, t.y + 15, 3.2, 3.2);
     }
+    // Static Storm: tower knocked offline — dim it + a flickering electric crackle ring
+    if (t.empT > 0) {
+      ctx.beginPath();
+      ctx.ellipse(t.x, t.y, 16, 14, 0, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(13,17,23,0.5)';
+      ctx.fill();
+      const flick = 0.45 + 0.4 * Math.abs(Math.sin(performance.now()/60));
+      ctx.strokeStyle = `rgba(125,249,255,${flick.toFixed(3)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y - 4, 13, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(125,249,255,${flick.toFixed(3)})`;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡', t.x, t.y - 18);
+      ctx.textAlign = 'left';
+    }
   }
 
   // enemies

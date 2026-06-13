@@ -35,6 +35,24 @@ function update(dt) {
     }
   }
 
+  // Static Storm (mayhem modifier): periodically knock a random firing tower offline for a
+  // couple of seconds, so coverage gaps roam the board — pressures tower uptime/redundancy
+  // rather than enemy HP (the norm-HP curve is invariant-capped). Run-only `t.empT` timer.
+  if (waveActive && modIs('emp')) {
+    empStrikeTimer -= dt;
+    if (empStrikeTimer <= 0) {
+      empStrikeTimer = 3.5;
+      const online = towers.filter(t => t.type !== 'buff' && !(t.empT > 0));
+      if (online.length) {
+        const t = online[Math.floor(Math.random() * online.length)];
+        t.empT = 2.2;
+        shake = Math.max(shake, 5);
+        SFX.zap();
+        addExplosion(t.x, t.y, '#7df9ff', 12, 130);
+      }
+    }
+  }
+
   // spawning — every in-flight wave is a parallel spawner, so concurrent waves spawn
   // simultaneously. Drained spawners are removed once empty.
   if (waveActive) {
@@ -183,8 +201,10 @@ function update(dt) {
   // towers fire
   for (const t of towers) {
     t.flash = Math.max(0, t.flash - dt);
+    if (t.empT > 0) t.empT = Math.max(0, t.empT - dt);   // Static Storm: tick down offline timer (all tower types)
     if (t.type === 'buff') continue;
     t.cd -= dt;
+    if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire
     if (t.cd > 0) continue;
     const target = pickTarget(t);
     if (!target) continue;

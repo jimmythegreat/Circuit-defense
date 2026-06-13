@@ -3085,6 +3085,85 @@ async function main() {
     await page.close();
   }
 
+  // [54] Static Storm wave mod — towers randomly knocked offline (v1.37.0)
+  console.log('\n[54] Static Storm (EMP wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const hasEmp = WAVE_MODS.some(m => m.id === 'emp');
+
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      autoStartTimer = -1;
+
+      // A stationary dummy keeps the field non-empty so update()'s field-clear endWave()
+      // never fires mid-test (spd 0 / dist 0 → update parks it at the path start each frame).
+      const dummy = { kind:'norm', hp:1e9, maxHp:1e9, spd:0, r:11, x:0, y:0, dist:0,
+        slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, armor:0, bounty:1, color:'#3fb950' };
+
+      // --- GATE: an offline tower (empT>0) cannot fire even with a target in range ---
+      // Detected via target HP (timing-independent): a point-blank projectile resolves in the
+      // same update() tick, so projectiles.length is a poor signal — damage dealt is the truth.
+      towers.length = 0; projectiles.length = 0; enemies.length = 0;
+      spawners.length = 0; pendingSpawns.length = 0;
+      waveActive = true; waveMod = null;
+      enemies.push(dummy);
+      update(1/60);   // let update() park the dummy at its real on-path position
+      const gun = { type:'gun', x: dummy.x + 12, y: dummy.y, level:1, cd:0, flash:0, angle:0,
+        range:200, dmg:10, rate:1, mode:'first', spec:null, dealt:0, kills:0, empT:5 };
+      towers.push(gun);
+      const hpBeforeOffline = dummy.hp;
+      for (let i = 0; i < 18; i++) update(1/60);
+      const offlineNoFire = dummy.hp === hpBeforeOffline;   // offline tower dealt no damage
+      gun.empT = 0; gun.cd = 0;
+      const hpBeforeOnline = dummy.hp;
+      for (let i = 0; i < 18; i++) update(1/60);
+      const onlineFires = dummy.hp < hpBeforeOnline;         // back online → resumes firing
+
+      // --- STRIKER: with the mod active, random firing towers go offline; buff towers immune ---
+      towers.length = 0; projectiles.length = 0;
+      for (let i = 0; i < 6; i++) towers.push({ type:'gun', x:60+i*30, y:120, level:1, cd:0,
+        flash:0, angle:0, range:80, dmg:10, rate:1, mode:'first', spec:null, dealt:0, kills:0, empT:0 });
+      const buffT = { type:'buff', x:400, y:400, level:1, cd:0, flash:0, range:90, empT:0 };
+      towers.push(buffT);
+      waveMod = WAVE_MODS.find(m => m.id === 'emp');
+      empStrikeTimer = 0.05;
+      let anyZapped = false, buffZapped = false, maxEmpSeen = 0;
+      for (let i = 0; i < 480; i++) {   // ~8s → ≥2 strikes (one every 3.5s)
+        update(1/60);
+        for (const t of towers) if (t.type !== 'buff' && t.empT > 0) { anyZapped = true; maxEmpSeen = Math.max(maxEmpSeen, t.empT); }
+        if (buffT.empT > 0) buffZapped = true;
+      }
+      const buffImmune = !buffZapped;
+
+      // --- DECAY: once the storm clears, offline timers tick back to 0 (towers recover) ---
+      waveMod = null;
+      for (let i = 0; i < 200; i++) update(1/60);   // >2.2s
+      const allCleared = towers.every(t => !(t.empT > 0));
+
+      // --- INERT: nothing is disabled when the mod is off from the start ---
+      towers.forEach(t => t.empT = 0);
+      empStrikeTimer = 0.05; waveMod = null;
+      let zappedWhileOff = false;
+      for (let i = 0; i < 300; i++) { update(1/60); if (towers.some(t => t.empT > 0)) zappedWhileOff = true; }
+      const inertOff = !zappedWhileOff;
+
+      enemies.length = 0; waveActive = false; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasEmp, offlineNoFire, onlineFires, anyZapped, maxEmpSeen, buffImmune, allCleared, inertOff };
+    });
+    check('WAVE_MODS includes Static Storm (emp)', r.hasEmp);
+    check('offline tower (empT>0) cannot fire with a target in range', r.offlineNoFire);
+    check('tower fires again once back online', r.onlineFires);
+    check('Static Storm knocks a firing tower offline', r.anyZapped);
+    check('disabled timer stays within the 2.2s strike duration', r.maxEmpSeen > 0 && r.maxEmpSeen <= 2.2 + 1e-6, `max=${r.maxEmpSeen}`);
+    check('buff towers are immune to Static Storm', r.buffImmune);
+    check('offline timers decay to 0 after the storm clears', r.allCleared);
+    check('no tower disabled when the mod is off', r.inertOff);
+    check('no console errors during Static Storm test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
