@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.40.1 — 2026-06-13 — 🩺 Health check — all green (543/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. Resets the 5-run counter (5 normal runs since v1.37.1: v1.38.0, v1.38.1, v1.39.0, v1.39.1, v1.40.0).
+
+**Integrity spot-checks — all green:**
+- **Test suite:** 543 checks across 58 groups (`[0]`–`[58]`), **0 failures**, exit 0.
+- **`file://` playability:** classic `<script src>` tags in dependency order (cd-core → maps → defs → state → game → update → render), **no `type="module"`**, inline SVG favicon, all paths relative, no build step. SW registration is guarded to http/https (`location.protocol`), so double-click play + the headless harness are unaffected.
+- **Old-save migration:** `loadMeta()` defaults `achievements`/`stats`/`stats.bestCombo` when absent; `loadRun()` merges `perkState` via `Object.assign(freshPerkState(), …)` and `abilityCd` via defaults — minimal old `cd_save`/`cd_meta` load cleanly. `saveRun()`'s write is `try/catch`-wrapped (storage-quota safe).
+- **Version sync:** `GAME_VERSION` = `sw.js` CACHE = CHANGELOG top = What's New top = **v1.40.1** (test `[49]` enforces SW===version).
+
+**Docs coherence — verified against code, no drift:** 8 towers, 21 talents, **12 Mayhem wave modifiers** (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/meteors), 13 achievements, **5 boss archetypes** (`BOSS_ARCHETYPES = ['regen','summoner','bulwark','enrager','teleporter']`, cycle `(w/5−4)%5` from w20+), boss HP slope `14 + w*0.6`, booster aura range 45. CLAUDE.md formulas all match. Deploy workflow copies all shipped files (index/tower-defense.html/css/cd-*.js + manifest/sw.js/icon.svg).
+
+**Refactor audit:** all game files well under the ~1500-line cap (largest: cd-update.js 850, cd-render.js 698, cd-game.js 611). No dead code or domain-bleed found. The dev-only test harness `tests/run-tests.mjs` is now **3,424 lines / 58 groups / 519 `check()` sites** (was logged stale at 3,180/54/505) — still the largest single file and the standing `[refactor]` candidate (split per-group); low priority (suite ~30s green).
+
+**Table-stakes audit:** still-open items, in priority order — **gamepad support** → **bigger HTML tap targets on small phones**. Everything else done (PWA install, menu + draft keyboard a11y, colorblind aid, document metadata, reduced-motion, volume slider, responsive layout, mobile board sizing, touch/pointer, high-DPI). ROADMAP table-stakes header refreshed with this run.
+
+**Findings → ROADMAP** (stale test counts corrected, table-stakes audit dated v1.40.1). No code-behavior change this run beyond the version/cache bump.
+
 ## v1.40.0 — 2026-06-13 — 🟣 Teleporter — 5th boss archetype (blink + brief intangibility, w20+, all modes)
 
 **Type:** Content / late-game difficulty. Minor bump. **ROADMAP** "Boss variety" follow-up (the explicitly-listed open item: *"a 5th archetype (teleporter)"*). Continues the recurring "too easy" thread by hardening deep bosses through **behaviour**, not HP (the norm-enemy HP curve is invariant-capped by test `[16]`; archetypes are the off-HP lever).
