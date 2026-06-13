@@ -155,6 +155,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [~] **Start-menu revamp** (owner FEEDBACK, `[low priority]`: "main interface is getting clunky …
+      buttons on the bottom row are huge compared to everything else … revamp the whole starting
+      menu"). **First slice shipped v1.39.1:** the single flex row of ten equally-large 17px buttons
+      was split into a two-tier hierarchy — a prominent `.startPlay` row (▶ PLAY 18px + ⏯ Resume +
+      🗓 Daily) over a smaller, muted `.startUtil` toolbar (Talents/Achievements/Records/What's New/
+      Settings/Reset at 13px). Markup + CSS only, save-safe, desktop & mobile verified. Test [58].
+      **Remaining (the broader "revamp"):** the MODE/MAP/DIFFICULTY option blocks + the title/version
+      area could get a cleaner visual treatment (cards, grouping, spacing); consider a panel-style
+      layout or a left rail for the utility buttons; possibly an animated PLAY sheen (see "Idle
+      start-screen sheen" below). FEEDBACK item stays PENDING (as-written, per owner pref) until the
+      fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
       to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`

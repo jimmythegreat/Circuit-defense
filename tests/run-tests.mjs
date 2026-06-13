@@ -3336,6 +3336,54 @@ async function main() {
     await page.close();
   }
 
+  // [58] Start-menu button hierarchy — primary play row vs smaller utility toolbar (v1.39.1)
+  console.log('\n[58] Start-menu button hierarchy (FEEDBACK menu polish)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    // Desktop viewport — the ≤920px mobile !important compacting must NOT apply, so
+    // the two-tier hierarchy (big PLAY vs small utility buttons) is visible.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const fs = sel => parseFloat(getComputedStyle(document.querySelector(sel)).fontSize);
+      const playRow = document.querySelector('.startPlay');
+      const utilRow = document.querySelector('.startUtil');
+      const playBtn = document.querySelector('.startPlay .ctl.play');
+      const utilBtn = document.querySelector('.startUtil .ctl');
+      const startRight = Math.round(document.getElementById('startScreen').getBoundingClientRect().right);
+      // Every id/onclick the rest of the code depends on must survive the restructure.
+      const ids = ['resumeBtn','dailyBtn','resetBtn','chipsBtn','achBtn'].every(id => document.getElementById(id));
+      const talentOpener = !!document.querySelector('#startScreen [onclick="openTalents()"]');
+      return {
+        twoRows: !!(playRow && utilRow),
+        playBigger: fs('.startPlay .ctl.play') > fs('.startUtil .ctl'),
+        playFs: fs('.startPlay .ctl.play'), utilFs: fs('.startUtil .ctl'),
+        playAboveUtil: Math.round(playRow.getBoundingClientRect().top) < Math.round(utilRow.getBoundingClientRect().top),
+        utilFitsInStart: Math.round(utilRow.getBoundingClientRect().right) <= startRight + 1,
+        ids, talentOpener,
+      };
+    });
+    // Phone viewport — restructured rows still fit with no horizontal overflow.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const m = await page.evaluate(() => {
+      const innerW = window.innerWidth;
+      const lastRow = document.querySelector('#startScreen > div:last-child');
+      return {
+        noOverflow: document.documentElement.scrollWidth <= innerW + 1,
+        lastRowFits: Math.round(lastRow.getBoundingClientRect().right) <= innerW,
+      };
+    });
+    check('start screen has a primary play row + a utility toolbar', d.twoRows);
+    check('PLAY button is larger than a utility button', d.playBigger, `play=${d.playFs} util=${d.utilFs}`);
+    check('utility toolbar sits below the play row', d.playAboveUtil);
+    check('utility toolbar fits inside the start screen', d.utilFitsInStart);
+    check('load-bearing button ids survived the restructure', d.ids);
+    check('Talents opener (onclick) preserved for a11y lookup', d.talentOpener);
+    check('phone: no horizontal overflow with the new two-row menu', m.noOverflow);
+    check('phone: last menu row fits inside the viewport', m.lastRowFits);
+    check('no console errors during start-menu hierarchy test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

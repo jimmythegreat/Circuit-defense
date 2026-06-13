@@ -180,6 +180,15 @@
   .ovSection.ach { color: #e3b341; font-weight: bold; font-size: 14px; }
   #startScreen h2 { font-size: 32px; margin-bottom: 4px; color: #58a6ff; text-shadow: 0 0 20px rgba(88,166,255,.6); }
   .optRow { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
+  /* Start-screen button hierarchy (v1.39.1) — primary "launch a run" actions stay
+     prominent; secondary menu/utility buttons recede into a smaller toolbar so the
+     bottom row no longer reads as a wall of equally-huge buttons. */
+  .startPlay { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+  .startPlay .ctl { font-size: 17px; padding: 11px 22px; }
+  .startPlay .ctl.play { font-size: 18px; padding: 12px 40px; letter-spacing: 1px; }
+  .startUtil { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 780px; }
+  .startUtil .ctl { font-size: 13px; padding: 7px 14px; font-weight: 600; opacity: .9; }
+  .startUtil .ctl:hover { opacity: 1; }
   .lvlBtn {
     width: 56px; padding: 7px 0; background: #161b22; border: 2px solid #30363d;
     border-radius: 8px; color: #e6edf3; cursor: pointer; font-size: 13px; font-weight: bold;

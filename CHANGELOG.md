@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.39.1 — 2026-06-13 — 🎛️ Start-menu button hierarchy (FEEDBACK "bottom-row buttons huge / menu clunky", first slice)
+
+**Type:** UX / layout polish. Patch bump. **From FEEDBACK** (the one PENDING item, marked `[low priority]`): *"The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu."* A full menu revamp is too big for one run; this is the **first coherent slice** — fixing the concrete complaint that the bottom-row buttons all read equally huge.
+
+**What changed:** the start screen's single flex row of **ten equally-large 17px buttons** (PLAY, Resume, Daily, Talents, Achievements, Records, What's New, Settings, Reset All) is split into a **two-tier hierarchy**:
+- **`.startPlay`** — a prominent primary row for the actions that *launch a run*: ▶ PLAY (18px, extra-wide), ⏯ Resume (shown only when a save exists), 🗓 Daily Challenge.
+- **`.startUtil`** — a smaller, slightly-muted (opacity .9) toolbar below for the menu/utility buttons (🧬 Talents, 🏅 Achievements, 🏆 Records, ✨ What's New, ⚙ Settings, 🗑 Reset All), at 13px / 7px-14px padding so they recede as "extras" instead of competing with PLAY.
+
+**Implementation** (markup + CSS only, save-safe, behaviour-identical):
+- `tower-defense.html` — the one button `<div>` became two (`.startPlay` + `.startUtil`); removed the per-button inline `font-size`/`padding` (now driven by the new CSS classes), kept the inline background colours and all `id`s/`onclick`s (`resumeBtn`/`dailyBtn`/`resetBtn`/`chipsBtn`/`achBtn` unchanged, so `renderStartScreen()`'s `resumeBtn` display toggle + the a11y opener lookup still work).
+- `tower-defense.css` — new `.startPlay` / `.startUtil` rules near `.optRow`. `.startUtil` `max-width:780px` keeps the toolbar on one tidy row on desktop while still wrapping on mobile. The existing `@media (max-width:920px)` `#startScreen .ctl { …!important }` rule still compacts both rows uniformly on phones (unchanged).
+
+**Why this way:** purely visual hierarchy — no JS logic, no new localStorage keys, no economy/balance/save-schema impact. Desktop and mobile both verified in-preview (PLAY 18px / util 13px, two distinct rows; one util row on desktop, no horizontal overflow at 390px, last row fits the viewport). The broader "revamp the whole starting menu" stays in FEEDBACK PENDING as a follow-up.
+
+**Tests:** new group `[58]` asserts the two-row structure exists, PLAY is larger than a utility button, the utility toolbar fits inside the start screen, and all the load-bearing button `id`s survive. Full suite green.
+
+---
+
 ## v1.39.0 — 2026-06-13 — 🏜️ Bounty Drought (12th Mayhem wave modifier — economy denial)
 
 **Type:** Content (new Mayhem wave modifier). Minor bump. **Self-directed** (ROADMAP "More wave modifiers" → *bounty drought (−50% gold this wave)*; FEEDBACK only had a low-priority menu-revamp item).
