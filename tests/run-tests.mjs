@@ -3830,6 +3830,72 @@ async function main() {
     await page.close();
   }
 
+  // [65] Wildcard legendary perk — resolves to a random legendary effect (v1.48.0)
+  console.log('\n[65] Wildcard random-legendary perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      autoWave = false;
+
+      const def = PERKS.find(p => p.id === 'wildcard');
+      const inPool = !!def && def.rarity === 'legendary';
+      const repeatable = REPEATABLE.includes('wildcard');
+
+      // resolveWildcard() always returns a real, non-wildcard perk (never null/itself).
+      let resolvedAlwaysLegendary = true, neverItself = true, neverNull = true;
+      for (let i = 0; i < 40; i++) {
+        const g = resolveWildcard();
+        if (!g) { neverNull = false; break; }
+        if (g.id === 'wildcard') neverItself = false;
+        if (g.rarity !== 'legendary') resolvedAlwaysLegendary = false;
+      }
+
+      // Picking Wildcard pushes the RESOLVED perk to runPerks (a real id, not 'wildcard'),
+      // so the perk row + resume re-apply work. Wildcard itself is never stored.
+      runPerks.length = 0;
+      const before = runPerks.length;
+      pickPerk(def);
+      const added = runPerks.length - before;
+      const stored = runPerks[runPerks.length - 1];
+      const storedIsRealPerk = !!PERKS.find(p => p.id === stored.id) && stored.id !== 'wildcard';
+      const wildcardNotStored = !runPerks.some(p => p.id === 'wildcard');
+
+      // Save/resume round-trip: the resolved perk persists in runPerks; resolving again on
+      // load is NOT triggered (loadRun copies runPerks/perkState verbatim).
+      saveRun();
+      const savedPerks = JSON.parse(localStorage.getItem('cd_save')).runPerks.map(p => p.id);
+      runPerks.length = 0;
+      loadRun();
+      const restoredSameId = runPerks.length === 1 && runPerks[0].id === stored.id;
+
+      // Fallback: with every legendary already taken, resolveWildcard still returns a perk.
+      runPerks.length = 0;
+      for (const p of PERKS) if (p.rarity === 'legendary' && p.id !== 'wildcard' && !REPEATABLE.includes(p.id))
+        runPerks.push({ id: p.id, icon: p.icon, name: p.name, rarity: p.rarity });
+      const fallback = resolveWildcard();
+      const fallbackOk = !!fallback && fallback.id !== 'wildcard';
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inPool, repeatable, resolvedAlwaysLegendary, neverItself, neverNull,
+        added, storedIsRealPerk, wildcardNotStored, savedPerks, restoredSameId, fallbackOk };
+    });
+    check('Wildcard is a legendary perk in the pool', r.inPool);
+    check('Wildcard is repeatable', r.repeatable);
+    check('resolveWildcard() never returns null', r.neverNull);
+    check('resolveWildcard() never returns wildcard itself', r.neverItself);
+    check('resolveWildcard() resolves to a legendary while some remain', r.resolvedAlwaysLegendary);
+    check('picking Wildcard adds exactly one perk to runPerks', r.added === 1, `added=${r.added}`);
+    check('the stored perk is a real, non-wildcard perk', r.storedIsRealPerk, JSON.stringify(r.savedPerks));
+    check('wildcard itself is never stored in runPerks', r.wildcardNotStored);
+    check('save/resume keeps the resolved perk id (no re-roll on load)', r.restoredSameId);
+    check('resolveWildcard() still returns a perk when all non-repeatable legendaries are taken', r.fallbackOk);
+    check('no console errors during Wildcard test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -122,7 +122,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       coverage loss is a real cost, so it's "too easy"-safe. Test [51]. **Tuning watch:** on
       chokepoint-heavy maps the range cost is partly mitigated, so it can skew toward a near-free
       +50% there — if it ever reads as too strong, nudge the damage (`×1.5 → ×1.4`) or deepen the
-      range cut (`×0.7 → ×0.65`), ≤25%/run. Still open: *a true random "Wildcard" perk*, and maybe
+      range cut (`×0.7 → ×0.65`), ≤25%/run. ✅ **Wildcard shipped v1.48.0** — 🎲 **Wildcard**
+      (legendary, REPEATABLE): a gamble perk that resolves to a **random legendary effect** on pick
+      (`resolveWildcard()` + a `pickPerk` branch in cd-defs.js; reveals what you rolled). Balance-neutral
+      (a legendary → a legendary, not power creep) and save-safe (the *resolved* perk id is stored in
+      `runPerks`/`perkState`, never `'wildcard'`, so resume can't re-roll). Test [65]. Still open: maybe
       a *hidden unlock condition* for a secret legendary.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes.

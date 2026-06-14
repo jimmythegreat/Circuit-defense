@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.48.0 — 2026-06-14 — 🎲 Wildcard — gamble legendary perk (random legendary effect)
+
+**Type:** Content (new run-perk). Minor bump. Ships the ROADMAP "a true random 'Wildcard' perk" idea (under Content & variety → "secret / easter-egg legendary perk" follow-ups). Additive, save-safe, **balance-neutral**, no economy impact.
+
+**What & why:**
+
+- **🎲 Wildcard** (legendary, `REPEATABLE`) — a gamble perk: picking it from a draft instantly **resolves into a random legendary perk's effect** for the rest of the run, with an on-board reveal floater (`🎲 → 💎 Diamond Core!`). Owner likes surprises / "a weird legendary perk"; this adds replay variety without power creep — since you'd be drafting a legendary card either way, average power is unchanged (no per-number stat is raised, so the ≤25%/number rule isn't even engaged).
+- **Resolution** — `resolveWildcard()` (cd-defs.js) prefers an un-taken legendary (excluding wildcard itself; `REPEATABLE` legendaries like Ascension stay eligible), and falls back to *any* eligible perk if every legendary is somehow held, so it's never a dud and can never resolve to itself (no recursion). `pickPerk()` special-cases the wildcard id: it applies the **resolved** perk's effect to `perkState` and pushes the **resolved** perk (a real perk id, not `'wildcard'`) into `runPerks`.
+- **Save-safe** — because the resolved perk's effect is baked into `perkState` (persisted whole) and the resolved perk id is what lands in `runPerks` (also persisted), resume is correct: `loadRun()` copies `runPerks`/`perkState` verbatim and never re-calls `apply()`, so the randomness **cannot re-roll on reload**. The `'wildcard'` id is never stored, so the perk-row icon + tooltip lookups resolve normally. No new localStorage key, no schema change; old saves load unaffected. The wildcard's own `apply` is a deliberate no-op.
+
+**Test evidence:** new group `[65]` (11 checks): wildcard is a legendary + repeatable in the pool; `resolveWildcard()` never returns null / never returns itself / resolves to a legendary while some remain; picking it adds exactly one perk to `runPerks` that is a real non-wildcard perk; wildcard is never stored; save→reload keeps the resolved id (no re-roll); fallback returns a perk when all non-repeatable legendaries are taken; zero console errors. Full suite **620 passed / 0 failed**. Verified live over http (v1.48.0, six picks resolved to chronolord/midas/titanslayer/ascension/geese/laststand, wildcard never stored, no console errors). SW cache bumped to `circuit-defense-v1.48.0` (test [49]).
+
 ## v1.47.0 — 2026-06-13 — 🗓 Daily Challenge preview + 📆 Streak Keeper achievement
 
 **Type:** Content / UX (Daily Challenge polish + a new achievement). Minor bump. Two ROADMAP follow-ups under "Daily challenge seed" — *"a small 'today's modifiers' preview on the button"* and *"a streak achievement badge (e.g. 7-day streak)"* — done together (same Daily domain). Additive, no save/economy/balance impact.

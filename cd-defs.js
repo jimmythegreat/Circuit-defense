@@ -217,7 +217,7 @@ function castMeteor(x, y) {
 }
 
 // ================= Run perks (draft every 5 waves) =================
-const REPEATABLE = ['reinforce','chest','vault','guardian','ascension'];
+const REPEATABLE = ['reinforce','chest','vault','guardian','ascension','wildcard'];
 const PERKS = [
   // ——— common ———
   { id:'sharp',   rarity:'common', icon:'🎯', name:'Sharpshooter',  desc:'Snipers +30% damage',          apply:s=>s.typeDmg.sniper = (s.typeDmg.sniper||1)*1.3 },
@@ -256,6 +256,12 @@ const PERKS = [
   // reach. Deliberately NOT pure power creep (re: "too easy"): −30% range meaningfully cuts
   // coverage and demands careful placement, so it's a meaningful choice, not a free upgrade.
   { id:'glasscannon',rarity:'legendary',icon:'🔮', name:'Glass Cannon',   desc:'+50% tower damage, but −30% range',        apply:s=>s.glassCannon = true },
+  // Wildcard (v1.48.0): a gamble legendary — resolves to a RANDOM legendary effect on pick.
+  // Balance-neutral (you'd have taken a legendary anyway) but adds surprise/replay variety;
+  // REPEATABLE so it can come up again. Its own apply is a no-op — pickPerk() special-cases it,
+  // rolls resolveWildcard(), applies the RESOLVED perk's effect and stores THAT in runPerks (a
+  // real perk id), so resume re-applies correctly and the perk row shows what you actually got.
+  { id:'wildcard', rarity:'legendary', icon:'🎲', name:'Wildcard',        desc:'Gain a random legendary perk',             apply:()=>{} },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -319,9 +325,29 @@ function openDraft() {
   const firstCard = cards.firstElementChild;
   if (firstCard) firstCard.focus();
 }
+// Pick a random legendary effect for the Wildcard perk (v1.48.0). Prefers an un-taken
+// legendary (excluding wildcard itself; REPEATABLE legendaries stay eligible); if every
+// legendary is already held it falls back to ANY eligible perk so a Wildcard is never a dud.
+function resolveWildcard() {
+  const taken = new Set(runPerks.map(p => p.id));
+  const eligible = p => p.id !== 'wildcard' && (!taken.has(p.id) || REPEATABLE.includes(p.id));
+  let pool = PERKS.filter(p => p.rarity === 'legendary' && eligible(p));
+  if (!pool.length) pool = PERKS.filter(eligible);
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function pickPerk(p) {
-  p.apply(perkState);
-  runPerks.push({id: p.id, icon: p.icon, name: p.name, rarity: p.rarity});
+  if (p.id === 'wildcard') {
+    const g = resolveWildcard();
+    if (g) {
+      g.apply(perkState);
+      runPerks.push({id: g.id, icon: g.icon, name: g.name, rarity: g.rarity});
+      addFloater(W/2, 120, `🎲 → ${g.icon} ${g.name}!`, '#ffd866', 20);
+    }
+  } else {
+    p.apply(perkState);
+    runPerks.push({id: p.id, icon: p.icon, name: p.name, rarity: p.rarity});
+  }
   if (p.rarity === 'legendary') { shake = Math.max(shake, 10); SFX.win(); }
   draftOpen = false;
   document.getElementById('draftModal').style.display = 'none';
