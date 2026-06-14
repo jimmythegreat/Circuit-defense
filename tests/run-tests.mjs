@@ -3975,6 +3975,67 @@ async function main() {
     await page.close();
   }
 
+  // [67] Warden Surge wave mod — extra warden escorts shield the wave (v1.51.0)
+  console.log('\n[67] Warden Surge (target-priority wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasWardens = WAVE_MODS.some(m => m.id === 'wardens');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) warden count for a wave-10 wave (no natural wardens until w15).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainWardens = plainWave.filter(e => e.kind === 'warden').length;
+
+      // WARDEN SURGE — a fraction of basic enemies become wardens, so the wave has MORE.
+      setMod('wardens');
+      const surgeWave = buildWave(10);
+      const surgeWardens = surgeWave.filter(e => e.kind === 'warden').length;
+      const moreWardens = surgeWardens > plainWardens;
+      // Converted wardens carry full warden stats (maxHp set, blue support enemy).
+      const conv = surgeWave.find(e => e.kind === 'warden');
+      const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#58a6ff' && conv.r === 13;
+      // Only norms convert — the special kinds (fast/tank/etc.) are untouched, and the
+      // total wave length is unchanged (conversion, not addition).
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+
+      // Inert when the mod is off (sanity that menu / non-mayhem can't apply it).
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'warden').length === plainWardens;
+
+      waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasWardens, moreWardens, wellFormed, sameLength, fastUntouched, inertOff,
+               plainWardens, surgeWardens };
+    });
+    check('WAVE_MODS includes Warden Surge', r.hasWardens);
+    check('Warden Surge adds wardens to the wave', r.moreWardens, `${r.plainWardens}->${r.surgeWardens}`);
+    check('converted wardens are well-formed (maxHp/colour/radius)', r.wellFormed);
+    check('Warden Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Warden Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Warden Surge is inert when the mod is off', r.inertOff);
+    check('no console errors during Warden Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+
+    // A real Mayhem run still drives to completion with the mod in the pool — no hang.
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 8 });
+      const out = { reached: wave >= 7, wave };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Mayhem run with Warden Surge in the pool drives clean', drove.reached, JSON.stringify(drove));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

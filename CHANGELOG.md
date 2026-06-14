@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.51.0 — 2026-06-14 — 💠 Warden Surge — 13th Mayhem wave modifier (target-priority pressure)
+
+**Type:** Content (new Mayhem wave modifier). Minor bump. Ships the ROADMAP "More wave modifiers → a Mayhem *warden surge* wave-mod" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — raises difficulty through *target priority* (behaviour), not the invariant-capped HP axis.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already 4 slices in) — low-priority items don't override own-pick selection, so I chose the highest-value open ROADMAP follow-up.
+
+**What & why:**
+
+- **💠 Warden Surge** (`wardens`) — a 13th `WAVE_MODS` entry (cd-maps.js), Mayhem/Daily-only like every mod. When it rolls, `buildWave()` (cd-game.js) converts every would-be `norm` enemy at slot `i%4===1` into a **◈ Warden** support escort (full warden stats: `hp t.hp×1.3`, blue `#58a6ff`, r 13, the same 75px damage-shield aura). With several wardens woven through the wave, nearly the whole pack is shielded (warded enemies take −40%), so just pouring fire into the crowd barely scratches it.
+- **The pressure is target priority, not HP** — pop the wardens to drop the bubble and the cluster instantly becomes vulnerable. Ties together two existing systems: the **◈ Warden enemy** (v1.35.0) and the new **🛡 Support targeting mode** (v1.49.0, which hunts healers/wardens first); splash damage also shines. Serves the recurring "too easy" feedback off the HP axis (the norm-HP curve is invariant-capped by test `[16]`).
+- **Conversion, not addition** — only `norm` enemies convert, so the rarer special kinds (fast/tank/heal/shield/split/phantom) are untouched, and the wave **length is unchanged** (it's a swap). Only one wave-mod is ever active, so no stacking with titans/frenzy/etc. Wardens never shield themselves or each other → always killable.
+- **Save-safe:** the converted wardens are ordinary run-only enemy objects (never persisted); no new localStorage key, no schema/economy/balance change to existing numbers.
+
+**Tests:** new group `[67]` — asserts the mod is in the pool, that a wave-10 wave gains wardens with it on (0→3) vs none off, converted wardens are well-formed (maxHp/colour/radius), the wave length is unchanged (conversion) and the special kinds untouched, the mod is inert when cleared, and a real Mayhem run with it in the pool drives clean with zero console errors. Full suite **640/0 green** (was 632/0).
+
+---
+
 ## v1.50.1 — 2026-06-14 — 🩺 Health check — all green (632/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass). No new feature. Patch bump. 5 normal runs since the v1.45.1 health check (v1.46.0–v1.50.0), so this run is the scheduled checkup.

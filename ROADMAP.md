@@ -50,7 +50,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       🛡 **Support** targeting mode (`pickTarget()` `case 'support'` in cd-update.js; `MODES`/`MODE_ICON`/
       `SUPPORT_KINDS` in cd-defs.js) makes a tower prioritise heal/warden aura enemies (pop the support
       → un-buff the cluster); falls back to 'first' with none in range. Save-safe (mode already round-trips).
-      Test [66]. **Follow-up still open:** *a Mayhem "warden surge" wave-mod* (extra wardens).
+      Test [66]. ✅ **Mayhem "warden surge" wave-mod shipped v1.51.0** — 💠 Warden Surge converts
+      a fraction of basic enemies (slot `i%4===1`, norm-only) into ◈ Warden escorts so the wave is
+      densely shielded; pressures target priority (pop the wardens → un-shield the cluster), pairs with
+      the Support targeting mode. Conversion not addition (wave length unchanged), run-only. Test [67].
 - [x] **New enemy type: "phantom"** — shipped v1.9.0. Teal blinker from wave 13+;
       teleports 58px forward every ~2s and is intangible (untargetable + immune)
       for 0.35s mid-blink, punishing slow single-target towers. Frost/freeze pauses
@@ -109,7 +112,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       **🏜️ Bounty Drought** in **v1.39.0** (`drought`: every enemy + boss pays **50% less** gold — the
       mirror of `goldrush` and the **first economy-*denial* mod**, pressuring the build on a fresh axis
       (can't farm out of trouble); one line each in `buildWave`'s enemy loop + boss block, baked into
-      `e.bounty`/`boss.bounty` at spawn). Pool 7→9→10→11→**12**. Test [46] + [54] + [57].
+      `e.bounty`/`boss.bounty` at spawn). Then **💠 Warden Surge** in **v1.51.0** (`wardens`: converts a
+      fraction of would-be basic enemies into ◈ Warden support escorts — densely shields the wave, pressuring
+      **target priority** off the HP axis; ties together the Warden enemy + the v1.49.0 Support targeting mode;
+      conversion-not-addition so wave length is unchanged; run-only). Pool 7→9→10→11→12→**13**.
+      Test [46] + [54] + [57] + [67].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).

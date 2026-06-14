@@ -166,6 +166,11 @@ function buildWave(w) {
     if (w >= 11 && i % 10 === 9) e = { kind:'split', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*1.5), color:'#e3b341', armor:0, gap:0.9 };
     if (w >= 13 && i % 6 === 5)  e = { kind:'phantom', hp:t.hp*0.9, spd:t.speed*1.15, r:10, bounty:Math.ceil(t.bounty*1.8), color:'#39d0d8', armor:0, gap:0.6 };
     if (w >= 15 && i % 11 === 10) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
+    // Warden Surge (Mayhem): convert a fraction of would-be basic enemies into warden
+    // escorts so the wave is densely shielded — pressures TARGET PRIORITY (pop the
+    // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
+    // overrides the rarer special kinds above; one mod is ever active so no stacking.
+    if (modIs('wardens') && e.kind === 'norm' && i % 4 === 1) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
