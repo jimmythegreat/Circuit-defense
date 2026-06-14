@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.52.0 — 2026-06-14 — 🔵 Disruptor — 7th boss archetype (EMPs your towers, w20+)
+
+**Type:** Content (new boss archetype). Minor bump. Ships the ROADMAP "Boss variety → a 7th archetype" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — hardens the late game by pressuring **tower uptime/coverage** (behaviour), not the invariant-capped HP axis.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. Health-check counter: 1 entry (v1.51.0) since the last health check (v1.50.1) → normal run. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already 4 slices in) — low-priority items don't override own-pick selection, so I chose the highest-value open ROADMAP follow-up serving the recurring "too easy" feedback.
+
+**What & why:**
+
+- **🔵 Disruptor** (`bossType:'disruptor'`) — a 7th entry in `BOSS_ARCHETYPES` (cd-game.js). From wave 20+ each every-5th-wave boss carries a mechanic, cycling by boss number `(w/5−4) % BOSS_ARCHETYPES.length`; the Disruptor lands at index 6 → first appears at **w50** (then w85…), and the cycle now runs regen → summoner → bulwark → enrager → teleporter → berserker → **disruptor** (w55 wraps to regen). Early/tutorial bosses (w5/10/15, campaign L1–5 finals) stay vanilla.
+- **Mechanic:** ticked in `update()`'s gated boss block (cd-update.js, `e.kind==='boss' && e.bossType && e.frozen<=0`). Every ~4s (`empPulseCd`, seeded 3) it knocks the **nearest** firing tower within 150px **offline** by setting `t.empT = 2.2` — **reusing the Static Storm `empT` infrastructure** (the firing-skip + per-frame decay + render dim are already general, not mod-gated). A cyan crackle ring + ⚡ already draw over any `empT>0` tower. Fires `SFX.zap()` + a cyan burst on the tower and the boss + a small shake.
+- **Bounded & fair:** one tower per pulse (a coverage dead-zone *roams* with the boss rather than a board-wide blackout); **buff/support towers are immune** (skipped, like the emp wave mod); **freeze pauses** the pulse (it's in the gated block); and the silenced tower **always recovers on its own** (empT decays unconditionally), even if the boss dies mid-pulse — so a tower can never get stuck offline. Rewards redundant overlapping fire over leaning on one super-tower at a chokepoint.
+- **Render** (cd-render.js): a **cyan** archetype aura ring (`125,249,255`) + a **DISRUPTOR** boss-bar badge (`bossMechanicBadge()`), colour-matched.
+
+**Save-safety:** all fields (`bossType`, `empPulseCd`, the towers' `empT`) are **run-only and lazily initialised** — enemies are never persisted, and `empT` is not a serialized tower field in `saveRun()` (and decays unconditionally), so there's zero save/schema/migration impact. No new localStorage key, no economy/balance change.
+
+**Tests:** group `[45]` extended — rotation now asserts w50→disruptor / w55→regen; a new behaviour block confirms the Disruptor knocks the nearest tower offline (`empT>0`), that freezing it pauses the pulse, and that a buff tower is never silenced; `disruptor` added to the killable sweep. Group `[53]` asserts the DISRUPTOR badge (cyan). Suite green (run via subagent).
+
 ## v1.51.0 — 2026-06-14 — 💠 Warden Surge — 13th Mayhem wave modifier (target-priority pressure)
 
 **Type:** Content (new Mayhem wave modifier). Minor bump. Ships the ROADMAP "More wave modifiers → a Mayhem *warden surge* wave-mod" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — raises difficulty through *target priority* (behaviour), not the invariant-capped HP axis.

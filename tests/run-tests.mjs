@@ -2387,8 +2387,8 @@ async function main() {
     await page.close();
   }
 
-  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker (v1.25.0+)
-  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker)');
+  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker / disruptor (v1.25.0+)
+  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker/disruptor)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -2398,12 +2398,12 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 6 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, then wraps (w50 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 7 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, then wraps (w55 → regen again).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
-                    && bt(50) === 'regen';
+                    && bt(50) === 'disruptor' && bt(55) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2488,9 +2488,37 @@ async function main() {
       for (let i = 0; i < 60; i++) update(1/60);
       const frozenNoRush = enemies[0] && Math.abs(enemies[0].dist - 5) < 1e-6;
 
+      // DISRUPTOR — periodically EMPs the nearest firing tower (sets empT > 0); freeze pauses it.
+      // Pin the boss (spd 0, dist 60) and drop a gun tower right at the boss's RESOLVED path point
+      // (update() overwrites e.x/e.y from pointAt(dist) every tick, so co-locate via pointAt — the
+      // aura-enemy x/y gotcha). Run past one pulse (~4s cd at 60fps → 240 frames; give margin).
+      const dp = pointAt(60);
+      const disruptRun = (bossFrozen) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        const boss = { kind:'boss', bossType:'disruptor', hp:1000, maxHp:2000, spd:0, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:60, x:dp.x, y:dp.y, px:dp.x, py:dp.y,
+          slow:0, slowF:0.8, frozen: bossFrozen ? 999 : 0, poison:null, flash:0 };
+        const tw = { type:'gun', x:dp.x+20, y:dp.y, range:120, dmg:1, rate:1, cd:0, level:1,
+          baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, empT:0 };
+        enemies.push(boss); towers.push(tw);
+        let sawOffline = false;
+        for (let i = 0; i < 360; i++) { update(1/60); if (towers[0] && towers[0].empT > 0) sawOffline = true; }
+        return sawOffline;
+      };
+      const disruptorEmps = disruptRun(false);
+      const frozenNoEmp = !disruptRun(true);
+      // a buff/support tower is immune — the boss should never knock it offline (same co-location)
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      enemies.push({ kind:'boss', bossType:'disruptor', hp:1000, maxHp:2000, spd:0, r:24, bounty:100,
+        color:'#f85149', armor:0, gap:1.5, dist:60, x:dp.x, y:dp.y, px:dp.x, py:dp.y, slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+      towers.push({ type:'buff', x:dp.x+20, y:dp.y, range:120, dmg:0, rate:1, cd:0, level:1, baseCost:50,
+        invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, empT:0 });
+      for (let i = 0; i < 360; i++) update(1/60);
+      const buffImmune = !(towers[0] && towers[0].empT > 0);
+
       enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush };
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush, disruptorEmps, frozenNoEmp, buffImmune };
     });
     check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
     check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
@@ -2507,6 +2535,9 @@ async function main() {
     check('teleporter intangibility decays even while frozen (no immortality)', r.frozenInvulnDecays);
     check('berserker boss accelerates as its HP drops', r.berserkerAccelerates);
     check('freezing a berserker stops its rush (no movement)', r.frozenNoRush);
+    check('disruptor boss knocks the nearest tower offline (empT > 0)', r.disruptorEmps);
+    check('freezing a disruptor pauses its EMP pulse', r.frozenNoEmp);
+    check('disruptor never silences a buff/support tower', r.buffImmune);
 
     // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
     // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
@@ -2517,7 +2548,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2538,6 +2569,7 @@ async function main() {
     check('enrager boss is killable', killable.enrager.died, `guard=${killable.enrager.guard}`);
     check('teleporter boss is killable', killable.teleporter.died, `guard=${killable.teleporter.guard}`);
     check('berserker boss is killable', killable.berserker.died, `guard=${killable.berserker.guard}`);
+    check('disruptor boss is killable', killable.disruptor.died, `guard=${killable.disruptor.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -3166,6 +3198,7 @@ async function main() {
         enrager: bossMechanicBadge(mk({ bossType:'enrager' })),
         teleporter: bossMechanicBadge(mk({ bossType:'teleporter' })),
         berserker: bossMechanicBadge(mk({ bossType:'berserker' })),
+        disruptor: bossMechanicBadge(mk({ bossType:'disruptor' })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3182,6 +3215,7 @@ async function main() {
     check('enrager badge labelled ENRAGED (orange)', r.enrager && r.enrager.label === 'ENRAGED' && r.enrager.c === '255,180,84', JSON.stringify(r.enrager));
     check('teleporter badge labelled TELEPORTER (violet)', r.teleporter && r.teleporter.label === 'TELEPORTER' && r.teleporter.c === '188,140,255', JSON.stringify(r.teleporter));
     check('berserker badge labelled BERSERK (crimson)', r.berserker && r.berserker.label === 'BERSERK' && r.berserker.c === '255,106,106', JSON.stringify(r.berserker));
+    check('disruptor badge labelled DISRUPTOR (cyan)', r.disruptor && r.disruptor.label === 'DISRUPTOR' && r.disruptor.c === '125,249,255', JSON.stringify(r.disruptor));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

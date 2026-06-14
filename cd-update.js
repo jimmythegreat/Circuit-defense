@@ -152,6 +152,8 @@ function update(dt) {
     //                coverage so the damage window shrinks and it reaches the exit faster
     //   berserker  : accelerates as it loses HP (up to +60% speed at death, in the movement line
     //                above) — pulses a roar here once wounded; race to burst it before it sprints
+    //   disruptor  : every ~4s knocks the nearest firing tower offline (reuses the emp `empT`
+    //                timer) — a coverage gap roams with it, pressuring tower uptime, not HP
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
@@ -212,6 +214,29 @@ function update(dt) {
         if (e.rageCd <= 0) {
           e.rageCd = 2;
           if (e.hp < e.maxHp * 0.85) { addExplosion(e.x, e.y, '#ff6a6a', 7, 95); SFX.bossSkill(); }
+        }
+      } else if (e.bossType === 'disruptor') {
+        // EMP wake (v1.52.0): every ~4s the boss knocks the NEAREST firing tower offline as it
+        // advances, so a coverage gap roams with it — pressures tower uptime/redundancy on a fresh
+        // axis (not HP), in ALL modes. Reuses the Static Storm `empT` timer (firing-skip + decay +
+        // render dim are already general, not mod-gated). One tower per pulse keeps it bounded;
+        // buff towers are immune (like the emp wave mod), and freeze pauses the pulse (gated block).
+        e.empPulseCd = (e.empPulseCd == null ? 3 : e.empPulseCd) - dt;
+        if (e.empPulseCd <= 0) {
+          e.empPulseCd = 4;
+          let best = null, bd = 150*150;
+          for (const t of towers) {
+            if (t.type === 'buff' || t.empT > 0) continue;
+            const d2 = (t.x-e.x)*(t.x-e.x) + (t.y-e.y)*(t.y-e.y);
+            if (d2 < bd) { bd = d2; best = t; }
+          }
+          if (best) {
+            best.empT = 2.2;
+            addExplosion(best.x, best.y, '#7df9ff', 12, 130);
+            addExplosion(e.x, e.y, '#7df9ff', 6, 90);
+            SFX.zap();
+            shake = Math.max(shake, 5);
+          }
         }
       }
     }

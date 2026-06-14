@@ -162,8 +162,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Frost slows blunt it; crimson aura ring brightens/thickens with rage + a periodic roar; `BERSERK` boss-bar
       badge). Cycle now `(w/5−4)%6` (w45→berserker, w50→regen); the rotation reads `BOSS_ARCHETYPES.length` so
       it auto-extended. Run-only/save-safe, behaviour-not-HP. Test [45] (rotation + accel + freeze-stops + killable) + [53] (badge).
+      ✅ **7th archetype shipped v1.52.0 — 🔵 Disruptor** (EMPs your towers): every ~4s it knocks the *nearest*
+      firing tower offline for 2.2s (`e.empPulseCd` in cd-update.js, reusing the Static Storm `t.empT` infra —
+      firing-skip + decay + render dim are already general), so a coverage dead-zone roams with the boss —
+      pressures **tower uptime/coverage** on a fresh axis, in ALL modes. One tower/pulse (bounded), buff towers
+      immune, freeze pauses it, tower always self-recovers (empT decays unconditionally). Cyan aura ring + DISRUPTOR
+      badge. Cycle now `(w/5−4)%7` (w50→disruptor, w55→regen); first appears at w50 like the deep archetypes.
+      Run-only/save-safe. Test [45] (rotation + knocks-offline + freeze-pauses + buff-immune + killable) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      a 7th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      an 8th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
