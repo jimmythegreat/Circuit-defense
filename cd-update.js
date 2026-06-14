@@ -521,6 +521,7 @@ const ACHIEVEMENTS = [
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
+  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 8 tower types on the board' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -544,6 +545,7 @@ function grantAchievements(won) {
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
+  if (won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length) give('arsenal');
   if (daily && wave >= 20) give('daily20');
   // Streak badge — checked AFTER recordDailyStreak() has folded today's finish into the count
   // (endGame/winGame record the streak before calling grantAchievements), so currentDailyStreak()

@@ -2833,7 +2833,14 @@ async function main() {
       fresh(); const miniNo  = win(() => { abilityUsedThisRun = true; for (let i=0;i<6;i++) towers.push({type:'gun'}); }).includes('minimalist');
       // a (degenerate) zero-tower finish must grant neither board badge.
       fresh(); const zero = win(() => { abilityUsedThisRun = true; });
-      const zeroNoBadge = !zero.includes('minimalist') && !zero.includes('monotower');
+      const zeroNoBadge = !zero.includes('minimalist') && !zero.includes('monotower') && !zero.includes('arsenal');
+
+      // FULL ARSENAL — win with all 8 tower types on the board.
+      fresh(); const arsenalYes = win(() => { abilityUsedThisRun = true; for (const k of TYPE_KEYS) towers.push({type:k}); }).includes('arsenal');
+      // ...and withheld when even one type is missing (7 of 8).
+      fresh(); const arsenalNo  = win(() => { abilityUsedThisRun = true; for (const k of TYPE_KEYS.slice(0, TYPE_KEYS.length - 1)) towers.push({type:k}); }).includes('arsenal');
+      // duplicates of fewer types must not satisfy it (8 towers, 1 type).
+      fresh(); const arsenalDup = win(() => { abilityUsedThisRun = true; for (let i=0;i<8;i++) towers.push({type:'gun'}); }).includes('arsenal');
 
       // DAILY DEVOTEE — reach wave 20 in a daily run (granted on ANY finish, win or loss).
       fresh();
@@ -2866,7 +2873,7 @@ async function main() {
       backToMenu();
       meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
       localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta'); localStorage.removeItem('cd_daily_streak');
-      return { pacifistYes, pacifistNo, monoYes, monoNo, miniYes, miniNo, zeroNoBadge, dailyYes, dailyNoFlag, streak7Yes, streak7No, total };
+      return { pacifistYes, pacifistNo, monoYes, monoNo, miniYes, miniNo, zeroNoBadge, arsenalYes, arsenalNo, arsenalDup, dailyYes, dailyNoFlag, streak7Yes, streak7No, total };
     });
     check('Pacifist granted on an ability-free win', r.pacifistYes);
     check('Pacifist withheld when an ability was cast', !r.pacifistNo);
@@ -2875,11 +2882,14 @@ async function main() {
     check('Minimalist granted for a ≤5-tower win', r.miniYes);
     check('Minimalist withheld for a 6-tower win', !r.miniNo);
     check('board badges withheld when no towers exist', r.zeroNoBadge);
+    check('Full Arsenal granted for an all-8-types win', r.arsenalYes);
+    check('Full Arsenal withheld when a type is missing (7 of 8)', !r.arsenalNo);
+    check('Full Arsenal withheld for 8 towers of one type', !r.arsenalDup);
     check('Daily Devotee granted at wave 20 in a daily run', r.dailyYes);
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 14 badges', r.total === 14, `total=${r.total}`);
+    check('achievement roster grew to 15 badges', r.total === 15, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

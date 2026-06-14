@@ -29,7 +29,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (roster 9→13): 🕊️ Pacifist (ability-free win), 🧩 Specialist (mono-tower win),
       ⚖️ Minimalist (≤5-tower win), 🗓️ Daily Devotee (reach wave 20 in a Daily Challenge).
       Pacifist uses a run-only `abilityUsedThisRun` flag (forced true on resume, like Flawless).
-      Test [48]. Follow-ups still open: *toast/sound when a badge unlocks mid-menu*, a
+      **v1.47.0 added 📆 Streak Keeper** (7-day daily streak, roster 13→14); **v1.53.0 added
+      🧰 Full Arsenal** (win with all 8 tower types on the board, roster 14→15) — completes the
+      build-style trio with Specialist (1 type) / Minimalist (≤5 towers), rewarding diversity over
+      a mono-tower carry; data-driven, additive, save-safe (`new Set(towers.map(t=>t.type)).size
+      === TYPE_KEYS.length`). Test [48]. Follow-ups still open: *toast/sound when a badge unlocks mid-menu*, a
       **speedrun** badge (needs a per-run clock — none exists yet), and a **per-achievement
       chip reward** (would touch the chip economy — needs a balance pass first).
 - [x] **Endless-mode leaderboard / personal bests panel** — shipped v1.6.0. A

@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.53.0 — 2026-06-14 — 🧰 Full Arsenal — 15th achievement (win with all 8 tower types)
+
+**Type:** Content (new achievement badge). Minor bump. Additive, save-safe, no economy/balance/HP impact — a build-diversity goal that rewards fielding one of every tower type.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. Health-check counter: 2 entries (v1.51.0, v1.52.0) since the last health check (v1.50.1) → normal run. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already 4 slices in) — low-priority items don't override own-pick selection, so I chose own work. Considered the ROADMAP tower-spec audit (frost/tesla/gun) first but confirmed it's a no-op: none is *strictly* dominated (tesla = genuine concentrate-3-vs-spread-5 axis, gun = situational armor axis, frost = CC-vs-dmg axis). Avoided a boss/wave-mod/targeting follow-on (the last several runs) and picked a fresh, contained, owner-aligned ("loves achievements/surprises") addition.
+
+**What & why:**
+
+- **🧰 Full Arsenal** (`arsenal`) — a 15th badge in the `ACHIEVEMENTS` array (cd-update.js), granted from `grantAchievements(won)` when `won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length` (all 8 tower types present on the final board at victory). Reads the same final-board snapshot as Specialist/Minimalist; ability-agnostic.
+- **Why:** completes the build-style trio — 🧩 Specialist (1 type), ⚖️ Minimalist (≤5 towers), 🧰 Full Arsenal (all 8 types). A deliberate counterpoint to mono-tower min-maxing: you must spread gold across one of every kind and keep them all alive to the win, a "meaningful choice" the owner values. Not power creep (it's a *constraint*, if anything harder), so it's "too easy"-safe.
+- **Fully data-driven surfaces:** `renderAchievements()` / the `#achBtn` `done/total` counter / `ACH_BY_ID` all read `ACHIEVEMENTS` directly, so the panel + start-screen count pick it up with no other edits.
+
+**Save-safety:** purely additive — one new badge id in the existing id→true `meta.achievements` map (already migrated with a default in `loadMeta()`). No new localStorage key, no schema/migration impact; old saves simply start with the badge locked.
+
+**Tests:** group `[48]` extended — Full Arsenal **granted** for an all-8-types win, **withheld** when one type is missing (7 of 8) and for 8 towers of a single type, zero-tower finish grants it neither; roster-count assertion bumped 14 → **15**. Subagent ran the full suite (green) and reviewed the diff for guardrail compliance before commit.
+
 ## v1.52.0 — 2026-06-14 — 🔵 Disruptor — 7th boss archetype (EMPs your towers, w20+)
 
 **Type:** Content (new boss archetype). Minor bump. Ships the ROADMAP "Boss variety → a 7th archetype" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — hardens the late game by pressuring **tower uptime/coverage** (behaviour), not the invariant-capped HP axis.
