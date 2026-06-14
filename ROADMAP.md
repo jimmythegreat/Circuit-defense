@@ -142,8 +142,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (a legendary → a legendary, not power creep) and save-safe (the *resolved* perk id is stored in
       `runPerks`/`perkState`, never `'wildcard'`, so resume can't re-roll). Test [65]. Still open: maybe
       a *hidden unlock condition* for a secret legendary.
+- [x] **New quick-play map: "Gauntlet"** — shipped **v1.54.0**. A 4th hand-crafted quick map
+      (`MAPS.gauntlet` in cd-maps.js, before Mayhem) — a 12-point axis-aligned switchback that
+      funnels enemies through a dense central kill-box (closely-spaced vertical runs at x=300/480/660),
+      so a tower wedged between two runs rakes both and splash/AoE towers feast — a concentrate-fire
+      identity distinct from the open Classic/Spiral/Serpent. Path length ≈2260. Comes with a new
+      `THEMES.crimson` (blood-red) palette as its fixed identity (`MAP_THEME.gauntlet`), also added to
+      `CAMPAIGN_THEMES`. Fully data-driven (selector/Records/best-key/loadRun pick it up automatically);
+      additive, save-safe (new `cd_best_gauntlet_<diff>` key, `||0`). Test [68]. **Follow-ups:** *ground
+      textures/patterns per theme* (still solid-colour path fills), and the forking/multi-lane map below.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
-      lanes.
+      lanes. (Bigger lift — needs multi-path enemy distribution + targeting/`distToPath`
+      over more than one path; its own run when tackled.)
 - [x] **Boss variety** — shipped **v1.25.0**. From wave 20+ each every-5th-wave boss carries a
       MECHANIC, cycling `regen → summoner → bulwark` by boss number (`BOSS_ARCHETYPES[(w/5−4)%3]`
       in `buildWave`). **Regen** self-heals 1.2%/s (freeze pauses it); **bulwark** cycles a 2s

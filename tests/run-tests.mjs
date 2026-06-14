@@ -4080,6 +4080,104 @@ async function main() {
     await page.close();
   }
 
+  // [68] Gauntlet map — 4th quick-play map + Crimson theme (v1.54.0)
+  console.log('\n[68] Gauntlet map (kill-box layout + Crimson theme)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Map definition: present, named, with a well-formed axis-aligned path that
+    // enters off the left edge and exits off the right.
+    const def = await page.evaluate(() => {
+      const m = MAPS.gauntlet;
+      const pts = m && m.pts;
+      let axisAligned = !!pts && pts.length >= 4;
+      if (pts) for (let i = 0; i < pts.length - 1; i++) {
+        // each segment must share exactly one coordinate (axis-aligned, no diagonals)
+        const sameX = pts[i][0] === pts[i + 1][0], sameY = pts[i][1] === pts[i + 1][1];
+        if (sameX === sameY) { axisAligned = false; break; }   // both same (zero-len) or neither (diagonal)
+      }
+      const inBounds = !!pts && pts.every(([x, y]) => x >= -40 && x <= 940 && y >= 0 && y <= 560);
+      return {
+        exists: !!m, named: !!m && typeof m.name === 'string' && m.name.length > 0,
+        hasPath: Array.isArray(pts), axisAligned, inBounds,
+        entersLeft: !!pts && pts[0][0] === -30, exitsRight: !!pts && pts[pts.length - 1][0] === 930,
+        notLast: Object.keys(MAPS).indexOf('gauntlet') < Object.keys(MAPS).indexOf('mayhem'),
+      };
+    });
+    check('Gauntlet map exists and is named', def.exists && def.named);
+    check('Gauntlet has an axis-aligned path (no diagonals/zero-length segs)', def.axisAligned);
+    check('Gauntlet path stays within the board', def.inBounds);
+    check('Gauntlet path enters off-left (-30) and exits off-right (930)', def.entersLeft && def.exitsRight);
+    check('Gauntlet sits before Mayhem in the map order', def.notLast);
+
+    // Theme: Crimson palette exists and is the map's fixed identity.
+    const theme = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'gauntlet'; diffKey = 'normal';
+      const fixed = MAP_THEME.gauntlet;
+      const hasPalette = !!THEMES.crimson && typeof THEMES.crimson.glow === 'string';
+      const inCampaignPool = CAMPAIGN_THEMES.includes('crimson');
+      const picks = pickMapTheme();              // quick-mode gauntlet -> fixed crimson
+      beginGame();
+      const resolved = mapTheme;                 // resetState() set it via pickMapTheme()
+      const pal = mapPalette();                  // concrete palette for the frame
+      const ok = pal && pal.glow === THEMES.crimson.glow;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fixed, hasPalette, inCampaignPool, picks, resolved, ok };
+    });
+    check('Crimson theme palette exists', theme.hasPalette);
+    check('Gauntlet maps to the Crimson theme', theme.fixed === 'crimson' && theme.picks === 'crimson');
+    check('Crimson is available to the campaign palette pool', theme.inCampaignPool);
+    check('a Gauntlet run resolves to the Crimson palette', theme.resolved === 'crimson' && theme.ok);
+
+    // The map appears as a selectable button on the start screen.
+    const btn = await page.evaluate(() => {
+      renderStartScreen();
+      return /Gauntlet/.test(document.getElementById('mapRow').innerHTML);
+    });
+    check('Gauntlet appears in the start-screen map selector', btn);
+
+    // A real run drives to completion on the new path (pathing/spawning work, no hang).
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'gauntlet'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const pathOk = pathLen > 1000 && Array.isArray(waypoints) && waypoints === MAPS.gauntlet.pts;
+      __cdGodTowers(8);
+      __cdDrive({ maxWave: 6 });
+      const out = { reached: wave >= 5, wave, pathOk };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Gauntlet buildPath wires the static path', drove.pathOk, JSON.stringify(drove));
+    check('a Gauntlet run drives clean to wave 5+', drove.reached, JSON.stringify(drove));
+
+    // Records: a finished quick run logs a per-map best under cd_best_gauntlet_<diff>,
+    // and the map validates on save/resume (loadRun accepts MAPS[mapKey]).
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_gauntlet_hard');
+      gameMode = 'quick'; mapKey = 'gauntlet'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_gauntlet_hard') || 0);
+
+      // save/resume round-trip on the static map
+      gameMode = 'quick'; mapKey = 'gauntlet'; diffKey = 'normal';
+      beginGame(); wave = 3;
+      saveRun();
+      const loaded = loadRun();
+      const restored = loaded === true && mapKey === 'gauntlet';
+
+      ['cd_best_gauntlet_hard', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { mapBest, restored };
+    });
+    check('Gauntlet records a per-map best (hard = 9)', rec.mapBest === 9, JSON.stringify(rec));
+    check('Gauntlet save/resume round-trips', rec.restored, JSON.stringify(rec));
+
+    check('no console errors during Gauntlet map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

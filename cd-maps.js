@@ -10,6 +10,9 @@ const MAPS = {
   serpent: { name:'Serpent', desc:'Brutal switchbacks', pts: [
     [-30,80],[820,80],[820,190],[80,190],[80,300],[820,300],[820,410],[80,410],[80,505],[930,505]
   ]},
+  gauntlet: { name:'Gauntlet', desc:'Dense central kill-box', pts: [
+    [-30,300],[120,300],[120,110],[300,110],[300,420],[480,420],[480,110],[660,110],[660,420],[820,420],[820,240],[930,240]
+  ]},
   mayhem: { name:'🌀 Mayhem', desc:'Path shifts every 5 waves · chaos modifiers', pts: null },
 };
 let mapKey = 'classic';
@@ -256,10 +259,11 @@ const THEMES = {
   ember:   { name:'Ember',   bgIn:'#1a0f08', bgOut:'#0c0604', star:'#ffcaa0', grid:'rgba(255,150,80,0.05)',  pDark:'#0a0503', pMid:'#33231a', pLite:'#48321f', glow:'rgba(255,150,80,0.4)',  dash:'rgba(255,180,110,0.25)' },
   violet:  { name:'Violet',  bgIn:'#140a20', bgOut:'#08040f', star:'#d2a8ff', grid:'rgba(170,120,255,0.05)', pDark:'#070310', pMid:'#261c38', pLite:'#352a4a', glow:'rgba(170,120,255,0.4)', dash:'rgba(200,160,255,0.25)' },
   ice:     { name:'Ice',     bgIn:'#0a1620', bgOut:'#04090f', star:'#aef0ff', grid:'rgba(120,210,255,0.05)', pDark:'#03070a', pMid:'#173040', pLite:'#1f4458', glow:'rgba(120,210,255,0.4)', dash:'rgba(170,230,255,0.25)' },
+  crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
 };
 // Fixed identity per named quick-map; campaign draws from the tame set below.
-const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember' };
-const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice'];
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson' };
+const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson'];
 let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
 function pickMapTheme() {
   if (gameMode === 'campaign') return CAMPAIGN_THEMES[Math.floor(Math.random() * CAMPAIGN_THEMES.length)];

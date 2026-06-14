@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.54.0 — 2026-06-14 — ⚔️ Gauntlet — 4th quick-play map (central kill-box) + Crimson theme
+
+**Type:** Content (new map + visual theme). Minor bump. Additive, save-safe, no economy/balance/HP impact — a new hand-crafted path with a distinct strategic flavour.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. Health-check counter: 3 entries (v1.51.0, v1.52.0, v1.53.0) since the last health check (v1.50.1) → normal run. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already 4 slices in) — low-priority items don't override own-pick selection, so I chose own work. Deliberately broke from the recent cadence (the last several runs were boss archetypes / wave mods / achievements — all enemy/economy-side) and picked the **map** content axis, untouched since the original three quick maps + Mayhem.
+
+**What & why:**
+
+- **⚔️ Gauntlet** — a 4th named quick-play map (`MAPS.gauntlet` in cd-maps.js, inserted before Mayhem so Mayhem stays last). A 12-point, axis-aligned switchback path that enters mid-left, weaves tightly down the centre as a stack of closely-spaced vertical runs (columns at x=300/480/660 over y≈110–420), then exits mid-right. Path length ≈2260 — between Classic and Serpent.
+- **Why:** the existing maps are *open* (winding/coiled/wide switchbacks); the Gauntlet packs its lanes close together so a tower wedged between two runs rakes both at once. It rewards a **concentrated wall of fire over spreading thin**, and splash/AoE towers (Cannon, Mortar, Tesla) shine — a distinct strategic identity, plus a new per-map best to chase. Map content hasn't been added since the originals, so it's fresh replay variety.
+- **🟥 Crimson theme** — a new `THEMES.crimson` palette (deep blood-red) gives the Gauntlet its own visual identity (`MAP_THEME.gauntlet:'crimson'`); also added to `CAMPAIGN_THEMES` so campaign attempts can roll it too. Purely cosmetic (feeds `draw()` background/stars/grid/path layers via the existing palette system).
+- **Fully data-driven surfaces:** the start-screen MAP selector (`renderStartScreen` iterates `Object.keys(MAPS)`), the Records grid (`renderBests` per map × difficulty), `recordBest()`'s `cd_best_<map>_<diff>` key, and `loadRun()`'s `MAPS[mapKey]` validation all pick the new map up with no other edits.
+
+**Save-safety:** purely additive. New `MAPS`/`THEMES`/`MAP_THEME`/`CAMPAIGN_THEMES` entries; a new per-map best key `cd_best_gauntlet_<diff>` read with `|| 0`. No schema change to `cd_save`/`cd_meta`/`cd_campaign`. Old saves referencing existing maps still validate; a Gauntlet save round-trips (it's a static map, so no relocate needed on resume). `mapTheme` already saved/restored for resume parity; old saves fall back cleanly.
+
+**Tests:** new group `[68]` — map exists/named, path is axis-aligned (no diagonals/zero-length segs) within bounds entering -30 / exiting 930, sits before Mayhem; Crimson palette exists, is the map's fixed identity, resolves on a run, and is in the campaign pool; appears in the start-screen selector; a real run wires the static path and drives clean to wave 5+; records a per-map best; save/resume round-trips. Suite **663/0** green (+15). Verified live in-browser (v1.54.0, map/theme/selector/path all correct, a wave completed with no leak, zero console errors). Subagents ran the full suite and reviewed the diff for guardrail compliance before commit.
+
 ## v1.53.0 — 2026-06-14 — 🧰 Full Arsenal — 15th achievement (win with all 8 tower types)
 
 **Type:** Content (new achievement badge). Minor bump. Additive, save-safe, no economy/balance/HP impact — a build-diversity goal that rewards fielding one of every tower type.
