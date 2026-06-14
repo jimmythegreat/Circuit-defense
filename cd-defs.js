@@ -132,7 +132,7 @@ const SPECS = {
   sniper: [ {id:'deadeye', name:'Deadeye',      desc:'20% crits ×4 dmg'},        {id:'executor', name:'Executioner',  desc:'+90% dmg vs tanks & bosses'} ],
   frost:  [ {id:'deep',    name:'Deep Freeze',  desc:'Slow 65% instead of 40%'}, {id:'shatter',  name:'Shatter',      desc:'Damage ×4.5'} ],
   cannon: [ {id:'mega',    name:'Mega Blast',   desc:'+60% splash & +15% dmg'},  {id:'cluster',  name:'Cluster Bomb', desc:'+50% damage'} ],
-  tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets'},       {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
+  tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets, softer falloff'}, {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
   poison: [ {id:'virulent',name:'Virulent',     desc:'Poison DPS ×2'},           {id:'lingering',name:'Lingering',    desc:'Poison duration ×2'} ],
   mortar: [ {id:'demo',    name:'Demolisher',   desc:'+35% damage'},             {id:'saturate', name:'Saturation',   desc:'+55% blast radius'} ],
   buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],

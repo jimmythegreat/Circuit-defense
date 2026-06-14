@@ -3,6 +3,26 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.55.0 — 2026-06-14 — ⚡ Superconductor buff — Tesla's swarm spec is no longer dominated
+
+**Type:** Balance (tower spec rebalance). Minor bump. Buffs a strictly-dominated level-5 spec; no save/economy impact. Simulated before/after, swing under the ≤25%/run cap.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. Health-check counter: 4 entries (v1.51.0, v1.52.0, v1.53.0, v1.54.0) since the last health check (v1.50.1) → normal run. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already 4 slices in) — low-priority items don't override own-pick selection, so I chose own work. Picked the explicit ROADMAP **"Tower spec pass"** `[~]` item (audit each tower's 2 specs for a strictly-dominated option and buff it), which had flagged tesla's "verify falloff math" as outstanding.
+
+**What & why:**
+
+- **Audit finding:** Tesla's two level-5 specs are **Superconductor** (chains 5 targets instead of 3) vs **Overcharge** (3 targets, no damage falloff). With the shared chain falloff at 0.7, Superconductor's total output even on a full 5-enemy chain was `1+0.7+0.49+0.343+0.24 = 2.77×`, while Overcharge dealt `1+1+1 = 3.0×` — so **Overcharge out-totalled Superconductor in *every* scenario** and dealt full damage to each of its 3 targets, while Superconductor's two extra jumps landed only ~34%/24% chip. Superconductor was a strictly-dominated trap pick.
+- **Fix:** softened **Superconductor's chain falloff `0.7 → 0.8`** (spec-specific — base Tesla and Overcharge are untouched). Superconductor's tail jumps now take 51%/41% instead of 34%/24%, so on a full 5-enemy swarm it totals `3.36×` and **out-totals Overcharge (3.0×)** — the intended swarm-clearer identity — while Overcharge stays the better pick for a few tough targets (full damage to 3; it still wins at ≤4 chained). A genuine swarm-vs-few axis instead of a trap.
+- **Why this lever:** restoring a real level-5 choice serves the owner's "meaningful choices" value. It's a buff to a weak option (not power creep toward "too easy"): it only matters when a tower chains a real 5-enemy swarm, and Overcharge — the previously-correct pick — is unchanged.
+
+**Balance / simulation:** Superconductor's total output at a full 5-enemy chain rises `2.77× → 3.36×` = **+21.2%**, inside the ≤25%/number/run cap. Crossover vs Overcharge (`3.0×`): Superconductor wins at 5 chained, Overcharge wins at ≤4 — clean axis. Base Tesla (3 chains @ 0.7) and Overcharge (3 chains @ 1.0) are byte-identical.
+
+**Save/economy/theme:** No schema or localStorage change (the falloff is computed live in `fireChain`, never persisted). No economy impact. Stays a tower-defense balance tweak.
+
+**Tests:** Extended group `[17]` with six checks driving `fireChain` over a 6-enemy line — Superconductor chains 5 / 2nd link = 80 (0.8 falloff) / out-totals Overcharge on a swarm / under the +25% cap; Overcharge unchanged (3 links, no falloff); base Tesla unchanged (3 links, 2nd = 70). Full suite green (subagent-run). Diff-reviewed for guardrails (save-safe, scope, ≤25% swing).
+
+**Files:** `cd-update.js` (`fireChain` falloff), `cd-defs.js` (Superconductor desc → "Chains 5 targets, softer falloff"), `cd-core.js` (version + changelog), `sw.js` (cache bump), `tests/run-tests.mjs` (group `[17]`), `CHANGELOG.md`, `ROADMAP.md`, `CLAUDE.md`.
+
 ## v1.54.0 — 2026-06-14 — ⚔️ Gauntlet — 4th quick-play map (central kill-box) + Crimson theme
 
 **Type:** Content (new map + visual theme). Minor bump. Additive, save-safe, no economy/balance/HP impact — a new hand-crafted path with a distinct strategic flavour.

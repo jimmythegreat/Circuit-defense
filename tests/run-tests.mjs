@@ -969,6 +969,29 @@ async function main() {
       const execBoss = fireAt('boss');
       const execTank = fireAt('tank');
       const execNorm = fireAt('norm');
+      // Tesla: Superconductor's chain falloff softened 0.7 → 0.8 (v1.55.0) so its 2
+      // extra targets deal real damage and it out-totals Overcharge on a full swarm,
+      // while Overcharge (no falloff, full dmg to 3) stays the few-target pick. Base
+      // tesla + Overcharge unchanged (spec-specific). 6 enemies in a 40px-spaced line
+      // (within the 90px chain radius) so the bolt can chain forward through all of them.
+      const teslaChain = (spec) => {
+        enemies.length = 0; beams.length = 0;
+        const line = [];
+        for (let i = 0; i < 6; i++) {
+          const e = { kind:'norm', hp: 1e7, maxHp: 1e7, x: 200 + i*40, y: 300, dist: 50,
+                      spd: 1, r: 13, dead:false, blinkInvuln:0, flash:0, slow:0, frozen:0,
+                      warded:0, shieldOn:false, armor:0, poison:null };
+          enemies.push(e); line.push(e);
+        }
+        const tt = mk('tesla', spec); tt.x = 200; tt.y = 300;
+        fireChain(tt, line[0], 100);
+        return line.map(e => e.maxHp - e.hp);   // damage dealt to each link
+      };
+      const teslaSuper = teslaChain('super');
+      const teslaOver  = teslaChain('overcharge');
+      const teslaBase  = teslaChain(null);
+      const sum = a => a.reduce((s,x) => s + x, 0);
+      const teslaSuperSum = sum(teslaSuper), teslaOverSum = sum(teslaOver);
       // Shop tooltip: the poison button's title should explain the armor corrosion.
       renderShop();
       const shopBtns = [...document.getElementById('shop').children];
@@ -977,7 +1000,8 @@ async function main() {
       backToMenu();
       return { plain, net, over, canPlain, canMega, frostPlain, frostShatter,
                poisonBaseDmg, armorBefore, armorAfter, dotDps, hasReduceMotion, poisonTip,
-               execDesc, snBase, execBoss, execTank, execNorm };
+               execDesc, snBase, execBoss, execTank, execNorm,
+               teslaSuper, teslaOver, teslaBase, teslaSuperSum, teslaOverSum };
     });
     check('Booster Network adds aura power (not range-only anymore)', r.net > r.plain + 1e-9,
       `plain=${r.plain.toFixed(3)} network=${r.net.toFixed(3)}`);
@@ -1006,6 +1030,22 @@ async function main() {
     check('reduceMotion() helper exists (prefers-reduced-motion support)', r.hasReduceMotion);
     check('poison shop tooltip explains the armor corrosion', /corrod/i.test(r.poisonTip) && /armor/i.test(r.poisonTip),
       `tip="${r.poisonTip}"`);
+    // Tesla spec rebalance (v1.55.0): Superconductor falloff 0.7 → 0.8.
+    check('Tesla Superconductor chains 5 targets', r.teslaSuper.filter(d => d > 0).length === 5,
+      `hits=[${r.teslaSuper.map(d => d.toFixed(1)).join(',')}]`);
+    check('Tesla Superconductor 2nd link takes 80% (falloff 0.8, was 0.7→70%)',
+      Math.abs(r.teslaSuper[1] - 80) < 1e-6, `2nd=${r.teslaSuper[1].toFixed(2)}`);
+    check('Tesla Overcharge unchanged: 3 full-damage links (no falloff)',
+      r.teslaOver.filter(d => d > 0).length === 3 && Math.abs(r.teslaOver[1] - 100) < 1e-6,
+      `hits=[${r.teslaOver.map(d => d.toFixed(1)).join(',')}]`);
+    check('Tesla base unchanged: 3 links at 0.7 falloff (2nd=70)',
+      r.teslaBase.filter(d => d > 0).length === 3 && Math.abs(r.teslaBase[1] - 70) < 1e-6,
+      `hits=[${r.teslaBase.map(d => d.toFixed(1)).join(',')}]`);
+    check('Tesla Superconductor now out-totals Overcharge on a 5-enemy swarm (was dominated)',
+      r.teslaSuperSum > r.teslaOverSum + 1e-6,
+      `super=${r.teslaSuperSum.toFixed(2)} over=${r.teslaOverSum.toFixed(2)}`);
+    check('Tesla Superconductor swarm buff stays under the +25%/run cap vs old 0.7 falloff',
+      r.teslaSuperSum <= 277.3 * 1.25 + 1e-6, `super=${r.teslaSuperSum.toFixed(2)} cap=${(277.3*1.25).toFixed(2)}`);
     check('no console errors during spec/poison tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

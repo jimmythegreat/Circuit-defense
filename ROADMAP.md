@@ -192,13 +192,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
       by Deadeye (Deadeye = +60% expected vs ALL targets via 20%×4 crit; Executioner =
       +60% vs tanks/bosses only → Deadeye matched it on bosses & beat it elsewhere).
       Buffed Executioner `×1.6 → ×1.9` (+90% vs tanks & bosses) so it's the guaranteed
-      no-RNG boss-killer while Deadeye stays the all-rounder. Test [17]. Still to audit:
-      frost (Deep Freeze vs Shatter), tesla (Superconductor vs Overcharge), gun (Minigun
-      vs AP) — check none is strictly dominated. (Quick takes: **gun** Minigun ×1.8 DPS
-      vs AP +25%+armor-ignore is *situational* — AP wins vs heavy armor where flat-armor
-      subtraction guts the fast low-dmg gun, Minigun wins vs trash — looks healthy.
-      **frost** Deep Freeze (CC) vs Shatter (dmg) is a genuine axis. **tesla** super
-      [+chain targets] vs overcharge [no falloff] is swarm-vs-few — verify falloff math.)
+      no-RNG boss-killer while Deadeye stays the all-rounder. Test [17]. **v1.55.0 fixed
+      tesla:** the "verify falloff math" check found **Superconductor strictly dominated** —
+      with the shared chain falloff at 0.7 it totalled only `2.77×` on a full 5-chain vs
+      Overcharge's `3.0×` (full dmg to 3), so Overcharge out-totalled it everywhere and its
+      2 extra jumps were ~34%/24% chip. Softened **Superconductor's falloff `0.7 → 0.8`**
+      (spec-specific; base tesla + Overcharge unchanged): it now totals `3.36×` on a 5-enemy
+      swarm (out-totals Overcharge) while Overcharge stays the few-target king (wins at ≤4),
+      a clean swarm-vs-few axis. +21% output at full chain (≤25%/run). Test [17] extended.
+      **Still to audit:** frost (Deep Freeze vs Shatter), gun (Minigun vs AP) — check none
+      is strictly dominated. (Quick takes: **gun** Minigun ×1.8 DPS vs AP +25%+armor-ignore
+      is *situational* — AP wins vs heavy armor where flat-armor subtraction guts the fast
+      low-dmg gun, Minigun wins vs trash — looks healthy. **frost** Deep Freeze (CC) vs
+      Shatter (dmg) is a genuine axis.)
 
 ## Game feel / polish
 

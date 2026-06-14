@@ -359,7 +359,12 @@ function pickTarget(t) {
 function fireChain(t, first, dmg) {
   SFX.tesla();
   const maxChain = 3 + perkState.chainExtra + (t.spec === 'super' ? 2 : 0);
-  const falloff = t.spec === 'overcharge' ? 1 : 0.7;
+  // Superconductor's gentler falloff (0.8 vs base 0.7) makes its 2 extra chain
+  // targets count for real damage instead of negligible chip — it now out-totals
+  // Overcharge once a full 5-enemy swarm is chained (3.36× vs 3.0×) while Overcharge
+  // (no falloff, full dmg to 3) stays the better few-target pick. Spec-specific, so
+  // base tesla and Overcharge are unchanged. (Was strictly dominated, v1.55.0.)
+  const falloff = t.spec === 'overcharge' ? 1 : (t.spec === 'super' ? 0.8 : 0.7);
   const hitSet = [first];
   let cur = first;
   for (let i = 0; i < maxChain - 1; i++) {
