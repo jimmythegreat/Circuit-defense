@@ -333,9 +333,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 + v1.45.1 health checks)
 
-_Still-unaddressed, in priority order: **bigger HTML tap targets on small phones** (the lone remaining
-gap — all other table-stakes items below are shipped: favicon/meta/OG, PWA install, touch/pointer, gamepad,
-keyboard a11y (menus + draft), colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile)._
+_**Table-stakes checklist is now COMPLETE.** The lone remaining gap — **bigger HTML tap targets on small
+phones** — shipped **v1.46.0**: the floating upgrade/sell panel buttons (≤920px, both orientations) and the
+shop / wave-control / start-screen option buttons (≤920px **portrait**, so the v1.15.0 landscape compaction
+stays intact) now meet the ~44px recommended touch target (was ~29–33px). Test [64]. All other items shipped:
+favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y (menus + draft), colorblind aid,
+reduced-motion, volume slider, high-DPI scaling, responsive/mobile. New table-stakes ideas can still be added
+above as the bar for "polished browser game" rises._
 
 _Earlier note:_
 Done: **gamepad support (v1.43.0)** — a controller drives the same board cursor + actions as mouse/keyboard
@@ -370,9 +374,10 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       primary-button guard), unifying mouse + touch and dropping the synthesized-click latency;
       the tower-select radius is **30px on a finger** (18px on a mouse — 30 < the 32px placement
       gap so it can't mis-grab), and `touch-action:none` stops board taps scrolling/zooming the
-      page. Test [34]. **Follow-up (optional):** bigger HTML tap targets for the shop / upgrade
-      buttons on small phones — currently sized by the v1.14.0/v1.15.0 mobile CSS, fine but could
-      be chunkier.
+      page. Test [34]. **Follow-up done v1.46.0:** bigger HTML tap targets on small phones — the
+      floating upgrade/sell panel buttons + the shop / wave-control / start-screen option buttons now
+      meet the ~44px recommended touch target (upgrade panel both orientations; shop/controls/options
+      portrait-only so the v1.15.0 landscape compaction stays intact). Test [64].
 - [x] **`prefers-reduced-motion` support** — shipped v1.10.0. A `reduceMotion()`
       helper (`cd-core.js`, reads `matchMedia` live, guarded) gates the **screen-shake**
       translate in `draw()` **and** thins particle bursts in `addExplosion()`

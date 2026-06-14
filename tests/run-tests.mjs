@@ -3734,6 +3734,62 @@ async function main() {
     await page.close();
   }
 
+  // [64] Mobile tap targets — bigger phone touch targets (v1.46.0)
+  console.log('\n[64] Mobile tap targets (table-stakes phone polish)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    // Portrait phone — the chunkier tap targets are scoped here.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const m = await page.evaluate(() => {
+      const h = sel => Math.round(document.querySelector(sel).getBoundingClientRect().height);
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame(); gold = 99999;
+      const towerBtnH = h('#shop .towerBtn');          // shop tower buttons
+      const ctlH = h('#controls .ctl');                // wave controls (Start Wave, ...)
+      // Open the floating upgrade/sell panel and measure its smallest button.
+      const t = { type:'gun', x: 200, y: 200, range:120, dmg:10, rate:0.5, cd:0, level:1,
+                  baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
+                  buffPower:0, flash:0 };
+      towers.push(t); showUpgrade(t);
+      const upBtns = Array.prototype.map.call(
+        document.querySelectorAll('#upgradePanel button'),
+        b => Math.round(b.getBoundingClientRect().height));
+      const upMin = upBtns.length ? Math.min.apply(null, upBtns) : 0;
+      hideUpgrade();
+      backToMenu();
+      // Start-screen option buttons (MODE/MAP/DIFFICULTY) — still on a phone viewport.
+      const optH = h('.optBtn');
+      const lvlEl = document.querySelector('.lvlBtn');
+      const lvlH = lvlEl ? Math.round(lvlEl.getBoundingClientRect().height) : 44;
+      try { localStorage.removeItem('cd_save'); } catch (e) {}
+      return { towerBtnH, ctlH, upMin, upCount: upBtns.length, optH, lvlH };
+    });
+    // Desktop — the ≤920px enlargements must NOT leak; the floating upgrade-panel
+    // buttons keep their original compact height there.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame(); gold = 99999;
+      const t = { type:'gun', x: 200, y: 200, range:120, dmg:10, rate:0.5, cd:0, level:1,
+                  baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
+                  buffPower:0, flash:0 };
+      towers.push(t); showUpgrade(t);
+      const b = document.querySelector('#upgradePanel button');
+      const upH = b ? Math.round(b.getBoundingClientRect().height) : 0;
+      hideUpgrade(); backToMenu();
+      try { localStorage.removeItem('cd_save'); } catch (e) {}
+      return { upH };
+    });
+    check('phone: shop tower buttons meet the ~44px touch target', m.towerBtnH >= 44, `h=${m.towerBtnH}`);
+    check('phone: wave-control buttons meet the ~44px touch target', m.ctlH >= 44, `h=${m.ctlH}`);
+    check('phone: upgrade/sell panel buttons meet the ~44px touch target',
+          m.upCount > 0 && m.upMin >= 44, `min=${m.upMin} of ${m.upCount}`);
+    check('phone: start-screen option buttons meet the ~44px touch target',
+          m.optH >= 44 && m.lvlH >= 44, `opt=${m.optH} lvl=${m.lvlH}`);
+    check('desktop: upgrade-panel buttons keep their compact size (mobile rule not leaked)',
+          d.upH > 0 && d.upH < 44, `h=${d.upH}`);
+    check('no console errors during tap-target test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

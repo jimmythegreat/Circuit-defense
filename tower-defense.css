@@ -394,6 +394,11 @@
     #controls { gap: 6px; margin-top: 8px; }
     button.ctl { padding: 8px 13px; font-size: 13px; }
     .hint { font-size: 11px; }
+    /* Bigger tap targets (v1.46.0) — the floating upgrade/sell panel's buttons
+       were only ~31px tall; bump them toward the ~44px recommended touch target.
+       The panel is an absolutely-positioned overlay (not part of the landscape
+       chrome budget), so this is safe in any orientation. */
+    #upgradePanel button { min-height: 44px; padding: 9px 12px; font-size: 14px; }
     /* Modal overlays cover the whole viewport (not the scaled canvas) and
        scroll vertically, so all their content is reachable on a phone.
        Only position/scroll change here — JS still toggles display. */
@@ -448,6 +453,13 @@
   @media (max-width: 920px) and (orientation: portrait) {
     /* Can't grow the board here (width-bound) — point the player at landscape. */
     #rotateHint { display: block; }
+    /* Bigger tap targets (v1.46.0) — meet the ~44px recommended touch target for
+       the shop tower buttons, wave controls and start-screen option buttons.
+       Portrait-scoped so the deliberately-compacted landscape chrome (v1.15.0,
+       which keeps Start Wave on-screen alongside the tall board) is left untouched. */
+    .towerBtn { min-height: 46px; }
+    button.ctl { min-height: 46px; }
+    .optBtn, .lvlBtn { min-height: 44px; }
   }
   @media (max-width: 920px) and (orientation: landscape) {
     /* Compact the chrome and size the canvas by viewport height so the board

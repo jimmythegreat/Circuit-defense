@@ -3,6 +3,17 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.46.0 — 2026-06-13 — 📱 Bigger phone tap targets (table-stakes mobile polish)
+
+**Type:** UX / table-stakes mobile polish. Minor bump. Closes the **lone remaining table-stakes gap** ("bigger HTML tap targets on small phones"). CSS-only (+ version/cache bump + a new test) — no gameplay/economy/save/balance impact, desktop byte-identical.
+
+**What & why:** the in-game HTML buttons were below the ~44px recommended touch-target size on phones — the floating upgrade/sell panel buttons measured ~29px and the wave-control buttons (Start Wave, etc.) ~33px, easy to fat-finger mid-battle. This run brings them up to the guideline on small screens:
+
+- **`#upgradePanel button`** (the tap-a-tower Upgrade/Sell/targeting/spec panel) → `min-height:44px; padding:9px 12px; font-size:14px`, inside the general `@media (max-width:920px)` block. The panel is an absolutely-positioned overlay (not part of the landscape chrome budget), so the bump is safe in **both** orientations. Measured 29→44px on a 390px phone; desktop keeps its compact ~29px (rule scoped to ≤920px).
+- **`.towerBtn` / `button.ctl`** → `min-height:46px`, and **`.optBtn` / `.lvlBtn`** (start-screen MODE/MAP/DIFFICULTY + campaign-level buttons) → `min-height:44px`, scoped to **`@media (max-width:920px) and (orientation: portrait)`**. Portrait-only on purpose: the v1.15.0 **landscape** block deliberately compacts the shop/controls (no `min-height`) to keep Start Wave on-screen alongside the tall board, and must stay untouched. Measured on a 390×844 phone: shop buttons 77px, controls 33→46px, option buttons 51px.
+
+**Test evidence:** new test group `[64]` (Mobile tap targets) drives a real 390×844 Playwright viewport — asserts shop / control / upgrade-panel / option buttons all ≥44px, and that the desktop (1280px) upgrade-panel button keeps its compact <44px height (proving the mobile rule didn't leak). Full suite **603/0 green**. Live-verified in-preview at 390×844 (all targets ≥44px) and 1280×800 (unchanged, zero console errors).
+
 ## v1.45.1 — 2026-06-13 — 🩺 Health check (save-migration hardening)
 
 **Type:** Health check (every-6th-run maintenance pass — 5 normal runs since the v1.40.1 check: v1.41.0–v1.45.0). No new feature; a top-to-bottom integrity/docs pass with one small, safe fix. Patch bump.
