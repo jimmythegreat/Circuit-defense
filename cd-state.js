@@ -23,6 +23,13 @@ const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
 }
+// Combo board-glow intensity tier (v1.60.0): 0 = no edge glow (below the first
+// milestone, while the meter is still its baseline green), then 1..4 escalate
+// with the combo tier (gold/orange/red/purple) to drive the pulsing board-edge
+// glow in draw(). Pure mapping so the gating is unit-testable.
+function comboGlowTier(n) {
+  return n < 10 ? 0 : n >= 50 ? 4 : n >= 30 ? 3 : n >= 20 ? 2 : 1;
+}
 // Daily runs track their own per-date best wave (cd_daily_<YYYYMMDD>); everything else uses
 // the legacy per-difficulty key. Routes the HUD `best` load + the recordBest write.
 let bestKey = () => daily ? 'cd_daily_' + dailyDateKey : 'cd_best_' + diffKey;

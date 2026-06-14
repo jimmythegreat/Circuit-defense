@@ -692,6 +692,24 @@ function draw() {
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, W, H);
 
+  // combo board glow (v1.60.0): at a hot streak the board edges breathe with the
+  // combo-tier colour, escalating green→gold→orange→red→purple as the chain grows
+  // — pure reward spectacle for aggressive play, layered over the dark vignette.
+  // Gated by the ✨ Particle setting + OS reduce-motion (it pulses), so either one
+  // silences it, like every other juice effect. Render-only, run-only state.
+  const glowTier = comboGlowTier(comboCount);
+  if (glowTier && comboTimer > 0 && started && !gameOver && particleDensity > 0 && !reduceMotion()) {
+    const cc = comboColor(comboCount);                                   // #RRGGBB
+    const breathe = 0.6 + 0.4 * Math.abs(Math.sin(performance.now() / 260));
+    const peak = (0.07 + glowTier * 0.07) * particleDensity * breathe;   // ~0.08→0.31 alpha
+    const a2 = Math.round(Math.max(0, Math.min(1, peak)) * 255).toString(16).padStart(2, '0');
+    const cg = ctx.createRadialGradient(W/2, H/2, H*0.36, W/2, H/2, W*0.72);
+    cg.addColorStop(0, cc + '00');     // transparent centre (#RRGGBB00)
+    cg.addColorStop(1, cc + a2);       // tier-bright edge (#RRGGBBAA)
+    ctx.fillStyle = cg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
   // paused banner
   if (paused && started && !gameOver) {
     ctx.fillStyle = 'rgba(13,17,23,0.6)';

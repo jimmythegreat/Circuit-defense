@@ -4428,6 +4428,46 @@ async function main() {
     await page.close();
   }
 
+  // [71] Combo board glow — hot streaks light up the board edges (v1.60.0)
+  console.log('\n[71] Combo board glow');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // pure tier mapping: 0 below the first milestone, then 1..4 by combo tier
+      const tiers = {
+        t9: comboGlowTier(9), t10: comboGlowTier(10), t19: comboGlowTier(19),
+        t20: comboGlowTier(20), t30: comboGlowTier(30), t49: comboGlowTier(49),
+        t50: comboGlowTier(50), t999: comboGlowTier(999),
+      };
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      // hot streak active -> draw() must render the glow path cleanly
+      comboCount = 50; comboTimer = COMBO_WINDOW; comboFlash = 0;
+      setParticles(1);
+      let drewHot = true; try { draw(); } catch (e) { drewHot = 'ERR:' + e.message; }
+      // particles Off should suppress (and still render cleanly)
+      setParticles(0);
+      let drewOff = true; try { draw(); } catch (e) { drewOff = 'ERR:' + e.message; }
+      // low streak (below 10) -> no glow tier, still clean
+      setParticles(1); comboCount = 4;
+      let drewLow = true; try { draw(); } catch (e) { drewLow = 'ERR:' + e.message; }
+      setParticles(1);
+      backToMenu();
+      return { tiers, drewHot, drewOff, drewLow };
+    });
+    const t = r.tiers;
+    check('comboGlowTier: no glow below the 10x milestone', t.t9 === 0, `t9=${t.t9}`);
+    check('comboGlowTier: tier 1 at 10x..19x', t.t10 === 1 && t.t19 === 1, `t10=${t.t10} t19=${t.t19}`);
+    check('comboGlowTier: tier 2 at 20x', t.t20 === 2, `t20=${t.t20}`);
+    check('comboGlowTier: tier 3 at 30x..49x', t.t30 === 3 && t.t49 === 3, `t30=${t.t30} t49=${t.t49}`);
+    check('comboGlowTier: tier 4 at 50x+', t.t50 === 4 && t.t999 === 4, `t50=${t.t50} t999=${t.t999}`);
+    check('draw() renders cleanly with a hot combo glow', r.drewHot === true, `${r.drewHot}`);
+    check('draw() renders cleanly with particles off (glow suppressed)', r.drewOff === true, `${r.drewOff}`);
+    check('draw() renders cleanly below the glow threshold', r.drewLow === true, `${r.drewLow}`);
+    check('no console errors during combo-glow test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

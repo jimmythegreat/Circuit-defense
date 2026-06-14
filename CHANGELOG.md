@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.60.0 — 2026-06-14 — 🌈 Combo board glow — hot streaks light up the whole board
+
+**Type:** Game-feel / polish (render-only). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: 4 normal entries since the last health check (v1.55.1 → v1.56.0, v1.57.0, v1.58.0, v1.59.0) → **normal improvement run** (health check due next run at 5). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices in); per the routine, low-priority items don't pre-empt own-prioritized work. Recent runs were all content (perk/mod/gauge/boss), so picked a fresh game-feel item from the ROADMAP "Game feel / polish" list — the long-standing *"combo-gated board tint at huge streaks"* (a chunky-feedback effect the owner explicitly loves), a nice change of pace from yet another piece of content.
+
+**What & why:** A new **combo board glow**. Once your kill-streak passes the first milestone (10×), the playfield edges breathe with the combo-tier colour and that glow **escalates with the streak** — gold at 10×, deepening through orange (20×) and red (30×) to blazing purple at 50×. It makes a hot streak *feel* hot (the screen lights up around you as you keep clears rolling) and fades the instant the chain breaks. Pure spectacle layered over the existing dark vignette — no gameplay, economy, balance, or save impact.
+
+**Settings-aware:** it pulses, so it's gated exactly like every other juice effect — the ✨ Particle setting scales it (Reduced dials it down via the `particleDensity` multiplier, **Off** suppresses it entirely) and OS **reduce-motion** suppresses it. So players who opt out of motion/particles never see it.
+
+**Code:** `cd-state.js` — new pure helper `comboGlowTier(n)` (0 below 10×, then 1..4 by tier — beside `comboColor`, so the gating is unit-testable). `cd-render.js` — in `draw()`, right after the dark vignette, a tier-driven radial-gradient edge glow (transparent centre → `comboColor()` edge via 8-digit `#RRGGBBAA` stops; alpha = `(0.07 + tier·0.07)·particleDensity·breathe`, a `performance.now()`-driven breathe), gated `comboTimer>0 && started && !gameOver && particleDensity>0 && !reduceMotion()`.
+
+**Save-safe:** render-only, run-only combo state (never serialized). No new localStorage key, no schema/economy change.
+
+**Tests:** new group **[71]** — `comboGlowTier` tier boundaries (9→0, 10→1, 20→2, 30→3, 50→4), `draw()` renders cleanly at a hot combo, and the glow path is reduce-motion/particles-off gated (no throw). Full suite green. Reviewed by subagents for guardrails (save-compat, scope, version bookkeeping) — all pass.
+
+---
+
 ## v1.59.0 — 2026-06-14 — 💢 Overkill — new legendary perk (slain enemies detonate)
 
 **Type:** Content (new run perk). Minor bump.

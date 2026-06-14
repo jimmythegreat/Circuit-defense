@@ -277,7 +277,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Master" achievement (30× streak)** both shipped v1.8.0 (💥 9th badge + 🔥
       lifetime `meta.stats.bestCombo`). ✅ **Mid-streak "near miss" cue** shipped
       v1.10.0 — the bottom-right combo timer bar now blinks red in the last third
-      of the 2s window. Remaining: *combo-gated board tint at huge streaks*.
+      of the 2s window. ✅ **Combo board glow** shipped **v1.60.0** — once the streak
+      passes the first milestone (10×), the board edges breathe with the combo-tier
+      colour, escalating green→gold→orange→red→purple as the chain grows
+      (`comboGlowTier()` in cd-state.js + a tier-driven radial edge glow over the
+      vignette in `draw()`). Particle-setting-scaled + reduce-motion-gated, render-only.
+      Test [71]. (The "combo-gated board tint at huge streaks" follow-up is now done.)
 - [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed across
       v1.8.3 → v1.8.5. The "COMBO" label sits beside the multiplier with the
       timer bar in its own lane (no bar-over-text). The persistent meter now
