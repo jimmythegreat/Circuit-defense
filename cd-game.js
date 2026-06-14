@@ -198,7 +198,18 @@ function buildWave(w) {
     // bounds the swing: per-wave boss HP grows +3% (w5) → +10% (w30), asymptoting to +20%
     // (= the coefficient change), inside the ≤25%/number/run guardrail at every wave.
     const mult = 14 + w*0.6;
-    const boss = { kind:'boss', hp:t.hp*mult, maxHp:t.hp*mult, spd:t.speed*0.45, r:24, bounty:t.bounty*12, color:'#f85149', armor: w*0.4, gap:1.5 };
+    // Boss ARMOR slope steepened 0.4 -> 0.5 (v1.64.0) — the genuinely-open late-game
+    // difficulty lever (the boss HP slope above is invariant-capped by test [44]'s
+    // ≤25%-vs-0.5-baseline check; raising it past ~0.625 would break that, so it can't
+    // move without owner sign-off). Armor is FLAT subtraction (damage()), so this barely
+    // touches high-damage builds (cannon/sniper ~+2-5% kill time) and is fully ignored by
+    // the anti-armor towers the owner added (Mortar/AP-gun ignore armor, Poison corrodes
+    // it -3/hit) — but it meaningfully hardens the high-rate-LOW-damage build the owner
+    // flagged as trivializing the game (a leveled gun's boss kill is +5.7%/+10%/+25%
+    // slower at w20/w30/w50; sim in CHANGELOG v1.64.0). The number changes exactly +25%
+    // (the per-run guardrail) and the effective-HP swing stays ≤25% for the worst
+    // realistic build up to w50. Matches the shield enemy's `3 + w*0.5` armor slope.
+    const boss = { kind:'boss', hp:t.hp*mult, maxHp:t.hp*mult, spd:t.speed*0.45, r:24, bounty:t.bounty*12, color:'#f85149', armor: w*0.5, gap:1.5 };
     // Boss ARCHETYPES (v1.25.0; enrager added v1.34.0, teleporter v1.40.0): from wave 20+ the
     // every-5th-wave boss gains a MECHANIC (regen / summoner / bulwark shield / enrager
     // haste-aura / teleporter blink) on a 5-cycle — hardening the LATE game off the

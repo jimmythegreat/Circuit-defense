@@ -389,10 +389,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
       **leak-cost** axis: if it reaches the exit it drains **2 lives, not 1** (the leak site now
       reads `e.lifeCost`). Pressures **coverage** in Classic/Campaign too, off the invariant-capped
       HP curve and the economy; bounded (slow + only moderately tanky, you control leaks). Test [74].
-      Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
-      **lower the archetype threshold** (w20 → w15) or add another archetype (8 as of v1.56.0), the Frost/booster
-      snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
-      before/after; ≤25% per number per run.
+      **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
+      (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
+      hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is
+      +5.7%/+10%/+25% slower at w20/w30/w50; sim in CHANGELOG v1.64.0). +25% on the number (per-run
+      cap); now matches the shield enemy's `3 + w*0.5` slope. Test [44].
+      **⚠ The two HP-slope levers below are now CAPPED by guardrail tests — they need owner sign-off:**
+      stepping the **boss HP slope `0.6 → ~0.7`** breaks test `[44]`'s ≤25%-vs-0.5-baseline invariant
+      (0.7/0.5 asymptotes to +40%; +25.6% at w50), so it can't move past ~0.625; **lowering the
+      archetype threshold w20 → w15** breaks test `[45]`'s "bosses below wave 20 stay vanilla"
+      (deliberate tutorial-boss design). Remaining open levers if still too easy late: another boss
+      **archetype** (8 as of v1.56.0), the Frost/booster snowball item below, the boss armor slope
+      again (now at `0.5`; further bumps ≤25%/run), or — needs sign-off — rebaselining the boss-HP
+      invariant. Simulate before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`
         without owner sign-off.** Test `[16]` enforces a **≤25% cumulative HP boost vs
         the v1.10.0 (coeff-1.0) baseline at EVERY wave**; the live `1.25` already sits

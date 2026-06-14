@@ -2386,8 +2386,8 @@ async function main() {
     await page.close();
   }
 
-  // ---- Test 44: boss HP slope steepened 0.5 -> 0.6 (v1.24.4, "too easy" FEEDBACK) ----
-  console.log('\n[44] Boss HP slope (late-game difficulty)');
+  // ---- Test 44: boss HP slope 0.5->0.6 (v1.24.4) + boss armor slope 0.4->0.5 (v1.64.0) — "too easy" FEEDBACK ----
+  console.log('\n[44] Boss HP + armor slopes (late-game difficulty)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -2402,7 +2402,8 @@ async function main() {
         const oldMult = 14 + w * 0.5;
         return { w, mult, expMult: 14 + w * 0.6,
                  ok: Math.abs(mult - (14 + w * 0.6)) < 1e-6,
-                 pct: (boss.hp / (tmpl * oldMult) - 1) * 100 };  // swing vs the old 0.5 slope
+                 pct: (boss.hp / (tmpl * oldMult) - 1) * 100,   // swing vs the old 0.5 slope
+                 armor: boss.armor };
       });
       backToMenu();
       return { samples };
@@ -2419,6 +2420,16 @@ async function main() {
     // ... but stay inside the ≤25%/number/run guardrail at every wave (asymptote = +20%).
     check('boss HP boost stays within the ≤25% guardrail at every wave',
       pcts.every(p => p <= 25 + 1e-6), `max=${Math.max(...pcts).toFixed(1)}%`);
+    // Boss ARMOR slope steepened 0.4 -> 0.5 (v1.64.0) — the genuinely-open late lever
+    // (boss HP slope is invariant-capped above). Flat-subtraction armor barely touches
+    // high-dmg towers, is ignored by Mortar/AP/Poison, but hardens cheap high-rate guns.
+    for (const s of r.samples) {
+      check(`boss armor at wave ${s.w} uses the 14… w*0.5 slope`,
+        Math.abs(s.armor - s.w * 0.5) < 1e-6, `armor=${s.armor} exp=${s.w * 0.5}`);
+    }
+    // The per-run swing on the armor number is exactly +25% over the old 0.4 slope.
+    const armorSwingOk = r.samples.every(s => Math.abs(s.armor / (s.w * 0.4) - 1.25) < 1e-6);
+    check('boss armor slope is a +25% (≤25%/run guardrail) bump over the old 0.4', armorSwingOk);
     // A boss-bearing wave still drives to a clean clear with god towers (beatable, no crash).
     const beat = await page.evaluate(() => {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
@@ -2696,7 +2707,8 @@ async function main() {
       const armoredBoss = buildWave(10).find(e => e.kind === 'boss');
       // +5 + floor(10*0.3) = +8 at wave 10.
       const armorAdds = armoredNorm.armor - plainNorm.armor === 8;
-      const bossArmorAdds = armoredBoss.armor === (10 * 0.4) + 8;
+      // Base boss armor is w*0.5 (v1.64.0; was w*0.4) → at w10 that's 5, +8 from the mod = 13.
+      const bossArmorAdds = armoredBoss.armor === (10 * 0.5) + 8;
 
       // BROWNOUT — towers fire 25% slower (effRate ×1.25). Inert when the mod is off.
       const t = { type:'gun', rate:1.0, spec:null, level:1 };

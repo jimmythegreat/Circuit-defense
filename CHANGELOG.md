@@ -3,6 +3,27 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.64.0 — 2026-06-14 — 🛡 Boss armor slope — late-game bosses harden (anti-armor builds rewarded)
+
+**Type:** Balance (late-game difficulty). Minor bump (behaviour change, no new content/UI).
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: the previous health check was v1.60.1; since then v1.61.0 / v1.62.0 / v1.63.0 → this is normal run #4 of the cycle, a feature run (5+ triggers the next health check). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices shipped); the routine lets low-priority items be skipped, and recent runs have been content-heavy (breacher, adrenaline, overkill, juggernaut), so I picked a **pure balance** lever to diversify and hit the owner's #1 recurring complaint ("too easy, plateaus late").
+
+**What changed.** The boss **armor** slope was steepened `w*0.4 → w*0.5` in `buildWave()` (cd-game.js) — the only number changed. A boss's flat armor now grows a touch faster with wave (now matching the shielded enemy's existing `3 + w*0.5` slope): w20 8→10, w30 12→15, w50 20→25.
+
+**Why this lever (and not boss HP).** I first evaluated the ROADMAP-listed "step the boss HP slope `0.6 → ~0.7`," but found it **conflicts with test [44]'s `≤25%-vs-the-0.5-baseline` invariant**: 0.7/0.5 asymptotes to +40%, breaking the guardrail at w50+ (25.6% at w50). Like the norm-HP curve, the boss HP slope is effectively capped (~0.625) and can't move without owner sign-off. The boss **archetype threshold** (w20→w15) is similarly pinned by test [45] ("bosses below wave 20 stay vanilla", a deliberate tutorial-boss design). The boss **armor slope has no guardrail test** — it's the genuinely-open documented lever.
+
+**Why armor is the right harden.** Armor is *flat subtraction* (`damage()` does `dmg − armor`), so the change is **build-selective**, which is the point:
+- High-damage towers barely notice — a Cannon (~120/shot) / Sniper (~300/shot) kills the boss only ~2–5% slower late.
+- The anti-armor tools the owner built **ignore it entirely** — Mortar and the gun's AP spec ignore armor; Poison corrodes it −3/hit.
+- It **meaningfully** slows the cheap, high-fire-rate / low-damage build (a wall of basic guns) that was trivializing the late game — exactly the "too easy" complaint.
+
+**Simulation (boss kill-time, before→after; full table in the run log).** A *leveled gun* (~45/shot) boss kill is **+5.7% / +10% / +25% slower at w20 / w30 / w50**; Cannon +1.8/2.9/5.3%; Sniper +0.7/1.1/1.8%; Mortar/AP/Poison ~0%. The armor *number* rises exactly **+25%** (the per-run guardrail), and even the worst realistic build's effective-HP swing stays ≤25% up to w50. A lone leveled gun still kills the boss (just slower) → **still beatable**.
+
+**Scope / safety.** Run-only enemy stat — enemies are never persisted, so **no save/schema change**. No new localStorage key, no economy/talent/tower-balance impact. Not covered by the norm-HP invariant ([16]) or the boss-HP invariant ([44]). `waveThreat()`'s boss mirror uses HP, not armor, so no sync needed (test [40] stayed green).
+
+**Tests.** Extended group **[44]** (now "Boss HP + armor slopes"): asserts the live boss armor uses the `w*0.5` slope at every sampled wave and that it's exactly a +25% bump over the old `0.4`. Fixed the stale hardcoded expectation in **[46]** (Armored Surge: wave-10 boss armor is now base `5` + mod `8` = `13`, was `4 + 8`) — the drift-guard catching the base-slope change, as designed. Full suite **756/0 green** (was 749/0; +7 assertions in [44] — six per-wave armor-slope checks + the +25%-swing check — and the [46] boss-armor expectation updated). `sw.js` `CACHE` bumped to `v1.64.0` (test [49]).
+
 ## v1.63.0 — 2026-06-14 — ‼ Breacher — heavy enemy that costs 2 lives if it leaks
 
 **Type:** Content / difficulty (new enemy kind). Minor bump.
