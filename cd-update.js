@@ -105,7 +105,14 @@ function update(dt) {
     // enrager haste aura (v1.34.0): an enraged enemy moves +35% faster. slowMul already
     // zeroes frozen movement, and frost slow multiplies in, so freeze/slow still counter it.
     const hasteMul = e.hasted > 0 ? 1.35 : 1;
-    e.dist += e.spd * slowMul * hasteMul * dt;
+    // berserker boss (v1.50.0): a wounded berserker accelerates, scaling its own speed with
+    // missing HP up to +60% at death — a "race to burst it before it sprints to the exit" lever.
+    // Computed inline (no ticked field); slowMul still zeroes it under freeze, so freeze counters
+    // it like every other archetype, and frost slow multiplies in. Base boss speed is 0.45×, so
+    // even a fully-raging berserker (0.72×) stays slower than a basic enemy — bounded + beatable.
+    const berserkMul = (e.kind === 'boss' && e.bossType === 'berserker')
+      ? 1 + 0.6 * Math.max(0, 1 - e.hp / e.maxHp) : 1;
+    e.dist += e.spd * slowMul * hasteMul * berserkMul * dt;
     const p = pointAt(e.dist);
     e.x = p.x; e.y = p.y;
     if (e.kind === 'heal' && e.frozen <= 0) {
@@ -143,6 +150,8 @@ function update(dt) {
     //   enrager    : haste aura — nearby enemies move +35% faster (pressures DPS/timing, no HP)
     //   teleporter : blinks ~80px forward every ~4s, briefly intangible mid-jump — skips tower
     //                coverage so the damage window shrinks and it reaches the exit faster
+    //   berserker  : accelerates as it loses HP (up to +60% speed at death, in the movement line
+    //                above) — pulses a roar here once wounded; race to burst it before it sprints
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
@@ -194,6 +203,15 @@ function update(dt) {
           e.dist += 80;
           addExplosion(e.x, e.y, '#bc8cff', 10, 110);
           SFX.blink();
+        }
+      } else if (e.bossType === 'berserker') {
+        // the speed scaling lives in the movement line above; here we only add chunky feedback
+        // once it's actually been wounded — a periodic roar + burst so the rage reads at a glance
+        // without spamming sound every frame. Run-only timer, never persisted (enemies aren't saved).
+        e.rageCd = (e.rageCd == null ? 2 : e.rageCd) - dt;
+        if (e.rageCd <= 0) {
+          e.rageCd = 2;
+          if (e.hp < e.maxHp * 0.85) { addExplosion(e.x, e.y, '#ff6a6a', 7, 95); SFX.bossSkill(); }
         }
       }
     }

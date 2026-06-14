@@ -43,6 +43,7 @@ function bossMechanicBadge(e) {
     case 'bulwark':  return { label: e.shieldOn ? 'SHIELDED' : 'BULWARK', c: '121,192,255' };
     case 'enrager':  return { label: 'ENRAGED', c: '255,180,84' };
     case 'teleporter': return { label: 'TELEPORTER', c: '188,140,255' };
+    case 'berserker': return { label: 'BERSERK', c: '255,106,106' };
     default:         return null;
   }
 }
@@ -440,16 +441,18 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // boss archetype aura (v1.25.0; enrager v1.34.0; teleporter v1.40.0): colour-codes the
-    // mechanic — green regen, red summoner, blue bulwark, orange enrager, violet teleporter.
-    // The bulwark ring flares bright+thick during its active shield phase so the damage-soak
-    // window is readable at a glance.
+    // boss archetype aura (v1.25.0; enrager v1.34.0; teleporter v1.40.0; berserker v1.50.0):
+    // colour-codes the mechanic — green regen, red summoner, blue bulwark, orange enrager,
+    // violet teleporter, crimson berserker. The bulwark ring flares bright+thick during its
+    // active shield phase, and the berserker ring grows brighter+thicker as it rages (scaling
+    // with missing HP), so the damage-soak window / rage level is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : '121,192,255';
+      const rage = e.bossType === 'berserker' ? Math.max(0, 1 - e.hp / e.maxHp) : 0;
       ctx.beginPath();
-      ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6), 0, Math.PI*2);
-      ctx.strokeStyle = `rgba(${ac},${e.shieldOn ? 0.85 : 0.4})`;
-      ctx.lineWidth = e.shieldOn ? 3.5 : 2;
+      ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6) + rage*4, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(${ac},${e.shieldOn ? 0.85 : 0.4 + rage*0.45})`;
+      ctx.lineWidth = e.shieldOn ? 3.5 : 2 + rage*1.5;
       ctx.stroke();
     }
     // ground shadow

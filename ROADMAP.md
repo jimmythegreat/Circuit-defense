@@ -150,8 +150,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the active archetype under "OVERLORD — WAVE N", colour-matched to the aura ring (green
       REGENERATING / red SUMMONER / blue BULWARK↔SHIELDED / orange ENRAGED / violet TELEPORTER);
       `bossMechanicBadge()` in `cd-render.js`, render-only, test [53].
+      ✅ **6th archetype shipped v1.50.0 — 🔴 Berserker** (accelerates as it loses HP, up to +60% speed at
+      death; `berserkMul` computed inline in the movement line, no ticked field; freeze stops it via `slowMul=0`,
+      Frost slows blunt it; crimson aura ring brightens/thickens with rage + a periodic roar; `BERSERK` boss-bar
+      badge). Cycle now `(w/5−4)%6` (w45→berserker, w50→regen); the rotation reads `BOSS_ARCHETYPES.length` so
+      it auto-extended. Run-only/save-safe, behaviour-not-HP. Test [45] (rotation + accel + freeze-stops + killable) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      a 6th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      a 7th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -300,7 +305,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
       crucially hits **Classic & Campaign** (the modes the owner called too easy), not just
       Mayhem/late bosses. See "New enemy type: warden" above.
       Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
-      **lower the archetype threshold** (w20 → w15) or add another archetype (5 as of v1.40.0), the Frost/booster
+      **lower the archetype threshold** (w20 → w15) or add another archetype (6 as of v1.50.0), the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
       before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`

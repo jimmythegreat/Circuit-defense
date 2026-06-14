@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.50.0 — 2026-06-14 — 🔴 Berserker — 6th boss archetype (accelerates as it loses HP)
+
+**Type:** Content (new boss mechanic). Minor bump. Ships the ROADMAP "Boss variety → a 6th archetype" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — hardens the late game through *behaviour*, not the invariant-capped HP axis.
+
+**What & why:**
+
+- **🔴 Berserker** — a sixth boss archetype (`BOSS_ARCHETYPES` 5→6 in cd-game.js). From wave 20+ the every-5th-wave boss carries one mechanic on a 6-cycle: regen → summoner → bulwark → enrager → teleporter → **berserker** (w45 → berserker, w50 wraps to regen). The cycle length reads `BOSS_ARCHETYPES.length`, so adding the archetype to the array auto-extended the rotation.
+- **Mechanic:** the Berserker accelerates as it loses HP — speed scales with missing HP up to **+60% at death** (`berserkMul = 1 + 0.6·max(0, 1 − hp/maxHp)`, computed **inline in the movement line** in cd-update.js, no ticked field needed for the speed). A near-dead Berserker sprints for the exit right when it's almost down, so it pressures **damage + timing** ("burst it before it rages"), not raw HP. Base boss speed is 0.45×, so even fully enraged (0.72×) it stays slower than a basic enemy — bounded and beatable.
+- **Counters:** freeze stops it cold (`slowMul = 0` zeroes movement, raging or not — consistent with every other archetype pausing under freeze), and Frost slows blunt the rush (the slow multiplies in).
+- **Game-feel / readability:** a periodic roar (`rageCd` ~2s, `addExplosion` + `SFX.bossSkill()`) once it drops below 85% HP; the crimson boss aura ring (`bossMechanicBadge` → `BERSERK`, colour `255,106,106`) grows brighter + thicker as it rages (alpha/width scale with missing HP) so the rage level reads at a glance. Boss-bar badge labelled **BERSERK**.
+- **Save-safe:** all fields (`rageMul` is computed, `rageCd` is lazily-initialised run-only) live on enemy objects, which are never persisted — no save/schema change. New content, so not bound by the ≤25%/run *rebalance* rule (like the +35% enrager haste / +80px teleporter blink before it).
+
+**Tests:** group `[45]` extended — rotation now asserts the 6-cycle (w20–w50, incl. w45→berserker, w50→regen wrap), a wounded berserker covers clearly more distance than a full-HP one, a frozen berserker doesn't move, and it's in the killable loop. Group `[53]` badge test asserts the `BERSERK` label/colour. Full suite **632/0 green**.
+
+---
+
 ## v1.49.0 — 2026-06-14 — 🛡 Support targeting mode — towers prioritise heal/warden aura enemies
 
 **Type:** Content / gameplay depth (new tower targeting mode). Minor bump. Ships the ROADMAP "New enemy type: warden" follow-up *("a tower spec/targeting mode that prioritises support enemies")*. Additive, save-safe, no economy/balance-number impact.
