@@ -616,6 +616,13 @@ function draw() {
       ctx.fillText(lbl, px, py);
       px += ctx.measureText(lbl).width + 11;
     }
+    // threat gauge — total raw HP of the next wave's base roster, so a boss/tank spike is
+    // visible at a glance (plan purchases before it lands). Reddens on every 5th (boss) wave.
+    const threat = waveThreat(wave + 1);
+    const bossWave = (wave + 1) % 5 === 0;
+    ctx.fillStyle = bossWave ? 'rgba(248,81,73,0.95)' : 'rgba(210,168,255,0.9)';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('⚔ ' + fmtNum(threat) + ' HP', px + 4, py);
     ctx.textBaseline = 'alphabetic';
     if (isMayhem() && !daily && wave > 0 && wave % 5 === 0) {
       ctx.fillStyle = 'rgba(210,168,255,0.9)'; ctx.font = '13px sans-serif';

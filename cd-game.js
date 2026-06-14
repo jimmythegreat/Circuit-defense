@@ -234,6 +234,23 @@ function waveComposition(w) {
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;
 }
+// Total raw HP of an upcoming wave's DETERMINISTIC base roster — the "threat" number on the
+// bottom-left wave preview, so you can gauge an incoming HP spike (a tanky/boss wave) and buy
+// up before it lands. Built from waveComposition() (the single source for kind counts) and
+// enemyTemplate() (the single source for base HP + difficulty + campaign scaling), so it tracks
+// difficulty and campaign level automatically. The per-kind HP multipliers + the boss multiplier
+// MIRROR buildWave() — KEEP IN SYNC if those change. Like waveComposition, this is the pre-mod
+// base (Mayhem wave-mods like swarm/titans aren't rolled yet), so it's a planning estimate.
+const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3 };
+function waveThreat(w) {
+  const t = enemyTemplate(w);
+  let total = 0;
+  for (const c of waveComposition(w)) {
+    if (c.kind === 'boss') total += t.hp * (14 + w*0.6);   // mirrors buildWave's boss HP mult
+    else total += c.count * (KIND_HP_MULT[c.kind] || 1) * t.hp;
+  }
+  return total;
+}
 
 function startWave() {
   if (gameOver || !started || draftOpen) return;

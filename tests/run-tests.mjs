@@ -2125,11 +2125,25 @@ async function main() {
       // every kind that can appear has a preview colour
       const kinds = ['norm','fast','tank','heal','shield','split','phantom','boss'];
       const colorsOk = kinds.every(k => typeof PREVIEW_COLOR[k] === 'string');
+      // threat gauge — waveThreat() must equal the real buildWave() total HP (no mod active),
+      // proving the preview's per-kind multipliers stay in sync with the source of truth.
+      function buildHp(w){ return buildWave(w).reduce((s,e)=>s+e.maxHp,0); }
+      let threatMatches = true; const tmism = [];
+      for (const w of waves) {
+        const a = waveThreat(w), b = buildHp(w);
+        if (Math.abs(a - b) > 0.01) { threatMatches = false; tmism.push(`w${w}:${a.toFixed(0)}≠${b.toFixed(0)}`); }
+      }
+      const threatRises = waveThreat(10) > waveThreat(5) && waveThreat(20) > waveThreat(10);
+      const bossSpikes = waveThreat(15) > waveThreat(14);   // boss wave is a clear spike
+      const threatNormal = waveThreat(10);
+      diffKey = 'hard'; const threatHard = waveThreat(10); diffKey = 'normal';
+      const threatScalesDiff = threatHard > threatNormal;
       // draw the between-waves preview state cleanly
       wave = 13; waveActive = false; gameOver = false;
       let drew = true; try { draw(); } catch(e){ drew = false; }
       backToMenu();
-      return { allMatch, mism, orderOk, bossOnlyMult5, colorsOk, drew, total15: c15.reduce((s,e)=>s+e.count,0) };
+      return { allMatch, mism, orderOk, bossOnlyMult5, colorsOk, drew, total15: c15.reduce((s,e)=>s+e.count,0),
+        threatMatches, tmism, threatRises, bossSpikes, threatScalesDiff };
     });
     check('waveComposition tallies match buildWave() at every sampled wave', r.allMatch, r.mism.join(','));
     check('roster is ordered norm-first, boss-last', r.orderOk);
@@ -2137,6 +2151,10 @@ async function main() {
     check('PREVIEW_COLOR defines a colour for every enemy kind', r.colorsOk);
     check('w15 total = 33 normals/specials + 1 boss = 34', r.total15 === 34, `got ${r.total15}`);
     check('draw() renders the wave-preview state cleanly', r.drew);
+    check('waveThreat() equals buildWave() total HP at every sampled wave', r.threatMatches, r.tmism.join(','));
+    check('waveThreat rises with wave number', r.threatRises);
+    check('waveThreat spikes on a boss wave (w15 > w14)', r.bossSpikes);
+    check('waveThreat scales with difficulty (hard > normal)', r.threatScalesDiff);
     check('no console errors during wave-preview test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

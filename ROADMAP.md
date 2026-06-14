@@ -303,8 +303,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       a text kind-list, so you can see counts at a glance and plan purchases. `waveComposition(w)`
       (cd-game.js, replaces `waveDesc`) is a deterministic tally that mirrors `buildWave()`;
       `PREVIEW_COLOR` (cd-render.js) holds the per-kind disc colours. Render + one helper only;
-      no gameplay/economy/save impact. Test [40]. Follow-up: *also surface the next wave's total
-      HP / threat number*, and *a per-kind hover tooltip* on the preview.
+      no gameplay/economy/save impact. Test [40]. ✅ **threat number shipped v1.57.0** — the
+      preview now appends a `⚔ N HP` gauge (total raw HP of the next wave's base roster; reddens
+      on boss waves; reflects difficulty + campaign level). `waveThreat(w)` (cd-game.js) sums
+      `waveComposition()` counts × a `KIND_HP_MULT` map × `enemyTemplate(w)` + the boss mult,
+      mirroring `buildWave()` (KEEP-IN-SYNC, drift-guarded by test [40]'s `waveThreat===buildWave`
+      assertion). Render + one helper, no save/economy/balance impact. Still open follow-up:
+      *a per-kind hover tooltip* on the preview, and *the threat number relative to your DPS*.
 - [ ] **What's New flush polish** — since v1.4.1 the panel butts against the
       `#gameCol` right edge, which is ~21px wider than the canvas (driven by the
       `.hint` margins). Minor cosmetic gap between the canvas and the panel; could

@@ -3,6 +3,21 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.57.0 — 2026-06-14 — ⚔ Threat gauge — next-wave total-HP number on the wave preview
+
+**Type:** UX / quality-of-life (render + one pure helper). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: 1 normal entry since the last health check (v1.55.1) → **normal improvement run**. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already four slices in); per the routine, low-priority items don't pre-empt own-prioritized work, so picked the strongest clean ROADMAP follow-up instead.
+
+**What & why:** The bottom-left between-waves preview already shows a glanceable **icon roster** of the next wave (a colour disc + glyph + ×count per enemy kind) so you know *what* is coming. The open ROADMAP follow-up under "Wave preview" asks to also surface the next wave's **total HP / threat number** so you know *how hard* it hits. Added a `⚔ N HP` gauge to that strip (e.g. `⚔ 15.1k HP`): it lets you spot an incoming HP spike — a boss wave, or a wave thick with tanks — and buy up *before* it lands instead of getting caught short. It **reddens on every 5th (boss) wave** to flag the climactic ones, and it automatically reflects difficulty + campaign level (Hard / deep-campaign waves read bigger). Serves the recurring "give me strategic depth / planning tools" thread without touching balance.
+
+**Implementation (additive, render-only — no save/economy/balance impact):**
+- `cd-game.js` — new `waveThreat(w)` helper (beside `waveComposition`) returns the total raw HP of an upcoming wave's **deterministic base roster**. Built from `waveComposition()` (the single source of kind counts) × a `KIND_HP_MULT` map × `enemyTemplate(w)` (the single source of base HP + difficulty + campaign scaling), plus the boss's `14 + w*0.6` mult. The per-kind multipliers + boss formula **mirror `buildWave()`** with a KEEP-IN-SYNC comment — the same hand-mirror convention `waveComposition` already uses.
+- `cd-render.js` — draws the `⚔ {fmtNum(threat)} HP` label after the icon roster in the existing `!waveActive` preview block (violet normally, red `#f85149` on boss waves). Pure draw; reuses the established `px`/`py` cursor.
+- Like `waveComposition`, it's the **pre-mod base** (Mayhem's swarm/titans/etc. aren't rolled yet) — a planning estimate, documented in the helper comment.
+
+**Testing:** Extended test group **[40]** (Wave-preview composition) with four assertions: `waveThreat()` equals the real `buildWave()` total HP at every sampled wave (a direct drift-guard on the mirrored multipliers), rises with wave number, spikes on a boss wave (w15 > w14), and scales with difficulty (hard > normal). Full suite **678 passed / 0 failed** (was 674). Verified live in the http preview (SW/cache cleared first): `waveThreat(10)` === `buildWave(10)` sum to the float, formats as "15.1k", boss-wave spike confirmed, preview draws with zero console errors. A guardrail-review subagent confirmed: no persisted state, multipliers mirror `buildWave` exactly, load order correct (`waveThreat`/`fmtNum` in cd-game.js used by cd-render.js which loads after), no PII.
+
 ## v1.56.0 — 2026-06-14 — ⬜ Juggernaut — 8th boss archetype (immune to crowd control)
 
 **Type:** Content (new boss archetype). Minor bump.
