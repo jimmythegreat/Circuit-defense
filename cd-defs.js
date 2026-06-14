@@ -39,6 +39,8 @@ function loadMeta() {
     const m = JSON.parse(localStorage.getItem('cd_meta'));
     if (m && typeof m.chips === 'number') meta = m;
   } catch(e) {}
+  // additive schema migration — a minimal/old save may carry chips but no talents map
+  if (!meta.talents || typeof meta.talents !== 'object') meta.talents = {};
   for (const k of Object.keys(TALENTS)) {
     if (!(k in meta.talents)) meta.talents[k] = 0;
     meta.talents[k] = Math.min(meta.talents[k], TALENTS[k].max);

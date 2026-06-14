@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.45.1 — 2026-06-13 — 🩺 Health check (save-migration hardening)
+
+**Type:** Health check (every-6th-run maintenance pass — 5 normal runs since the v1.40.1 check: v1.41.0–v1.45.0). No new feature; a top-to-bottom integrity/docs pass with one small, safe fix. Patch bump.
+
+**Fix this run — old-save robustness in `loadMeta()` (cd-defs.js):** integrity spot-check #4 (minimal `cd_meta` loads via migration defaults) surfaced a real crash. `loadMeta()` does `meta = m` (when the parsed save has a numeric `chips`) and then immediately `if (!(k in meta.talents))` in the talents loop. A minimal/old save like `{"chips":100}` (no `talents` map) made `meta.talents` `undefined`, so the `in` operator threw `TypeError: Cannot use 'in' operator … in undefined` at startup — a hard crash for that save shape. Added one defensive line before the loop: `if (!meta.talents || typeof meta.talents !== 'object') meta.talents = {};` (mirrors the existing achievements/stats migration guards just below). Reproduced the throw in Node first, then verified the guard. Save-safe, additive, no economy/schema change.
+
+**Health-check findings (all green, no drift):**
+- **Tests:** full suite **597/0** (exit 0), up from 595/0 — added 2 assertions to test group [3]'s migration block (minimal save loads without throwing + defaults talents/achievements/stats).
+- **Refactor audit:** every game file comfortably under the ~1500-line cap (largest: `cd-update.js` 850, `cd-render.js` 715). No new dead code or domain bleed. The lone outsized file remains the dev-only test harness `tests/run-tests.mjs` (**3,750 lines, 64 groups [0]–[63], 573 `check()` sites / 597 assertions**) — still a `[refactor]` backlog item (split per-group), not shipped game code.
+- **Versions in sync:** `GAME_VERSION` = `sw.js` CACHE = CHANGELOG top = **v1.45.1** (test [49] asserts SW==GAME_VERSION).
+- **`file://` playability:** classic `<script src>` tags in dependency order, zero `type="module"`, inline-SVG favicon, manifest/SW links present; SW registration stays http/https-guarded so double-click play + the headless harness are unaffected.
+- **Docs coherence:** CLAUDE.md counts re-verified against code — 8 towers, 21 talents, 12 Mayhem `WAVE_MODS`, 5 `BOSS_ARCHETYPES` (regen/summoner/bulwark/enrager/teleporter), classic scripts. No drift. Updated two stale ROADMAP notes (test-harness line/group/assertion counts; table-stakes re-audit marker + the now-complete list).
+- **Table-stakes audit:** the only remaining gap is **chunkier HTML tap targets on small phones**; everything else is shipped (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile).
+- **Veto scan:** no owner reverts since the last CHANGELOG entry; vetoed section intact.
+
+**Bookkeeping:** `GAME_VERSION`/`sw.js`/CHANGELOG_ENTRIES bumped to v1.45.1; ROADMAP refreshed; FEEDBACK untouched (the lone PENDING item is `[low priority]` and skippable per the routine). Resets the 5-run health-check counter.
+
 ## v1.45.0 — 2026-06-13 — 🪧 Start-screen hero header (menu revamp slice 4)
 
 **Type:** UX / menu polish. Minor bump. Fourth slice of the owner's `[low priority]` FEEDBACK "revamp the whole starting menu" thread (after v1.39.1 two-tier buttons, v1.41.0 PLAY sheen, v1.42.0 config card) — also the ROADMAP "Start-menu revamp" item under *Game feel / polish*. The only PENDING FEEDBACK is this same low-priority revamp, so continuing it is the right call.

@@ -343,6 +343,22 @@ async function main() {
     check('old save migrates: achievements/stats defaulted',
       typeof migrated.ach === 'object' && migrated.stats.dmg === 0 && migrated.stats.runs === 0, JSON.stringify(migrated));
 
+    // Minimal/old save with chips but NO talents map must not throw in loadMeta (v1.45.1 guard).
+    const minimal = await page.evaluate(() => {
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 100 })); // no talents/achievements/stats
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+      let threw = false;
+      try { loadMeta(); } catch (e) { threw = true; }
+      const res = { threw, chips: meta.chips, talentsObj: meta.talents && typeof meta.talents === 'object',
+        ach: typeof meta.achievements === 'object', statDmg: meta.stats.dmg };
+      localStorage.removeItem('cd_meta');
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0, bestCombo: 0 } }; loadMeta();
+      return res;
+    });
+    check('minimal save (chips, no talents) loads without throwing', !minimal.threw, JSON.stringify(minimal));
+    check('minimal save defaults talents map + achievements/stats',
+      minimal.talentsObj && minimal.chips === 100 && minimal.ach && minimal.statDmg === 0, JSON.stringify(minimal));
+
     // Combo Master (v1.8.0): a 30x run streak grants combo30 + records lifetime bestCombo.
     const combo = await page.evaluate(() => {
       meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0 };

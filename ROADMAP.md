@@ -331,9 +331,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 health checks)
+## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 + v1.45.1 health checks)
 
-_Still-unaddressed, in priority order: **bigger HTML tap targets on small phones**.
+_Still-unaddressed, in priority order: **bigger HTML tap targets on small phones** (the lone remaining
+gap — all other table-stakes items below are shipped: favicon/meta/OG, PWA install, touch/pointer, gamepad,
+keyboard a11y (menus + draft), colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile)._
+
+_Earlier note:_
 Done: **gamepad support (v1.43.0)** — a controller drives the same board cursor + actions as mouse/keyboard
 (`pollGamepad(dt)` in `cd-game.js`, called from the rAF loop; no-op without a pad). Test [61].
 Done: **PWA install (v1.30.0)** — installable + offline-cacheable when hosted via `manifest.webmanifest`
@@ -447,8 +451,8 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
-- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 health checks) —
-      `tests/run-tests.mjs` has grown to **3,424 lines (58 groups `[0]`–`[58]`, 519 `check()` sites / 543 assertions)** in a
+- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 health checks) —
+      `tests/run-tests.mjs` has grown to **3,750 lines (64 groups `[0]`–`[63]`, 573 `check()` sites / 597 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing
