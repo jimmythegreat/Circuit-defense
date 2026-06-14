@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.50.1 — 2026-06-14 — 🩺 Health check — all green (632/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass). No new feature. Patch bump. 5 normal runs since the v1.45.1 health check (v1.46.0–v1.50.0), so this run is the scheduled checkup.
+
+**Pre-flight:** `git pull` clean (up to date). No revert/veto commits since the last CHANGELOG entry. FEEDBACK.md PENDING has one `[low priority]` item (start-menu revamp) — low-priority items don't override the health-check schedule, so it stays queued.
+
+**1. Refactor audit:** all seven game files comfortably under the ~1500-line guideline — `cd-update.js` 876, `cd-render.js` 718, `cd-game.js` 691, `cd-core.js` 441, `cd-defs.js` 364, `cd-maps.js` 285, `cd-state.js` 170. No dead code, duplication, or domain-bleed found. The lone oversized file remains the **dev-only test harness** `tests/run-tests.mjs` (now **3,991 lines / 67 groups**) — already tracked as a low-priority `[ ]` split in ROADMAP (refreshed this run); it never ships.
+
+**2. Docs coherence:** CLAUDE.md verified against the code — `BOSS_ARCHETYPES` = 6 (`regen/summoner/bulwark/enrager/teleporter/berserker`), `MODES` = 5 (incl. `support`), `WAVE_MODS` = 12, `ACHIEVEMENTS` = 14, `GAME_VERSION` = `v1.50.0` ↔ `sw.js` cache matched. No formula drift. Fixed the one stale doc: ROADMAP's test-split note still said "3,750 lines / 64 groups `[0]`–`[63]` / 573 checks" → corrected to **3,991 lines / 67 groups `[0]`–`[66]` / 608 `check()` sites / 632 assertions**. Table-stakes re-audit line stamped v1.50.1.
+
+**3. Table-stakes:** checklist remains **COMPLETE** (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, ~44px tap targets). No new gap surfaced.
+
+**4. Integrity spot-checks:** full suite **632/0 green**. `file://` playability intact — HTML wires all 7 `cd-*.js` in dependency order + the CSS link, `index.html` redirect present, SW registration is `http`/`https`-guarded in `cd-render.js` (skips `file://`), deploy workflow copies `index.html` + `tower-defense.html` + `tower-defense.css` + `cd-*.js` + the PWA trio. Old-save migration confirmed robust — `loadMeta()` defaults a missing `talents`/`achievements`/`stats` map (hardened v1.45.1), `loadRun()` validates an unknown targeting `mode` to `'first'`.
+
+**Findings → ROADMAP; fixes this run:** doc-only (stale test-counts in ROADMAP). No code/behaviour/balance/save change. Version + sw.js cache bumped to v1.50.1 in lockstep.
+
+---
+
 ## v1.50.0 — 2026-06-14 — 🔴 Berserker — 6th boss archetype (accelerates as it loses HP)
 
 **Type:** Content (new boss mechanic). Minor bump. Ships the ROADMAP "Boss variety → a 6th archetype" follow-up. Additive, run-only state, save-safe, no economy/HP-curve impact — hardens the late game through *behaviour*, not the invariant-capped HP axis.
