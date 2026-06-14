@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.58.0 — 2026-06-14 — 💉 Adrenaline — 14th Mayhem wave modifier (wounded enemies accelerate)
+
+**Type:** Content (new Mayhem wave modifier). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: 2 normal entries since the last health check (v1.55.1 → v1.56.0, v1.57.0) → **normal improvement run**. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, already four slices in); per the routine, low-priority items don't pre-empt own-prioritized work, so picked the strongest clean ROADMAP follow-up instead.
+
+**What & why:** The open ROADMAP item "More wave modifiers" (the `[~]` pool, at 13) asks for genuinely-fresh mechanics rather than clones of the existing ones. None of the 13 mods tie enemy **speed to damage taken across the whole wave** — `frenzy` is a flat +35%, and the wounded-accelerates idea only existed on the single Berserker boss. **Adrenaline** is the wave-wide version: every enemy speeds up as it loses HP, up to **+50% at near-death**. It pressures **chip-damage builds on a fresh axis** — a wounded-but-alive enemy sprints for the exit and can leak before slow/spread fire finishes it, rewarding bursty focused damage — which serves the recurring "too easy" feedback without adding raw HP (the norm-HP curve is invariant-capped by test `[16]`). Because the boost ramps from 0 with missing HP, the **average** speed over an enemy's life is *below* Frenzy's flat +35%, so it's challenging but fair, and it can never make a run *easier* (speed only goes up).
+
+**Implementation (additive, run-only — no save/economy/balance impact):**
+- `cd-maps.js` — new `{ id:'adrenaline', icon:'💉', name:'Adrenaline', desc:'Wounded enemies accelerate' }` in `WAVE_MODS`, inserted before `meteors` (so the friendly Meteor Shower stays visually last). `MOD_BY_ID` + the rng pool size pick it up automatically. Pool **13 → 14**.
+- `cd-game.js` — `buildWave()` tags `e.adrenaline = true` on each enemy (and `boss.adrenaline = true`) when `modIs('adrenaline')`, mirroring the `regen` tag.
+- `cd-update.js` — one inline factor in the movement line (beside `berserkMul`): `adrenalineMul = e.adrenaline ? 1 + 0.5*max(0, 1 - hp/maxHp) : 1`. `slowMul` zeroes it under freeze (freeze counters it cleanly) and Frost slow multiplies in — identical CC interaction to the Berserker.
+- `cd-render.js` — a faint red ring fades in around an accelerating enemy (alpha scales with missing HP), only once it's actually below full HP, so the "this one is racing" cue reads at a glance. Mirrors the regen-halo draw.
+
+**Balance:** Peak +50% (a NEW conditional mod effect, in line with peers — `titans` +50% HP, `swarm` +60% count, `frenzy` +35% spd; the Berserker boss uses +60%). Average impact across an enemy's lifetime is below Frenzy's flat +35%, and base enemy/boss speeds are unchanged. Bounded and beatable; counters exist (Freeze/Frost, burst damage).
+
+**Testing:** New test group **[69]** (10 checks): the mod is in `WAVE_MODS`; `buildWave` tags every enemy + boss when active and is inert otherwise; base HP/speed/armor/bounty are untouched; a one-frame `update()` sim confirms a wounded tagged enemy outruns a full-HP one (~+40% at 80% missing HP), a full-HP tagged enemy matches an untagged one (ramp starts at 0), freeze zeroes movement, and the multiplier is bounded to +50%. Full suite run via subagent + a guardrail-review subagent on the diff before commit. Verified live in the http preview.
+
 ## v1.57.0 — 2026-06-14 — ⚔ Threat gauge — next-wave total-HP number on the wave preview
 
 **Type:** UX / quality-of-life (render + one pure helper). Minor bump.

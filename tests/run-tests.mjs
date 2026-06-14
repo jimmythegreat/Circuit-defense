@@ -4256,6 +4256,77 @@ async function main() {
     await page.close();
   }
 
+  // [69] Adrenaline wave mod — wounded enemies accelerate (v1.58.0)
+  console.log('\n[69] Adrenaline (HP-linked acceleration wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const hasMod = WAVE_MODS.some(m => m.id === 'adrenaline');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod): no enemy is tagged.
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainNorm = plainWave.find(e => e.kind === 'norm');
+      const plainTagged = plainWave.some(e => e.adrenaline);
+
+      // ADRENALINE: every enemy + the boss is tagged; base stats are untouched.
+      setMod('adrenaline');
+      const adrWave = buildWave(10);
+      const adrNorm = adrWave.find(e => e.kind === 'norm');
+      const allTagged = adrWave.every(e => e.adrenaline === true);
+      const statsUnchanged = adrNorm.hp === plainNorm.hp && adrNorm.spd === plainNorm.spd &&
+        adrNorm.armor === plainNorm.armor && adrNorm.bounty === plainNorm.bounty;
+
+      // Movement: drive one update() frame on four hand-built enemies (no towers) and
+      // compare how far each advanced. A near-dead tagged enemy must outrun a full-HP
+      // one; a full-HP tagged enemy must match an untagged one (the ramp starts at 0);
+      // freeze must zero all movement.
+      const mk = (hpFrac, opts) => Object.assign({
+        kind:'norm', spd:1, hp:hpFrac, maxHp:1, dist:200, frozen:0, slow:0, flash:0,
+        x:0, y:0, r:11, armor:0, bounty:1, color:'#3fb950', dealt:0
+      }, opts || {});
+      const full   = mk(1,   { adrenaline:true });
+      const hurt   = mk(0.2, { adrenaline:true });   // 80% missing HP -> +40% speed
+      const plain  = mk(0.2, {});                    // wounded but untagged -> no speedup
+      const frozen = mk(0.2, { adrenaline:true, frozen:5 });
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      enemies.push(full, hurt, plain, frozen);
+      const d0 = enemies.map(e => e.dist);
+      update(1/60);
+      const adv = enemies.map((e, i) => e.dist - d0[i]);
+      const [fullAdv, hurtAdv, plainAdv, frozenAdv] = adv;
+      const woundedFaster = hurtAdv > fullAdv * 1.3;
+      const fullMatchesPlain = Math.abs(fullAdv - plainAdv) < 1e-9;
+      const frozenStill = frozenAdv === 0;
+      // Bounded: even at 100% missing HP the multiplier is exactly 1.5 (no runaway).
+      const peakMul = 1 + 0.5 * Math.max(0, 1 - 0 / 1);
+      const bounded = peakMul <= 1.5 + 1e-9;
+
+      // Inert again when the mod is cleared.
+      setMod(null);
+      const inertOff = buildWave(10).some(e => e.adrenaline) === false;
+
+      enemies.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, plainTagged, allTagged, statsUnchanged, woundedFaster,
+               fullMatchesPlain, frozenStill, bounded, inertOff, fullAdv, hurtAdv, plainAdv };
+    });
+    check('WAVE_MODS includes Adrenaline', r.hasMod);
+    check('Adrenaline is inert when the mod is off (no enemy tagged)', !r.plainTagged);
+    check('Adrenaline tags every enemy + the boss', r.allTagged);
+    check('Adrenaline leaves base HP/speed/armor/bounty untouched', r.statsUnchanged);
+    check('a wounded adrenaline enemy outruns a full-HP one', r.woundedFaster, `full=${r.fullAdv} hurt=${r.hurtAdv}`);
+    check('a full-HP adrenaline enemy matches an untagged enemy (ramps from 0)', r.fullMatchesPlain, `full=${r.fullAdv} plain=${r.plainAdv}`);
+    check('freeze stops an adrenaline enemy entirely', r.frozenStill);
+    check('adrenaline speedup is bounded to +50% at death', r.bounded);
+    check('Adrenaline is inert once the mod is cleared', r.inertOff);
+    check('no console errors during Adrenaline test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

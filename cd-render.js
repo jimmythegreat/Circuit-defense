@@ -434,6 +434,17 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
+    // Adrenaline wave-mod cue (v1.58.0): a faint red ring marks a wounded enemy that's
+    // currently sped up by the mod — the ring fades in with missing HP so it reads as
+    // "this one is now racing the exit". Only shows once it's actually accelerating.
+    if (e.adrenaline && e.hp < e.maxHp) {
+      const f = Math.min(1, 1 - e.hp / e.maxHp);
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(248,81,73,${0.25 + 0.4*f})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     // enrager haste cue (v1.34.0): a faint orange ring marks an enemy currently sped up
     // by a nearby enrager boss (matches the boss's own orange aura below).
     if (e.hasted > 0) {

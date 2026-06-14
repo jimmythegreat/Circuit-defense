@@ -179,6 +179,7 @@ function buildWave(w) {
     if (modIs('drought'))  e.bounty = Math.max(1, Math.floor(e.bounty * 0.5));
     if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   e.regen = true;
+    if (modIs('adrenaline')) e.adrenaline = true;
     e.maxHp = e.hp;
     q.push(e);
   }
@@ -206,6 +207,7 @@ function buildWave(w) {
     if (modIs('frenzy')) boss.spd *= 1.35;
     if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   boss.regen = true;
+    if (modIs('adrenaline')) boss.adrenaline = true;
     boss.maxHp = boss.hp;
     q.push(boss);
   }

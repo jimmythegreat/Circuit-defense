@@ -119,8 +119,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       `e.bounty`/`boss.bounty` at spawn). Then **💠 Warden Surge** in **v1.51.0** (`wardens`: converts a
       fraction of would-be basic enemies into ◈ Warden support escorts — densely shields the wave, pressuring
       **target priority** off the HP axis; ties together the Warden enemy + the v1.49.0 Support targeting mode;
-      conversion-not-addition so wave length is unchanged; run-only). Pool 7→9→10→11→12→**13**.
-      Test [46] + [54] + [57] + [67].
+      conversion-not-addition so wave length is unchanged; run-only). Then **💉 Adrenaline** in **v1.58.0**
+      (`adrenaline`: every enemy + boss accelerates as it loses HP, up to +50% speed at near-death — the
+      wave-wide cousin of the Berserker boss, on a fresh axis no other mod touches (`frenzy` is a flat bump).
+      One inline `adrenalineMul` in the movement line (beside `berserkMul`), tagged `e.adrenaline` in
+      `buildWave`; freeze zeroes it / Frost slow multiplies in; faint red ring cue. Ramps from 0 with missing
+      HP so the lifetime average is *below* Frenzy's flat +35% → challenging but fair, can't make a run easier.
+      Pressures chip-damage builds (burst-or-leak), per the "too easy" feedback; run-only). Pool 7→9→10→11→12→13→**14**.
+      Test [46] + [54] + [57] + [67] + [69].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).

@@ -120,7 +120,17 @@ function update(dt) {
     // even a fully-raging berserker (0.72×) stays slower than a basic enemy — bounded + beatable.
     const berserkMul = (e.kind === 'boss' && e.bossType === 'berserker')
       ? 1 + 0.6 * Math.max(0, 1 - e.hp / e.maxHp) : 1;
-    e.dist += e.spd * slowMul * hasteMul * berserkMul * dt;
+    // Adrenaline wave mod (mayhem, v1.58.0): a tagged enemy accelerates as it loses HP,
+    // up to +50% speed at near-death — the wave-wide cousin of the berserker boss, on a
+    // fresh axis (HP-linked acceleration across the WHOLE wave; none of the other 13 mods
+    // do this — frenzy is a flat speed bump). Pressures chip-damage builds (a wounded but
+    // not-yet-dead enemy sprints for the exit, so you must burst it down) without raw HP,
+    // per the recurring "too easy" feedback. Computed inline like berserkMul; slowMul zeroes
+    // it under freeze (freeze counters it) and frost slow multiplies in. Because it ramps
+    // from 0 with missing HP, the average over an enemy's life is well under frenzy's flat
+    // +35% — bounded + beatable. Tagged at spawn in buildWave (run-only, never saved).
+    const adrenalineMul = e.adrenaline ? 1 + 0.5 * Math.max(0, 1 - e.hp / e.maxHp) : 1;
+    e.dist += e.spd * slowMul * hasteMul * berserkMul * adrenalineMul * dt;
     const p = pointAt(e.dist);
     e.x = p.x; e.y = p.y;
     if (e.kind === 'heal' && e.frozen <= 0) {
