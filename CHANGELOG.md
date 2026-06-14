@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.45.0 — 2026-06-13 — 🪧 Start-screen hero header (menu revamp slice 4)
+
+**Type:** UX / menu polish. Minor bump. Fourth slice of the owner's `[low priority]` FEEDBACK "revamp the whole starting menu" thread (after v1.39.1 two-tier buttons, v1.41.0 PLAY sheen, v1.42.0 config card) — also the ROADMAP "Start-menu revamp" item under *Game feel / polish*. The only PENDING FEEDBACK is this same low-priority revamp, so continuing it is the right call.
+
+**What changed:** the top of the start screen reads as one cohesive header instead of a loose stack.
+- The title `<h2>`, version `#verTag`, and tagline `<p>` are now wrapped in a single **`.startHero`** block (markup, `tower-defense.html`), reordered so the version sits directly **under the title** (it previously floated awkwardly between the tagline and the config card).
+- **`.startHero`** (CSS) is a centered column with a soft blue **accent divider** (`::after`, a 190px transparent→`#58a6ff`→transparent gradient rule) separating the header from the config card below.
+- The **title** is a touch larger (32→34px), bolder (800), with letter-spacing and a richer two-layer glow. The ⚡ emoji is left intact (no gradient text-clip, which would blank the emoji).
+- The **version** now renders as a small **rounded pill badge** (1px border, `999px` radius, `#161b22` bg) tucked under the title — still clickable to open What's New, still gets the gold `●` dot when updates are unseen (`.hasNew::after` unchanged).
+
+**Why:** the owner's standing FEEDBACK item asks to clean up the "clunky" start menu; the title/version area was the last loose part. Grouping it into a hero block with a divider gives the menu a clear top-to-bottom structure (header → setup card → play row → utility toolbar).
+
+**Save/economy/behaviour impact:** none. Markup + CSS only. `#verTag` keeps its `id` + `onclick` so `renderStartScreen()` still sets its text and the `.hasNew` dot; `.startUtil` stays `#startScreen`'s last child (test [58] invariant) and `.startOpts` is untouched (test [60]).
+
+**Tests:** new group **[63]** (hero exists, groups title+version+tagline, is a column, version is a bordered/rounded pill, hero is first child, util toolbar stays last child, `#verTag` keeps its onclick, no console errors). Full suite **595/0 green**. Verified in-preview at 1280px (title 34px, badge centered under title, divider rendered, no horizontal overflow) and mobile (title 26px, stacks cleanly).
+
+**Bookkeeping:** `GAME_VERSION`/`sw.js` cache bumped to v1.45.0; CHANGELOG_ENTRIES prepended; FEEDBACK item left PENDING (as-written, per owner pref — the fuller revamp isn't done yet).
+
 ## v1.44.0 — 2026-06-13 — 🆕 What's New "new since last visit" marker
 
 **Type:** UX / game-feel polish. Minor bump. Ships the ROADMAP "What's New 'new since last visit' marker" item (under *Game feel / polish* — "highlight entries newer than the last-seen version (persist `cd_wnseen`) with a dot/badge … and auto-scroll the list to the top on open"). Chosen over a 4th consecutive start-menu slice (the only PENDING FEEDBACK item is `[low priority]`, skippable, and already had three back-to-back slices in v1.39.1/v1.41.0/v1.42.0) per the routine's "don't just follow up the most recent change."

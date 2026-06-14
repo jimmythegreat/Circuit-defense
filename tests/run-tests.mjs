@@ -3678,6 +3678,46 @@ async function main() {
     await page.close();
   }
 
+  // [63] Start-screen hero header — title/version/tagline grouped block (v1.45.0, menu revamp slice 4)
+  console.log('\n[63] Start-screen hero header (menu revamp slice 4)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const hero = document.querySelector('#startScreen .startHero');
+      const cs = hero ? getComputedStyle(hero) : null;
+      const ver = document.getElementById('verTag');
+      const verCs = ver ? getComputedStyle(ver) : null;
+      return {
+        hasHero: !!hero,
+        // title, version badge and tagline all live inside the hero block
+        h2InHero: !!(hero && hero.querySelector('h2')),
+        verInHero: !!(hero && hero.querySelector('#verTag')),
+        pInHero: !!(hero && hero.querySelector('p')),
+        column: cs ? cs.flexDirection === 'column' : false,
+        // version is now a bordered pill badge
+        verBordered: verCs ? verCs.borderTopStyle !== 'none' && verCs.borderTopWidth !== '0px' : false,
+        verRounded: verCs ? parseFloat(verCs.borderTopLeftRadius) > 0 : false,
+        // hero is the FIRST child, util toolbar still the last (test [58] invariant)
+        firstChildHero: document.querySelector('#startScreen > div:first-child').classList.contains('startHero'),
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+        // verTag keeps its id + onclick so renderStartScreen() still wires it
+        verHasOnclick: !!(ver && ver.getAttribute('onclick')),
+      };
+    });
+    check('hero header .startHero exists on the start screen', d.hasHero);
+    check('hero groups title + version + tagline together', d.h2InHero && d.verInHero && d.pInHero,
+      `h2=${d.h2InHero} ver=${d.verInHero} p=${d.pInHero}`);
+    check('hero is a column block', d.column);
+    check('version tag is a bordered, rounded pill badge', d.verBordered && d.verRounded,
+      `border=${d.verBordered} round=${d.verRounded}`);
+    check('hero is the start screen\'s first child', d.firstChildHero);
+    check('#startScreen last child is still the util toolbar (test [58] invariant)', d.lastChildUtil);
+    check('#verTag keeps its onclick wiring', d.verHasOnclick);
+    check('no console errors during hero-header test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

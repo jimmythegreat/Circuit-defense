@@ -171,9 +171,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       options, so the run-setup controls read as a single structured panel instead of three rows of
       floating centered labels. Markup + CSS only, save-safe, desktop (720px centered) + mobile
       (full-width) verified; test [60].
-      **Remaining (the broader "revamp"):** the title/version area could get a cleaner visual
-      treatment, and the utility toolbar could move to a left rail / panel layout; consider per-block
-      visual polish (icons, hover states). FEEDBACK item stays PENDING (as-written, per owner pref)
+      **Fourth slice shipped v1.45.0:** the title/version/tagline are now grouped into a `.startHero`
+      header block with a soft blue accent divider, the version reads as a small rounded pill badge
+      tucked under the (slightly larger, glowier) title instead of floating between the tagline and the
+      config card. Markup + CSS only, save-safe; `#verTag` keeps its id+onclick, `.startUtil` stays the
+      last child. Test [63].
+      **Remaining (the broader "revamp"):** the utility toolbar could move to a left rail / panel
+      layout; consider per-block visual polish (icons, richer hover states), and maybe a background
+      treatment behind the start screen. FEEDBACK item stays PENDING (as-written, per owner pref)
       until the fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps

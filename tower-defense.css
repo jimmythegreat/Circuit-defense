@@ -178,7 +178,19 @@
   .ovSection { font-size: 13px; color: #8b949e; max-width: 700px; line-height: 1.5; }
   .ovSection b { color: #c9d1d9; }
   .ovSection.ach { color: #e3b341; font-weight: bold; font-size: 14px; }
-  #startScreen h2 { font-size: 32px; margin-bottom: 4px; color: #58a6ff; text-shadow: 0 0 20px rgba(88,166,255,.6); }
+  /* Start-screen hero header (v1.45.0, menu revamp slice 4) — groups the title,
+     version badge and tagline into one cohesive header block topped off with a soft
+     accent divider, replacing the loose stack where the version line sat awkwardly
+     between the tagline and the config card. Markup/CSS only; #verTag keeps its
+     id + onclick (renderStartScreen() still sets its text and the .hasNew dot). */
+  .startHero { display: flex; flex-direction: column; align-items: center; gap: 7px;
+    margin-bottom: 18px; padding-bottom: 16px; position: relative; }
+  .startHero::after { content: ''; position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%); width: 190px; height: 2px;
+    background: linear-gradient(90deg, transparent, #58a6ff, transparent); opacity: .55; }
+  #startScreen .startHero p { margin: 0; }
+  #startScreen h2 { font-size: 34px; margin-bottom: 0; color: #58a6ff; font-weight: 800;
+    letter-spacing: 1px; text-shadow: 0 0 18px rgba(88,166,255,.55), 0 0 42px rgba(88,166,255,.28); }
   .optRow { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
   /* Start-screen button hierarchy (v1.39.1) — primary "launch a run" actions stay
      prominent; secondary menu/utility buttons recede into a smaller toolbar so the
@@ -339,8 +351,10 @@
   .wnEntry.wnFresh { border-left-color: #f0b429; border-left-width: 4px; background: #1b1c14; box-shadow: 0 0 10px rgba(240,180,41,.12); }
   .wnEntry .wnNew { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: #f0b429; color: #161b22; font-size: 9.5px; font-weight: bold; letter-spacing: 1px; vertical-align: middle; }
   .wnBadge { display: inline-block; min-width: 16px; padding: 0 5px; border-radius: 9px; background: #f0b429; color: #161b22; font-size: 11px; font-weight: bold; line-height: 16px; text-align: center; }
-  #verTag { color: #8b949e; font-size: 12px; letter-spacing: 1px; cursor: pointer; }
-  #verTag:hover { color: #3fb950; }
+  #verTag { display: inline-block; color: #8b949e; font-size: 11px; letter-spacing: 1px;
+    cursor: pointer; padding: 2px 11px; border: 1px solid #30363d; border-radius: 999px;
+    background: #161b22; transition: color .15s, border-color .15s; }
+  #verTag:hover { color: #3fb950; border-color: #2ea043; }
   #verTag.hasNew::after { content: '●'; color: #f0b429; font-size: 9px; margin-left: 5px; vertical-align: middle; }
   .hint { color: #8b949e; font-size: 11.5px; margin: 6px 12px; text-align: center; max-width: 920px; }
   /* Portrait-only nudge toward the landscape layout (shown via media query below). */
