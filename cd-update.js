@@ -300,10 +300,13 @@ function pickTarget(t) {
     if (d > range) continue;
     let val;
     switch (t.mode) {
-      case 'last':   val = -e.dist; break;
-      case 'strong': val = e.hp; break;
-      case 'close':  val = -d; break;
-      default:       val = e.dist;
+      case 'last':    val = -e.dist; break;
+      case 'strong':  val = e.hp; break;
+      case 'close':   val = -d; break;
+      // 'support': prioritise aura enemies (heal/warden) — popping them un-buffs their
+      // cluster. Support outranks everything; among same class, furthest-along wins (like 'first').
+      case 'support': val = (SUPPORT_KINDS[e.kind] ? 1e7 : 0) + e.dist; break;
+      default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }
   }

@@ -8,7 +8,7 @@
 // installed PWA) loads instantly from cache; network responses for same-origin GETs are
 // folded back into the cache so newly-deployed files become available offline next time.
 // Bump CACHE on each release so the activate step evicts the previous version.
-const CACHE = 'circuit-defense-v1.48.0';
+const CACHE = 'circuit-defense-v1.49.0';
 const ASSETS = [
   './',
   'index.html',

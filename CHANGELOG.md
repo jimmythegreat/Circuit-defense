@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.49.0 — 2026-06-14 — 🛡 Support targeting mode — towers prioritise heal/warden aura enemies
+
+**Type:** Content / gameplay depth (new tower targeting mode). Minor bump. Ships the ROADMAP "New enemy type: warden" follow-up *("a tower spec/targeting mode that prioritises support enemies")*. Additive, save-safe, no economy/balance-number impact.
+
+**What & why:**
+
+- **🛡 Support** — a fifth per-tower targeting mode beside ⏩ First / ⏪ Last / 💪 Strong / 📍 Close (tap a tower, cycle its targeting button one more step). A Support-mode tower targets the **aura enemies that buff the pack — 💚 heal and ◈ warden** — before any normal enemy in range. Killing a healer/warden instantly strips its cluster's heal/shield, so this turns a single tower into a dedicated "pop the support first" tool — exactly the target-priority decision the Warden (v1.35.0) and heal (w7+) enemies were designed to create. Serves the recurring "too easy / give me more depth" feedback by adding a *choice*, not more numbers: it raises no stat.
+- **Implementation** — `MODES` gains `'support'` and `MODE_ICON` gains its label (`cd-defs.js`); a `SUPPORT_KINDS = {heal, warden}` lookup defines the priority set. `pickTarget()` (`cd-update.js`) adds one `case 'support'`: `val = (SUPPORT_KINDS[e.kind] ? 1e7 : 0) + e.dist`, so any support enemy in range outranks everything, and among the same class the furthest-along wins (identical tiebreak to 'first'). With **no** support enemy in range it degrades to plain 'first' targeting — never a wasted setting.
+- **Save-safe** — the per-tower `mode` already round-trips through `saveRun()`/`loadRun()`, and the loader (`cd-state.js`) validates `mode` against `MODES` with a `'first'` fallback, so a saved `'support'` loads cleanly and any unknown/old value still falls back safely. No new localStorage key, no schema change. Buff towers don't show a targeting button (they deal no damage), so the new mode only appears on attacking towers via the auto-generated cycle. The upgrade panel already hashes `t.mode` in `upgradeKey()`, so the button label updates live.
+
+**Tests:** new group `[66]` — asserts `support` is in `MODES` with a label; a Support tower picks a heal enemy over a further-along norm; picks the furthest-along among two support enemies; falls back to 'first' with no support in range; `cycleMode()` reaches it; and the mode survives a save/resume round-trip. Full suite green.
+
 ## v1.48.0 — 2026-06-14 — 🎲 Wildcard — gamble legendary perk (random legendary effect)
 
 **Type:** Content (new run-perk). Minor bump. Ships the ROADMAP "a true random 'Wildcard' perk" idea (under Content & variety → "secret / easter-egg legendary perk" follow-ups). Additive, save-safe, **balance-neutral**, no economy impact.

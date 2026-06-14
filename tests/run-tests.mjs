@@ -3896,6 +3896,64 @@ async function main() {
     await page.close();
   }
 
+  // [66] Support targeting mode — prioritise aura enemies (heal/warden) (v1.49.0)
+  console.log('\n[66] Support targeting mode (heal/warden priority)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+
+      const inModes = MODES.includes('support');
+      const hasIcon = typeof MODE_ICON.support === 'string' && MODE_ICON.support.length > 0;
+
+      const mk = (kind, x, dist, hp) => ({ kind, x, y: 300, dist, hp, maxHp: hp,
+        dead: false, blinkInvuln: 0, armor: 0, frozen: 0 });
+      const t = { type:'gun', x: 0, y: 300, range: 99999, dmg: 10, rate: 0.5, cd: 0,
+        level: 1, baseCost: 50, invested: 50, angle: 0, mode: 'support', spec: null,
+        dealt: 0, kills: 0, buffPower: 0, flash: 0 };
+      towers = [t];
+
+      // (a) a heal enemy (less far along) is picked over a norm that's further ahead.
+      enemies = [ mk('norm', 400, 800, 100), mk('heal', 200, 400, 100) ];
+      const picksHealOverNorm = pickTarget(t) === enemies[1];
+
+      // (b) among two support enemies, the furthest-along (higher dist) wins.
+      enemies = [ mk('heal', 200, 400, 100), mk('warden', 300, 600, 100) ];
+      const picksFurthestSupport = pickTarget(t) === enemies[1];
+
+      // (c) no support in range → falls back to 'first' (furthest-along norm).
+      enemies = [ mk('norm', 200, 300, 100), mk('norm', 400, 700, 100) ];
+      const fallbackToFirst = pickTarget(t) === enemies[1];
+
+      // (d) cycleMode eventually reaches 'support'.
+      selectedTower = t; t.mode = 'first';
+      let reachedSupport = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (t.mode === 'support') reachedSupport = true; }
+      hideUpgrade();
+
+      // (e) save/resume round-trips the support mode.
+      t.mode = 'support'; enemies = []; projectiles = [];
+      saveRun();
+      const rt = loadRun();
+      const restored = rt === true && towers.length === 1 && towers[0].mode === 'support';
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inModes, hasIcon, picksHealOverNorm, picksFurthestSupport,
+        fallbackToFirst, reachedSupport, restored };
+    });
+    check('support is a valid targeting mode', r.inModes);
+    check('support mode has a button label', r.hasIcon);
+    check('support mode picks a heal enemy over a further-along norm', r.picksHealOverNorm);
+    check('support mode picks the furthest-along support enemy', r.picksFurthestSupport);
+    check('support mode falls back to first when no support in range', r.fallbackToFirst);
+    check('cycleMode reaches the support mode', r.reachedSupport);
+    check('save/resume round-trips the support mode', r.restored);
+    check('no console errors during support-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

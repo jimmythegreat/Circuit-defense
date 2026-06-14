@@ -46,8 +46,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the HP axis (the norm-HP curve is invariant-capped; see Balance). Freeze pauses the aura;
       Wardens never shield themselves/each other (always killable). Run-only fields, no save impact.
       `buildWave`/`waveComposition` (cd-game.js), aura+reduction (cd-update.js), aura/cue rings +
-      glyph/colour (cd-render.js). Test [52]. **Follow-ups:** *a Mayhem "warden surge" wave-mod*
-      (extra wardens), and *a tower spec/targeting mode that prioritises support enemies*.
+      glyph/colour (cd-render.js). Test [52]. ✅ **targeting-mode follow-up shipped v1.49.0** — a
+      🛡 **Support** targeting mode (`pickTarget()` `case 'support'` in cd-update.js; `MODES`/`MODE_ICON`/
+      `SUPPORT_KINDS` in cd-defs.js) makes a tower prioritise heal/warden aura enemies (pop the support
+      → un-buff the cluster); falls back to 'first' with none in range. Save-safe (mode already round-trips).
+      Test [66]. **Follow-up still open:** *a Mayhem "warden surge" wave-mod* (extra wardens).
 - [x] **New enemy type: "phantom"** — shipped v1.9.0. Teal blinker from wave 13+;
       teleports 58px forward every ~2s and is intangible (untargetable + immune)
       for 0.35s mid-blink, punishing slow single-target towers. Frost/freeze pauses
