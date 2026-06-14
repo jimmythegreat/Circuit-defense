@@ -179,6 +179,19 @@
   .ovSection { font-size: 13px; color: #8b949e; max-width: 700px; line-height: 1.5; }
   .ovSection b { color: #c9d1d9; }
   .ovSection.ach { color: #e3b341; font-weight: bold; font-size: 14px; }
+  /* Collapsible score breakdown (v1.62.0) — the per-term + multiplier detail behind
+     a <details> so the score hero stays clean by default. */
+  .ovBreak { font-size: 12px; color: #8b949e; width: 100%; max-width: 320px; }
+  .ovBreak summary { cursor: pointer; text-align: center; color: #58a6ff; padding: 2px 0;
+    list-style: none; user-select: none; }
+  .ovBreak summary::-webkit-details-marker { display: none; }
+  .ovBreak summary::before { content: '▸ '; }
+  .ovBreak[open] summary::before { content: '▾ '; }
+  .breakTbl { width: 100%; border-collapse: collapse; margin: 6px auto 0; }
+  .breakTbl td { padding: 2px 8px; }
+  .breakTbl td:last-child { text-align: right; font-variant-numeric: tabular-nums; color: #c9d1d9; }
+  .breakTbl tr.sub td { border-top: 1px solid #30363d; }
+  .breakTbl tr.tot td { border-top: 1px solid #30363d; font-weight: bold; color: #e6edf3; padding-top: 4px; }
   /* Start-screen hero header (v1.45.0, menu revamp slice 4) — groups the title,
      version badge and tagline into one cohesive header block topped off with a soft
      accent divider, replacing the loose stack where the version line sat awkwardly

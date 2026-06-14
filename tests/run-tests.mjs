@@ -4537,6 +4537,52 @@ async function main() {
     await page.close();
   }
 
+  // [73] Collapsible score breakdown on the end screen (v1.62.0)
+  console.log('\n[73] End screen — score breakdown');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      ['cd_bestscore', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      // Quick-mode defeat with known state so the breakdown rows are deterministic.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; beginGame();
+      wave = 12; kills = 100; lives = 5; gold = 200; comboBest = 8; victory = false;
+      towers = [];                                  // 0 towers → effMult 1
+      const sc = computeScore();
+      endGame();
+      const det = document.querySelector('#ovDetails .ovBreak');
+      const exists = !!det;
+      const collapsedByDefault = det ? !det.open : false;     // <details> closed initially
+      const summary = det ? det.querySelector('summary').textContent : '';
+      const body = det ? det.innerHTML : '';
+      // non-zero terms listed; campaign/victory rows absent on a quick defeat
+      const hasWaves = body.includes('Waves');
+      const hasKills = body.includes('Kills');
+      const hasSubtotal = body.includes('Subtotal');
+      const hasDiffRow = body.includes('Difficulty') && body.includes('×1.6');   // hard
+      const hasEffRow = body.includes('Efficiency');
+      const hasFinal = body.includes(fmtNum(sc.score));
+      const noCampaignRow = !body.includes('Campaign');   // quick mode → camp part is 0
+      const noVictoryRow = !body.includes('Victory');     // defeat → victory part is 0
+      backToMenu();
+      ['cd_bestscore', 'cd_save', 'cd_best_classic_hard'].forEach(k => localStorage.removeItem(k));
+      return { exists, collapsedByDefault, summary, hasWaves, hasKills, hasSubtotal,
+               hasDiffRow, hasEffRow, hasFinal, noCampaignRow, noVictoryRow };
+    });
+    check('score breakdown <details> renders on the end screen', r.exists);
+    check('breakdown is collapsed by default', r.collapsedByDefault);
+    check('breakdown summary labelled', /breakdown/i.test(r.summary), r.summary);
+    check('breakdown lists the Waves term', r.hasWaves);
+    check('breakdown lists the Kills term', r.hasKills);
+    check('breakdown shows a Subtotal row', r.hasSubtotal);
+    check('breakdown shows the difficulty multiplier (Hard ×1.6)', r.hasDiffRow);
+    check('breakdown shows the efficiency multiplier', r.hasEffRow);
+    check('breakdown shows the final score', r.hasFinal);
+    check('quick-mode defeat omits the zero Campaign term', r.noCampaignRow);
+    check('defeat omits the zero Victory term', r.noVictoryRow);
+    check('no console errors during breakdown test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

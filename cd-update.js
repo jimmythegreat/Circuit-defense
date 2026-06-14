@@ -856,6 +856,29 @@ function recordScores(score) {
   }
   return { prevAllTime, isAllTimeBest };
 }
+// Collapsible "how the score was computed" breakdown (v1.62.0) — surfaces the
+// per-term contributions + the difficulty/efficiency multipliers that computeScore()
+// already returns but the end screen never showed (owner asked for a scoring system;
+// this makes it legible). Render-only, hidden behind a <details> so the deliberately-
+// decluttered end screen stays clean by default. Only non-zero terms are listed.
+function scoreBreakdownHtml(sc) {
+  const rows = [
+    ['🌊 Waves', sc.parts.wave],
+    ['💥 Kills', sc.parts.kills],
+    ['❤️ Lives', sc.parts.lives],
+    ['🪙 Gold', sc.parts.gold],
+    ['🔥 Combo', sc.parts.combo],
+    ['🎖️ Campaign', sc.parts.camp],
+    ['🏆 Victory', sc.parts.victory],
+  ].filter(([, v]) => v > 0);
+  const subtotal = rows.reduce((a, [, v]) => a + v, 0);
+  let body = rows.map(([k, v]) => `<tr><td>${k}</td><td>+${fmtNum(v)}</td></tr>`).join('');
+  body += `<tr class="sub"><td>Subtotal</td><td>${fmtNum(subtotal)}</td></tr>`;
+  body += `<tr><td>× Difficulty (${DIFFS[diffKey].name})</td><td>×${sc.diffMult}</td></tr>`;
+  body += `<tr><td>× Efficiency (${sc.nt} tower${sc.nt === 1 ? '' : 's'})</td><td>×${sc.effMult.toFixed(2)}</td></tr>`;
+  body += `<tr class="tot"><td>Score</td><td>${fmtNum(sc.score)}</td></tr>`;
+  return `<details class="ovBreak"><summary>Score breakdown</summary><table class="breakTbl">${body}</table></details>`;
+}
 // Build the restyled end screen: score hero (grade badge + number + all-time best),
 // a one-line headline, a stats grid, and compact MVP/perks/achievement sections —
 // replacing the old single pre-line text blob (owner FEEDBACK "victory screen … overwhelming").
@@ -889,6 +912,7 @@ function renderEndScreen(won, earned, newAch) {
   if (mvp)  html += `<div class="ovSection">${mvp}</div>`;
   if (perk) html += `<div class="ovSection">${perk}</div>`;
   if (ach)  html += `<div class="ovSection ach">${ach}</div>`;
+  html += scoreBreakdownHtml(sc);
   document.getElementById('ovDetails').innerHTML = html;
   document.getElementById('overlay').classList.add('scored');
 }

@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.62.0 — 2026-06-14 — 🧮 Score breakdown on the end screen
+
+**Type:** Feature / UX polish. Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: the previous health check was v1.60.1; since then only v1.61.0 — so this is normal run #2 of the cycle, a feature run (not a health check). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices already shipped); the routine lets low-priority items be skipped, so I picked a higher-value ROADMAP follow-up instead.
+
+**What changed.** The end-of-run screen now exposes a collapsible **score breakdown**. `computeScore()` (cd-update.js) has long returned `parts` (per-term points), `diffMult` and `effMult`, but `renderEndScreen()` discarded all of it — the player saw only the final number with no explanation. A new `scoreBreakdownHtml(sc)` helper renders a `<details class="ovBreak">` under the score grid: each non-zero term (🌊 waves / 💥 kills / ❤️ lives / 🪙 gold / 🔥 combo / 🎖️ campaign / 🏆 victory) with its point value, a subtotal, then `× Difficulty (name)` and `× Efficiency (N towers)`, then the final score. It's collapsed by default (`<summary>▸ Score breakdown</summary>`), so the deliberately-decluttered v1.16.0 screen reads exactly as cleanly as before unless the player opens it.
+
+**Why.** ROADMAP listed "a score breakdown tooltip (each term's contribution)" as an open follow-up to the v1.16.0 scoring system. The owner asked for a scoring system; making the *fewer-towers / bigger-combos / more-gold* levers legible lets players see which choices actually move the number and chase a better grade on purpose.
+
+**Scope / safety.** Render-only. No new localStorage key, no economy/balance/save-schema impact — it only *reads* the object `computeScore()` already builds. Only non-zero terms are listed (campaign/victory rows hidden on a quick-mode defeat). Native `<details>`/`<summary>` — no JS toggle, works offline on `file://`.
+
+**Tests.** New group [73] asserts the breakdown renders on the end screen, lists the contributing terms, the difficulty + efficiency multiplier rows, and the final score, and stays collapsed by default. Full suite green (subagent-run). CSS lives beside the `.ovSection` block in tower-defense.css.
+
 ## v1.61.0 — 2026-06-14 — 🏆 Best scores on the Records panel
 
 **Type:** Feature / progression. Minor bump.
