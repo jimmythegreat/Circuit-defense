@@ -463,7 +463,7 @@ function hitEnemy(p) {
   }
 }
 
-function damage(e, dmg, src, silent=false, ignoreArmor=false) {
+function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false) {
   if (e.hp <= 0 || e.dead) return;
   if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
@@ -524,6 +524,19 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false) {
           bounty: Math.max(1, Math.floor(e.bounty*0.3)), color:'#e3b341', armor:0, gap:0,
           dist: Math.max(0, e.dist - 6 - i*10), slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px:0, py:0
         });
+      }
+    }
+    // Overkill perk (v1.59.0): the slain enemy detonates, splashing 25% of its max HP as
+    // armor-ignoring true damage to nearby enemies. `fromOverkill` guards re-entry so a
+    // splash-kill can't detonate again — single layer, naturally bounded by enemy count.
+    if (perkState.overkill && !fromOverkill && e.kind !== 'boss') {
+      const splash = e.maxHp * 0.25;
+      addExplosion(e.x, e.y, '#ff7b3d', 14, 170);
+      SFX.bomb();
+      for (const o of enemies) {
+        if (o === e || o.dead || o.hp <= 0) continue;
+        const dx = o.x - e.x, dy = o.y - e.y;
+        if (dx*dx + dy*dy <= 60*60) damage(o, splash, src, true, true, true);
       }
     }
     updateHud();

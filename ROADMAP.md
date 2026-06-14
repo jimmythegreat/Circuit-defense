@@ -147,7 +147,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (`resolveWildcard()` + a `pickPerk` branch in cd-defs.js; reveals what you rolled). Balance-neutral
       (a legendary → a legendary, not power creep) and save-safe (the *resolved* perk id is stored in
       `runPerks`/`perkState`, never `'wildcard'`, so resume can't re-roll). Test [65]. Still open: maybe
-      a *hidden unlock condition* for a secret legendary.
+      a *hidden unlock condition* for a secret legendary. ✅ **Overkill shipped v1.59.0** — 💢
+      **Overkill** (legendary): a slain non-boss enemy **detonates**, splashing 25% of its max HP as
+      armor-ignoring true damage within 60px — a chunky chain-reaction swarm-clear. Single-layer
+      (a `fromOverkill` guard on `damage()` stops a splash-kill re-detonating → bounded depth 1, no
+      cascade), bosses excluded, scales with enemy max HP so it stays relevant late, pairs with the
+      combo meter. `overkill` flag in `perkState`/`freshPerkState()` (save-safe); detonation block in
+      `damage()`'s kill path (cd-update.js). Wildcard rolls it automatically. Test [70].
 - [x] **New quick-play map: "Gauntlet"** — shipped **v1.54.0**. A 4th hand-crafted quick map
       (`MAPS.gauntlet` in cd-maps.js, before Mayhem) — a 12-point axis-aligned switchback that
       funnels enemies through a dense central kill-box (closely-spaced vertical runs at x=300/480/660),

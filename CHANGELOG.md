@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.59.0 — 2026-06-14 — 💢 Overkill — new legendary perk (slain enemies detonate)
+
+**Type:** Content (new run perk). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: 3 normal entries since the last health check (v1.55.1 → v1.56.0, v1.57.0, v1.58.0) → **normal improvement run** (health check is due at 5). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices in); per the routine, low-priority items don't pre-empt own-prioritized work, so picked a fresh content addition the owner explicitly likes ("surprise them … a weird legendary perk").
+
+**What & why:** A brand-new legendary run-perk, **💢 Overkill**: while held, any slain non-boss enemy **detonates**, splashing **25% of its max HP** as armor-ignoring true damage to enemies within 60px. It's a chunky chain-reaction swarm-clear mechanic — landing a kill inside a tight cluster can light up the whole pack at once — that pairs with the kill-streak combo meter (faster clears → longer streaks) and stays relevant deep into a run because the splash scales with the slain enemy's max HP. Squarely in the owner's loved category (chunky game feel + a weird legendary), it adds replay variety and a build-defining draft choice (swarm-clear / chip-damage synergy).
+
+**Bounded by design (not "too easy"-breaking):** it's **single-layer** — only the *original* killing blow detonates; a splash-killed enemy does **not** re-explode — so you still must land the killing blow on each "seed" enemy yourself. Bosses don't detonate. Implementation guards re-entry with a new optional `fromOverkill` param on `damage()` (defaults false → all existing callers unaffected); the splash call passes it `true`, so recursion depth is bounded to 1 and total work is bounded by the live enemy count (same pattern as the existing cannon/mortar splash).
+
+**Code:** `cd-defs.js` — perk pushed to `PERKS` (legendary) + `overkill:false` added to `freshPerkState()`. `cd-update.js` — `damage()` gains the `fromOverkill` param and a guarded detonation block inside the kill path (`addExplosion` + `SFX.bomb()` + a 60px-radius splash loop). The Wildcard gamble perk (`resolveWildcard()`) now includes Overkill in its legendary pool automatically.
+
+**Save-safe:** `overkill` lives inside `perkState`, persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)`; old saves default to `false`. No new localStorage key, no economy/schema impact.
+
+**Tests:** new group **[70]** (12 checks) — perk is a pool legendary, `apply()`/`freshPerkState` defaults, 25% splash to a near enemy, far enemy untouched, armor-ignoring, **single-layer guard** (a splash-kill doesn't chain onto a third enemy), boss exclusion, no-detonation-when-unheld, save round-trip + old-save migration. Full suite **700/0 green** (was 688; +12). Reviewed by subagents for guardrails (save-compat, scope, recursion bound, version bookkeeping) — all pass.
+
+---
+
 ## v1.58.0 — 2026-06-14 — 💉 Adrenaline — 14th Mayhem wave modifier (wounded enemies accelerate)
 
 **Type:** Content (new Mayhem wave modifier). Minor bump.

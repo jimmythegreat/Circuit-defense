@@ -4327,6 +4327,107 @@ async function main() {
     await page.close();
   }
 
+  // [70] Overkill legendary perk — slain enemies detonate (25% max-HP splash) (v1.59.0)
+  console.log('\n[70] Overkill detonation perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // perk exists in the pool and is a legendary; apply() sets the flag
+      const def = PERKS.find(p => p.id === 'overkill');
+      const inPool = !!def && def.rarity === 'legendary';
+      perkState.overkill = false;
+      def.apply(perkState);
+      const applies = perkState.overkill === true;
+
+      // freshPerkState default
+      const defaultsOk = freshPerkState().overkill === false;
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:200, frozen:0, slow:0, flash:0,
+        warded:0, shieldOn:false, blinkInvuln:0, x:0, y:0, r:11, armor:0, bounty:1,
+        color:'#3fb950', dealt:0
+      }, opts || {});
+
+      // --- splash hits a near neighbour, misses a far one ---
+      perkState.overkill = true;
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      const seed = mk({ x:0, y:0, maxHp:100, hp:5 });
+      const near = mk({ x:50, y:0, hp:100 });    // 50px < 60 -> hit
+      const far  = mk({ x:200, y:0, hp:100 });   // 200px > 60 -> miss
+      enemies.push(seed, near, far);
+      damage(seed, 999, null);                    // kill the seed -> detonation
+      const nearHpAfter = near.hp;                // expect 100 - 25 = 75
+      const farHpAfter = far.hp;                  // expect 100 (untouched)
+
+      // --- splash ignores armor (true damage) ---
+      enemies.length = 0;
+      const seed2 = mk({ x:0, y:0, maxHp:100, hp:5 });
+      const armored = mk({ x:40, y:0, hp:100, armor:50 });
+      enemies.push(seed2, armored);
+      damage(seed2, 999, null);
+      const armoredHpAfter = armored.hp;          // 25 splash, armor ignored -> 75
+
+      // --- single layer: a splash-killed enemy does NOT re-detonate ---
+      enemies.length = 0;
+      const sA = mk({ x:0,  y:0, maxHp:100, hp:5 });   // splash 25
+      const sB = mk({ x:50, y:0, maxHp:200, hp:20 });  // dies to the 25 splash; would splash 50 if it chained
+      const sC = mk({ x:90, y:0, hp:100 });            // 90px from A (miss), 40px from B (would be hit IF B chained)
+      enemies.push(sA, sB, sC);
+      damage(sA, 999, null);
+      const bDied = sB.dead === true;
+      const cUntouched = sC.hp === 100;           // guard held -> B's death didn't chain onto C
+
+      // --- bosses do not detonate ---
+      enemies.length = 0;
+      const bossSeed = mk({ x:0, y:0, kind:'boss', maxHp:100, hp:5 });
+      const bossNbr = mk({ x:40, y:0, hp:100 });
+      enemies.push(bossSeed, bossNbr);
+      damage(bossSeed, 999, null);
+      const bossNbrUntouched = bossNbr.hp === 100;
+
+      // --- off when the perk isn't held ---
+      perkState.overkill = false;
+      enemies.length = 0;
+      const offSeed = mk({ x:0, y:0, maxHp:100, hp:5 });
+      const offNbr = mk({ x:40, y:0, hp:100 });
+      enemies.push(offSeed, offNbr);
+      damage(offSeed, 999, null);
+      const offUntouched = offNbr.hp === 100;
+
+      // save -> restore round-trip of the flag
+      perkState.overkill = true; saveRun();
+      perkState.overkill = false; loadRun();
+      const restored = perkState.overkill === true;
+      // old save missing the field migrates to default false
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.overkill;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.overkill === false;
+
+      enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inPool, applies, defaultsOk, nearHpAfter, farHpAfter, armoredHpAfter,
+               bDied, cUntouched, bossNbrUntouched, offUntouched, restored, migratedOk };
+    });
+    check('Overkill is a legendary perk in the pool', r.inPool);
+    check('Overkill apply() sets the perkState flag', r.applies);
+    check('freshPerkState defaults overkill:false', r.defaultsOk);
+    check('Overkill splashes 25% max HP to a near enemy', Math.abs(r.nearHpAfter - 75) < 1e-6, `near=${r.nearHpAfter}`);
+    check('Overkill does not reach a far enemy', r.farHpAfter === 100, `far=${r.farHpAfter}`);
+    check('Overkill splash ignores armor', Math.abs(r.armoredHpAfter - 75) < 1e-6, `armored=${r.armoredHpAfter}`);
+    check('a splash-killed enemy does NOT re-detonate (single layer)', r.bDied && r.cUntouched, `bDied=${r.bDied} cUntouched=${r.cUntouched}`);
+    check('a boss death does not detonate', r.bossNbrUntouched);
+    check('no detonation when Overkill is not held', r.offUntouched);
+    check('save/reload round-trips the Overkill flag', r.restored);
+    check('old save missing overkill migrates to default', r.migratedOk);
+    check('no console errors during Overkill test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
