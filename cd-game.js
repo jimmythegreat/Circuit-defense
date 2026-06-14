@@ -167,6 +167,12 @@ function buildWave(w) {
     if (w >= 11 && i % 10 === 9) e = { kind:'split', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*1.5), color:'#e3b341', armor:0, gap:0.9 };
     if (w >= 13 && i % 6 === 5)  e = { kind:'phantom', hp:t.hp*0.9, spd:t.speed*1.15, r:10, bounty:Math.ceil(t.bounty*1.8), color:'#39d0d8', armor:0, gap:0.6 };
     if (w >= 15 && i % 11 === 10) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
+    // Breacher (v1.63.0): a slow, heavy unit from wave 17+ that costs 2 LIVES if it leaks
+    // (read at the leak site via e.lifeCost). A fresh difficulty axis — no other enemy varies
+    // leak cost — that pressures COVERAGE in ALL modes (incl. Classic/Campaign, the modes the
+    // owner flagged as "too easy"), without inflating the invariant-capped HP curve or economy.
+    // Moderate HP + slow speed keep it stoppable: only a real coverage gap lets one through.
+    if (w >= 17 && i % 12 === 11) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
     // Warden Surge (Mayhem): convert a fraction of would-be basic enemies into warden
     // escorts so the wave is densely shielded — pressures TARGET PRIORITY (pop the
     // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
@@ -229,9 +235,10 @@ function waveComposition(w) {
     if (w >= 11 && i % 10 === 9) k = 'split';
     if (w >= 13 && i % 6  === 5) k = 'phantom';
     if (w >= 15 && i % 11 === 10) k = 'warden';
+    if (w >= 17 && i % 12 === 11) k = 'breacher';
     tally[k] = (tally[k] || 0) + 1;
   }
-  const order = ['norm','fast','tank','heal','shield','split','phantom','warden'];
+  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher'];
   const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;
@@ -243,7 +250,7 @@ function waveComposition(w) {
 // difficulty and campaign level automatically. The per-kind HP multipliers + the boss multiplier
 // MIRROR buildWave() — KEEP IN SYNC if those change. Like waveComposition, this is the pre-mod
 // base (Mayhem wave-mods like swarm/titans aren't rolled yet), so it's a planning estimate.
-const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3 };
+const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0 };
 function waveThreat(w) {
   const t = enemyTemplate(w);
   let total = 0;

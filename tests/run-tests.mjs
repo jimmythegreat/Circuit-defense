@@ -4583,6 +4583,75 @@ async function main() {
     await page.close();
   }
 
+  // [74] Breacher enemy — heavy w17+ unit that costs 2 lives if it leaks (v1.63.0)
+  console.log('\n[74] Breacher enemy (2-life leak cost)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w17, present from w17
+      const w16 = buildWave(16).some(e => e.kind === 'breacher');
+      const w17list = buildWave(17).filter(e => e.kind === 'breacher');
+      const w17 = w17list.length;
+      // (b) the breacher carries the lifeCost:2 field that the leak site reads
+      const lifeCost = w17list[0] ? w17list[0].lifeCost : null;
+
+      // (c) leak cost: a breacher at the exit drains 2 lives; a norm drains 1 (control).
+      // x/y are seeded from the path point so the first-frame leak check is valid.
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const atEnd = (kind, extra = {}) => { const p = pointAt(pathLen); return ({ kind,
+        hp:10, maxHp:10, spd:0, r:13, bounty:1, color:'#fff', armor:0, gap:0, dist:pathLen,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+
+      lives = 1000;
+      enemies.push(atEnd('breacher', { lifeCost: 2 }));
+      const beforeB = lives; update(1/60); const breacherCost = beforeB - lives;
+
+      enemies.length = 0;
+      lives = 1000;
+      enemies.push(atEnd('norm'));
+      const beforeN = lives; update(1/60); const normCost = beforeN - lives;
+      enemies.length = 0;
+
+      // (d) preview/render plumbing: composition + glyph + colour + HP mult all know it,
+      // and the threat number stays in sync with the real buildWave() total.
+      const compHasBreacher = waveComposition(17).some(c => c.kind === 'breacher');
+      const glyph = enemyGlyph({ kind:'breacher', frozen:0 });
+      const hasColor = !!PREVIEW_COLOR.breacher;
+      const hpMult = KIND_HP_MULT.breacher;
+      const threatOk = Math.abs(waveThreat(17) - buildWave(17).reduce((s,e)=>s+e.maxHp,0)) < 0.01;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (e) integration: a real wave-17+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 18 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w16, w17, lifeCost, breacherCost, normCost, compHasBreacher, glyph,
+               hasColor, hpMult, threatOk, run };
+    });
+    check('no breachers before wave 17', r.w16 === false);
+    check('breachers spawn from wave 17', r.w17 >= 1, 'count=' + r.w17);
+    check('breacher carries lifeCost:2', r.lifeCost === 2, 'lifeCost=' + r.lifeCost);
+    check('a leaked breacher costs 2 lives', r.breacherCost === 2, 'cost=' + r.breacherCost);
+    check('a leaked normal still costs 1 life (control)', r.normCost === 1, 'cost=' + r.normCost);
+    check('waveComposition includes breacher at wave 17', r.compHasBreacher);
+    check('enemyGlyph returns ‼ for breacher', r.glyph === '‼', 'glyph=' + r.glyph);
+    check('PREVIEW_COLOR has a breacher colour', r.hasColor);
+    check('KIND_HP_MULT.breacher is 2.0 (matches buildWave)', r.hpMult === 2.0, 'mult=' + r.hpMult);
+    check('waveThreat stays in sync with buildWave at w17 (breacher counted)', r.threatOk);
+    check('wave-17+ run with breachers reaches w>=18 alive', r.run.wave >= 18 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during breacher tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

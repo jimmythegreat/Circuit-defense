@@ -14,6 +14,7 @@ function enemyGlyph(e) {
     case 'split': return '✂';
     case 'phantom': return '👻';
     case 'warden': return '◈';
+    case 'breacher': return '‼';
     case 'fast': return colorblindAid ? '»' : '';
     case 'tank': return colorblindAid ? '◆' : '';
     default: return '';
@@ -23,13 +24,14 @@ function enemyGlyph(e) {
 // KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
 const PREVIEW_COLOR = {
   norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
-  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', boss:'#f85149',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', boss:'#f85149',
 };
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
   '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
+  '‼': 'bold 12px sans-serif',
 };
 // Boss-bar mechanic badge (v1.36.0): names the active boss archetype (v1.25.0/v1.34.0)
 // so the colour-coded aura ring isn't the only cue — colour matches the aura. Bulwark
@@ -442,6 +444,15 @@ function draw() {
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
       ctx.strokeStyle = `rgba(248,81,73,${0.25 + 0.4*f})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    // breacher cue (v1.63.0): a dark-red outer ring flags the heavy unit that costs 2 lives
+    // if it leaks, so it reads as a priority threat in a crowd (the colour/glyph also code it).
+    if (e.lifeCost > 1 && !e.dead) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(212,86,107,0.6)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }

@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.63.0 — 2026-06-14 — ‼ Breacher — heavy enemy that costs 2 lives if it leaks
+
+**Type:** Content / difficulty (new enemy kind). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: the previous health check was v1.60.1; since then v1.61.0 + v1.62.0 — so this is normal run #3 of the cycle, a feature run (not a health check; 5+ triggers the next one). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices shipped); the routine lets low-priority items be skipped, so I picked a higher-value, broad-reach content item.
+
+**What changed.** A new enemy kind — the **‼ Breacher** — spawns from **wave 17+ in every mode** (Classic, Campaign, Mayhem). It's a slow (`spd ×0.7`), moderately-healthy (`hp ×2.0`) dark-red heavy that carries a fresh threat: **if it reaches the exit it costs 2 lives, not 1**. The single life-leak site in `cd-update.js` was generalised from `e.kind === 'boss' ? 5 : 1` to `e.lifeCost || (e.kind === 'boss' ? 5 : 1)`, and the Breacher sets `lifeCost: 2` (so the Last Stand `perkState.livesLost` counter also tallies it correctly). `buildWave()` assigns it at slot `i % 12 === 11` (w≥17), and `waveComposition()` + `KIND_HP_MULT` learn it identically so the bottom-left wave preview shows it and the `⚔ threat` number counts it. It pays a generous bounty (`×2.5`).
+
+**Why.** The owner's most-repeated note is "the game is too easy" — but the norm-enemy HP curve is invariant-capped (test [16]) and the boss/Mayhem levers only bite late or in one mode. Leak-cost is a **brand-new difficulty axis** (no other enemy varies it) that pressures **coverage** in the *early* modes (Classic/Campaign), exactly where the complaint lands. It's deliberately bounded — slow and only moderately tanky, so a competent defense stops it cold; the danger is purely about not letting one through a gap. No HP-curve or economy inflation.
+
+**Scope / safety.** Run-only enemy behaviour — enemies are never persisted, so **no save/schema change**. No new localStorage key, no economy/talent/balance impact. The 2-life cost is not a `%` stat so the ≤25%/run guardrail is N/A; the moderate stats keep it fair. Render: a distinct colour (`#d4566b`), an always-shown `‼` glyph (with `GLYPH_FONT` entry + colorblind-legend entry), and a dark-red cue ring so it reads as a priority threat in a crowd. The threat-gauge drift guard (test [40]: `waveThreat(w) === Σ buildWave(w).maxHp`) stayed green, proving `waveComposition`/`KIND_HP_MULT` stayed in sync with `buildWave`.
+
+**Tests.** New group [74]: wave gating (none <17, present ≥17), the `lifeCost:2` field, a leaked breacher draining exactly 2 lives (vs a norm draining 1, as a control), preview plumbing (`waveComposition`/`enemyGlyph ‼`/`PREVIEW_COLOR`/`KIND_HP_MULT`), the `waveThreat`-vs-`buildWave` sync at w17, and a real w17+ god-tower run clearing cleanly. Full suite **749/0 green** (was 737; +12), zero console errors. `sw.js` cache bumped to `v1.63.0` (test [49]).
+
 ## v1.62.0 — 2026-06-14 — 🧮 Score breakdown on the end screen
 
 **Type:** Feature / UX polish. Minor bump.

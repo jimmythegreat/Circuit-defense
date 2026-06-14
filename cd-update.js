@@ -263,7 +263,7 @@ function update(dt) {
     }
     if (e.dist >= pathLen) {
       e.dead = true;
-      const dmgLives = e.kind === 'boss' ? 5 : 1;
+      const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks 2
       lives -= dmgLives;
       livesLostThisRun = true;
       perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
@@ -723,7 +723,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

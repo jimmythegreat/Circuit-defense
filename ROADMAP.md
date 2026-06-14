@@ -64,6 +64,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       its blink clock. Render-translucent with a 👻 glyph + `SFX.blink` whoosh.
       Test group [14]. Follow-ups: *a phantom-heavy Mayhem wave modifier*, and a
       tower spec tuned to counter blinkers (e.g. predictive lead-shot).
+- [x] **New enemy type: "breacher"** — shipped **v1.63.0**. A ‼ slow heavy unit (`#d4566b`,
+      `hp ×2.0`, `spd ×0.7`, slot `i%12===11`) from wave 17+ in **all** modes. Fresh **leak-cost**
+      axis: it costs **2 lives** (not 1) if it reaches the exit — the leak site in `cd-update.js`
+      generalised to `e.lifeCost || (e.kind==='boss'?5:1)`, and the breacher sets `lifeCost:2`.
+      Pressures **coverage** in Classic/Campaign (the "too easy" modes) off the invariant-capped HP
+      curve; bounded (slow + moderate HP, you control leaks). `buildWave`/`waveComposition`/
+      `KIND_HP_MULT`(=2.0) + `enemyGlyph ‼`/`GLYPH_FONT`/`PREVIEW_COLOR` + cue ring + colorblind
+      legend. Run-only, no save impact; drift-guarded by test [40]. Test group [74]. **Follow-ups:**
+      *a breacher-heavy Mayhem wave modifier*, and maybe a variant that costs lives only if it
+      *survives* a tower's range (encouraging chokepoints).
 - [x] **New tower: "mortar"** — shipped **v1.23.0**. The 🎇 **Mortar** (8th tower, hotkey 8):
       a long-range (225), slow-firing (rate 2.0), lobbed **AoE that ignores armor** — a back-line
       siege/anti-armor piece distinct from the Cannon (mid-range armor-respecting splash). Deliberately
@@ -375,6 +385,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (warded enemies take −40%) that pressures **target priority / AoE** rather than raw HP, and
       crucially hits **Classic & Campaign** (the modes the owner called too easy), not just
       Mayhem/late bosses. See "New enemy type: warden" above.
+      **v1.63.0 added the ‼ Breacher enemy (w17+, ALL modes)** — a slow heavy on a brand-new
+      **leak-cost** axis: if it reaches the exit it drains **2 lives, not 1** (the leak site now
+      reads `e.lifeCost`). Pressures **coverage** in Classic/Campaign too, off the invariant-capped
+      HP curve and the economy; bounded (slow + only moderately tanky, you control leaks). Test [74].
       Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
       **lower the archetype threshold** (w20 → w15) or add another archetype (8 as of v1.56.0), the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
