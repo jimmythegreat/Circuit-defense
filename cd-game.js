@@ -11,9 +11,19 @@ function renderStartScreen() {
     const ds = dailyDateString();
     const dbest = +(localStorage.getItem('cd_daily_' + ds) || 0);
     const streak = currentDailyStreak();
+    // Today's deterministic flavour preview (difficulty + the distinct wave-mods that will appear).
+    const pv = dailyPreview(ds);
+    const diffName = DIFFS[pv.diff] ? DIFFS[pv.diff].name : pv.diff;
+    const modIcons = pv.modIds.map(id => MOD_BY_ID[id] && MOD_BY_ID[id].icon).filter(Boolean).slice(0, 5).join(' ');
     const tags = (dbest ? `best w${dbest}` : '') + (streak > 1 ? `${dbest ? ' · ' : ''}🔥${streak}d` : '');
-    dBtn.innerHTML = `🗓 Daily Challenge${tags ? ` <small style="opacity:.75">${tags}</small>` : ''}`;
-    dBtn.title = `Today's seeded challenge (${ds}) — same map, difficulty & modifiers for every player today. One-off run; doesn't affect your saved game.`
+    const preview = `${diffName}${modIcons ? ' · ' + modIcons : ''}`;
+    dBtn.innerHTML = `🗓 Daily Challenge`
+      + ` <small style="opacity:.85">${preview}</small>`
+      + (tags ? `<small style="opacity:.6;display:block;font-size:11px">${tags}</small>` : '');
+    const modNames = pv.modIds.map(id => MOD_BY_ID[id] && MOD_BY_ID[id].name).filter(Boolean).join(', ');
+    dBtn.title = `Today's seeded challenge (${ds}) — ${diffName} difficulty, same map & modifiers for every player today.`
+      + (modNames ? ` Modifiers in play: ${modNames}.` : '')
+      + ` One-off run; doesn't affect your saved game.`
       + (streak > 1 ? ` You're on a ${streak}-day streak — play today to keep it alive!` : '');
   }
   let hasSave = false;

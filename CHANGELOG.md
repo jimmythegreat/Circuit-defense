@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.47.0 — 2026-06-13 — 🗓 Daily Challenge preview + 📆 Streak Keeper achievement
+
+**Type:** Content / UX (Daily Challenge polish + a new achievement). Minor bump. Two ROADMAP follow-ups under "Daily challenge seed" — *"a small 'today's modifiers' preview on the button"* and *"a streak achievement badge (e.g. 7-day streak)"* — done together (same Daily domain). Additive, no save/economy/balance impact.
+
+**What & why:**
+
+- **Daily button preview** — the 🗓 Daily Challenge start-screen button now previews today's seeded run before you commit: today's **difficulty** (Normal/Hard) + the **icons of the wave-modifiers** that will appear (`💨🛡️⚡…`, capped at 5), with the full modifier **names** spelled out in the hover tooltip. Everyone still gets the same date-seeded run; this just surfaces what `setupDaily()` already fixed by date. Implemented as a new **read-only** `dailyPreview(dateStr)` helper (`cd-maps.js`) that mirrors `setupDaily()`'s RNG-stream consumption *exactly* (difficulty roll → `genPathWith(rnd)` to advance the stream → the 30-wave `rnd()<0.78 ? pick : null` schedule, including the short-circuit so the second `rnd()` is only consumed on a passing roll) but writes **nothing** to globals (`diffKey`/`MAPS.mayhem.pts`/`dailyMods` untouched), so the preview is guaranteed identical to the actual run. Added a `MOD_BY_ID` lookup alongside `WAVE_MODS`. Render-only on the button.
+
+- **📆 Streak Keeper achievement** (`daily7`, roster 13→14) — granted by reaching a **7-day Daily Challenge streak** (finish a daily on seven consecutive calendar days; your existing streak counts). Uses the existing `currentDailyStreak()` infrastructure (v1.31.0). To make it grant on the same run that hits day 7, `recordDailyStreak()` is now called **before** `grantAchievements()` in both `endGame()` and `winGame()` (it was after) — `recordDailyStreak` is idempotent per-day so this is a safe reorder; `grantAchievements` then checks `daily && currentDailyStreak() >= 7`. Additive to the `ACHIEVEMENTS` array (`meta.achievements` is an id→true map, old saves just lack the badge — no migration).
+
+**Save/economy:** zero impact — `dailyPreview()` touches no storage; the badge is additive; no schema/key changes; no gameplay numbers moved.
+
+**Test evidence:** group `[47]` gained 4 checks (preview difficulty matches `setupDaily`, mod set matches the seeded schedule, preview does **not** mutate global state, returns distinct/valid mod ids); group `[48]` gained 2 checks (Streak Keeper granted at a 7-day streak, withheld below it) + updated the roster count 13→14. Full suite **609/0 green** (verified by subagent); guardrail review (save-compat, determinism, reorder-safety, scope) passed clean. Render path exercised in fresh contexts via `renderStartScreen()` in test cleanups (no console errors).
+
 ## v1.46.0 — 2026-06-13 — 📱 Bigger phone tap targets (table-stakes mobile polish)
 
 **Type:** UX / table-stakes mobile polish. Minor bump. Closes the **lone remaining table-stakes gap** ("bigger HTML tap targets on small phones"). CSS-only (+ version/cache bump + a new test) — no gameplay/economy/save/balance impact, desktop byte-identical.

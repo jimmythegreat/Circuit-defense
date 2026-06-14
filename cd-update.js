@@ -474,6 +474,7 @@ const ACHIEVEMENTS = [
   { id:'monotower', icon:'🧩', name:'Specialist',        desc:'Win using only one type of tower' },
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
+  { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -498,6 +499,10 @@ function grantAchievements(won) {
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
   if (daily && wave >= 20) give('daily20');
+  // Streak badge — checked AFTER recordDailyStreak() has folded today's finish into the count
+  // (endGame/winGame record the streak before calling grantAchievements), so currentDailyStreak()
+  // already reflects this run.
+  if (daily && currentDailyStreak() >= 7) give('daily7');
   saveMeta();
   return newly;
 }
@@ -774,9 +779,9 @@ function endGame() {
   const earned = chipsForRun();
   meta.chips += earned;
   saveMeta();
+  if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(false);
   const rec = recordBest();
-  if (daily) recordDailyStreak();   // a finished daily (any outcome) keeps the streak alive
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   renderEndScreen(false, earned, newAch);
   document.getElementById('ovContinue').style.display = 'none';
@@ -797,9 +802,9 @@ function winGame() {
   const earned = chipsForRun();
   meta.chips += earned;
   saveMeta();
+  if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(true);
   const rec = recordBest();
-  if (daily) recordDailyStreak();   // a finished daily (any outcome) keeps the streak alive
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   renderEndScreen(true, earned, newAch);
   if (gameMode === 'campaign') {

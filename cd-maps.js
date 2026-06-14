@@ -158,6 +158,24 @@ const WAVE_MODS = [
   { id:'emp',     icon:'⚡', name:'Static Storm',   desc:'Towers randomly knocked offline' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
+const MOD_BY_ID = Object.fromEntries(WAVE_MODS.map(m => [m.id, m]));
+// Read-only preview of a date's Daily Challenge setup WITHOUT mutating any global state — mirrors
+// setupDaily's rng-stream consumption EXACTLY (difficulty, then the path draw to advance the stream,
+// then the 30-wave mod schedule incl. the short-circuit when the 78% roll fails) so the result is
+// identical to what setupDaily(date) would produce. Returns the day's difficulty + the DISTINCT,
+// in-first-appearance-order set of wave-mod ids, so the start screen can show today's flavour without
+// starting the run. (v1.47.0)
+function dailyPreview(dateStr) {
+  const rnd = mulberry32(dailySeedFrom(dateStr || dailyDateString()));
+  const diff = rnd() < 0.5 ? 'normal' : 'hard';
+  genPathWith(rnd);                                // advance the stream identically (discard the path)
+  const ids = [];
+  for (let w = 1; w <= 30; w++) {
+    const pick = rnd() < 0.78 ? WAVE_MODS[Math.floor(rnd() * WAVE_MODS.length)].id : null;
+    if (pick && !ids.includes(pick)) ids.push(pick);
+  }
+  return { diff, modIds: ids };
+}
 let waveMod = null, meteorRainTimer = 0, empStrikeTimer = 0;
 function shiftWorld() {
   MAPS.mayhem.pts = genMayhemPath();

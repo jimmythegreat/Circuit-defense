@@ -75,9 +75,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Offline-safe (local date, no network). Test [47]. **Follow-ups:** *a daily streak counter* ✅
       **shipped v1.31.0** — consecutive calendar days the player finishes a daily (any outcome);
       additive `cd_daily_streak` key, `🔥{n}d` on the Daily button + a Records row, lapses to 0 after
-      a missed day (`dailyDayBefore`/`recordDailyStreak`/`currentDailyStreak`, test [50]). Still open:
-      *a per-day score key* (not just best wave) since `computeScore()` already exists, *a small
-      "today's modifiers" preview* on the button, and *a streak achievement badge* (e.g. 7-day streak).
+      a missed day (`dailyDayBefore`/`recordDailyStreak`/`currentDailyStreak`, test [50]).
+      ✅ **"today's modifiers" preview shipped v1.47.0** — the Daily button now shows today's
+      difficulty + wave-mod icons (read-only `dailyPreview()` in cd-maps.js mirrors `setupDaily()`'s
+      seeded stream without mutating globals; names in the tooltip). ✅ **streak achievement badge
+      shipped v1.47.0** — 📆 Streak Keeper (`daily7`), granted at a 7-day daily streak (roster 13→14);
+      `recordDailyStreak()` reordered before `grantAchievements()` so it grants on the day-7 run.
+      Test [47] (preview) + [48] (badge). Still open: *a per-day score key* (not just best wave)
+      since `computeScore()` already exists.
 
 ## Content & variety
 

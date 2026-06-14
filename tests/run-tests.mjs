@@ -2668,14 +2668,36 @@ async function main() {
       for (let w = 1; w <= 30; w++) if (sched[w] !== (dailyMods[w] || null)) matchesSchedule = false;
       daily = false; waveMod = null;
 
+      // dailyPreview() mirrors setupDaily's seeded setup WITHOUT mutating any global state:
+      // same difficulty, and its distinct mod-id set equals the non-null entries of the schedule.
+      setupDaily(D1);
+      const liveDiff = diffKey;
+      const liveModSet = [...new Set(dailyMods.slice(1).filter(Boolean))].sort().join(',');
+      const livePath = JSON.stringify(MAPS.mayhem.pts);
+      const pv = dailyPreview(D1);
+      const previewDiffMatch = pv.diff === liveDiff;
+      const previewModsMatch = [...pv.modIds].sort().join(',') === liveModSet;
+      // calling the preview must NOT change diffKey / the path / the mod schedule.
+      const previewPure = diffKey === liveDiff
+        && JSON.stringify(MAPS.mayhem.pts) === livePath
+        && [...new Set(dailyMods.slice(1).filter(Boolean))].sort().join(',') === liveModSet;
+      // modIds is distinct (no duplicate ids) and all valid WAVE_MODS ids.
+      const previewDistinct = pv.modIds.length === new Set(pv.modIds).size
+        && pv.modIds.every(id => MOD_BY_ID[id]);
+
       return { deterministic, datesDiffer, diffOk, matchesSchedule,
-               modsLen: dailyMods.length };
+               modsLen: dailyMods.length,
+               previewDiffMatch, previewModsMatch, previewPure, previewDistinct };
     });
     check('daily setup is deterministic for a given date', r.deterministic);
     check('different dates produce different daily runs', r.datesDiffer);
     check('daily difficulty is always normal/hard (never easy)', r.diffOk);
     check('daily wave-mod schedule covers waves 1..30', r.modsLen === 31);
     check('rollWaveMod follows the seeded daily schedule', r.matchesSchedule);
+    check('dailyPreview difficulty matches setupDaily', r.previewDiffMatch);
+    check('dailyPreview mod set matches the seeded schedule', r.previewModsMatch);
+    check('dailyPreview does not mutate global state', r.previewPure);
+    check('dailyPreview returns distinct, valid mod ids', r.previewDistinct);
 
     // beginDaily wires a real run; the map is FIXED (no every-5-waves shift) and the
     // player's existing saved run is left untouched (daily never saves).
@@ -2772,12 +2794,28 @@ async function main() {
       daily = false; wave = 25; towers.push({type:'gun'});
       const dailyNoFlag = grantAchievements(false).map(a => a.id).includes('daily20');
 
+      // STREAK KEEPER — reach a 7-day daily streak. recordDailyStreak runs BEFORE grantAchievements
+      // in endGame/winGame, so a finish that lifts the streak to 7 grants daily7 on the same run.
+      fresh();
+      localStorage.setItem('cd_daily_streak', JSON.stringify({ count: 6, last: dailyDayBefore(dailyDateString()) }));
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; beginGame();
+      daily = true; wave = 5; towers.push({ type:'gun' });
+      recordDailyStreak();                       // extends 6 -> 7 (today)
+      const streak7Yes = grantAchievements(false).map(a => a.id).includes('daily7');
+      // A finish that only reaches 3 must NOT grant it.
+      fresh();
+      localStorage.setItem('cd_daily_streak', JSON.stringify({ count: 2, last: dailyDayBefore(dailyDateString()) }));
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; beginGame();
+      daily = true; wave = 5; towers.push({ type:'gun' });
+      recordDailyStreak();                       // extends 2 -> 3
+      const streak7No = grantAchievements(false).map(a => a.id).includes('daily7');
+
       const total = ACHIEVEMENTS.length;
       daily = false;
       backToMenu();
       meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
-      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
-      return { pacifistYes, pacifistNo, monoYes, monoNo, miniYes, miniNo, zeroNoBadge, dailyYes, dailyNoFlag, total };
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta'); localStorage.removeItem('cd_daily_streak');
+      return { pacifistYes, pacifistNo, monoYes, monoNo, miniYes, miniNo, zeroNoBadge, dailyYes, dailyNoFlag, streak7Yes, streak7No, total };
     });
     check('Pacifist granted on an ability-free win', r.pacifistYes);
     check('Pacifist withheld when an ability was cast', !r.pacifistNo);
@@ -2788,7 +2826,9 @@ async function main() {
     check('board badges withheld when no towers exist', r.zeroNoBadge);
     check('Daily Devotee granted at wave 20 in a daily run', r.dailyYes);
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
-    check('achievement roster grew to 13 badges', r.total === 13, `total=${r.total}`);
+    check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
+    check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
+    check('achievement roster grew to 14 badges', r.total === 14, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
