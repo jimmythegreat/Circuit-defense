@@ -183,8 +183,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       immune, freeze pauses it, tower always self-recovers (empT decays unconditionally). Cyan aura ring + DISRUPTOR
       badge. Cycle now `(w/5−4)%7` (w50→disruptor, w55→regen); first appears at w50 like the deep archetypes.
       Run-only/save-safe. Test [45] (rotation + knocks-offline + freeze-pauses + buff-immune + killable) + [53] (badge).
+      ✅ **8th archetype shipped v1.56.0 — 🟦 Juggernaut** (immune to crowd control): one *unconditional* line at
+      the top of update()'s enemy loop (before slowMul) clears `e.frozen=0; e.slow=0` for it every frame, so the
+      Freeze ability and Frost towers can't lock it down — a fresh **CC pressure axis** (none of the other seven
+      touch CC) that also gently checks the documented Frost-snowball balance concern. No gated behaviour, no extra
+      HP/speed (base 0.45× boss speed → bounded/beatable); steel-grey aura ring + UNSTOPPABLE badge. Cycle now
+      `(w/5−4)%8` (w55→juggernaut, w60→regen). Run-only/save-safe, behaviour-not-HP, no tunable number (CC immunity
+      is binary, can't make a run *easier*). Test [45] (rotation + freeze-immune + control + slow-cleared + killable) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      an 8th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      a 9th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -339,7 +346,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
       crucially hits **Classic & Campaign** (the modes the owner called too easy), not just
       Mayhem/late bosses. See "New enemy type: warden" above.
       Next candidate levers if still too easy late — **step the boss slope `0.6 → ~0.7`**,
-      **lower the archetype threshold** (w20 → w15) or add another archetype (6 as of v1.50.0), the Frost/booster
+      **lower the archetype threshold** (w20 → w15) or add another archetype (8 as of v1.56.0), the Frost/booster
       snowball item below, or boss **armor** slope (`w*0.4 → w*0.5`). Simulate
       before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`

@@ -2427,8 +2427,8 @@ async function main() {
     await page.close();
   }
 
-  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker / disruptor (v1.25.0+)
-  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker/disruptor)');
+  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker / disruptor / juggernaut (v1.25.0+)
+  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker/disruptor/juggernaut)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -2438,12 +2438,12 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 7 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, then wraps (w55 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 8 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, then wraps (w60 → regen again).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
-                    && bt(50) === 'disruptor' && bt(55) === 'regen';
+                    && bt(50) === 'disruptor' && bt(55) === 'juggernaut' && bt(60) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2556,9 +2556,23 @@ async function main() {
       for (let i = 0; i < 360; i++) update(1/60);
       const buffImmune = !(towers[0] && towers[0].empT > 0);
 
+      // JUGGERNAUT — immune to crowd control: a FROZEN juggernaut still advances (its CC clear
+      // runs unconditionally, before slowMul), and frost slow never sticks. The control (a frozen
+      // vanilla boss) must stay pinned, so the assertion proves the immunity isn't just "all bosses
+      // move". Pin nothing — give it real speed so distance is observable.
+      e = mkBoss('juggernaut', { spd: 30, dist: 5, frozen: 99 });
+      for (let i = 0; i < 60; i++) update(1/60);
+      const juggIgnoresFreeze = enemies[0] && enemies[0].dist > 5 && enemies[0].frozen === 0;
+      e = mkBoss('regen', { spd: 30, dist: 5, frozen: 99 });   // control: a normal frozen boss is pinned
+      for (let i = 0; i < 60; i++) update(1/60);
+      const frozenBossStays = enemies[0] && Math.abs(enemies[0].dist - 5) < 1e-6;
+      e = mkBoss('juggernaut', { spd: 30, dist: 5, slow: 5 }); // frost slow is shrugged off too
+      for (let i = 0; i < 5; i++) update(1/60);
+      const juggIgnoresSlow = enemies[0] && enemies[0].slow === 0;
+
       enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush, disruptorEmps, frozenNoEmp, buffImmune };
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush, disruptorEmps, frozenNoEmp, buffImmune, juggIgnoresFreeze, frozenBossStays, juggIgnoresSlow };
     });
     check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
     check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
@@ -2578,6 +2592,9 @@ async function main() {
     check('disruptor boss knocks the nearest tower offline (empT > 0)', r.disruptorEmps);
     check('freezing a disruptor pauses its EMP pulse', r.frozenNoEmp);
     check('disruptor never silences a buff/support tower', r.buffImmune);
+    check('juggernaut boss is immune to freeze (still advances while frozen)', r.juggIgnoresFreeze);
+    check('control: a frozen non-juggernaut boss stays pinned', r.frozenBossStays);
+    check('juggernaut boss shrugs off frost slow (slow cleared)', r.juggIgnoresSlow);
 
     // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
     // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
@@ -2588,7 +2605,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2610,6 +2627,7 @@ async function main() {
     check('teleporter boss is killable', killable.teleporter.died, `guard=${killable.teleporter.guard}`);
     check('berserker boss is killable', killable.berserker.died, `guard=${killable.berserker.guard}`);
     check('disruptor boss is killable', killable.disruptor.died, `guard=${killable.disruptor.guard}`);
+    check('juggernaut boss is killable', killable.juggernaut.died, `guard=${killable.juggernaut.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -3249,6 +3267,7 @@ async function main() {
         teleporter: bossMechanicBadge(mk({ bossType:'teleporter' })),
         berserker: bossMechanicBadge(mk({ bossType:'berserker' })),
         disruptor: bossMechanicBadge(mk({ bossType:'disruptor' })),
+        juggernaut: bossMechanicBadge(mk({ bossType:'juggernaut' })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3266,6 +3285,7 @@ async function main() {
     check('teleporter badge labelled TELEPORTER (violet)', r.teleporter && r.teleporter.label === 'TELEPORTER' && r.teleporter.c === '188,140,255', JSON.stringify(r.teleporter));
     check('berserker badge labelled BERSERK (crimson)', r.berserker && r.berserker.label === 'BERSERK' && r.berserker.c === '255,106,106', JSON.stringify(r.berserker));
     check('disruptor badge labelled DISRUPTOR (cyan)', r.disruptor && r.disruptor.label === 'DISRUPTOR' && r.disruptor.c === '125,249,255', JSON.stringify(r.disruptor));
+    check('juggernaut badge labelled UNSTOPPABLE (steel)', r.juggernaut && r.juggernaut.label === 'UNSTOPPABLE' && r.juggernaut.c === '192,200,214', JSON.stringify(r.juggernaut));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

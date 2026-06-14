@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.56.0 — 2026-06-14 — ⬜ Juggernaut — 8th boss archetype (immune to crowd control)
+
+**Type:** Content (new boss archetype). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: the last entry (v1.55.1) was a health check, so 0 normal runs since — **this is a normal improvement run**. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp); per the routine, low-priority items don't pre-empt own-prioritized work, and that revamp already has four shipped slices. Prioritized the strongest open ROADMAP signal instead.
+
+**What & why:** The owner's most-repeated feedback is "too easy **and boring**" — both raw difficulty and *variety*. The ROADMAP lists "an 8th archetype" as an open Boss-variety follow-up, and that additive, run-only pattern has shipped safely seven times. Added **🟦 Juggernaut** — a boss that is **immune to crowd control**: the Time Freeze ability and Frost towers can't freeze or slow it. This is a genuinely new pressure axis (none of the other seven archetypes touch CC) and it doubles as a gentle check on the long-standing **Frost/booster snowball** balance concern (a freeze/frost-reliant build now needs real DPS for this one boss). It only appears on deep bosses (wave 20+); it has no other mechanic and still moves at the base 0.45× boss speed, so it's bounded and beatable — behaviour, not more HP (the norm-HP curve is invariant-capped by test [16]).
+
+**Implementation (additive, save-safe — enemies are never persisted):**
+- `cd-game.js` — `'juggernaut'` appended to `BOSS_ARCHETYPES` (cycle length reads `.length`, so the rotation auto-extends to 8: w50→disruptor, w55→juggernaut, w60→regen). Rotation/comment updated.
+- `cd-update.js` — one **unconditional** line in the enemy loop *before* `slowMul` is computed: `if (e.kind==='boss' && e.bossType==='juggernaut') { e.frozen=0; e.slow=0; }`. Mirrors the teleporter `blinkInvuln` decay pattern (runs every frame so CC never sticks). No gated-block behaviour — its whole gimmick is the CC immunity. Archetype summary comment updated.
+- `cd-render.js` — steel-grey aura ring (`192,200,214`) + `bossMechanicBadge` → `UNSTOPPABLE` (same colour), matching the established colour-coded-aura/badge convention.
+- `sw.js` — CACHE bumped to `circuit-defense-v1.56.0` (test [49] asserts it tracks `GAME_VERSION`).
+
+**Balance:** No tunable number — CC immunity is binary, and the boss has no extra HP/speed/damage, so it can't make any run *easier* (it strictly raises difficulty for freeze-reliant builds). Within all guardrails (no ≤25%-swing concern since no stat changed).
+
+**Tests:** Extended group **[45]** — rotation now asserts the 8-cycle (w55→juggernaut, w60→regen); new behaviour checks: a frozen juggernaut still advances (immune), a frozen *non*-juggernaut boss stays pinned (control), frost slow is cleared, and the juggernaut is killable. Extended group **[53]** — `UNSTOPPABLE` badge label+colour. Suite run via subagent before commit.
+
 ## v1.55.1 — 2026-06-14 — 🩺 Health check — all green (669/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump.

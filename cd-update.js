@@ -74,6 +74,14 @@ function update(dt) {
     e.frozen = Math.max(0, (e.frozen || 0) - dt);
     e.hasted = Math.max(0, (e.hasted || 0) - dt);   // enrager haste aura (v1.34.0), decays when out of range
     e.warded = Math.max(0, (e.warded || 0) - dt);   // warden damage-shield aura (v1.35.0), decays out of range / when the warden dies
+    // juggernaut boss (v1.56.0): IMMUNE TO CROWD CONTROL — shrug off freeze + frost slow every
+    // frame (before slowMul is computed below) so the Freeze ability and Frost towers can't lock it
+    // down. A fresh pressure axis — none of the other archetypes touch CC — that also answers the
+    // documented Frost-snowball balance concern: a freeze/frost-reliant build needs real DPS for
+    // this one. Unconditional (mirrors the teleporter blinkInvuln decay) so it never sticks; base
+    // 0.45× boss speed keeps it bounded/beatable, and it has no other mechanic (its whole gimmick
+    // is being unstoppable). Run-only field — enemies are never persisted.
+    if (e.kind === 'boss' && e.bossType === 'juggernaut') { e.frozen = 0; e.slow = 0; }
     let slowMul = perkState.slowGlobal;
     if (e.frozen > 0) slowMul = 0;
     else if (e.slow > 0) {
@@ -154,7 +162,10 @@ function update(dt) {
     //                above) — pulses a roar here once wounded; race to burst it before it sprints
     //   disruptor  : every ~4s knocks the nearest firing tower offline (reuses the emp `empT`
     //                timer) — a coverage gap roams with it, pressuring tower uptime, not HP
-    // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom).
+    //   juggernaut : immune to freeze/slow (cleared unconditionally above, before slowMul) — a
+    //                CC pressure axis; freeze/frost can't lock it down, so it needs raw DPS
+    // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
+    // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
       if (e.bossType === 'regen') {
