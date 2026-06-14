@@ -4468,6 +4468,75 @@ async function main() {
     await page.close();
   }
 
+  // [72] Per-map best SCORES on the Records panel (v1.61.0)
+  console.log('\n[72] Records — per-map best scores');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // clean slate for the keys we touch
+      ['cd_bestscore', 'cd_bestscore_classic_normal', 'cd_bestscore_classic_hard',
+       'cd_best_classic_normal', 'cd_best_classic_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+
+      const hasFn = typeof recordScores === 'function';
+
+      // recordScores: first write sets both all-time + per-map; gated to quick & !daily.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; daily = false;
+      const e1 = recordScores(2000);
+      const allTime1 = +(localStorage.getItem('cd_bestscore') || 0);
+      const map1 = +(localStorage.getItem('cd_bestscore_classic_normal') || 0);
+
+      // a lower score must NOT overwrite either key
+      const e2 = recordScores(1500);
+      const map2 = +(localStorage.getItem('cd_bestscore_classic_normal') || 0);
+      const allTime2 = +(localStorage.getItem('cd_bestscore') || 0);
+
+      // a higher score beats both; per-map key is difficulty-specific
+      const e3 = recordScores(3200);
+      const map3 = +(localStorage.getItem('cd_bestscore_classic_normal') || 0);
+      const hardUntouched = localStorage.getItem('cd_bestscore_classic_hard') === null;
+
+      // campaign / daily never write per-map score keys (mirrors best-wave)
+      gameMode = 'campaign';
+      recordScores(9999);
+      const campNoMap = localStorage.getItem('cd_bestscore_classic_normal') === '3200';
+      gameMode = 'quick'; daily = true;
+      recordScores(8888);
+      const dailyNoMap = localStorage.getItem('cd_bestscore_classic_normal') === '3200';
+      const allTimeDaily = +(localStorage.getItem('cd_bestscore') || 0);   // all-time still updates
+      daily = false; gameMode = 'quick';
+
+      // renderBests() shows two grids + an all-time best-score footer stat
+      renderBests();
+      const body = document.getElementById('bestBody').innerHTML;
+      const subCount = (body.match(/class="bestSub"/g) || []).length;
+      const tableCount = (body.match(/class="bestTbl"/g) || []).length;
+      const hasBestScoreStat = body.includes('Best score');
+      const showsMapScore = body.includes(fmtNum(3200));
+
+      ['cd_bestscore', 'cd_bestscore_classic_normal', 'cd_bestscore_classic_hard'].forEach(k => localStorage.removeItem(k));
+      return { hasFn, e1, allTime1, map1, map2, allTime2, e3, map3, hardUntouched,
+               campNoMap, dailyNoMap, allTimeDaily, subCount, tableCount, hasBestScoreStat, showsMapScore };
+    });
+    check('recordScores() exists', r.hasFn);
+    check('first run records all-time best score', r.allTime1 === 2000, String(r.allTime1));
+    check('first run records per-map best score', r.map1 === 2000, String(r.map1));
+    check('recordScores reports the prior all-time + isBest', r.e1 && r.e1.prevAllTime === 0 && r.e1.isAllTimeBest === true);
+    check('lower score does not lower the per-map best', r.map2 === 2000, String(r.map2));
+    check('lower score does not lower the all-time best', r.allTime2 === 2000, String(r.allTime2));
+    check('higher score raises the per-map best', r.map3 === 3200, String(r.map3));
+    check('per-map score key is difficulty-specific', r.hardUntouched);
+    check('campaign does not write a per-map score key', r.campNoMap);
+    check('daily does not write a per-map score key', r.dailyNoMap);
+    // all-time best updates in EVERY mode: campaign's 9999 persisted (and the lower daily 8888 can't beat it)
+    check('all-time best still updates outside quick (campaign 9999 held)', r.allTimeDaily === 9999, String(r.allTimeDaily));
+    check('records panel shows two sub-headers (waves + scores)', r.subCount === 2, String(r.subCount));
+    check('records panel shows two grids', r.tableCount === 2, String(r.tableCount));
+    check('records footer shows the all-time best score', r.hasBestScoreStat);
+    check('records grid renders the per-map best score', r.showsMapScore);
+    check('no console errors during records-score test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

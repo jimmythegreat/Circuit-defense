@@ -729,7 +729,9 @@ function renderSettings() {
 }
 function renderBests() {
   const diffs = Object.keys(DIFFS), maps = Object.keys(MAPS);
-  let html = '<table class="bestTbl"><thead><tr><th>Map</th>';
+  // ----- Highest wave per map × difficulty -----
+  let html = '<h4 class="bestSub">🌊 Best waves</h4>';
+  html += '<table class="bestTbl"><thead><tr><th>Map</th>';
   for (const d of diffs) html += `<th>${DIFFS[d].name}</th>`;
   html += '</tr></thead><tbody>';
   for (const m of maps) {
@@ -747,11 +749,27 @@ function renderBests() {
     html += `<td>${v ? v : '<span class="dash">—</span>'}</td>`;
   }
   html += '</tr></tbody></table>';
+  // ----- Best end-of-run SCORE per map × difficulty (quick mode; v1.61.0) -----
+  html += '<h4 class="bestSub">🏆 Best scores</h4>';
+  html += '<table class="bestTbl"><thead><tr><th>Map</th>';
+  for (const d of diffs) html += `<th>${DIFFS[d].name}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const m of maps) {
+    html += `<tr><td class="mname">${MAPS[m].name}</td>`;
+    for (const d of diffs) {
+      const v = +(localStorage.getItem('cd_bestscore_' + m + '_' + d) || 0);
+      html += `<td>${v ? fmtNum(v) : '<span class="dash">—</span>'}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
   const dmg = (meta.stats && meta.stats.dmg) || 0, runs = (meta.stats && meta.stats.runs) || 0;
   const bestCombo = (meta.stats && meta.stats.bestCombo) || 0;
+  const bestScore = +(localStorage.getItem('cd_bestscore') || 0);
   const dailyToday = +(localStorage.getItem('cd_daily_' + dailyDateString()) || 0);
   const dStreak = currentDailyStreak();
   html += `<div class="bestStats">`
+    + `<span>🏆 Best score: <b>${bestScore ? fmtNum(bestScore) : '—'}</b></span>`
     + `<span>🗓 Daily (today): <b>${dailyToday ? 'wave ' + dailyToday : '—'}</b></span>`
     + `<span>🔥 Daily streak: <b>${dStreak ? dStreak + ' day' + (dStreak === 1 ? '' : 's') : '—'}</b></span>`
     + `<span>🎖 Campaign: <b>L${campaignDone()}</b> cleared</span>`
@@ -822,15 +840,30 @@ function scoreGrade() {
   if (prog >= 0.25) return { g: 'D', c: '#db6d28' };
   return { g: 'F', c: '#f85149' };
 }
+// Record end-of-run score bests (v1.61.0). Always updates the all-time cd_bestscore;
+// in quick mode (not daily) it ALSO updates a per-map+difficulty cd_bestscore_<map>_<diff>
+// key — the score-grid mirror of recordBest()'s per-map WAVE logic (campaign maps are
+// random per attempt, daily has its own seed, so neither writes per-map score keys).
+// All keys additive (read with || 0), so old saves just start at 0. Returns the prior
+// all-time best + whether it was beaten so renderEndScreen can show the ★ flag.
+function recordScores(score) {
+  const prevAllTime = +(localStorage.getItem('cd_bestscore') || 0);
+  const isAllTimeBest = score > prevAllTime;
+  if (isAllTimeBest) { try { localStorage.setItem('cd_bestscore', score); } catch(e) {} }
+  if (!daily && gameMode === 'quick') {
+    const k = 'cd_bestscore_' + mapKey + '_' + diffKey;
+    if (score > +(localStorage.getItem(k) || 0)) { try { localStorage.setItem(k, score); } catch(e) {} }
+  }
+  return { prevAllTime, isAllTimeBest };
+}
 // Build the restyled end screen: score hero (grade badge + number + all-time best),
 // a one-line headline, a stats grid, and compact MVP/perks/achievement sections —
 // replacing the old single pre-line text blob (owner FEEDBACK "victory screen … overwhelming").
 function renderEndScreen(won, earned, newAch) {
   const sc = computeScore(), gr = scoreGrade();
-  const prevBest = +(localStorage.getItem('cd_bestscore') || 0);
-  const isBest = sc.score > prevBest;
-  if (isBest) { try { localStorage.setItem('cd_bestscore', sc.score); } catch(e) {} }
-  const shownBest = Math.max(prevBest, sc.score);
+  const { prevAllTime, isAllTimeBest } = recordScores(sc.score);
+  const isBest = isAllTimeBest;
+  const shownBest = Math.max(prevAllTime, sc.score);
 
   document.getElementById('ovScore').innerHTML =
     `<div class="ovGrade" style="color:${gr.c}">${gr.g}</div>`

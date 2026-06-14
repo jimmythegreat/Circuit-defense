@@ -265,10 +265,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       towers** → up to +30%) and **gold banked**, scaled by difficulty; grade F→S (S = flawless
       win). All-time best in additive `cd_bestscore` with a ★ celebration. `renderEndScreen()`
       replaces the run-on `#ovText` blob with a score hero + stats grid + MVP/perks/ach sections.
-      Test [31]. **Follow-ups:** *show the best score on the 🏆 Records panel* (a `cd_bestscore`
-      row in `.bestStats`); *per-map or per-difficulty best scores*; *a score breakdown tooltip*
-      (each term's contribution); and *a "new high score" leaderboard-style flash* distinct from
-      the existing wave-record banner.
+      Test [31]. ✅ **best score on the 🏆 Records panel shipped v1.61.0** — the panel now shows a
+      🏆 Best scores grid (per map × difficulty, quick mode) below the 🌊 Best waves grid plus an
+      all-time best-score footer stat; `recordScores(score)` (cd-update.js) writes the all-time
+      `cd_bestscore` + an additive per-map `cd_bestscore_<map>_<diff>` key (quick-only, campaign/daily
+      excluded — mirrors `recordBest`'s wave logic). Save-safe, additive. Test [72]. **Follow-ups still
+      open:** *a score breakdown tooltip* (each term's contribution); and *a "new high score"
+      leaderboard-style flash* distinct from the existing wave-record banner (the end screen already
+      shows a ★ "New best score!" flag inline).
 - [x] **Combo / kill-streak feedback** — shipped v1.7.0. Chaining kills within a
       2s window builds a top-right COMBO meter that glows hotter (green→gold→
       orange→red→purple); milestones (5, then every 10) fire a rising `SFX.combo`
@@ -537,7 +541,7 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
 - [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 health checks) —
-      `tests/run-tests.mjs` has grown to **4,484 lines (71 groups `[1]`–`[71]`, 709 assertions)** in a
+      `tests/run-tests.mjs` has grown to **~4,560 lines (72 groups `[1]`–`[72]`, 725 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing

@@ -136,6 +136,7 @@
   .bestTbl .dash { color: #484f58; font-weight: normal; }
   .bestTbl tr.anyrow td { border-top: 2px solid #58a6ff; }
   .bestTbl tr.anyrow td.mname { color: #58a6ff; }
+  .bestSub { color: #8b949e; font-size: 13px; font-weight: bold; letter-spacing: .04em; text-transform: uppercase; margin: 14px 0 0; }
   .bestStats { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; color: #8b949e; margin: 8px 0 4px; font-size: 14px; }
   .bestStats b { color: #e3e6eb; }
   /* appRow = the whole game (gameCol) + the What's New side panel, side by side.

@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.61.0 — 2026-06-14 — 🏆 Best scores on the Records panel
+
+**Type:** Feature / progression. Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: the previous entry (v1.60.1) was a health check, so this is normal run #1 of the next cycle — a feature run. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices already shipped); the routine lets low-priority items be skipped, so I chose a higher-value ROADMAP follow-up instead.
+
+**What changed.** The 🏆 Records panel now tracks **best end-of-run SCORE**, not just deepest wave. The scoring system (v1.16.0) already grades every run — distance × cleanliness (lives, combos, fewer towers) × gold, scaled by difficulty — but the result only flashed on the end screen and a single hidden all-time best was kept. Now:
+- A new **🏆 Best scores** grid (per map × difficulty, quick mode) renders below the existing **🌊 Best waves** grid, both with section sub-headers.
+- An **🏆 Best score** all-time stat joins the `.bestStats` footer.
+- A new `recordScores(score)` helper (cd-update.js) writes the all-time `cd_bestscore` (as before) **and**, in quick mode (not daily), an additive per-map+difficulty `cd_bestscore_<map>_<diff>` key — the score mirror of `recordBest()`'s per-map wave logic. Campaign (random maps) and Daily (own seed) don't post per-map scores, matching best-wave. `renderEndScreen()` now calls it instead of recording the all-time best inline (identical all-time behaviour).
+
+**Why.** Gives a fresh replay hook: beat a map you've already cleared not by surviving one wave deeper, but by posting a cleaner, higher-scoring run — feeding the addictive progression loop the owner likes. Closes two ROADMAP follow-ups under "End-of-run score" ("show the best score on the Records panel" + "per-map / per-difficulty best scores").
+
+**Save-safe / scope.** Purely additive — new `cd_bestscore_*` keys read with `|| 0`, so old saves start blank and fill in as you play; no gold/chip/economy/balance impact; swept by `resetAllData()`'s `cd_`-prefix clear. CSS adds one `.bestSub` rule; the panel subtitle updated to mention scores. SW `CACHE` bumped to v1.61.0.
+
+**Tests.** New group **[72]** (16 assertions): `recordScores` records all-time + per-map on a first run, a lower score lowers neither, a higher score raises the per-map best, the key is difficulty-specific, campaign/daily write no per-map key (but all-time still updates in every mode), and `renderBests()` emits two sub-headers + two grids + the footer best-score stat. Full suite **725/0 green**. Verified in-preview at v1.61.0 (two grids + sub-headers render, footer "🏆 Best score: 52.3k", zero console errors; SW cache cleared first per the known stale-shell gotcha).
+
 ## v1.60.1 — 2026-06-14 — 🩺 Health check — all green (709/0, docs coherent, no drift)
 
 **Type:** Maintenance / health check (no new feature). Patch bump.
