@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.55.1 — 2026-06-14 — 🩺 Health check — all green (669/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump.
+
+**Pre-flight:** `git pull` clean. No revert/veto commits since the last entry. Health-check counter: 5 entries since the last health check (v1.50.1) — v1.51.0, v1.52.0, v1.53.0, v1.54.0, v1.55.0 → **this run is the health check**. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp) — low-priority items don't pre-empt the health check.
+
+**1. Refactor audit:** All seven game files are well under the ~1500-line cap — cd-update.js 908, cd-render.js 720, cd-game.js 696, cd-core.js 447, cd-defs.js 364, cd-maps.js 290, cd-state.js 170 (HTML 153, CSS 483, sw.js 51). No new duplicated logic or dead code spotted. The lone oversized file remains the **dev-only test harness** (`tests/run-tests.mjs`, now 4,234 lines / 69 groups) — already tracked as a `[ ]` split item in ROADMAP (stat refreshed this run); it doesn't ship.
+
+**2. Docs coherence pass:** Verified CLAUDE.md against the code — all key counts/formulas still match: **8 towers**, **21 talents**, **13 Mayhem wave modifiers** (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/meteors), **7 boss archetypes** (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor), **15 achievements**, **5 targeting modes** (first/last/strong/close/support). Formula spot-checks: norm-HP `(18 + w*7 + 1.25·w^1.9)·1.80` ✓, boss HP mult `14 + w·0.6` ✓, Tesla chain falloff `overcharge?1:(super?0.8:0.7)` (the v1.55.0 buff) ✓. `GAME_VERSION` = `sw.js` CACHE = CHANGELOG head = v1.55.1 ✓. Fixed drift: cited the Gauntlet map's test group `[68]` in CLAUDE.md's maps section (was uncited); refreshed ROADMAP's stale test-harness stat (3,991→4,234 lines, 67→69 groups `[0]`–`[68]`, 608→645 check sites / 632→669 assertions) and appended v1.55.1 to the two re-audit lists.
+
+**3. Table-stakes audit:** Checklist remains **complete** — favicon/meta/OG, installable PWA (offline SW), touch/pointer controls, gamepad, keyboard a11y (menus + draft), colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile, ~44px tap targets. No new gaps; optional follow-ups (raster PNG icon set, gamepad menu nav, remappable buttons) stay logged in ROADMAP.
+
+**4. Integrity spot-checks:** Full suite **669/0 green, exit 0**. Double-click `file://` playability intact (classic `<script src>` in dependency order, no ES modules, inline favicon, no build step, all relative paths; SW registration http/https-guarded so local-file play + the headless harness are unaffected). Old/minimal-save migration verified: `loadMeta()` defaults a missing `talents`/`achievements`/`stats` map and clamps ranks; `loadRun()` merges `perkState` over `freshPerkState()` defaults. Deploy workflow copies `index.html` + game shell + `cd-*.js` + the PWA trio into `_site`.
+
+**Findings → ROADMAP; fixes this run stayed small (doc-only).** No code/behaviour/balance/save change beyond the version + cache-version bump.
+
 ## v1.55.0 — 2026-06-14 — ⚡ Superconductor buff — Tesla's swarm spec is no longer dominated
 
 **Type:** Balance (tower spec rebalance). Minor bump. Buffs a strictly-dominated level-5 spec; no save/economy impact. Simulated before/after, swing under the ≤25%/run cap.
