@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.60.1 — 2026-06-14 — 🩺 Health check — all green (709/0, docs coherent, no drift)
+
+**Type:** Maintenance / health check (no new feature). Patch bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry. Health-check counter: 5 normal entries since the last health check (v1.55.1 → v1.56.0, v1.57.0, v1.58.0, v1.59.0, v1.60.0) → **this is the health-check run**. FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices in); the routine lets low-priority items be skipped, and no `[bug]` items are queued, so the health check proceeds.
+
+**1. Refactor audit:** All seven game source files are comfortably under the ~1500-line cap — cd-update.js 942, cd-render.js 757, cd-game.js 716, cd-core.js 453, cd-defs.js 369, cd-maps.js 291, cd-state.js 177 (plus tower-defense.html 153, tower-defense.css 483, sw.js 51). No dead code, no leftover `console.log`/`debugger`, no real TODO/FIXME (the lone "TODO" grep hit is text inside a past changelog body). The dev-only `tests/run-tests.mjs` is now **4,484 lines (71 groups `[1]`–`[71]`, 709 assertions)** — by far the largest file in the repo, still the standing `[refactor]` ROADMAP item (updated its stale 4,234/69-group counts). No new refactor needed this run.
+
+**2. Docs coherence:** Read CLAUDE.md / CHANGELOG.md / FEEDBACK.md / ROADMAP.md against the code. Every documented number still matches reality: **8** towers (`TYPE_KEYS`), **8** boss archetypes (`BOSS_ARCHETYPES`), **14** Mayhem wave mods (`WAVE_MODS`), **15** achievements (`ACHIEVEMENTS`), **5** targeting modes, boss HP slope `14 + w*0.6` (cd-game.js buildWave + waveThreat mirror), `KIND_HP_MULT` map intact. Versions consistent everywhere: `GAME_VERSION`, `sw.js` CACHE, and the newest `CHANGELOG_ENTRIES`/CHANGELOG heading all read v1.60.1. **Fixed one piece of doc rot:** CLAUDE.md's test-harness line still called the shipped game "the three raw files" (pre-domain-split language from before v1.8.2) — corrected to "HTML + CSS + the seven `cd-*.js` files + the PWA trio." Vetoed section intact; FEEDBACK pending item left as-written.
+
+**3. Table-stakes audit:** Checklist remains **complete** (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, ~44px tap targets). No new gaps found; the optional follow-ups (raster PNG icon set for stricter Lighthouse installability, dev error reporting) stay noted in ROADMAP, not blocking.
+
+**4. Integrity spot-checks:** Full suite **709 passed / 0 failed**, exit 0 (run by subagent). The harness drives the real `tower-defense.html` headlessly over `file://`, so green also confirms double-click offline playability with zero console errors (classic script tags, correct load order, no ES modules, inline favicon, all relative paths). Old-format save migration verified by inspection: `loadMeta()` defaults a minimal `cd_meta` (chips-only) with talents/achievements/stats maps and clamps ranks; `loadRun()` uses `Object.assign(freshPerkState(), …)` + a `MODES.includes` guard, so pre-update saves keep loading.
+
+**Findings → ROADMAP:** none new of substance; refreshed the test-harness-split entry's counts and the table-stakes re-audit marker. Files touched: CLAUDE.md (1 line), ROADMAP.md (2 lines), CHANGELOG.md, cd-core.js (version + entry), sw.js (cache version). No code/behaviour/balance/save change.
+
+---
+
 ## v1.60.0 — 2026-06-14 — 🌈 Combo board glow — hot streaks light up the whole board
 
 **Type:** Game-feel / polish (render-only). Minor bump.
