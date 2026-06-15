@@ -82,6 +82,15 @@ function update(dt) {
     // 0.45× boss speed keeps it bounded/beatable, and it has no other mechanic (its whole gimmick
     // is being unstoppable). Run-only field — enemies are never persisted.
     if (e.kind === 'boss' && e.bossType === 'juggernaut') { e.frozen = 0; e.slow = 0; }
+    // Heatwave wave mod (mayhem, v1.66.0): every tagged enemy + boss is IMMUNE TO CROWD CONTROL —
+    // shrug off freeze + frost slow every frame (before slowMul, mirroring the juggernaut line
+    // above), so the Freeze ability and Frost towers can't lock the wave down. A fresh axis: none
+    // of the other 14 mods touch CC, and it pressures the documented Frost/booster snowball (a
+    // freeze/frost-reliant build needs real DPS this wave). Bounded — it adds no HP/speed, only
+    // removes the player's CC advantage, so it can never make a run easier (re: the "too easy"
+    // feedback). Tagged at spawn in buildWave (run-only, never saved), so concurrent waves each
+    // keep their own mod (like regen/adrenaline).
+    if (e.ccImmune) { e.frozen = 0; e.slow = 0; }
     let slowMul = perkState.slowGlobal;
     if (e.frozen > 0) slowMul = 0;
     else if (e.slow > 0) {

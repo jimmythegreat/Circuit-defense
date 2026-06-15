@@ -161,6 +161,7 @@ const WAVE_MODS = [
   { id:'emp',     icon:'⚡', name:'Static Storm',   desc:'Towers randomly knocked offline' },
   { id:'wardens', icon:'💠', name:'Warden Surge',   desc:'Warden escorts shield the wave' },
   { id:'adrenaline',icon:'💉', name:'Adrenaline',  desc:'Wounded enemies accelerate' },
+  { id:'heatwave',icon:'🔥', name:'Heatwave',      desc:'Enemies resist slow & freeze' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
 const MOD_BY_ID = Object.fromEntries(WAVE_MODS.map(m => [m.id, m]));

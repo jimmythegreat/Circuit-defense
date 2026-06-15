@@ -186,6 +186,7 @@ function buildWave(w) {
     if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   e.regen = true;
     if (modIs('adrenaline')) e.adrenaline = true;
+    if (modIs('heatwave')) e.ccImmune = true;
     e.maxHp = e.hp;
     q.push(e);
   }
@@ -225,6 +226,7 @@ function buildWave(w) {
     if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   boss.regen = true;
     if (modIs('adrenaline')) boss.adrenaline = true;
+    if (modIs('heatwave')) boss.ccImmune = true;
     boss.maxHp = boss.hp;
     q.push(boss);
   }

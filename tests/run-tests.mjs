@@ -4768,6 +4768,79 @@ async function main() {
     await page.close();
   }
 
+  // [76] Heatwave wave mod — enemies immune to slow & freeze (v1.66.0)
+  console.log('\n[76] Heatwave (CC-immune wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const hasMod = WAVE_MODS.some(m => m.id === 'heatwave');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod): no enemy is tagged.
+      setMod(null);
+      const plainWave = buildWave(20);          // w20 -> includes a boss
+      const plainNorm = plainWave.find(e => e.kind === 'norm');
+      const plainTagged = plainWave.some(e => e.ccImmune);
+
+      // HEATWAVE: every enemy + the boss is tagged ccImmune; base stats untouched.
+      setMod('heatwave');
+      const hwWave = buildWave(20);
+      const hwNorm = hwWave.find(e => e.kind === 'norm');
+      const hwBoss = hwWave.find(e => e.kind === 'boss');
+      const allTagged = hwWave.every(e => e.ccImmune === true);
+      const bossTagged = !!(hwBoss && hwBoss.ccImmune);
+      const statsUnchanged = hwNorm.hp === plainNorm.hp && hwNorm.spd === plainNorm.spd &&
+        hwNorm.armor === plainNorm.armor && hwNorm.bounty === plainNorm.bounty;
+
+      // Movement: drive one update() frame (no towers) on a frozen+slowed tagged enemy vs an
+      // untagged one. The tagged enemy must shrug off both and move at full speed; the untagged
+      // frozen one must stay put.
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:1, maxHp:1, dist:200, frozen:0, slow:0, slowF:0.6, flash:0,
+        x:0, y:0, r:11, armor:0, bounty:1, color:'#3fb950', dealt:0
+      }, opts || {});
+      const immFrozen = mk({ ccImmune:true, frozen:5 });   // tagged + frozen -> still moves full
+      const immSlowed = mk({ ccImmune:true, slow:5 });      // tagged + slowed -> no slowdown
+      const free      = mk({});                             // untagged, no CC -> full speed baseline
+      const ccFrozen  = mk({ frozen:5 });                   // untagged + frozen -> frozen still
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      enemies.push(immFrozen, immSlowed, free, ccFrozen);
+      const d0 = enemies.map(e => e.dist);
+      update(1/60);
+      const adv = enemies.map((e, i) => e.dist - d0[i]);
+      const [immFrozenAdv, immSlowedAdv, freeAdv, ccFrozenAdv] = adv;
+      const immFrozenMoves = Math.abs(immFrozenAdv - freeAdv) < 1e-9;   // matches full-speed baseline
+      const immSlowedMoves = Math.abs(immSlowedAdv - freeAdv) < 1e-9;
+      const ccFrozenStill = ccFrozenAdv === 0;                          // control: CC still works off-mod
+      // The mod also cleared the timers so they don't linger.
+      const timersCleared = immFrozen.frozen === 0 && immSlowed.slow === 0;
+
+      // Inert again when the mod is cleared.
+      setMod(null);
+      const inertOff = buildWave(20).some(e => e.ccImmune) === false;
+
+      enemies.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, plainTagged, allTagged, bossTagged, statsUnchanged, immFrozenMoves,
+               immSlowedMoves, ccFrozenStill, timersCleared, inertOff,
+               immFrozenAdv, immSlowedAdv, freeAdv, ccFrozenAdv };
+    });
+    check('WAVE_MODS includes Heatwave', r.hasMod);
+    check('Heatwave is inert when the mod is off (no enemy tagged)', !r.plainTagged);
+    check('Heatwave tags every enemy', r.allTagged);
+    check('Heatwave tags the boss', r.bossTagged);
+    check('Heatwave leaves base HP/speed/armor/bounty untouched', r.statsUnchanged);
+    check('a frozen Heatwave enemy still moves at full speed', r.immFrozenMoves, `imm=${r.immFrozenAdv} free=${r.freeAdv}`);
+    check('a slowed Heatwave enemy moves at full speed', r.immSlowedMoves, `imm=${r.immSlowedAdv} free=${r.freeAdv}`);
+    check('control: an untagged frozen enemy stays put (CC works off-mod)', r.ccFrozenStill, `adv=${r.ccFrozenAdv}`);
+    check('Heatwave clears frozen/slow timers each frame', r.timersCleared);
+    check('Heatwave is inert once the mod is cleared', r.inertOff);
+    check('no console errors during Heatwave test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

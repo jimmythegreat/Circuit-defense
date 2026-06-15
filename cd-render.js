@@ -447,6 +447,16 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
+    // Heatwave wave-mod cue (v1.66.0): a warm orange ring marks an enemy immune to slow/freeze
+    // this wave (so a player can see why their Frost towers aren't biting). Drawn dashed-bright
+    // to read as "running hot", distinct from the solid rings above.
+    if (e.ccImmune && !e.dead) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,138,52,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     // breacher cue (v1.63.0): a dark-red outer ring flags the heavy unit that costs 2 lives
     // if it leaks, so it reads as a priority threat in a crowd (the colour/glyph also code it).
     if (e.lifeCost > 1 && !e.dead) {

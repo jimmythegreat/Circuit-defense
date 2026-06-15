@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.66.0 — 2026-06-14 — 🔥 Heatwave — 15th Mayhem wave modifier (enemies resist slow & freeze)
+
+**Type:** New content (Mayhem wave modifier). Minor bump.
+
+**What:** A 15th Mayhem wave modifier, **🔥 Heatwave** — when it rolls on a Mayhem (or Daily Challenge) wave, every enemy + boss is **immune to crowd control**: the Freeze ability and Frost towers' slow do nothing to them for that wave. A warm orange ring marks each immune enemy so the player can see why their Frost towers aren't biting. Mayhem modifier pool **14 → 15**.
+
+**Why:** A genuinely fresh axis — none of the previous fourteen mods touch crowd control. It's the **wave-wide cousin of the Juggernaut boss** (v1.56.0), which already shrugs off CC, and it serves two recurring threads at once: the owner's "too easy" feedback, and the documented **Frost / booster snowball** balance concern — a freeze/slow-reliant build needs real DPS this wave. Deliberately **bounded**: it adds **no HP and no speed**, only removes the player's CC advantage, so it can never make a run *easier* (a stall-only build can't kill faster from it), exactly like the Juggernaut's CC immunity.
+
+**How (additive, run-only, save-safe):**
+- `WAVE_MODS` gains `{ id:'heatwave', icon:'🔥', name:'Heatwave', desc:'Enemies resist slow & freeze' }` (inserted before `meteors`) in `cd-maps.js`. `rollWaveMod`/`MOD_BY_ID`/`dailyPreview` all read the array dynamically, so it's picked up automatically (Daily seeded schedule shifts, as with any added mod — the preview mirrors the same stream).
+- `buildWave` (cd-game.js) tags `e.ccImmune = true` / `boss.ccImmune = true` when `modIs('heatwave')` — at spawn, like `regen`/`adrenaline`, so concurrent waves each keep their own mod.
+- `update()` (cd-update.js) clears `e.frozen = 0; e.slow = 0` for any `e.ccImmune` enemy every frame, **before** `slowMul` is computed (mirrors the Juggernaut line directly above it). So freeze/slow simply never take hold; the timers don't linger.
+- `cd-render.js` draws a warm-orange CC-immune cue ring (`rgba(255,138,52,0.6)`) beside the existing regen/adrenaline/warded cues.
+- No new localStorage key, no economy/balance/schema impact; `ccImmune` is a run-only enemy field (enemies are never persisted).
+
+**Tests:** New group **[76]** — Heatwave is in `WAVE_MODS`; inert off-mod (no enemy tagged); tags every enemy + the boss; leaves base HP/speed/armor/bounty untouched; a frozen tagged enemy moves at full speed (matches an un-CC'd baseline), a slowed tagged enemy moves at full speed, the frozen/slow timers are cleared each frame; a control untagged frozen enemy stays put (CC works off-mod); inert once the mod is cleared; zero console errors. Full suite green.
+
 ## v1.65.1 — 2026-06-14 — 🩺 Health check — all green (769/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass). Patch bump. No new feature.

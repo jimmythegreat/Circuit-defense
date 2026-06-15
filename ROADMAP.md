@@ -135,8 +135,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       One inline `adrenalineMul` in the movement line (beside `berserkMul`), tagged `e.adrenaline` in
       `buildWave`; freeze zeroes it / Frost slow multiplies in; faint red ring cue. Ramps from 0 with missing
       HP so the lifetime average is *below* Frenzy's flat +35% → challenging but fair, can't make a run easier.
-      Pressures chip-damage builds (burst-or-leak), per the "too easy" feedback; run-only). Pool 7→9→10→11→12→13→**14**.
-      Test [46] + [54] + [57] + [67] + [69].
+      Pressures chip-damage builds (burst-or-leak), per the "too easy" feedback; run-only). Then **🔥 Heatwave**
+      in **v1.66.0** (`heatwave`: every enemy + boss is **immune to crowd control** — `e.ccImmune` tagged in
+      `buildWave`, cleared each frame in `update()` (`e.frozen=0; e.slow=0` before `slowMul`, mirroring the
+      juggernaut line), so the Freeze ability + Frost slow do nothing that wave. The **wave-wide cousin of the
+      Juggernaut boss** on a fresh **CC axis** no other mod touches; pressures the documented Frost/booster
+      snowball without nerfing it. Bounded — adds no HP/speed, only removes the player's CC advantage, so it
+      can't make a run easier. Warm-orange cue ring; run-only). Pool 7→9→10→11→12→13→14→**15**.
+      Test [46] + [54] + [57] + [67] + [69] + [76].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).
