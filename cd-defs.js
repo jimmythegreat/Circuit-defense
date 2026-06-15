@@ -264,6 +264,13 @@ const PERKS = [
   { id:'goldmine',rarity:'rare', icon:'⛏️', name:'Gold Mine',      desc:'Wave-clear bonus +25%',         apply:s=>s.waveBonusMult *= 1.25 },
   { id:'vault',   rarity:'rare', icon:'🏦', name:'Vault Crack',    desc:'+400 gold immediately',         apply:()=>{ gold += 400; updateHud(); } },
   { id:'guardian',rarity:'rare', icon:'👼', name:'Guardian Angel', desc:'+10 lives immediately',         apply:()=>{ lives += 10; updateHud(); } },
+  // Targeting Array (v1.81.0): the perk pool's first RANGE buff — extends firing range +20%
+  // (applied in effRange, NOT effBuffRange, so booster auras are untouched — keeps the documented
+  // booster-coverage snowball in check, same boundary Glass Cannon respects). A coverage-builder, a
+  // distinct axis from the existing damage/rate/gold perks: it counters the coverage-pressure content
+  // (breachers' 2-life leaks, cloaking, fog) rather than adding raw DPS, so it's a meaningful draft
+  // pick, not power creep. `rangeMult` lives in perkState (save-safe default 1).
+  { id:'optics',  rarity:'rare', icon:'🔭', name:'Targeting Array',  desc:'All towers +20% range',         apply:s=>s.rangeMult *= 1.2 },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -324,7 +331,7 @@ function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
-    glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false };
+    glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1 };
 }
 function ascendTowers() {
   for (const t of towers) {

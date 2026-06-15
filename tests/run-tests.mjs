@@ -5866,6 +5866,65 @@ async function main() {
     await page.close();
   }
 
+  // [89] Targeting Array rare perk — +20% firing range, booster aura untouched (v1.81.0)
+  console.log('\n[89] Targeting Array range perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // perk exists in the pool and is rare
+      const def = PERKS.find(p => p.id === 'optics');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // baseline (perk not held) -> apply -> +20% firing range
+      perkState.rangeMult = 1;
+      const rBase = effRange(gun);
+      def.apply(perkState);
+      const rPerk = effRange(gun);
+
+      // booster aura range (effBuffRange) is NOT affected by the perk
+      const booster = { type:'buff', x:400, y:300, level:1, spec:null, range:45, buffPower:0.25 };
+      towers.push(booster);
+      const buffRange = effBuffRange(booster);
+      const buffExpected = booster.range; // mastery_buff rank 0 => ×1, rangeMult must not apply
+
+      // freshPerkState default present & save-safe
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.rangeMult === 1;
+
+      // save -> restore round-trip of the multiplier
+      perkState.rangeMult = 1.2;
+      saveRun();
+      perkState.rangeMult = 1; // clobber
+      const loaded = loadRun();
+      const restored = Math.abs(perkState.rangeMult - 1.2) < 1e-9;
+
+      // old-save migration: a cd_save whose perkState lacks the field defaults it to 1
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.rangeMult;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.rangeMult === 1;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, rBase, rPerk, buffRange, buffExpected, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Targeting Array is a rare perk in the pool', r.inPool);
+    check('Targeting Array gives +20% firing range', Math.abs(r.rPerk - r.rBase * 1.2) < 1e-6, `base=${r.rBase} perk=${r.rPerk}`);
+    check('Targeting Array leaves booster aura range untouched', Math.abs(r.buffRange - r.buffExpected) < 1e-6, `buff=${r.buffRange}`);
+    check('freshPerkState defaults rangeMult:1', r.defaultsOk);
+    check('save/reload round-trips the range multiplier', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing rangeMult migrates to default', r.migratedOk);
+    check('no console errors during Targeting Array test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -125,6 +125,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Content & variety
 
+- [x] **New run perk: range buff** — shipped **v1.81.0**. 🔭 **Targeting Array** (rare, `optics`):
+      all towers +20% firing range (`perkState.rangeMult`, wired in `effRange` only — NOT
+      `effBuffRange`, so booster auras stay capped). Filled the one missing perk axis (the pool had
+      damage/rate/gold/CC/economy perks but no range buff; only Glass Cannon *cut* range). A
+      coverage-builder that counters the recent coverage-pressure content (Breachers' 2-life leaks,
+      Cloaking Field, Fog) — a meaningful draft trade, not raw DPS / power creep. Bonus: the upgrade
+      panel now shows `effRange(t)` (was base `t.range`), so Targeting Array / Glass Cannon / Fog all
+      visibly move the number. Save-safe (`rangeMult` in `perkState`, default 1). Test [89].
+      **Follow-up (optional):** a *legendary* tier "+40% range, +tower sight" or a per-tower range talent.
 - [x] **New active ability: "Shockwave"** — shipped **v1.67.0**. The 4th ability (hotkey **R**,
       gamepad **RT**) after Meteor/Freeze/Gold Rush — the first new one in a long time. `🌀 Shockwave`
       (`ABILITIES.shock`, cd 50) **knocks every live enemy backward along the path** (`e.dist -= 75`,

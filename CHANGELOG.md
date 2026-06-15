@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.81.0 — 2026-06-15 — 🔭 Targeting Array — new rare run perk (+20% tower range)
+
+**Type:** New content (run perk) + minor UX polish. Minor bump.
+
+**What:** A new rare draft perk, **🔭 Targeting Array** (`optics`): pick it from the every-5-waves draft and all towers gain **+20% firing range** (`perkState.rangeMult *= 1.2`). Plus a small polish: the tower info panel now displays **effective** range instead of base range, so Targeting Array, Glass Cannon (−30%) and the Fog modifier (−20%) all visibly move the number.
+
+**Why:** The perk pool had **no range buff at all** — every offensive perk pumps damage, fire rate or gold, and the only thing touching range was the Glass Cannon legendary, which *cuts* it. Range is a distinct axis: more reach = more path covered per tower, so it's a **coverage-builder** — a direct counter to the recent coverage-pressure content (Breachers that cost 2 lives on a leak, Cloaking Field, Fog) rather than another raw-DPS bump. That makes it a meaningful draft trade (board control vs a damage/gold perk), not power creep — keeping faith with the recurring "too easy" feedback. Rare-appropriate: a global +20% range (~+44% coverage area) sits alongside the other rares (+15% all damage, +10 lives, +400 gold).
+
+**Implementation:**
+- `cd-defs.js` — `PERKS` rare entry `optics`; `freshPerkState()` gains `rangeMult:1`.
+- `cd-game.js` — `effRange()` multiplies by `perkState.rangeMult` (**firing range only**, NOT `effBuffRange`, so booster auras are untouched — the same boundary Glass Cannon respects, keeping the documented booster-coverage snowball in check). The upgrade panel statline now shows `effRange(t)` (was `t.range`), and `upgradeKey()` hashes `effRange` so the panel stays live.
+
+**Save-safe:** `rangeMult` lives inside `perkState`, persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)`; old saves default to `1`. No new localStorage key, no economy/schema impact. `resolveWildcard()` does not roll it (rare, not legendary).
+
+**Test:** new group `[89]` — perk applies (range ×1.2), it hits firing range but not booster aura range, save/resume round-trips the multiplier, and the perk is in the pool. Full suite green.
+
 ## v1.80.0 — 2026-06-15 — ‼️ Breacher Surge — 18th Mayhem wave modifier (heavy escorts, double leak-cost)
 
 **Type:** New content (Mayhem wave modifier). Minor bump.

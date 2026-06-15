@@ -456,7 +456,7 @@ function upgradeKey(t) {
   const upCost = Math.floor(costOf(t.type) * 0.8 * t.level);
   const stat = t.type === 'buff'
     ? Math.round(effBuffPower(t) * 100) + '|' + Math.round(effBuffRange(t))
-    : Math.round(effDmg(t)) + '|' + effRate(t).toFixed(3);
+    : Math.round(effDmg(t)) + '|' + effRate(t).toFixed(3) + '|' + Math.round(effRange(t));
   return [t.level, t.spec, gold >= upCost, Math.floor(t.invested * sellRatio()), t.mode, Math.floor(t.dealt / 500), stat].join('|');
 }
 function maybeRefreshUpgrade() {
@@ -485,7 +485,7 @@ function showUpgrade(t) {
     ${isBuff
       ? `<span class="statline">aura +${Math.round(effBuffPower(t)*100)}% dmg · range ${Math.round(effBuffRange(t))}</span><br>
          <span class="statline">auras don't stack — strongest applies</span>`
-      : `<span class="statline">dmg ${Math.round(effDmg(t))} · range ${Math.round(t.range)} · ${(1/effRate(t)).toFixed(1)}/s</span><br>
+      : `<span class="statline">dmg ${Math.round(effDmg(t))} · range ${Math.round(effRange(t))} · ${(1/effRate(t)).toFixed(1)}/s</span><br>
          <span class="statline">dealt: ${fmtNum(t.dealt)} · kills: ${t.kills}</span>`}
     ${specHtml}
     ${!isBuff ? `<button class="mode" onclick="cycleMode()">${MODE_ICON[t.mode]}</button>` : ''}
@@ -590,8 +590,9 @@ function effRate(t) {
 }
 function effRange(t) {
   // Glass Cannon legendary (v1.32.0): −30% combat range (the cost of the +50% damage in effDmg).
-  // Applies to firing range only, not booster auras (effBuffRange) — buff towers deal no damage.
-  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1);
+  // Targeting Array rare perk (v1.81.0): ×rangeMult (+20% per pick). Both apply to firing range
+  // only, not booster auras (effBuffRange) — buff towers deal no damage.
+  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult;
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');
