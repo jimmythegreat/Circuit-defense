@@ -308,8 +308,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
       kill it fast). Bounded/save-safe: floors at 0 (no soft-lock, kills still pay bounty), freeze pauses it (gated block),
       no extra HP/speed. Gold aura ring + SIPHON badge. Cycle now `(w/5−4)%9` (w60→siphon, w65→regen). Run-only. Test [45]
       (rotation + drains-gold + freeze-pauses + floors-at-0 + killable) + [53] (badge).
+      ✅ **10th archetype shipped v1.82.0 — 🐉 Hydra** (splits on death): the first DEATH-SPAWN archetype
+      (every other acts while alive; summoner spawns adds, but the hydra spawns when slain). In `damage()`'s
+      kill block (cd-update.js, gated `e.bossType==='hydra'`, after the `fission` block — NOT the gated tick
+      block, like juggernaut it has no while-alive behaviour) a slain hydra pushes 2 `norm` "heads" to
+      `pendingSpawns` (`maxHp×0.10`, `spd e.spd/0.45·0.9`, token `bounty×0.05`, spawned `dist−24−i·18` behind
+      the kill) + a `🐉 IT SPLITS!` floater + green burst. Bounded/single-layer: heads carry NO `bossType`/`hydra`
+      tag so they never re-split (no boss bar, no cascade — Overkill/Fission pattern), ~10% boss HP each, reuse the
+      split/fission deferred-spawn path. Hardens the very late game through follow-up-DPS pressure, not raw HP.
+      Lime aura ring + HYDRA badge (cd-render.js). Cycle now `(w/5−4)%10` (w65→hydra, w70→regen). Run-only/save-safe.
+      Test [90] (rotation + 2-on-death + bounded HP + heads-not-bosses + no-cascade + control-no-split + badge) + [45]
+      (rotation extended + killable sweep) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      a 10th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      an 11th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus

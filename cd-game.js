@@ -163,7 +163,7 @@ function enemyTemplate(w) {
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP
 // IN SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the
 // wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra'];
 function buildWave(w) {
   const q = [];
   let count = 8 + Math.floor(w*1.7);

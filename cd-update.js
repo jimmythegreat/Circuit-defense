@@ -623,6 +623,27 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
       }
       addExplosion(e.x, e.y, '#7ee787', 8, 90);
     }
+    // Hydra boss archetype (v1.82.0, the 10th — a fresh DEATH-SPAWN axis: no other archetype
+    // spawns on death; summoner spawns weak adds WHILE ALIVE). When a Hydra boss is slain it
+    // splits into 2 sub-units ("heads") that continue the run — the fight isn't over when the
+    // bar empties, so it pressures FOLLOW-UP DPS / coverage past the boss kill (pairs with
+    // AoE / Reaper / Overkill). Bounded & single-layer: the heads are plain `norm`s (NOT bosses,
+    // so no extra boss bar) with NO bossType, so they never re-split; they carry ~10% of the
+    // boss's max HP each (well below the boss) and a token bounty, and they spawn slightly BEHIND
+    // the death point so towers get a beat to react. Reuses the split/fission pendingSpawns
+    // pattern (deferred spawn = safe to mutate `enemies` next frame). Run-only, no save impact.
+    if (e.kind === 'boss' && e.bossType === 'hydra') {
+      const hhp = e.maxHp * 0.10;
+      for (let i = 0; i < 2; i++) {
+        pendingSpawns.push({
+          kind:'norm', hp: hhp, maxHp: hhp, spd: e.spd / 0.45 * 0.9, r: 10,
+          bounty: Math.max(1, Math.floor(e.bounty * 0.05)), color:'#9ae65c', armor:0, gap:0,
+          dist: Math.max(0, e.dist - 24 - i*18), slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0
+        });
+      }
+      addExplosion(e.x, e.y, '#9ae65c', 16, 150);
+      addFloater(e.x, e.y - 50, '🐉 IT SPLITS!', '#9ae65c', 18);
+    }
     // Overkill perk (v1.59.0): the slain enemy detonates, splashing 25% of its max HP as
     // armor-ignoring true damage to nearby enemies. `fromOverkill` guards re-entry so a
     // splash-kill can't detonate again — single layer, naturally bounded by enemy count.

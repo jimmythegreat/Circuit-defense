@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.82.0 — 2026-06-15 — 🐉 Hydra — 10th boss archetype (splits into two heads on death)
+
+**Type:** New content (boss archetype). Minor bump.
+
+**What:** A 10th late-game boss archetype, **🐉 Hydra**, added to `BOSS_ARCHETYPES` (cycle 9→10). It joins the wave-20+ rotation at the 10th slot (**w65**, then every 10th boss; w70 wraps back to regen). Its mechanic is a brand-new axis: **when the boss is slain it splits into 2 sub-units** ("heads") that keep advancing up the path. Implemented in `damage()`'s kill block (cd-update.js, gated `e.kind==='boss' && e.bossType==='hydra'`, right after the `fission` block) — it pushes 2 `kind:'norm'` heads to `pendingSpawns` (each `maxHp×0.10`, `spd e.spd/0.45·0.9`, token `bounty×0.05`, spawned `dist−24−i·18` *behind* the death point) plus a `🐉 IT SPLITS!` floater and a green burst. A toxic-green aura ring + `HYDRA` boss-bar badge telegraph it (cd-render.js: aura colour `154,230,92` + `bossMechanicBadge`).
+
+**Why:** Every existing archetype acts *while alive* (summoner spawns adds, regen self-heals, etc.); none does anything on death. The Hydra opens a fresh **death-spawn axis** — the fight isn't over when the bar empties, so a defense tuned only to delete the boss can leak if it has no follow-up firepower. It rewards keeping splash/Reaper/Overkill in reserve to mop up the heads. Squarely serves the long-running "too easy" feedback for **deep** runs, hardening the very late game through *behaviour, not a raw HP spike* (the same philosophy as the other nine archetypes; the norm-HP curve is invariant-capped by test `[16]`).
+
+**Bounded / safe:** The heads are plain norms — **not bosses** (no extra boss bar) and carrying **no `hydra`/`bossType` tag**, so they can never re-split (single layer, no cascade — the Overkill/Fission bounding pattern). Each is ~10% of the boss's max HP, pays a token bounty, and spawns *behind* the kill point so towers get a beat to react. Reuses the proven split/fission deferred-`pendingSpawns` path (safe to mutate `enemies` next frame). Archetype fields are run-only and never persisted → **no save/schema/economy change**; old saves load unchanged.
+
+**Tests:** New group **[90]** (in-rotation at w65, queues 2 sub-units on death, heads spawn into the field, ≤10% boss-HP bounded, heads are plain norms not bosses, killing a head spawns nothing = no cascade, a non-hydra boss does not split, the `HYDRA` badge resolves). Group **[45]** extended (rotation now `…→siphon→hydra`, w65→hydra & w70→regen; hydra added to the killable-boss sweep). Full suite green; zero console errors.
+
 ## v1.81.0 — 2026-06-15 — 🔭 Targeting Array — new rare run perk (+20% tower range)
 
 **Type:** New content (run perk) + minor UX polish. Minor bump.

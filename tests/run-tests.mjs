@@ -2494,13 +2494,13 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 9 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, then wraps (w65 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 10 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, then wraps (w70 → regen again).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
-                    && bt(60) === 'siphon' && bt(65) === 'regen';
+                    && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2682,7 +2682,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2706,6 +2706,7 @@ async function main() {
     check('disruptor boss is killable', killable.disruptor.died, `guard=${killable.disruptor.guard}`);
     check('juggernaut boss is killable', killable.juggernaut.died, `guard=${killable.juggernaut.guard}`);
     check('siphon boss is killable', killable.siphon.died, `guard=${killable.siphon.guard}`);
+    check('hydra boss is killable', killable.hydra.died, `guard=${killable.hydra.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -5922,6 +5923,73 @@ async function main() {
     check('save/reload round-trips the range multiplier', r.loaded === true && r.restored, JSON.stringify(r));
     check('old save missing rangeMult migrates to default', r.migratedOk);
     check('no console errors during Targeting Array test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [90] Hydra boss archetype — the 10th: splits into 2 sub-units on death (v1.82.0)
+  console.log('\n[90] Hydra boss (death-split archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // it's in the rotation at w65 (10th slot, then wraps at w70).
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(65) === 'hydra';
+
+      // Kill a hydra boss and confirm it spawns exactly 2 sub-units. The spawns are
+      // DEFERRED to pendingSpawns (folded into enemies next frame), so tick once after
+      // the kill. Use a real path point so movement/render don't throw.
+      const sp = pointAt(60);
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      const boss = { kind:'boss', bossType:'hydra', hp:5000, maxHp:5000, spd:0, r:24, bounty:100,
+        color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 };
+      enemies.push(boss);
+      damage(boss, 1e9, null);                 // overkill the boss → triggers the split
+      const pendingAfterKill = pendingSpawns.length;   // 2 heads queued
+      update(1/60);                            // fold pendingSpawns into enemies
+      const heads = enemies.filter(e => e.kind === 'norm');
+      const spawnedTwo = heads.length === 2;
+      // heads are bounded: ~10% of boss maxHp each, no bossType, and carry NO 'hydra' tag
+      // so they can never re-split (single layer).
+      const headHpBounded = heads.every(h => h.maxHp <= boss.maxHp * 0.1 + 1e-6 && h.maxHp > 0);
+      const headsNotBosses = heads.every(h => h.kind === 'norm' && !h.bossType);
+
+      // A killed head does NOT spawn more (no cascade): kill both heads and assert their
+      // deaths queued NOTHING (the heads carry no hydra/fission tag → no re-split).
+      pendingSpawns.length = 0;                // clear the 2 we already folded in
+      for (const h of heads) damage(h, 1e9, null);
+      const noCascade = pendingSpawns.length === 0;
+      update(1/60);                            // dead heads get culled; field empties
+
+      // a NON-hydra boss of the same shape does NOT split (control)
+      enemies.length = 0; pendingSpawns.length = 0;
+      const ctrl = { kind:'boss', bossType:'regen', hp:10, maxHp:5000, spd:0, r:24, bounty:100,
+        color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 };
+      enemies.push(ctrl);
+      damage(ctrl, 1e9, null);
+      const controlNoSplit = pendingSpawns.length === 0;
+
+      // render-side wiring: badge + aura colour resolve for hydra
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'hydra' });
+      const badgeOk = badge && badge.label === 'HYDRA';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, pendingAfterKill, spawnedTwo, headHpBounded, headsNotBosses, noCascade, controlNoSplit, badgeOk };
+    });
+    check('hydra is the 10th archetype (w65)', r.inRotation);
+    check('hydra queues 2 sub-units on death', r.pendingAfterKill === 2, `pending=${r.pendingAfterKill}`);
+    check('the 2 heads spawn into the field', r.spawnedTwo);
+    check('heads carry ≤10% of boss max HP (bounded)', r.headHpBounded);
+    check('heads are plain norms, not bosses', r.headsNotBosses);
+    check('killing a head does NOT spawn more (no cascade)', r.noCascade);
+    check('control: a non-hydra boss does not split', r.controlNoSplit);
+    check('hydra boss-bar badge resolves to HYDRA', r.badgeOk);
+    check('no console errors during Hydra test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
