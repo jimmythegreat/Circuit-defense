@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.65.1 — 2026-06-14 — 🩺 Health check — all green (769/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass). Patch bump. No new feature.
+
+This is the periodic integrity sweep — 5 feature runs since the last health check (v1.60.1): v1.61.0 (best-scores grid), v1.62.0 (score breakdown), v1.63.0 (Breacher enemy), v1.64.0 (boss armor slope), v1.65.0 (Reaper perk).
+
+**Findings — everything green:**
+
+- **Test suite:** `tests/run-tests.mjs` runs **769 assertions across 75 groups `[1]`–`[75]`, 0 failures**, zero console errors (was 709/71 at v1.60.1; +60 assertions over the five feature runs).
+- **Offline / `file://` play intact:** seven classic `<script src>` files load in dependency order (cd-render.js last), no ES modules, inline SVG favicon, PWA trio linked (`manifest.webmanifest` + `sw.js` + `icon.svg`), all paths relative, no build step.
+- **Save migration:** old/minimal `cd_save`/`cd_meta` load via additive defaults — `loadMeta()` defaults `talents`/`achievements`/`stats`/`bestCombo`; `loadRun()` `Object.assign(freshPerkState(), …)` defaults new perk flags (reaper/overkill/glassCannon/lastStand) and `mapTheme`. Confirmed by the save round-trip + per-perk migration tests.
+- **Docs coherence:** CLAUDE.md formulas/counts all match the code — 8 towers, 8 boss archetypes (`BOSS_ARCHETYPES.length`), 14 Mayhem wave modifiers, 15 achievements, 5 targeting modes; boss HP `template × (14 + w*0.6)`, boss armor `w*0.5`, shield armor `3 + w*0.5`, `enemyTemplate = (18 + w*7 + 1.25·w^1.9) × 1.80 × d.hp × campScale`, Reaper execute threshold 12%.
+- **Versions consistent everywhere:** `GAME_VERSION`, `sw.js` `CACHE`, CHANGELOG heading, and the top `CHANGELOG_ENTRIES` body all read v1.65.1.
+- **File sizes:** all source files well under the ~1500-line cap — largest is cd-update.js at 1,008 lines (cd-render.js 768, cd-game.js 734, tower-defense.css 497, cd-core.js 459). No dead code, no stray `console.log`/`console.warn`, no TODO/FIXME markers.
+- **Table-stakes:** checklist remains complete (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, 44px tap targets). Only open follow-ups: a raster PNG icon set (192/512) for stricter installability audits, and a GitHub Actions CI workflow — both already filed in ROADMAP, neither blocking.
+
+**Fixes this run (small):** refreshed the stale ROADMAP "Split the test harness file" note (4,610→4,784 lines, 73→75 groups, 737→769 assertions) and appended v1.65.1 to the test-harness + table-stakes re-audit lists. No code behaviour change.
+
 ## v1.65.0 — 2026-06-14 — 💀 Reaper — new legendary perk (execute non-boss enemies below 12% HP)
 
 **Type:** New content (legendary perk). Minor bump.
