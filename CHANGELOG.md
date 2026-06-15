@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.71.1 — 2026-06-15 — 🤖 Continuous integration — test suite runs on every push
+
+**Type:** Dev tooling / table-stakes engineering. Patch bump. Zero game change.
+
+**What:** Added `.github/workflows/ci.yml` — a GitHub Actions workflow that runs the headless Playwright test harness (`tests/`, 80 groups / 828 assertions) on every push to `master`, every pull request, and on manual dispatch. Checks out, sets up Node 20 with npm caching, `npm ci` in `tests/`, `npx playwright install --with-deps chromium`, then `npm test` (exit 0 = green).
+
+**Why:** The test suite has 823 assertions guarding balance invariants, save compat, and render layout, but until now it only ran when someone remembered to run it locally. The repo is public and auto-improved; CI is the standard safety net a polished project has so a regression can't land silently. It was the top open item under ROADMAP → Tech/tooling ("GitHub Actions CI running `tests/` on push").
+
+**Safety / scope:** Dev-only and fully independent of the Pages deploy (`pages.yml`) — a separate job, separate trigger, `contents: read` only (no Pages permissions), its own concurrency group. **The shipped game is untouched:** no build step, the raw files still play by double-clicking `tower-defense.html`, and CI does not stage or modify any game file (it drives the real `tower-defense.html` over `file://`, exactly like a local run). No save/economy/balance/schema impact.
+
+**Version bump:** `GAME_VERSION` and the `sw.js` `CACHE` const bumped v1.71.0 → v1.71.1 in lockstep (test `[49]` asserts they match). The PWA cache key change just re-fetches the unchanged app shell on next hosted visit — no save impact (saves use localStorage, not the Cache API).
+
+**Tests:** No new game behavior, so no new assertion group; the workflow's own validity is verified by it running the existing suite. Full suite re-run locally before commit — green (828/0). The What's New panel + CHANGELOG carry this entry.
+
 ## v1.71.0 — 2026-06-15 — 💰 Siphon — 9th boss archetype (drains your gold)
 
 **Type:** New content (boss archetype). Minor bump. Run-only, save-safe.

@@ -617,8 +617,13 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       (`cd-core`/`cd-maps`/`cd-defs`/`cd-state`/`cd-game`/`cd-update`/`cd-render`),
       each independently `'use strict'`. Concatenation proven byte-identical to the
       pre-split file; 112/0 green; double-click `file://` play re-verified.
-- [ ] **GitHub Actions CI** running `tests/` on push (dev-only; never affects the
-      shipped HTML).
+- [x] **GitHub Actions CI** — shipped **v1.71.1**. `.github/workflows/ci.yml` runs the
+      headless Playwright harness (`tests/`, 80 groups / 828 assertions) on every push to
+      `master`, every PR, and on `workflow_dispatch`: Node 20 + npm cache → `npm ci` →
+      `npx playwright install --with-deps chromium` → `npm test`. Dev-only and independent of
+      the Pages deploy (`pages.yml`) — separate job/trigger, `contents: read` only, own
+      concurrency group; never stages or modifies a game file (drives the real
+      `tower-defense.html` over `file://`, like a local run). No build step introduced.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
 - [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.70.1 health checks) —

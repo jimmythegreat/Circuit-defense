@@ -1,0 +1,41 @@
+name: Tests
+
+# Runs the headless Playwright test harness in tests/ on every push and PR.
+# Dev-only: it never touches the shipped game (the raw files in the repo root)
+# and is independent of the Pages deploy workflow (pages.yml) — different job,
+# different trigger, no Pages permissions. The game still has NO build step;
+# this only exercises the dev test harness against the real tower-defense.html.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - name: Install test deps
+        working-directory: tests
+        run: npm ci
+      - name: Install Chromium for Playwright
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
+      - name: Run test suite
+        working-directory: tests
+        run: npm test
