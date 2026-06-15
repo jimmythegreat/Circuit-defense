@@ -163,6 +163,7 @@ const WAVE_MODS = [
   { id:'adrenaline',icon:'💉', name:'Adrenaline',  desc:'Wounded enemies accelerate' },
   { id:'heatwave',icon:'🔥', name:'Heatwave',      desc:'Enemies resist slow & freeze' },
   { id:'cloak',   icon:'🫥', name:'Cloaking Field', desc:'Enemies phase out, briefly untargetable' },
+  { id:'fission', icon:'🧫', name:'Fission',        desc:'Slain enemies burst into weak spawn' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
 const MOD_BY_ID = Object.fromEntries(WAVE_MODS.map(m => [m.id, m]));

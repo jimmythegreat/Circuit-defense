@@ -172,8 +172,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
       no other mod touches — slow burst single-target towers waste shots, rapid towers barely notice. No teleport,
       no extra HP/speed → bounded, can't make a run easier; freeze pauses the trigger while `blinkInvuln` still
       decays (never stuck invulnerable); phantoms/teleporter bosses excluded from the tick (own `blinkInvuln`).
-      Violet cue ring + sphere fade; run-only). Pool 7→9→10→11→12→13→14→15→**16**.
-      Test [46] + [54] + [57] + [67] + [69] + [76] + [81].
+      Violet cue ring + sphere fade; run-only). Then **🧫 Fission** in **v1.76.0** (`fission`: every NON-boss
+      enemy tagged `e.fission=true` in `buildWave`; in `damage()`'s kill block — after the native `split`
+      block, gated `e.kind!=='boss' && e.kind!=='split'` — a slain enemy bursts into 2 weak `norm` spawnlings
+      (`maxHp×0.18`, `spd×1.25`, token 0.2× bounty) via `pendingSpawns`. The **wave-wide cousin of the Splitter
+      enemy** on a fresh **multiplication/clear-speed axis** — a wave can nearly triple in bodies, rewarding
+      splash/rapid towers (Cannon/Mortar/Tesla/Overkill) and pressuring slow single-target lines. Single-layer/
+      bounded: the spawnlings carry no `fission` tag so they never re-burst (≤2 children/kill, the Overkill/Cloak
+      bounding pattern); the boss is exempt and `split` excluded (no double-burst); the token bounty keeps it a
+      net difficulty bump, not an economy farm — can't make a run easier. Dashed spring-green cue ring; run-only).
+      Pool 7→9→10→11→12→13→14→15→16→**17**.
+      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).

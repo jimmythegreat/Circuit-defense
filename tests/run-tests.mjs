@@ -5492,6 +5492,120 @@ async function main() {
     await page.close();
   }
 
+  // [85] Fission wave mod — slain enemies burst into weak spawnlings (v1.76.0)
+  console.log('\n[85] Fission (death-spawn wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const hasMod = WAVE_MODS.some(m => m.id === 'fission');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod): no enemy is tagged.
+      setMod(null);
+      const plainWave = buildWave(20);
+      const plainNorm = plainWave.find(e => e.kind === 'norm');
+      const plainTagged = plainWave.some(e => e.fission);
+
+      // FISSION: every NON-boss enemy is tagged; the boss is left clean; base stats untouched.
+      setMod('fission');
+      const fwWave = buildWave(20);
+      const fwNorm = fwWave.find(e => e.kind === 'norm');
+      const fwBoss = fwWave.find(e => e.kind === 'boss');
+      const allNonBossTagged = fwWave.filter(e => e.kind !== 'boss').every(e => e.fission === true);
+      const bossUntagged = !!fwBoss && !fwBoss.fission;
+      const statsUnchanged = fwNorm.hp === plainNorm.hp && fwNorm.spd === plainNorm.spd &&
+        fwNorm.armor === plainNorm.armor && fwNorm.bounty === plainNorm.bounty;
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:200, frozen:0, slow:0, slowF:0.6, flash:0,
+        x:300, y:300, r:11, armor:0, bounty:10, color:'#3fb950', dealt:0
+      }, opts || {});
+
+      // (a) a slain tagged enemy spawns exactly 2 weak spawnlings (flushed into `enemies`).
+      towers.length = 0; spawners.length = 0; enemies.length = 0; pendingSpawns.length = 0;
+      const victim = mk({ fission:true, hp:1, maxHp:100, bounty:10 });
+      enemies.push(victim);
+      damage(victim, 999, null);            // kill it
+      const spawnedCount = pendingSpawns.length;
+      const childHp = pendingSpawns[0] ? pendingSpawns[0].maxHp : null;
+      const childWeak = childHp !== null && childHp < 100;       // weaker than parent
+      const childBounty = pendingSpawns[0] ? pendingSpawns[0].bounty : null;
+
+      // (b) SINGLE LAYER: the spawnlings are NOT tagged (kind 'norm', no `fission`), so killing
+      // one spawns nothing — the chaos can't cascade. Use a child built from the real spawn shape.
+      enemies.length = 0; pendingSpawns.length = 0;
+      const realChild = { kind:'norm', hp:1, maxHp:18, spd:1.25, r:7, bounty:2, color:'#7ee787',
+        armor:0, gap:0, dist:100, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, x:300, y:300 };
+      enemies.push(realChild);
+      damage(realChild, 999, null);
+      const childNoCascade = pendingSpawns.length === 0;
+
+      // (c) bosses don't fission even if somehow tagged (double-guard in the death handler).
+      enemies.length = 0; pendingSpawns.length = 0;
+      const boss = mk({ kind:'boss', fission:true, hp:1, maxHp:1000, bounty:100, r:24 });
+      enemies.push(boss);
+      damage(boss, 9999, null);
+      const bossNoFission = pendingSpawns.length === 0;
+
+      // (d) the native splitter doesn't double-burst: a split enemy tagged fission only does its
+      // own 2-child split (the fission block excludes kind==='split').
+      enemies.length = 0; pendingSpawns.length = 0;
+      const sp = mk({ kind:'split', fission:true, hp:1, maxHp:100, bounty:10, r:14 });
+      enemies.push(sp);
+      damage(sp, 999, null);
+      const splitNoDoubleBurst = pendingSpawns.length === 2;
+
+      // Inert again when the mod is cleared.
+      setMod(null);
+      const inertOff = buildWave(20).some(e => e.fission) === false;
+
+      // (e) BOUNDED clearance: a field of fission enemies + a god tower fully clears in a bounded
+      // number of frames (proves the death-spawn terminates — children don't re-fission), and the
+      // spawnlings really did appear (total deaths > original count).
+      towers.length = 0; spawners.length = 0; enemies.length = 0; pendingSpawns.length = 0;
+      projectiles.length = 0; lives = 99999; waveActive = true; autoStartTimer = -1;
+      kills = 0;
+      const god = { type:'gun', x:300, y:300, range:99999, dmg:99999, rate:0.05, cd:0,
+        level:1, mode:'first', dealt:0, flash:0, empT:0 };
+      towers.push(god);
+      for (let i = 0; i < 6; i++) {
+        const p = pointAt((i + 1) * (pathLen / 8));
+        enemies.push({ kind:'norm', fission:true, hp:50, maxHp:50, spd:0.2, r:11, bounty:10,
+          color:'#3fb950', armor:0, gap:0, dist:(i + 1) * (pathLen / 8), slow:0, slowF:0.6,
+          frozen:0, poison:null, flash:0, px:0, py:0, x:p.x, y:p.y });
+      }
+      let guard = 0;
+      while ((enemies.length || pendingSpawns.length) && guard < 5000) { update(1/60); guard++; }
+      const cleared = enemies.length === 0 && guard < 5000;
+      const multiplied = kills > 6;   // 6 originals + their spawnlings all died
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0; waveMod = null;
+      waveActive = false;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, plainTagged, allNonBossTagged, bossUntagged, statsUnchanged,
+               spawnedCount, childWeak, childBounty, childNoCascade, bossNoFission,
+               splitNoDoubleBurst, inertOff, cleared, multiplied, kills };
+    });
+    check('WAVE_MODS includes Fission', r.hasMod);
+    check('Fission is inert when the mod is off (no enemy tagged)', !r.plainTagged);
+    check('Fission tags every non-boss enemy', r.allNonBossTagged);
+    check('Fission leaves the boss untagged (bounded)', r.bossUntagged);
+    check('Fission leaves base HP/speed/armor/bounty untouched', r.statsUnchanged);
+    check('a slain fission enemy spawns 2 spawnlings', r.spawnedCount === 2, 'count=' + r.spawnedCount);
+    check('spawnlings are weaker than the parent', r.childWeak, 'childHp');
+    check('spawnlings pay only a token bounty (< parent 10)', r.childBounty !== null && r.childBounty < 10, 'b=' + r.childBounty);
+    check('spawnlings do NOT fission (single layer, no cascade)', r.childNoCascade);
+    check('bosses never fission (double-guard)', r.bossNoFission);
+    check('native splitter does not double-burst (still 2 children)', r.splitNoDoubleBurst);
+    check('Fission is inert once the mod is cleared', r.inertOff);
+    check('a fission field fully clears in bounded frames (no cascade)', r.cleared);
+    check('fission spawnlings really appear (total kills > originals)', r.multiplied, 'kills=' + r.kills);
+    check('no console errors during Fission test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

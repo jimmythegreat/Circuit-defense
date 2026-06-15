@@ -468,6 +468,20 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
+    // Fission wave-mod cue (v1.76.0): a dashed spring-green ring marks an enemy that will
+    // burst into weak spawnlings on death (matching the children's colour), so the player can
+    // read which targets multiply and plan AoE/clear order. Dashed to read distinctly from the
+    // solid green regen halo (only one wave-mod is ever active, so they never overlap).
+    if (e.fission && !e.dead) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 4, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(126,231,135,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.restore();
+    }
     // breacher cue (v1.63.0): a dark-red outer ring flags the heavy unit that costs 2 lives
     // if it leaks, so it reads as a priority threat in a crowd (the colour/glyph also code it).
     if (e.lifeCost > 1 && !e.dead) {

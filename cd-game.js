@@ -199,6 +199,7 @@ function buildWave(w) {
     if (modIs('adrenaline')) e.adrenaline = true;
     if (modIs('heatwave')) e.ccImmune = true;
     if (modIs('cloak')) e.cloak = true;
+    if (modIs('fission')) e.fission = true;
     e.maxHp = e.hp;
     q.push(e);
   }

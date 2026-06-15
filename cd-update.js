@@ -600,6 +600,24 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
         });
       }
     }
+    // Fission wave-mod (v1.76.0, Mayhem): every slain enemy bursts into 2 weak spawnlings —
+    // the wave-wide cousin of the native splitter (like Cloak is the cousin of the phantom).
+    // The children are plain norms that do NOT carry the fission tag, so the wave can at most
+    // ~triple in kills and never cascades (single layer, the Overkill/Cloak bounding pattern).
+    // Bosses are excluded (kept clean — the summoner archetype already covers boss adds) and so
+    // is the native `split` kind (it already spawns its own children — no double-burst). Children
+    // pay a token bounty (0.2×, below split's 0.3×), so the mod is a net difficulty bump — more
+    // targets + leak risk — not an economy farm; it can't make a run easier.
+    if (e.fission && e.kind !== 'boss' && e.kind !== 'split') {
+      for (let i = 0; i < 2; i++) {
+        pendingSpawns.push({
+          kind:'norm', hp: e.maxHp*0.18, maxHp: e.maxHp*0.18, spd: e.spd*1.25, r: 7,
+          bounty: Math.max(1, Math.floor(e.bounty*0.2)), color:'#7ee787', armor:0, gap:0,
+          dist: Math.max(0, e.dist - 6 - i*10), slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px:0, py:0
+        });
+      }
+      addExplosion(e.x, e.y, '#7ee787', 8, 90);
+    }
     // Overkill perk (v1.59.0): the slain enemy detonates, splashing 25% of its max HP as
     // armor-ignoring true damage to nearby enemies. `fromOverkill` guards re-entry so a
     // splash-kill can't detonate again — single layer, naturally bounded by enemy count.

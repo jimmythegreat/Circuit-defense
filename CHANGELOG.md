@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.76.0 — 2026-06-15 — 🧫 Fission — 17th Mayhem wave modifier (slain enemies multiply)
+
+**Type:** Content / wave modifier. Minor bump.
+
+**What changed:** A **17th Mayhem wave modifier**, 🧫 **Fission**. When it rolls, every enemy you kill bursts into **2 weak spawnlings** that race up the path behind it, so a wave can nearly **triple in bodies** before it clears. It's the **wave-wide cousin of the Splitter enemy** (the way Cloaking Field is the cousin of the Phantom), on a fresh **multiplication / clear-speed axis** no other mod touches. It rewards splash and rapid-fire firepower (Cannon, Mortar, Tesla chains, the Overkill perk) and pressures thin lines of slow single-target towers, which get swamped and start leaking. The spawnlings are deliberately feeble (a fraction of the parent's HP, slightly faster, a token bounty) and — crucially — do **NOT** themselves fission, so the chaos is **bounded**: at most two children per kill, never a cascade.
+
+**Why:** Continues the established additive wave-mod pattern (pool 16→17) and leans into the long-running "too easy" feedback — Fission is a *net difficulty bump* (more targets, more leak pressure), not a way to make a run easier or farm gold. The token bounty (0.2×, below the native splitter's 0.3×) and the boss exemption keep it from snowballing the economy or the boss-wave threat.
+
+**Implementation (additive, save-safe, no economy/schema change):**
+- `cd-maps.js` — `WAVE_MODS` gains `{ id:'fission', icon:'🧫', name:'Fission', desc:'Slain enemies burst into weak spawn' }` (before `meteors`). `MOD_BY_ID`/`dailyPreview()`/`rollWaveMod()` pick it up generically.
+- `cd-game.js` — `buildWave()` tags `if (modIs('fission')) e.fission = true;` for every **non-boss** enemy (the boss is left untagged — kept clean; the summoner archetype already covers boss adds).
+- `cd-update.js` — in `damage()`'s kill block, right after the native `split` block: a slain enemy gated `e.fission && e.kind !== 'boss' && e.kind !== 'split'` pushes **2** plain `norm` spawnlings to `pendingSpawns` (`maxHp×0.18`, `spd×1.25`, `r:7`, bounty `max(1, floor(bounty×0.2))`, colour `#7ee787`) + a green `addExplosion`. The children carry **no `fission` flag**, so they never re-burst (single layer, the Overkill/Cloak bounding pattern). `split` is excluded so the splitter doesn't double-burst.
+- `cd-render.js` — a dashed spring-green cue ring (`rgba(126,231,135,0.6)`, `setLineDash([3,3])`, wrapped in `ctx.save()/restore()` so the dash doesn't leak) on each `e.fission` enemy, distinct from the solid green regen halo (only one mod is ever active, so they never overlap).
+
+**Save/economy impact:** **None.** The `fission` tag and the spawnlings are run-only objects, never serialized (`saveRun()` doesn't persist enemies or the tag); Mayhem/Daily-only. No new localStorage key, no schema change, no balance change to existing systems.
+
+**Tests:** new group **[85]** (15 checks) — mod in pool; inert when off; tags every non-boss enemy; boss left untagged; base HP/speed/armor/bounty untouched; a kill spawns exactly 2 weaker, token-bounty spawnlings; spawnlings do NOT cascade (single layer); bosses never fission (double-guard); the native splitter doesn't double-burst; inert once cleared; a fission field fully clears in bounded frames with total kills > originals (proves multiplication + termination); zero console errors. **Suite 904/0 green, exit 0.** Verified live in-browser (v1.76.0 loaded, Fission tags non-boss enemies, a kill yields 2 spawnlings, `draw()` renders the cue cleanly, zero console errors).
+
 ## v1.75.0 — 2026-06-15 — 🔄 Play Again — one-click replay from the end screen
 
 **Type:** Feature / QoL. Minor bump.
