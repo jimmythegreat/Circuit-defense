@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.79.1 — 2026-06-15 — 🩺 Health check — all green (938/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.74.1: v1.75.0, v1.76.0, v1.77.0, v1.78.0, v1.79.0.)
+
+**Result: clean.** Nothing required fixing in the game; this run verifies the project is still pointed in the right direction.
+
+- **Tests:** full suite **938 passed / 0 failed across 87 groups** `[1]`–`[87]`, zero console errors (run by a subagent).
+- **Refactor audit:** every game file is comfortably under the ~1500-line cap — cd-update.js 1117, cd-render.js 831, cd-game.js 779, cd-core.js 483 (now), cd-defs.js 417, cd-maps.js 294, cd-state.js 192. No dead code, no debug `console.*`, no real TODOs/FIXMEs. The only oversized file is the **dev-only** test harness `tests/run-tests.mjs`, now **5,810 lines (87 groups, 938 assertions)** — up from 5,447/83/878 at v1.74.1 — still flagged for a per-group split (ROADMAP → Tech/tooling). It never ships with the game.
+- **Docs coherence:** CLAUDE.md ↔ code spot-checks all match — **8 towers, 10 enemy kinds** (Molten added v1.77.0), **9 boss archetypes, 17 Mayhem wave modifiers** (Fission added v1.76.0), **16 achievements, 6 targeting modes, 4 abilities**, boss HP slope ×0.6/wave, boss armor slope ×0.5/wave. Versions consistent everywhere: `GAME_VERSION`, CHANGELOG.md top, in-game `CHANGELOG_ENTRIES` top, and `sw.js` `CACHE` all at v1.79.1. index.html `<meta refresh>` redirect intact; HTML loads the seven `cd-*.js` in dependency order with no `type="module"`.
+- **Table-stakes:** checklist remains complete (favicon/meta/OG, PWA install + offline SW, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile). Lone optional gap unchanged: a raster PNG icon set (192/512) for stricter PWA installability audits (repo is intentionally asset-free).
+- **Integrity spot-checks:** ran in a real browser over http. Game loads at v1.79.1 with 8 tower types and zero console errors. **Old-save migration verified live:** a minimal old `cd_meta` (chips+talents only) migrates with `achievements`/`stats`/`bestCombo` defaulted; a minimal pre-v1.74 `cd_save` (no `gameTime`, no `mapTheme`, sparse `perkState`, no `shock` cooldown) loads via the additive defaults (`gameTime→0`, `mapTheme→circuit`, `abilityCd.shock→0`, `perkState.glassCannon`/`reaper→false`), then resumed and drove a full wave (6→7) cleanly. file:// playability confirmed structurally (classic scripts, correct order, inline favicon, no build step). Test localStorage cleaned up afterward.
+
+No code behaviour changed this run — version/cache/docs bookkeeping only.
+
+---
+
 ## v1.79.0 — 2026-06-15 — 🎇 Mortar shells now arc through the air
 
 **Type:** Polish / game-feel. Minor bump.

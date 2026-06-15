@@ -554,7 +554,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
 - [ ] **Late-campaign difficulty audit** (L30–40) — confirm it's hard but
       beatable with a maxed meta.
 
-## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 health checks)
+## Table-stakes (polished-browser-game basics — re-audited v1.24.2 + v1.27.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.74.1 + v1.79.1 health checks)
 
 _**Table-stakes checklist is now COMPLETE.** The lone remaining gap — **bigger HTML tap targets on small
 phones** — shipped **v1.46.0**: the floating upgrade/sell panel buttons (≤920px, both orientations) and the
@@ -684,8 +684,8 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       `tower-defense.html` over `file://`, like a local run). No build step introduced.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
-- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.70.1 + v1.74.1 health checks) —
-      `tests/run-tests.mjs` has grown to **~5,447 lines (83 groups `[1]`–`[83]`, 878 assertions)** in a
+- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.70.1 + v1.74.1 + v1.79.1 health checks) —
+      `tests/run-tests.mjs` has grown to **~5,810 lines (87 groups `[1]`–`[87]`, 938 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing
