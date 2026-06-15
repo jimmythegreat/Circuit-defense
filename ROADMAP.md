@@ -103,6 +103,21 @@ _None currently known._ (Add any here as they're found — these are top priorit
       v1.79.0** — mortar shells now rise/fall in a render-only parabola (`lobLift(p)` in cd-render.js;
       `lob`/`x0`/`y0` set at spawn in cd-update.js) with a ground shadow, selling the artillery feel;
       hit detection still uses the ground-truth `p.x`/`p.y` so gameplay/balance are untouched. Test [87].
+- [x] **New tower: "railgun"** — shipped **v1.83.0**. The 🛤️ **Railgun** (9th tower, hotkey 9) — the
+      first new tower since the Mortar. Fires an **instant piercing line-beam** that damages EVERY enemy
+      whose body the straight ray crosses out to its range (`fireRail()` in cd-update.js, reached via a
+      `def.proj === 'rail'` branch; resolves immediately like Tesla's chain — no travelling projectile).
+      A genuinely new **positioning** axis (every other tower hits at a point): aim it down a long straight
+      path run (the Gauntlet kill-box, serpentine bends) to rake the whole column. Deliberately a
+      **side-grade, not power creep** (re: "too easy"): single-target DPS ≈21 (≈ Cannon, below Sniper) and
+      it **respects armor** (no `ignoreArmor` — not a boss-melter); the upside is earned by lining up the
+      shot. Specs at L5: **Penetrator** (+35% dmg) / **Overcharged Coil** (beam half-width 14→26, a broader
+      line — coverage over concentration); plus a **Railgun Mastery** talent. Clean straight tracer w/ white
+      core (new `b.straight` branch in `draw()`'s beam loop) + `SFX.rail()` electromagnetic crack. Save-safe
+      (additive; `loadRun` rebuilds generically; beam is render-only/never serialized). The 🧰 Full Arsenal
+      achievement is data-driven (`TYPE_KEYS.length`) so it now needs all 9 types. Test [91].
+      **Follow-ups still open:** the **arc/chain** tower (chain-lightning that bounces — a swarm counter,
+      distinct from Tesla's fixed chain); a Railgun spec that *charges up* (ramps dmg the longer it fires).
 - [x] **Daily challenge seed** — shipped **v1.28.0**. A 🗓 **Daily Challenge** start-screen
       button (`beginDaily()`) launches today's date-seeded run: the map path, difficulty
       (normal/hard) and the per-wave Mayhem modifier schedule are all generated from a

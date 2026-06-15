@@ -368,6 +368,8 @@ function update(dt) {
     dmg *= comboDmgMult();
     if (def.proj === 'chain') {
       fireChain(t, target, dmg);
+    } else if (def.proj === 'rail') {
+      fireRail(t, target, dmg);
     } else {
       // Mortar shells are LOBBED (v1.79.0): they get a render-only parabolic arc. The
       // launch point (px/py) is recorded as x0/y0 so the arc helper can compute flight
@@ -478,6 +480,35 @@ function fireChain(t, first, dmg) {
     px = e.x; py = e.y;
     chainDmg *= falloff;
   }
+}
+
+// Railgun (v1.83.0): an INSTANT piercing beam (like fireChain, it resolves immediately
+// rather than spawning a travelling projectile). It fires a straight line from the muzzle
+// out to the tower's range and damages EVERY live enemy whose body the line crosses — a
+// positioning weapon that feasts on lined-up path runs and is mediocre vs spread targets.
+// Respects armor (a kinetic slug — deliberately NOT a boss-melter); the Overcharged Coil
+// spec widens the line. `dmg` already carries crit/boss/combo multipliers from the caller.
+function fireRail(t, target, dmg) {
+  SFX.rail();
+  const def = TOWER_TYPES[t.type];
+  const range = effRange(t);
+  const ux = Math.cos(t.angle), uy = Math.sin(t.angle);   // unit dir toward the target
+  const halfW = t.spec === 'railwide' ? 26 : 14;          // beam half-width (perp tolerance)
+  for (const e of enemies) {
+    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;  // skip intangible (phantom/cloak)
+    const rx = e.x - t.x, ry = e.y - t.y;
+    const along = rx*ux + ry*uy;                 // distance projected along the beam
+    if (along < 0 || along > range + e.r) continue;       // behind the tower or past max range
+    const perp = Math.abs(rx*uy - ry*ux);        // perpendicular offset from the beam line
+    if (perp > halfW + e.r) continue;            // too far off the line to be struck
+    damage(e, dmg, t);
+    addExplosion(e.x, e.y, def.color, 4, 70);
+  }
+  // straight tracer from the muzzle to the far end of range (render-only)
+  const mx = t.x + ux*14, my = t.y + uy*14;
+  beams.push({ x1: mx, y1: my, x2: t.x + ux*range, y2: t.y + uy*range,
+    life: 0.16, color: def.color, straight: true, w: t.spec === 'railwide' ? 5 : 3.5 });
+  shake = Math.max(shake, 1.5);
 }
 
 function hitEnemy(p) {

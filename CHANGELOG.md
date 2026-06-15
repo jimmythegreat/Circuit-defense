@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.83.0 — 2026-06-15 — 🛤️ Railgun — new 9th tower (instant piercing line-beam)
+
+**Type:** New content (tower). Minor bump.
+
+**What:** A brand-new tower — the **🛤️ Railgun** (`TOWER_TYPES.rail` in cd-defs.js), the first new tower since the Mortar (v1.23.0). It fires an **instant piercing beam** in a dead-straight line out to its range and damages **every** live enemy whose body the line crosses — not one target, the whole row. Implemented like Tesla's chain (resolved immediately, no travelling projectile): a new `fireRail(t, target, dmg)` (cd-update.js) reached via a `def.proj === 'rail'` branch in the tower-fire loop. It projects each enemy onto the firing ray (`along = r·û`), rejects ones behind the tower or past range (`along<0 || along>range+e.r`), and strikes those within the perpendicular half-width (`perp = |r×û| ≤ halfW + e.r`), skipping intangible phantom/cloak enemies (`blinkInvuln>0`). Stats: cost 160, range 200, dmg 36, rate 1.7, color cyan `#33e0d0`. Two L5 specs (`SPECS.rail`): **Penetrator** (`railpen`, +35% dmg via `effDmg`) and **Overcharged Coil** (`railwide`, beam half-width 14→26 — a broader line). New **Railgun Mastery** talent (`mastery_rail`, auto-wires via the generic `mastery_<type>` lookup in `effDmg`/`effRange`). A clean straight tracer with a bright white core renders via a new `b.straight` branch in `draw()`'s beam loop (cd-render.js); `SFX.rail()` is an electromagnetic charge-and-crack (cd-core.js). Hotkey **9**; the `.hint` text updated 1–8 → 1–9.
+
+**Why:** It's the meatiest additive content the owner loves and a genuinely new *positioning* axis — every other tower hits at a point; the Railgun hits along a line, so its value comes from aiming down a long straight path run (the Gauntlet kill-box, serpentine bends) rather than raw stats. Deliberately a **side-grade, not power creep** (re: the long-running "too easy" feedback): single-target DPS ≈ 21/s (≈ Cannon, below Sniper), and it **respects armor** (a kinetic slug, no `ignoreArmor`) so it's no boss-melter — the upside is earned by lining up the shot. Overcharged Coil trades concentration for coverage (no damage bump), keeping the L5 pick a real axis.
+
+**Save-safe:** fully additive — `loadRun()` rebuilds a placed Railgun generically from `TOWER_TYPES`; the beam is render-only (run-only `beams` array, never serialized) and `fireRail` resolves instantly so no `proj:'rail'` projectile is ever spawned/saved. Old saves load unchanged (new tower/spec/talent are additive; `mastery_rail` defaults to rank 0). The shop, hotkeys, placement, spec-choice and save/restore all auto-generate from `TYPE_KEYS`. Note: the 🧰 Full Arsenal achievement (`new Set(towers.map(t=>t.type)).size === TYPE_KEYS.length`) now requires all **9** tower types (data-driven, intentional).
+
+**Tests:** new group **[91]** — definition/specs/mastery/shop wiring, Penetrator +35%, pierces all 3 in-line enemies while missing off-line/behind/out-of-range, Overcharged Coil catches a 30px-off enemy a narrow beam misses, respects armor, the straight-beam `draw()` branch renders without throwing, and a placed Railgun save/resume round-trips. Group **[55]** count assertion relaxed `=== 21` → `>= 21` (new towers legitimately add a `mastery_<type>` talent → 22). Full suite **979/0 green**, zero console errors. Verified the dev server serves v1.83.0 (a stale preview SW cache masked it in the browser — an environmental artifact, not a code issue).
+
 ## v1.82.0 — 2026-06-15 — 🐉 Hydra — 10th boss archetype (splits into two heads on death)
 
 **Type:** New content (boss archetype). Minor bump.

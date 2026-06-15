@@ -3473,8 +3473,10 @@ async function main() {
       const masteryTotal = sumMax('mastery_gun');   // 8+16+24+32+40 = 120 (was 60)
       const opTotalUp = fpTotal >= 500 && masteryTotal === 120;
 
-      // No talent was removed — all 21 keys survive (each maps to a distinct mechanic).
-      const keptAll = Object.keys(TALENTS).length === 21;
+      // No talent was removed by the v1.38.0 cost rebalance — the original 21 keys all survive
+      // (each maps to a distinct mechanic). New towers legitimately ADD a mastery_<type> talent
+      // (e.g. mastery_rail in v1.83.0 → 22), so assert "none removed" rather than an exact count.
+      const keptAll = Object.keys(TALENTS).length >= 21;
 
       // buyTalent deducts the NEW cost and ranks up.
       localStorage.setItem('cd_meta', JSON.stringify({ chips: 1000, talents: {} }));
@@ -3492,7 +3494,7 @@ async function main() {
     check('every talent rank-0 cost increased vs pre-v1.38.0', r.allRaised);
     check('OP talents (firepower/critlab/overdrive/mastery) cost a lot more', r.opSteep);
     check('OP max-out totals rose (firepower 285→515, mastery 60→120)', r.opTotalUp, `fp=${r.fpTotal} mastery=${r.masteryTotal}`);
-    check('all 21 talents retained (none removed)', r.keptAll);
+    check('original 21 talents retained (none removed)', r.keptAll);
     check('buyTalent deducts the new cost and ranks up', r.deductOk);
     check('no console errors during talent-cost test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
@@ -5990,6 +5992,119 @@ async function main() {
     check('control: a non-hydra boss does not split', r.controlNoSplit);
     check('hydra boss-bar badge resolves to HYDRA', r.badgeOk);
     check('no console errors during Hydra test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [91] Railgun tower — the 9th: an instant piercing beam that hits all enemies in a line (v1.83.0)
+  console.log('\n[91] Railgun tower (piercing line beam)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // definitions present & wired
+      const def = TOWER_TYPES.rail;
+      const defOk = !!def && def.proj === 'rail' && def.range > 150 && def.dmg > 0;
+      const specsOk = Array.isArray(SPECS.rail) && SPECS.rail.length === 2
+        && SPECS.rail.some(s => s.id === 'railpen') && SPECS.rail.some(s => s.id === 'railwide');
+      const masteryOk = !!TALENTS.mastery_rail && TALENTS.mastery_rail.sect === 'TOWER MASTERY';
+      const inShopKeys = TYPE_KEYS.includes('rail');
+      const sfxOk = typeof SFX.rail === 'function';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      // shop renders a Railgun button (auto-generated from TYPE_KEYS)
+      const shopHasRail = !!document.querySelector('#shop') &&
+        Array.prototype.some.call(document.querySelectorAll('.towerBtn'), b => /Railgun/.test(b.textContent));
+
+      // Penetrator spec adds +35% damage via effDmg
+      const rt0 = { type:'rail', x:100, y:300, level:1, spec:null, dmg:100, rate:1.7, range:200,
+                    dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      const dBase = effDmg(rt0);
+      rt0.spec = 'railpen';
+      const dPen = effDmg(rt0);
+      const penOk = Math.abs(dPen - dBase * 1.35) < 1e-6;
+      rt0.spec = null;
+
+      // PIERCE: a railgun at (100,300) aimed east (+x) should hit EVERY enemy lined up
+      // along y≈300, but NOT one well off the line. fireRail uses t.angle for direction.
+      towers.length = 0; projectiles.length = 0; beams.length = 0;
+      const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:40, rate:1.7, range:200,
+                   dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0,
+                   angle:0 /* east */ };
+      towers.push(rg);
+      const mk = (x, y) => ({ x, y, r:11, hp:500, maxHp:500, armor:0, dead:false, flash:0,
+                              kind:'norm', blinkInvuln:0, bounty:1, dist:0 });
+      const onLine = [ mk(160, 300), mk(220, 300), mk(280, 300) ];   // within range, on the beam
+      const offLine = mk(220, 360);                                  // 60px off the line → missed
+      const behind  = mk(60, 300);                                   // behind the tower → missed
+      const tooFar  = mk(360, 300);                                  // past range (200) → missed
+      enemies.length = 0;
+      [...onLine, offLine, behind, tooFar].forEach(e => enemies.push(e));
+      fireRail(rg, onLine[0], 40);
+      const lineHits = onLine.filter(e => e.hp < 500).length;        // expect 3
+      const offMissed = offLine.hp === 500 && behind.hp === 500 && tooFar.hp === 500;
+      const beamDrawn = beams.some(b => b.straight === true);
+      // exercise the straight-tracer render branch: clear the minimal mock enemies first
+      // (draw() expects fully-formed enemy objects), keeping the live straight beam so the
+      // new b.straight branch in draw()'s beam loop actually runs and must not throw.
+      enemies.length = 0;
+      let drawOk = beams.some(b => b.straight === true);
+      try { draw(); } catch (e) { drawOk = false; }
+
+      // Overcharged Coil widens the beam: an enemy 24px off the line is MISSED by a base
+      // railgun (half-width 14 + r 11 = 25 → 24<25 actually grazes; use 30px to be safe)
+      // but CAUGHT by the wide spec (half-width 26 + 11 = 37).
+      enemies.length = 0; beams.length = 0;
+      const edge = mk(220, 330);   // 30px off the line
+      enemies.push(edge);
+      const narrow = { ...rg, spec:null };
+      fireRail(narrow, edge, 40);
+      const narrowMiss = edge.hp === 500;
+      edge.hp = 500;
+      const wide = { ...rg, spec:'railwide' };
+      fireRail(wide, edge, 40);
+      const wideHit = edge.hp < 500;
+
+      // respects armor (kinetic slug — NOT an armor-ignorer): an armored target takes reduced dmg
+      enemies.length = 0;
+      const armored = { x:160, y:300, r:11, hp:1000, maxHp:1000, armor:50, dead:false, flash:0,
+                        kind:'shield', blinkInvuln:0, bounty:1, dist:0 };
+      enemies.push(armored);
+      fireRail(rg, armored, 100);
+      const respectsArmor = (1000 - armored.hp) < 100;   // armor blunted it (not full 100)
+
+      // save/resume round-trips a placed Railgun (rebuilt generically from TOWER_TYPES)
+      towers.length = 0; enemies.length = 0; beams.length = 0;
+      towers.push({ type:'rail', x:250, y:250, level:3, spec:'railwide', mode:'last',
+        invested:300, dealt:42, kills:2, range:def.range*Math.pow(1.08,2), dmg:def.dmg*Math.pow(1.45,2),
+        rate:def.rate*Math.pow(0.88,2), cd:0, baseCost:def.cost, angle:0, buffPower:0.25, flash:0 });
+      wave = 2; lives = 20; gold = 100; waveActive = false;
+      saveRun();
+      towers.length = 0;
+      const loaded = loadRun();
+      const rrt = towers.find(t => t.type === 'rail');
+      const roundTrips = loaded === true && !!rrt && rrt.level === 3 && rrt.spec === 'railwide' && rrt.mode === 'last';
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { defOk, specsOk, masteryOk, inShopKeys, sfxOk, shopHasRail, penOk,
+               lineHits, offMissed, beamDrawn, drawOk, narrowMiss, wideHit, respectsArmor, roundTrips };
+    });
+    check('Railgun definition wired (proj/range/dmg)', r.defOk);
+    check('Railgun has 2 specs (Penetrator + Overcharged Coil)', r.specsOk);
+    check('Railgun Mastery talent exists', r.masteryOk);
+    check('Railgun is in the shop tower keys', r.inShopKeys);
+    check('SFX.rail beam sound exists', r.sfxOk);
+    check('Railgun button rendered in the shop', r.shopHasRail);
+    check('Penetrator spec = +35% damage', r.penOk);
+    check('Railgun pierces ALL enemies in a line', r.lineHits === 3, `lineHits=${r.lineHits}`);
+    check('Railgun misses off-line / behind / out-of-range enemies', r.offMissed);
+    check('Railgun draws a straight tracer beam', r.beamDrawn);
+    check('draw() renders the straight-beam branch without throwing', r.drawOk);
+    check('Overcharged Coil widens the beam (catches a 30px-off enemy a narrow beam misses)',
+      r.narrowMiss && r.wideHit, `narrowMiss=${r.narrowMiss} wideHit=${r.wideHit}`);
+    check('Railgun respects armor (not a boss-melter)', r.respectsArmor);
+    check('placed Railgun save/resume round-trips', r.roundTrips);
+    check('no console errors during Railgun test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

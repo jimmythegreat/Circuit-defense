@@ -601,6 +601,27 @@ function draw() {
 
   // beams
   for (const b of beams) {
+    // Railgun tracers (b.straight) draw a clean thick line with a bright white core;
+    // tesla/chain beams jag through a wobbled midpoint for a lightning look.
+    if (b.straight) {
+      ctx.globalAlpha = Math.min(1, b.life * 7);
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = b.w || 3.5;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.lineTo(b.x2, b.y2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.lineWidth = Math.max(1, (b.w || 3.5) * 0.35);
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.lineTo(b.x2, b.y2);
+      ctx.stroke();
+      continue;
+    }
     ctx.globalAlpha = Math.min(1, b.life * 10);
     ctx.strokeStyle = b.color;
     ctx.lineWidth = 2.5;

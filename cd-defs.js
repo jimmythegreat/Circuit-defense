@@ -31,6 +31,7 @@ const TALENTS = {
   mastery_tesla:  { sect:'TOWER MASTERY', name:'Tesla Mastery',  icon:'⚡', max:5, cost: r => 8 + r*8, desc: r => `Teslas +${6*r}% dmg, +${2*r}% range` },
   mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 8 + r*8, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
   mastery_mortar: { sect:'TOWER MASTERY', name:'Mortar Mastery', icon:'🎇', max:5, cost: r => 8 + r*8, desc: r => `Mortars +${6*r}% dmg, +${2*r}% range` },
+  mastery_rail:   { sect:'TOWER MASTERY', name:'Railgun Mastery',icon:'🛤️', max:5, cost: r => 8 + r*8, desc: r => `Railguns +${6*r}% dmg, +${2*r}% range` },
   mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 8 + r*8, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
 };
 let meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
@@ -118,6 +119,7 @@ const TOWER_TYPES = {
   tesla:  { name:'Tesla',  icon:'⚡', cost:200, range:120, dmg:14,  rate:0.7,  color:'#d2a8ff', proj:'chain',  desc:'Chains 3 targets' },
   poison: { name:'Poison', icon:'☣️', cost:90,  range:105, dmg:7,   rate:0.8,  color:'#3fb950', proj:'poison', desc:'DoT + corrodes armor', tip:'Stacking damage-over-time. Each hit also corrodes −3 enemy armor (down to 0), stripping shield/armored/boss defenses so your whole team hits harder.' },
   mortar: { name:'Mortar', icon:'🎇', cost:175, range:225, dmg:28,  rate:2.0,  color:'#b0894f', proj:'mortar', desc:'Long-range AoE · ignores armor', tip:'Lobs an explosive shell that detonates in an area and IGNORES enemy armor entirely — a back-line siege piece against shielded/armored packs and bosses. Slow to reload, so it favours single heavy shots over sustained DPS.' },
+  rail:   { name:'Railgun', icon:'🛤️', cost:160, range:200, dmg:36,  rate:1.7,  color:'#33e0d0', proj:'rail',   desc:'Piercing beam · hits all in a line', tip:'Fires an INSTANT piercing beam straight out to its range that damages EVERY enemy whose body the line crosses — devastating when foes are lined up along a path run, mediocre against spread-out targets. Respects armor and is slow to recharge, so it rewards positioning: aim it down a long straight stretch.' },
   buff:   { name:'Booster',icon:'📡', cost:100, range:45,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
@@ -135,6 +137,7 @@ const SPECS = {
   tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets, softer falloff'}, {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
   poison: [ {id:'virulent',name:'Virulent',     desc:'Poison DPS ×2'},           {id:'lingering',name:'Lingering',    desc:'Poison duration ×2'} ],
   mortar: [ {id:'demo',    name:'Demolisher',   desc:'+35% damage'},             {id:'saturate', name:'Saturation',   desc:'+55% blast radius'} ],
+  rail:   [ {id:'railpen', name:'Penetrator',   desc:'+35% damage'},             {id:'railwide', name:'Overcharged Coil', desc:'Wider beam — hits a broader line'} ],
   buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
 };
 function specOf(t) {
