@@ -1,3 +1,4 @@
 node_modules/
 tests/node_modules/
-tests/package-lock.json
+# tests/package-lock.json is committed on purpose: CI (ci.yml) uses `npm ci`,
+# which requires it, and setup-node's npm cache keys off it. Do not ignore it.
