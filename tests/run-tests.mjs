@@ -4988,6 +4988,47 @@ async function main() {
     await page.close();
   }
 
+  // [79] Ambient start-screen backdrop — drifting glow behind the menu (v1.69.0)
+  console.log('\n[79] Ambient start-screen backdrop (menu revamp slice 5)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const ss = document.getElementById('startScreen');
+      const before = getComputedStyle(ss, '::before');
+      return {
+        startVisible: getComputedStyle(ss).display !== 'none',
+        content: before.content,                 // '""' — pseudo exists
+        anim: before.animationName,              // 'startAmbient'
+        positioned: before.position === 'absolute',
+        zindex: before.zIndex,                   // '-1' — behind menu content
+        pointer: before.pointerEvents,           // 'none'
+        hasGradient: /gradient/.test(before.backgroundImage),
+        // it's start-screen-specific, not bleeding onto the other overlays/panels
+        overlayBefore: getComputedStyle(document.getElementById('overlay'), '::before').animationName,
+        // menu content still on top / reachable (slice invariant)
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+      };
+    });
+    // prefers-reduced-motion: reduce → drift freezes (gradient stays, animation off)
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const r = await page.evaluate(() => {
+      const before = getComputedStyle(document.getElementById('startScreen'), '::before');
+      return { anim: before.animationName, hasGradient: /gradient/.test(before.backgroundImage) };
+    });
+    check('start screen is visible at startup', d.startVisible);
+    check('start screen has an ambient ::before backdrop', d.content === '""' || d.content === "''", d.content);
+    check('backdrop runs the startAmbient drift animation', d.anim === 'startAmbient', d.anim);
+    check('backdrop is absolute, behind content (z-index -1), non-interactive',
+      d.positioned && d.zindex === '-1' && d.pointer === 'none', `pos=${d.positioned} z=${d.zindex} ptr=${d.pointer}`);
+    check('backdrop paints a gradient glow', d.hasGradient);
+    check('backdrop is start-screen-specific (no ::before drift on #overlay)', d.overlayBefore === 'none', d.overlayBefore);
+    check('menu content still on top — last child is the util toolbar', d.lastChildUtil);
+    check('reduce-motion freezes the drift but keeps the gradient', r.anim === 'none' && r.hasGradient, `anim=${r.anim} grad=${r.hasGradient}`);
+    check('no console errors during ambient backdrop test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

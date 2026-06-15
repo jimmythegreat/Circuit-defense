@@ -288,10 +288,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       tucked under the (slightly larger, glowier) title instead of floating between the tagline and the
       config card. Markup + CSS only, save-safe; `#verTag` keeps its id+onclick, `.startUtil` stays the
       last child. Test [63].
+      **Fifth slice shipped v1.69.0:** an ambient start-screen backdrop — a `#startScreen::before`
+      (z-index −1, absolute so it stays out of the flex flow) paints a slow-drifting radial glow in the
+      circuit palette (blue/teal/violet) behind the menu content, so the start screen reads as a designed
+      panel instead of a flat dark sheet (pairs with the v1.41.0 PLAY glow/sheen). 22s drift, reduce-motion
+      freezes it (gradient stays). CSS-only, start-screen-specific (no bleed onto #overlay/panels), save-safe,
+      no economy/gameplay impact. Test [79].
       **Remaining (the broader "revamp"):** the utility toolbar could move to a left rail / panel
-      layout; consider per-block visual polish (icons, richer hover states), and maybe a background
-      treatment behind the start screen. FEEDBACK item stays PENDING (as-written, per owner pref)
-      until the fuller revamp lands.
+      layout; consider per-block visual polish (icons, richer hover states on the util buttons). FEEDBACK
+      item stays PENDING (as-written, per owner pref) until the fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
       to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`

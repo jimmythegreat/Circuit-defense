@@ -205,6 +205,26 @@
   #startScreen .startHero p { margin: 0; }
   #startScreen h2 { font-size: 34px; margin-bottom: 0; color: #58a6ff; font-weight: 800;
     letter-spacing: 1px; text-shadow: 0 0 18px rgba(88,166,255,.55), 0 0 42px rgba(88,166,255,.28); }
+  /* Ambient start-screen backdrop (v1.69.0, menu-revamp slice 5) — a slow-drifting radial
+     glow in the circuit palette (blue/teal/violet) sits behind the menu content so the start
+     screen reads as a designed panel instead of a flat dark sheet. It's a ::before so no
+     markup changes; z-index:-1 paints it ABOVE #startScreen's own dark background but BELOW the
+     in-flow hero/config/buttons (which need no z-index). Absolute positioning keeps the pseudo
+     out of the flex flow. Reduced-motion freezes the drift (the static gradient stays). Cosmetic
+     only — start-screen-specific (does not touch #overlay/panels), no save/economy/gameplay impact. */
+  #startScreen::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: 8px;
+    background:
+      radial-gradient(58% 50% at 24% 22%, rgba(56,139,253,.16), transparent 70%),
+      radial-gradient(55% 50% at 80% 76%, rgba(63,185,150,.13), transparent 72%),
+      radial-gradient(48% 44% at 66% 30%, rgba(110,64,201,.12), transparent 72%);
+    background-size: 200% 200%;
+    animation: startAmbient 22s ease-in-out infinite alternate;
+  }
+  @keyframes startAmbient {
+    0%   { background-position: 0% 0%,   100% 100%, 50% 0%; }
+    100% { background-position: 34% 42%, 66% 58%,   40% 34%; }
+  }
   .optRow { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
   /* Start-screen button hierarchy (v1.39.1) — primary "launch a run" actions stay
      prominent; secondary menu/utility buttons recede into a smaller toolbar so the
@@ -232,6 +252,7 @@
   @media (prefers-reduced-motion: reduce) {
     .startPlay .ctl.play { animation: none; }
     .startPlay .ctl.play::after { animation: none; display: none; }
+    #startScreen::before { animation: none; }
   }
   .startUtil { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 780px; }
   .startUtil .ctl { font-size: 13px; padding: 7px 14px; font-weight: 600; opacity: .9; }
