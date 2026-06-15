@@ -5230,6 +5230,110 @@ async function main() {
     await page.close();
   }
 
+  // [82] Killing Spree legendary perk — combo-scaling tower damage (v1.73.0)
+  console.log('\n[82] Killing Spree combo-damage perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // perk exists in the pool and is a legendary; apply() sets the flag
+      const def = PERKS.find(p => p.id === 'spree');
+      const inPool = !!def && def.rarity === 'legendary';
+      const applies = (() => { const s = freshPerkState(); def.apply(s); return s.comboPower === true; })();
+
+      // comboDmgMult() math + gating (pure helper, unit-testable)
+      perkState = freshPerkState();
+      // perk NOT held → always 1, no matter how hot the streak
+      perkState.comboPower = false; comboCount = 99; comboTimer = 5;
+      const offMult = comboDmgMult();
+      // perk held but NO active streak (comboTimer 0) → 1 (self-limiting)
+      perkState.comboPower = true; comboCount = 25; comboTimer = 0;
+      const coldMult = comboDmgMult();
+      // perk held + active streak: +1% per combo
+      comboTimer = 5;
+      comboCount = 0;  const m0  = comboDmgMult();   // 1.00
+      comboCount = 10; const m10 = comboDmgMult();   // 1.10
+      comboCount = 25; const m25 = comboDmgMult();   // 1.25 (cap reached)
+      comboCount = 100;const mCap= comboDmgMult();   // 1.25 (capped)
+
+      // INTEGRATION: drive the real tower-fire loop and confirm a hot combo amplifies the
+      // damage actually dealt. Tower + a huge-HP norm enemy share a path point so the shot
+      // lands point-blank; ratio (combo / base) cancels out meta/spec, isolating the perk.
+      const pt = pointAt(60);
+      function fireDelta(comboOn) {
+        towers.length = 0; enemies.length = 0; projectiles.length = 0;
+        perkState = freshPerkState();
+        perkState.comboPower = comboOn;
+        comboCount = comboOn ? 25 : 0;
+        comboTimer = comboOn ? 5 : 0;
+        waveActive = false; autoStartTimer = 0;
+        const e = buildWave(1).find(x => x.kind === 'norm') || buildWave(1)[0];
+        e.dist = 60; e.x = pt.x; e.y = pt.y; e.spd = 0;
+        e.hp = 1e9; e.maxHp = 1e9; e.armor = 0; e.frozen = 0; e.slow = 0; e.dead = false;
+        enemies.push(e);
+        towers.push({ type:'gun', x:pt.x, y:pt.y, level:1, spec:null, dmg:TOWER_TYPES.gun.dmg,
+          rate:TOWER_TYPES.gun.rate, range:400, mode:'first', cd:0, flash:0, angle:0,
+          empT:0, dealt:0, kills:0, buffPower:0.25 });
+        const before = e.hp;
+        for (let i = 0; i < 10; i++) update(1/60);
+        return before - e.hp;
+      }
+      const dBase = fireDelta(false);
+      const dCombo = fireDelta(true);
+      const ratio = dBase > 0 ? dCombo / dBase : 0;
+
+      // freshPerkState default present & save-safe
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.comboPower === false;
+
+      // save -> restore round-trip
+      perkState = freshPerkState();
+      perkState.comboPower = true;
+      wave = 2; lives = 20; gold = 100; waveActive = false; towers.length = 0; enemies.length = 0;
+      saveRun();
+      perkState.comboPower = false; // clobber
+      const loaded = loadRun();
+      const restored = perkState.comboPower === true;
+
+      // old-save migration: a cd_save whose perkState lacks the field defaults it to false
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.comboPower;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.comboPower === false;
+      localStorage.removeItem('cd_save');
+
+      // resolveWildcard can roll Killing Spree (un-taken legendary eligible)
+      runPerks.length = 0;
+      let wildcardCanRoll = false;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'spree') wildcardCanRoll = true;
+      }
+
+      backToMenu();
+      return { inPool, applies, offMult, coldMult, m0, m10, m25, mCap,
+               dBase, dCombo, ratio, defaultsOk, loaded, restored, migratedOk, wildcardCanRoll };
+    });
+    check('Killing Spree is a legendary perk in the pool', r.inPool);
+    check('Killing Spree apply() sets the comboPower flag', r.applies);
+    check('comboDmgMult is 1 when the perk is not held', r.offMult === 1, `off=${r.offMult}`);
+    check('comboDmgMult is 1 with no active streak (comboTimer 0)', r.coldMult === 1, `cold=${r.coldMult}`);
+    check('comboDmgMult is 1.00 at combo 0', Math.abs(r.m0 - 1) < 1e-9, `m0=${r.m0}`);
+    check('comboDmgMult is +1%/combo (1.10 at 10×)', Math.abs(r.m10 - 1.10) < 1e-9, `m10=${r.m10}`);
+    check('comboDmgMult reaches the +25% cap at 25×', Math.abs(r.m25 - 1.25) < 1e-9, `m25=${r.m25}`);
+    check('comboDmgMult is capped at +25% (no creep past 25×)', Math.abs(r.mCap - 1.25) < 1e-9, `mCap=${r.mCap}`);
+    check('a tower actually fired & dealt base damage', r.dBase > 0, `dBase=${r.dBase}`);
+    check('a hot 25× combo amplifies dealt damage ~+25% (fire path wired)', Math.abs(r.ratio - 1.25) < 0.02, `ratio=${r.ratio} base=${r.dBase} combo=${r.dCombo}`);
+    check('freshPerkState defaults comboPower:false', r.defaultsOk);
+    check('save/reload round-trips the comboPower flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing comboPower migrates to default', r.migratedOk);
+    check('resolveWildcard can roll Killing Spree', r.wildcardCanRoll);
+    check('no console errors during Killing Spree test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

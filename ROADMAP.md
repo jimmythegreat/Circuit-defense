@@ -207,7 +207,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       blunting slow heavy hitters (Cannon/Sniper/Mortar) — a genuine build-altering choice, forming a triangle with
       Glass Cannon (range→dmg) and the balanced default. `hairTrigger` flag in `perkState`/`freshPerkState()`
       (save-safe); Wildcard rolls it; both eff* hashed by `upgradeKey()` so the panel live-updates. Test [78].
-      Still open: maybe a *hidden unlock condition* for a secret legendary.
+      ✅ **Killing Spree shipped v1.73.0** — 🔥 **Killing Spree** (legendary): the **first perk to tie into the
+      kill-combo meter** (until now purely cosmetic). While held, a hot combo amplifies ALL tower damage
+      (+1%/combo, cap +25% at 25×) via `comboDmgMult()` in cd-state.js, called in the tower-fire loop
+      (`dmg *= comboDmgMult()`, before the proj branch so it covers chain/poison; NOT effDmg, so the panel
+      doesn't churn — mirrors Reaper). Conditional/self-limiting (the 2s combo window → +0% on a stalled/leaking
+      run), so it's strictly weaker than the unconditional Diamond Core (+30%) — not power creep; pairs with the
+      Weak targeting mode + Reaper execute. `comboPower` flag in `perkState`/`freshPerkState()` (save-safe);
+      Wildcard rolls it. Test [82]. Still open: maybe a *hidden unlock condition* for a secret legendary.
 - [x] **New quick-play map: "Gauntlet"** — shipped **v1.54.0**. A 4th hand-crafted quick map
       (`MAPS.gauntlet` in cd-maps.js, before Mayhem) — a 12-point axis-aligned switchback that
       funnels enemies through a dense central kill-box (closely-spaced vertical runs at x=300/480/660),
@@ -367,6 +374,9 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (`comboGlowTier()` in cd-state.js + a tier-driven radial edge glow over the
       vignette in `draw()`). Particle-setting-scaled + reduce-motion-gated, render-only.
       Test [71]. (The "combo-gated board tint at huge streaks" follow-up is now done.)
+      ✅ **Combo now has a MECHANICAL tie-in (v1.73.0)** — the 🔥 **Killing Spree** legendary perk makes a hot
+      combo amplify all tower damage (+1%/combo, cap +25%), the first time the meter affects gameplay rather than
+      just visuals. Conditional/self-limiting & save-safe (see the perk item above). Test [82].
 - [x] **Combo meter layout bug** (owner-reported, FEEDBACK) — fixed across
       v1.8.3 → v1.8.5. The "COMBO" label sits beside the multiplier with the
       timer bar in its own lane (no bar-over-text). The persistent meter now

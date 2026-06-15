@@ -307,6 +307,16 @@ const PERKS = [
   // A genuine choice, not a free upgrade. Wired in effDmg (×0.75) + effRate (÷1.55); both are hashed
   // by upgradeKey() so the panel live-updates. `resolveWildcard()` can roll it.
   { id:'hairtrigger',rarity:'legendary',icon:'⏱️', name:'Hair Trigger',   desc:'+55% fire rate, but −25% damage per shot', apply:s=>s.hairTrigger = true },
+  // Killing Spree (v1.73.0): the FIRST perk to tie into the kill-combo meter (until now a purely
+  // cosmetic system). While a combo is hot, ALL towers hit harder, scaling +1% damage per combo,
+  // capped +25% at a 25× streak (see comboDmgMult() in cd-state.js). Conditional & self-limiting —
+  // the 2s combo window means a stalled or leaking run gets nothing, so it's strictly weaker than
+  // the unconditional Diamond Core (+30%) and is NOT power creep (re: the recurring "too easy"
+  // feedback); it rewards skilful chaining and makes your damage spike exactly when you're already
+  // clearing. Applied in the FIRE path (not effDmg) so the upgrade panel doesn't churn every kill
+  // (mirrors Reaper), and before the projectile branch so it covers tesla chain & poison too.
+  // `comboPower` lives in perkState (save-safe default false); the Wildcard perk can roll it.
+  { id:'spree',   rarity:'legendary',icon:'🔥', name:'Killing Spree',     desc:'+1% damage per combo while your streak is hot (max +25%)', apply:s=>s.comboPower = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -314,7 +324,7 @@ function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
-    glassCannon:false, overkill:false, reaper:false, hairTrigger:false };
+    glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false };
 }
 function ascendTowers() {
   for (const t of towers) {

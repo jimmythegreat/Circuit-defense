@@ -30,6 +30,17 @@ function comboColor(n) {
 function comboGlowTier(n) {
   return n < 10 ? 0 : n >= 50 ? 4 : n >= 30 ? 3 : n >= 20 ? 2 : 1;
 }
+// Killing Spree perk (v1.73.0): the damage multiplier a HOT kill-combo grants when the
+// 🔥 Killing Spree legendary is held — +1% per combo, capped +25% at a 25× streak. Returns
+// 1 unless the perk is held AND a streak is currently active (comboTimer>0), so it's
+// conditional/self-limiting (the 2s combo window means a stalled or leaking run gets nothing,
+// making it strictly weaker than the unconditional Diamond Core +30% — NOT power creep).
+// Called from the tower-fire loop in update() (NOT effDmg, to avoid upgrade-panel churn every
+// kill — mirrors the Reaper perk). Pure mapping so the gating/cap is unit-testable.
+function comboDmgMult() {
+  if (typeof perkState === 'undefined' || !perkState || !perkState.comboPower || comboTimer <= 0) return 1;
+  return 1 + Math.min(0.25, comboCount * 0.01);
+}
 // Daily runs track their own per-date best wave (cd_daily_<YYYYMMDD>); everything else uses
 // the legacy per-difficulty key. Routes the HUD `best` load + the recordBest write.
 let bestKey = () => daily ? 'cd_daily_' + dailyDateKey : 'cd_best_' + diffKey;

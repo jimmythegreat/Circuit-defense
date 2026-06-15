@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.73.0 — 2026-06-15 — 🔥 Killing Spree — new legendary perk (combo-scaling tower damage)
+
+**Type:** New content (legendary perk). Minor bump. Run-only, save-safe.
+
+**What:** A new legendary draft perk, **🔥 Killing Spree** (`id:'spree'`, cd-defs.js). While held, a *hot* kill-combo amplifies **all** tower damage, scaling **+1% per combo, capped +25% at a 25× streak**. The multiplier lives in a new `comboDmgMult()` helper (cd-state.js, beside `comboColor`/`comboGlowTier`): it returns `1` unless `perkState.comboPower` is set **and** a streak is currently active (`comboTimer > 0`), else `1 + Math.min(0.25, comboCount * 0.01)`. It's called once in the tower-fire loop (cd-update.js) as `dmg *= comboDmgMult();` — placed right after the boss-damage line and **before** the chain/projectile branch, so it covers every tower type including Tesla chain and Poison. `apply` sets `s.comboPower = true`; `comboPower:false` was added to `freshPerkState()`.
+
+**Why:** The **first perk to plug into the kill-combo meter** — a core run system that until now was purely cosmetic (the v1.60.0 board glow is render-only). It deepens an existing system the owner loves (addictive loops, chunky game-feel: your defense spikes exactly when you're chaining kills) and is a natural fit with the recent 🩸 Weak targeting mode (more confirmed kills → hotter streaks) and 💀 Reaper execute (faster finishes feed the chain).
+
+**Not power creep (re: recurring "too easy" feedback):** it's **conditional & self-limiting**. The combo window is 2s, so a stalled or leaking run gets **+0%**; it's strictly weaker than the unconditional 💎 Diamond Core (+30% always) — a build-flavoring draft choice, not a free upgrade. It can't make a *struggling* run easier (you need to already be chaining kills to benefit). Magnitude is bounded ≤25% (the per-run cap) and sustaining 25× is itself a skill feat.
+
+**Design echoes Reaper:** applied in the **fire path, not `effDmg()`**, so the upgrade panel doesn't churn every kill (`comboCount` changes constantly). The combo state is run-only and recomputed live; on resume `comboCount` resets to 0 (no benefit until you build a fresh streak).
+
+**Save-safe:** `comboPower` lives inside `perkState` (default `false`), persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)` — old saves default to `false`. No new localStorage key / economy / schema impact. The 🎲 Wildcard perk rolls it automatically (it's an eligible legendary).
+
+**Tests:** new group **[82]** (14 checks): perk metadata + `apply`; `comboDmgMult()` math & gating (off / no-streak / +1%-per-combo / +25% cap); a **fire-path integration test** (real `update()` drive — a gun + a huge-HP enemy share a path point so the shot lands point-blank; the combo/base damage ratio is ~+25%, isolating the perk); `freshPerkState` default; save→reload round-trip; old-save migration; Wildcard can roll it. Full suite **857/0 green**.
+
+**Files:** `cd-state.js` (`comboDmgMult()`), `cd-defs.js` (perk entry + `freshPerkState` default), `cd-update.js` (one `dmg *= comboDmgMult()` line in the fire loop), `cd-core.js` (version + What's New entry), `sw.js` (cache bump), `tests/run-tests.mjs` ([82]), docs.
+
 ## v1.72.0 — 2026-06-15 — 🫥 Cloaking Field — 16th Mayhem wave modifier (enemies phase out)
 
 **Type:** New content (wave modifier). Minor bump. Run-only, save-safe.

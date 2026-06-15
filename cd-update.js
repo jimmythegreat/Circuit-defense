@@ -358,6 +358,11 @@ function update(dt) {
     }
     if (t.spec === 'executor' && (target.kind === 'tank' || target.kind === 'boss')) dmg *= 1.9;
     if (perkState.bossDmg > 1 && (target.kind === 'tank' || target.kind === 'boss')) dmg *= perkState.bossDmg;
+    // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
+    // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
+    // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and
+    // NOT in effDmg, so the upgrade panel doesn't churn every kill.
+    dmg *= comboDmgMult();
     if (def.proj === 'chain') {
       fireChain(t, target, dmg);
     } else {
