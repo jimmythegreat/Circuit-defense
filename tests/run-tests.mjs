@@ -5121,6 +5121,115 @@ async function main() {
     await page.close();
   }
 
+  // [81] Cloaking Field wave mod — wave-wide intermittent intangibility (v1.72.0)
+  console.log('\n[81] Cloaking Field (intangibility wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const hasMod = WAVE_MODS.some(m => m.id === 'cloak');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod): no enemy is tagged.
+      setMod(null);
+      const plainWave = buildWave(20);          // w20 -> includes a boss
+      const plainNorm = plainWave.find(e => e.kind === 'norm');
+      const plainTagged = plainWave.some(e => e.cloak);
+
+      // CLOAK: every enemy + the boss is tagged; base stats untouched.
+      setMod('cloak');
+      const cwWave = buildWave(20);
+      const cwNorm = cwWave.find(e => e.kind === 'norm');
+      const cwBoss = cwWave.find(e => e.kind === 'boss');
+      const allTagged = cwWave.every(e => e.cloak === true);
+      const bossTagged = !!(cwBoss && cwBoss.cloak);
+      const statsUnchanged = cwNorm.hp === plainNorm.hp && cwNorm.spd === plainNorm.spd &&
+        cwNorm.armor === plainNorm.armor && cwNorm.bounty === plainNorm.bounty;
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:200, frozen:0, slow:0, slowF:0.6, flash:0,
+        x:300, y:300, r:11, armor:0, bounty:1, color:'#3fb950', dealt:0
+      }, opts || {});
+
+      // (a) cloak TRIGGERS: a tagged enemy whose cloakCd is about to expire phases out
+      // (blinkInvuln set) after one frame.
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      const cloaker = mk({ cloak:true, cloakCd:0.001 });
+      enemies.push(cloaker);
+      update(1/60);
+      const cloaked = cloaker.blinkInvuln > 0;
+
+      // (b) while cloaked it is UNTARGETABLE + IMMUNE (reuses the phantom blinkInvuln checks).
+      towers.length = 0; enemies.length = 0;
+      const t = { type:'gun', x:300, y:300, range:200, dmg:50, rate:0.5, cd:0, level:1, mode:'first' };
+      towers.push(t);
+      const phased = mk({ cloak:true, blinkInvuln:0.4, hp:100, maxHp:100, dist:200 });
+      enemies.push(phased);
+      const targetWhilePhased = pickTarget(t);          // should skip it
+      const hpBefore = phased.hp;
+      damage(phased, 999, t);                            // should be a no-op
+      const untargetable = targetWhilePhased !== phased;
+      const immuneWhilePhased = phased.hp === hpBefore;
+
+      // (c) it adds NO speed / does NOT teleport: a cloak enemy that phases out advances exactly
+      // as far as an identical plain enemy over the same frames (movement is unaffected).
+      towers.length = 0; enemies.length = 0;
+      const cd = mk({ cloak:true, cloakCd:0.001, dist:100 });   // will cloak on frame 1
+      const plain = mk({ dist:100 });
+      enemies.push(cd, plain);
+      for (let i = 0; i < 30; i++) update(1/60);
+      const sameAdvance = Math.abs(cd.dist - plain.dist) < 1e-6;
+
+      // (d) FREEZE pauses the cloak trigger: a frozen tagged enemy never phases out.
+      towers.length = 0; enemies.length = 0;
+      const frozenCloaker = mk({ cloak:true, cloakCd:0.001, frozen:5 });
+      enemies.push(frozenCloaker);
+      update(1/60);
+      const freezePauses = !(frozenCloaker.blinkInvuln > 0);
+
+      // (e) blinkInvuln DECAYS so a phased enemy becomes hittable again (cloakCd large so it
+      // doesn't re-trigger within the window).
+      towers.length = 0; enemies.length = 0;
+      const decayer = mk({ cloak:true, blinkInvuln:0.45, cloakCd:99 });
+      enemies.push(decayer);
+      for (let i = 0; i < 60; i++) update(1/60);          // ~1s > 0.45s window
+      const decays = decayer.blinkInvuln === 0;
+
+      // (f) PHANTOMS are excluded from the cloak tick (they own blinkInvuln) — cloakCd stays unset.
+      towers.length = 0; enemies.length = 0;
+      const pe = mk({ kind:'phantom', cloak:true, dist:200 });
+      enemies.push(pe);
+      update(1/60);
+      const phantomExcluded = pe.cloakCd === undefined;
+
+      // Inert again when the mod is cleared.
+      setMod(null);
+      const inertOff = buildWave(20).some(e => e.cloak) === false;
+
+      enemies.length = 0; towers.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, plainTagged, allTagged, bossTagged, statsUnchanged, cloaked,
+               untargetable, immuneWhilePhased, sameAdvance, freezePauses, decays,
+               phantomExcluded, inertOff };
+    });
+    check('WAVE_MODS includes Cloaking Field', r.hasMod);
+    check('Cloak is inert when the mod is off (no enemy tagged)', !r.plainTagged);
+    check('Cloak tags every enemy', r.allTagged);
+    check('Cloak tags the boss', r.bossTagged);
+    check('Cloak leaves base HP/speed/armor/bounty untouched', r.statsUnchanged);
+    check('a tagged enemy phases out (blinkInvuln set) on cloak', r.cloaked);
+    check('a cloaked enemy is untargetable', r.untargetable);
+    check('a cloaked enemy is immune to damage', r.immuneWhilePhased);
+    check('cloak adds no speed / no teleport (matches plain advance)', r.sameAdvance);
+    check('freeze pauses the cloak trigger', r.freezePauses);
+    check('cloak intangibility decays (enemy becomes hittable again)', r.decays);
+    check('phantoms are excluded from the cloak tick (no double-decay)', r.phantomExcluded);
+    check('Cloak is inert once the mod is cleared', r.inertOff);
+    check('no console errors during Cloak test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -458,6 +458,16 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
+    // Cloaking Field wave-mod cue (v1.72.0): a violet ring marks an enemy that periodically
+    // phases out (untargetable), flaring brighter while it's actually cloaked — so the player
+    // can see why shots are missing. The sphere also fades while cloaked (phantomA below).
+    if (e.cloak && !e.dead) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(185,140,255,${e.blinkInvuln > 0 ? 0.85 : 0.4})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     // breacher cue (v1.63.0): a dark-red outer ring flags the heavy unit that costs 2 lives
     // if it leaks, so it reads as a priority threat in a crowd (the colour/glyph also code it).
     if (e.lifeCost > 1 && !e.dead) {
@@ -502,7 +512,8 @@ function draw() {
     // phantoms render translucent, fading almost out while they're mid-blink; a teleporter
     // boss is solid normally but fades while it's intangible mid-jump (v1.40.0) as the cue.
     const phantomA = e.kind === 'phantom' ? (e.blinkInvuln > 0 ? 0.22 : 0.72)
-                   : (e.kind === 'boss' && e.bossType === 'teleporter' && e.blinkInvuln > 0) ? 0.3 : 1;
+                   : (e.kind === 'boss' && e.bossType === 'teleporter' && e.blinkInvuln > 0) ? 0.3
+                   : (e.cloak && e.blinkInvuln > 0) ? 0.25 : 1;
     if (phantomA < 1) ctx.globalAlpha = phantomA;
     const sphereG = ctx.createRadialGradient(e.x - e.r*0.35, e.y - e.r*0.4, e.r*0.15, e.x, e.y, e.r);
     sphereG.addColorStop(0, shade(ecol, 85));

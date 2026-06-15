@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.72.0 — 2026-06-15 — 🫥 Cloaking Field — 16th Mayhem wave modifier (enemies phase out)
+
+**Type:** New content (wave modifier). Minor bump. Run-only, save-safe.
+
+**What:** A 16th Mayhem/Daily wave modifier, **🫥 Cloaking Field**. When it rolls, every enemy + the boss is tagged `e.cloak=true` (in `buildWave`, beside the `heatwave`/`adrenaline` tags). In `update()`'s enemy loop — just after the phantom block — a cloak cycle runs: it decays `e.blinkInvuln` **unconditionally** and, while `frozen<=0`, ticks `e.cloakCd` (lazy-init 2.5s); on expiry it sets `e.blinkInvuln=0.45` + a small violet burst + `SFX.blink()`. So each enemy becomes **briefly untargetable + immune for ~0.45s every ~2.5s (~18% of the time)** — it reuses the phantom's `blinkInvuln` checks already present in `pickTarget()` (skip) and `damage()` (early-return), so no new gating was needed. Render (cd-render.js): a violet cue ring (flares to 0.85 alpha the instant it cloaks, 0.4 otherwise) and the sphere fades to 0.25 alpha mid-cloak (one new branch on the existing `phantomA` ternary).
+
+**Why:** The **wave-wide cousin of the 👻 Phantom enemy** — an explicitly-listed open follow-up under both the phantom entry ("a phantom-heavy Mayhem wave modifier") and "More wave modifiers" in ROADMAP. It pressures a **coverage/uptime axis no other modifier touches** (none make enemies untargetable): slow, hard-hitting single-target towers (Sniper/Cannon/Mortar) waste big shots on a target that blinks out, while rapid-fire towers barely notice — a build-relevant wrinkle, not a flat stat scale. Follows the established "wave-wide cousin" pattern (heatwave↔juggernaut, adrenaline↔berserker; here cloak↔phantom).
+
+**Balance / "too easy"-safe:** Unlike the phantom it does **NOT teleport enemies forward** and adds **no HP or speed** — it only removes the player's ability to hit them ~18% of the time, so it can never make a run *easier* (re: the recurring "too easy" feedback). Bounded the same way the phantom is. Freeze pauses the cloak *trigger* (gated by `frozen<=0`) while `blinkInvuln` still decays unconditionally, so an enemy frozen mid-cloak always becomes hittable again (can't get stuck invulnerable). **Phantoms / teleporter bosses are excluded from the cloak tick** (`e.kind !== 'phantom' && !(boss && bossType==='teleporter')`) because they already own `blinkInvuln` — prevents decaying it twice per frame.
+
+**Safety / scope:** All cloak state (`cloak`, `cloakCd`, `blinkInvuln`) is run-only on enemy objects (never persisted — enemies aren't saved), so no save/schema migration. Mayhem/Daily-only like every modifier (`rollWaveMod()` picks one mod per wave; no economy interaction, so no mutual-exclusivity wiring). No economy/balance/talent/chip impact. Pool 15 → 16.
+
+**Version bump:** `GAME_VERSION` and the `sw.js` `CACHE` const bumped v1.71.1 → v1.72.0 in lockstep (test `[49]` asserts they match).
+
+**Tests:** New group **`[81]`** (13 checks) — `WAVE_MODS` includes it; inert off / tags every enemy + the boss / base HP·speed·armor·bounty untouched; a tagged enemy phases out (`blinkInvuln` set) on cloak; a cloaked enemy is untargetable (`pickTarget` skips it) **and** immune (`damage()` is a no-op); cloak adds no speed/no teleport (advance matches an identical plain enemy over 30 frames); freeze pauses the trigger; intangibility decays back to hittable; phantoms are excluded from the tick (no double-decay); inert once cleared; zero console errors. Full suite re-run before commit. The What's New panel + CLAUDE.md `WAVE_MODS` map updated.
+
 ## v1.71.1 — 2026-06-15 — 🤖 Continuous integration — test suite runs on every push
 
 **Type:** Dev tooling / table-stakes engineering. Patch bump. Zero game change.

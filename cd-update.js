@@ -118,6 +118,29 @@ function update(dt) {
         }
       }
     }
+    // Cloaking Field wave mod (mayhem, v1.72.0): every tagged enemy + boss periodically PHASES
+    // OUT — briefly intangible (untargetable + immune, reusing the phantom `blinkInvuln` check in
+    // pickTarget()/damage()), so a shot that lands while it's cloaked simply misses. The wave-wide
+    // cousin of the phantom enemy on a fresh COVERAGE/UPTIME axis (none of the other 15 mods make
+    // enemies untargetable); slow burst single-target towers suffer most, rapid towers least. Unlike
+    // the phantom it does NOT teleport forward — pure intangibility, adding no speed/HP, so it can
+    // never make a run easier (re: the recurring "too easy" feedback). `blinkInvuln` decays
+    // unconditionally so an enemy frozen mid-cloak always becomes hittable again; the cloak TRIGGER
+    // is paused by freeze (like phantom's blinkCd). Phantoms / teleporter bosses already own
+    // `blinkInvuln`, so they're excluded to avoid decaying it twice per frame. Tagged at spawn in
+    // buildWave (run-only, never saved), so concurrent waves each keep their own mod (like regen).
+    if (e.cloak && e.kind !== 'phantom' && !(e.kind === 'boss' && e.bossType === 'teleporter')) {
+      e.blinkInvuln = Math.max(0, (e.blinkInvuln || 0) - dt);
+      if (e.frozen <= 0) {
+        e.cloakCd = (e.cloakCd == null ? 2.5 : e.cloakCd) - dt;
+        if (e.cloakCd <= 0) {
+          e.cloakCd = 2.5;
+          e.blinkInvuln = 0.45;
+          if (e.x !== undefined) addExplosion(e.x, e.y, '#b98cff', 5, 60);
+          SFX.blink();
+        }
+      }
+    }
     e.px = e.x; e.py = e.y;
     // enrager haste aura (v1.34.0): an enraged enemy moves +35% faster. slowMul already
     // zeroes frozen movement, and frost slow multiplies in, so freeze/slow still counter it.

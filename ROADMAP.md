@@ -62,7 +62,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       teleports 58px forward every ~2s and is intangible (untargetable + immune)
       for 0.35s mid-blink, punishing slow single-target towers. Frost/freeze pauses
       its blink clock. Render-translucent with a 👻 glyph + `SFX.blink` whoosh.
-      Test group [14]. Follow-ups: *a phantom-heavy Mayhem wave modifier*, and a
+      Test group [14]. ✅ **phantom-heavy Mayhem wave modifier shipped v1.72.0** — 🫥 Cloaking
+      Field (`cloak`): the wave-wide cousin of the phantom — every enemy + boss periodically phases
+      out (briefly untargetable + immune, ~18% of the time) by reusing the phantom `blinkInvuln`
+      checks; no teleport, no extra HP/speed → bounded, can't make a run easier. Pressures
+      coverage/uptime (slow burst towers waste shots). Test [81]. **Follow-up still open:** a
       tower spec tuned to counter blinkers (e.g. predictive lead-shot).
 - [x] **New enemy type: "breacher"** — shipped **v1.63.0**. A ‼ slow heavy unit (`#d4566b`,
       `hp ×2.0`, `spd ×0.7`, slot `i%12===11`) from wave 17+ in **all** modes. Fresh **leak-cost**
@@ -153,8 +157,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       juggernaut line), so the Freeze ability + Frost slow do nothing that wave. The **wave-wide cousin of the
       Juggernaut boss** on a fresh **CC axis** no other mod touches; pressures the documented Frost/booster
       snowball without nerfing it. Bounded — adds no HP/speed, only removes the player's CC advantage, so it
-      can't make a run easier. Warm-orange cue ring; run-only). Pool 7→9→10→11→12→13→14→**15**.
-      Test [46] + [54] + [57] + [67] + [69] + [76].
+      can't make a run easier. Warm-orange cue ring; run-only). Then **🫥 Cloaking Field** in **v1.72.0**
+      (`cloak`: every enemy + boss tagged `e.cloak=true`; a cloak cycle in `update()` (after the phantom block)
+      decays `e.blinkInvuln` unconditionally + ticks `e.cloakCd` while `frozen<=0`, phasing the enemy out for
+      0.45s every ~2.5s (~18% untargetable + immune) by reusing the phantom `blinkInvuln` checks already in
+      `pickTarget()`/`damage()`. The **wave-wide cousin of the Phantom enemy** on a fresh **coverage/uptime axis**
+      no other mod touches — slow burst single-target towers waste shots, rapid towers barely notice. No teleport,
+      no extra HP/speed → bounded, can't make a run easier; freeze pauses the trigger while `blinkInvuln` still
+      decays (never stuck invulnerable); phantoms/teleporter bosses excluded from the tick (own `blinkInvuln`).
+      Violet cue ring + sphere fade; run-only). Pool 7→9→10→11→12→13→14→15→**16**.
+      Test [46] + [54] + [57] + [67] + [69] + [76] + [81].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).
