@@ -529,12 +529,16 @@ function effDmg(t) {
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
   // Glass Cannon legendary (v1.32.0): +50% damage (paired with a −30% range cut in effRange).
   if (perkState.glassCannon) d *= 1.5;
+  // Hair Trigger legendary (v1.68.0): −25% damage per shot (paired with +55% fire rate in effRate).
+  if (perkState.hairTrigger) d *= 0.75;
   return d;
 }
 function effRate(t) {
   let r = t.rate * perkState.rateMult;
   if (t.spec === 'minigun') r *= 0.55;
   if (modIs('brownout')) r *= 1.25;  // mayhem debuff: +25% reload = slower fire
+  // Hair Trigger legendary (v1.68.0): +55% fire rate (shorter reload; paired with −25% dmg in effDmg).
+  if (perkState.hairTrigger) r /= 1.55;
   return r;
 }
 function effRange(t) {

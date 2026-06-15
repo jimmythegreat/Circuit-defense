@@ -299,6 +299,14 @@ const PERKS = [
   // kill path (not effDmg) so the upgrade panel doesn't churn; routes through the normal death
   // path so combo/bounty/Overkill all fire. The Wildcard perk can roll it.
   { id:'reaper',  rarity:'legendary',icon:'💀', name:'Reaper',           desc:'Instantly slay non-boss enemies below 12% HP', apply:s=>s.reaper = true },
+  // Hair Trigger (v1.68.0): a build-altering TRADE-OFF and the inverse sibling of Glass Cannon —
+  // towers fire much faster but hit softer (+55% fire rate, −25% damage per shot). Net DPS is only
+  // ~+16% (1.55 × 0.75), so it's NOT pure power creep (re: "too easy"): the smaller per-shot damage
+  // is eaten harder by flat ARMOR (worse vs armored/shield/late bosses) and the speed-up favours
+  // splash/rapid towers while blunting slow heavy hitters (cannon/sniper/mortar lose their burst).
+  // A genuine choice, not a free upgrade. Wired in effDmg (×0.75) + effRate (÷1.55); both are hashed
+  // by upgradeKey() so the panel live-updates. `resolveWildcard()` can roll it.
+  { id:'hairtrigger',rarity:'legendary',icon:'⏱️', name:'Hair Trigger',   desc:'+55% fire rate, but −25% damage per shot', apply:s=>s.hairTrigger = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -306,7 +314,7 @@ function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
-    glassCannon:false, overkill:false, reaper:false };
+    glassCannon:false, overkill:false, reaper:false, hairTrigger:false };
 }
 function ascendTowers() {
   for (const t of towers) {

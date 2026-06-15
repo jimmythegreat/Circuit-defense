@@ -3,6 +3,44 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.68.0 — 2026-06-15 — ⏱️ Hair Trigger — new legendary perk (+55% fire rate, −25% damage)
+
+**Type:** New content (legendary run perk). Minor bump.
+
+**What:** A new legendary perk, **⏱️ Hair Trigger**, in the every-5-waves draft pool — a build-altering **trade-off** and the inverse sibling of 🔮 Glass Cannon. While held, all towers fire **+55% faster** but deal **−25% damage per shot**. Net DPS is only ≈ **+16%** (1.55 × 0.75 = 1.1625).
+
+**Why:** The owner explicitly enjoys "a weird legendary perk" and meaningful build choices, and the game already has a deep content base — so a perk that changes *how a build feels* rather than just adding power is the right shape. Deliberately **not** power creep (re: the recurring "too easy" feedback): the ~+16% net gain sits *below* a flat legendary like Diamond Core (+30%), and it carries real downsides — the smaller per-shot damage is eaten harder by **flat armor** (worse vs armored / shielded / late bosses, where flat reduction takes a bigger fraction of a smaller hit), and the speed-up favours splash/rapid towers while blunting slow heavy hitters (Cannon/Sniper/Mortar lose the burst that defines them). So it's a genuine draft decision, not a free upgrade, and it forms a clean triangle with Glass Cannon (range→damage) and the default build (balanced). Mirrors the well-precedented Glass Cannon implementation.
+
+**How (additive, run-only, save-safe):**
+- `cd-defs.js`: perk pushed to `PERKS` — `{ id:'hairtrigger', rarity:'legendary', icon:'⏱️', name:'Hair Trigger', desc:'+55% fire rate, but −25% damage per shot', apply:s=>s.hairTrigger=true }`; `freshPerkState()` gains `hairTrigger:false`.
+- `cd-game.js`: `effDmg()` adds `if (perkState.hairTrigger) d *= 0.75;` (beside the Glass Cannon line); `effRate()` adds `if (perkState.hairTrigger) r /= 1.55;` (shorter reload = faster fire). Both `effDmg` + `effRate` are already hashed by `upgradeKey()`, so the upgrade panel live-updates when the perk lands.
+- **Save-safe:** `hairTrigger` lives **inside `perkState`**, persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)` (old saves default `false`). `resolveWildcard()` rolls it automatically. No new localStorage key, no economy/balance/schema impact.
+
+**Tests:** New group **[78]** (11 checks) — Hair Trigger is a legendary in the pool; `apply()` sets the flag; **−25% damage**; **+55% fire rate** (`rate / 1.55`); **range untouched**; the **net DPS gain ≈ +16%** and is `< 1.2` (bounded, not power creep); `freshPerkState` default `false`; save→reload round-trips the flag; an old save missing the field migrates to `false`; `resolveWildcard()` can roll it; zero console errors. Full suite **805/0 green across 78 groups** (subagent-run). Diff reviewed by a second subagent for guardrails (save compat, scope, theme).
+
+**Docs note:** restored the **v1.67.0 (Shockwave)** CHANGELOG.md entry below — it shipped but its CHANGELOG.md heading was missing (the `cd-core.js` What's-New entry was present), so the markdown changelog had drifted one version behind `GAME_VERSION`. Now back in sync.
+
+---
+
+## v1.67.0 — 2026-06-14 — 🌀 Shockwave — 4th active ability (knock all enemies backward)
+
+**Type:** New content (active ability). Minor bump.
+
+**What:** A 4th active ability, **🌀 Shockwave** (hotkey **R** / gamepad **RT**, cooldown 50s), joining ☄️ Meteor / 🧊 Time Freeze / 💰 Gold Rush — the first new ability in a long time. On cast it **knocks every live enemy backward along the path** (`e.dist -= 75`; bosses only `28`; clamped ≥ 0) plus a brief 0.35s stagger — a defensive panic / repositioning tool distinct from Time Freeze (which pauses enemies in place; Shockwave rewinds their progress and re-exposes them to your towers).
+
+**Why:** Adds tactical depth and chunky game-feel without power creep — it's **pure utility, deals NO damage**, so it can't make the "too easy" balance easier. **CC-immune enemies shrug it off** (`e.ccImmune` Heatwave wave-mod, or a `juggernaut` boss are skipped entirely), reinforcing the crowd-control axis those mechanics are built on.
+
+**How (additive, run-only, save-safe):**
+- `cd-defs.js`: `ABILITIES.shock` entry; the ability bar renders generically from `Object.keys(ABILITIES)`, so the 4th button is automatic.
+- `cd-state.js`: `abilityCd.shock` initialised in `resetState()` and defaulted in `loadRun()`'s `Object.assign` (old saves load with it ready, cooldown 0).
+- `cd-game.js`: a `triggerAbility('shock')` branch (rewind + stagger, skipping CC-immune enemies), an **R** hotkey, and gamepad **RT** (button 7) in `pollGamepad`. Sets `abilityUsedThisRun` (counts against the Pacifist achievement, like Freeze/Rush).
+- `cd-core.js`: `SFX.shock()` — a kinetic thump + outward whoosh.
+- Run-only (cooldowns never persisted) → save-safe; no economy/schema impact.
+
+**Tests:** Group **[77]** — Shockwave is the 4th ability bound to R; `abilityCd.shock` initialises to 0; knocks a normal enemy back 75; clamps at 0 (no negative dist); a boss is knocked a smaller 28; a Juggernaut boss and a Heatwave (CC-immune) enemy are immune; deals no damage; goes on cooldown; sets `abilityUsedThisRun`; briefly staggers; a second cast while cooling is a no-op; an old save missing `abilityCd.shock` migrates to 0; zero console errors.
+
+---
+
 ## v1.66.0 — 2026-06-14 — 🔥 Heatwave — 15th Mayhem wave modifier (enemies resist slow & freeze)
 
 **Type:** New content (Mayhem wave modifier). Minor bump.

@@ -188,7 +188,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       `effDmg()` (no panel churn). Bounded/"too easy"-safe: **bosses exempt**, only shaves the kill tail
       (≤~12% non-boss DPS, well below Diamond Core's +30%); single-layer (an Overkill-splash hit can't
       execute, `fromOverkill` guard). `reaper` flag in `perkState`/`freshPerkState()` (save-safe); Wildcard
-      rolls it. Test [75]. Still open: maybe a *hidden unlock condition* for a secret legendary.
+      rolls it. Test [75]. ✅ **Hair Trigger shipped v1.68.0** — ⏱️ **Hair Trigger** (legendary): the
+      **inverse trade-off** of Glass Cannon — `+55% fire rate, −25% damage/shot` (`effRate ÷1.55` + `effDmg ×0.75`).
+      Net DPS only ≈ +16% (below Diamond Core's +30%) and **not** power creep: smaller per-shot damage is eaten
+      harder by **flat armor** (worse vs armored/late bosses), and the speed-up favours splash/rapid towers while
+      blunting slow heavy hitters (Cannon/Sniper/Mortar) — a genuine build-altering choice, forming a triangle with
+      Glass Cannon (range→dmg) and the balanced default. `hairTrigger` flag in `perkState`/`freshPerkState()`
+      (save-safe); Wildcard rolls it; both eff* hashed by `upgradeKey()` so the panel live-updates. Test [78].
+      Still open: maybe a *hidden unlock condition* for a secret legendary.
 - [x] **New quick-play map: "Gauntlet"** — shipped **v1.54.0**. A 4th hand-crafted quick map
       (`MAPS.gauntlet` in cd-maps.js, before Mayhem) — a 12-point axis-aligned switchback that
       funnels enemies through a dense central kill-box (closely-spaced vertical runs at x=300/480/660),
@@ -593,7 +600,7 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
 - [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 health checks) —
-      `tests/run-tests.mjs` has grown to **~4,784 lines (75 groups `[1]`–`[75]`, 769 assertions)** in a
+      `tests/run-tests.mjs` has grown to **~4,990 lines (78 groups `[1]`–`[78]`, 805 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing

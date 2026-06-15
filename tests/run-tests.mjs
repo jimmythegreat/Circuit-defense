@@ -4917,6 +4917,77 @@ async function main() {
     await page.close();
   }
 
+  // [78] Hair Trigger legendary perk — +55% fire rate / −25% damage trade-off (v1.68.0)
+  console.log('\n[78] Hair Trigger trade-off perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // perk exists in the pool and is a legendary
+      const def = PERKS.find(p => p.id === 'hairtrigger');
+      const inPool = !!def && def.rarity === 'legendary';
+      const applies = (() => { const s = freshPerkState(); def.apply(s); return s.hairTrigger === true; })();
+
+      // baseline (perk not held)
+      perkState.hairTrigger = false;
+      const dBase = effDmg(gun), rateBase = effRate(gun), rangeBase = effRange(gun);
+      // perk held: −25% damage, +55% fire rate (shorter reload = rate/1.55), range untouched
+      perkState.hairTrigger = true;
+      const dHT = effDmg(gun), rateHT = effRate(gun), rangeHT = effRange(gun);
+
+      // net DPS gain (damage/rate) is the modest ~+16% trade-off, not pure power creep
+      const dpsBase = dBase / rateBase, dpsHT = dHT / rateHT;
+      const netGain = dpsHT / dpsBase; // ~1.1625
+
+      // freshPerkState default present & save-safe
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.hairTrigger === false;
+
+      // save -> restore round-trip
+      perkState.hairTrigger = true;
+      saveRun();
+      perkState.hairTrigger = false; // clobber
+      const loaded = loadRun();
+      const restored = perkState.hairTrigger === true;
+
+      // old-save migration: a cd_save whose perkState lacks the field defaults it to false
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.hairTrigger;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.hairTrigger === false;
+      localStorage.removeItem('cd_save');
+
+      // resolveWildcard can roll Hair Trigger (un-taken legendary eligible)
+      runPerks.length = 0;
+      let wildcardCanRoll = false;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'hairtrigger') wildcardCanRoll = true;
+      }
+
+      backToMenu();
+      return { inPool, applies, dBase, dHT, rateBase, rateHT, rangeBase, rangeHT,
+               netGain, defaultsOk, loaded, restored, migratedOk, wildcardCanRoll };
+    });
+    check('Hair Trigger is a legendary perk in the pool', r.inPool);
+    check('Hair Trigger apply() sets the perkState flag', r.applies);
+    check('Hair Trigger cuts damage by 25%', Math.abs(r.dHT - r.dBase * 0.75) < 1e-6, `base=${r.dBase} ht=${r.dHT}`);
+    check('Hair Trigger speeds fire rate by 55% (rate /1.55)', Math.abs(r.rateHT - r.rateBase / 1.55) < 1e-6, `base=${r.rateBase} ht=${r.rateHT}`);
+    check('Hair Trigger leaves firing range untouched', Math.abs(r.rangeHT - r.rangeBase) < 1e-6, `base=${r.rangeBase} ht=${r.rangeHT}`);
+    check('Hair Trigger net DPS gain is the modest ~+16% (not power creep)', Math.abs(r.netGain - 1.55 * 0.75) < 1e-6 && r.netGain < 1.2, `net=${r.netGain}`);
+    check('freshPerkState defaults hairTrigger:false', r.defaultsOk);
+    check('save/reload round-trips the Hair Trigger flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing hairTrigger migrates to default', r.migratedOk);
+    check('resolveWildcard can roll Hair Trigger', r.wildcardCanRoll);
+    check('no console errors during Hair Trigger test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
