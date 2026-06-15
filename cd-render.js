@@ -48,6 +48,7 @@ function bossMechanicBadge(e) {
     case 'berserker': return { label: 'BERSERK', c: '255,106,106' };
     case 'disruptor': return { label: 'DISRUPTOR', c: '125,249,255' };
     case 'juggernaut': return { label: 'UNSTOPPABLE', c: '192,200,214' };
+    case 'siphon':   return { label: 'SIPHON', c: '227,179,65' };
     default:         return null;
   }
 }
@@ -476,13 +477,14 @@ function draw() {
       ctx.stroke();
     }
     // boss archetype aura (v1.25.0; enrager v1.34.0; teleporter v1.40.0; berserker v1.50.0;
-    // disruptor v1.52.0): colour-codes the mechanic — green regen, red summoner, blue bulwark,
-    // orange enrager, violet teleporter, crimson berserker, cyan disruptor. The bulwark ring
+    // disruptor v1.52.0; siphon v1.71.0): colour-codes the mechanic — green regen, red summoner,
+    // blue bulwark, orange enrager, violet teleporter, crimson berserker, cyan disruptor,
+    // steel juggernaut, gold siphon. The bulwark ring
     // flares bright+thick during its active shield phase, and the berserker ring grows
     // brighter+thicker as it rages (scaling with missing HP), so the damage-soak window / rage
     // level is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : '121,192,255';
       const rage = e.bossType === 'berserker' ? Math.max(0, 1 - e.hp / e.maxHp) : 0;
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6) + rage*4, 0, Math.PI*2);

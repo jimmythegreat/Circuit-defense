@@ -2456,8 +2456,8 @@ async function main() {
     await page.close();
   }
 
-  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker / disruptor / juggernaut (v1.25.0+)
-  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker/disruptor/juggernaut)');
+  // [45] Boss archetypes — regen / summoner / bulwark / enrager / teleporter / berserker / disruptor / juggernaut / siphon (v1.25.0+)
+  console.log('\n[45] Boss archetypes (regen/summoner/bulwark/enrager/teleporter/berserker/disruptor/juggernaut/siphon)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -2467,12 +2467,13 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 8 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, then wraps (w60 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 9 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, then wraps (w65 → regen again).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
-                    && bt(50) === 'disruptor' && bt(55) === 'juggernaut' && bt(60) === 'regen';
+                    && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
+                    && bt(60) === 'siphon' && bt(65) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2599,9 +2600,26 @@ async function main() {
       for (let i = 0; i < 5; i++) update(1/60);
       const juggIgnoresSlow = enemies[0] && enemies[0].slow === 0;
 
+      // SIPHON — drains the player's GOLD every ~3.5s while alive; floored at 0; freeze pauses it.
+      // Pin spd 0 (no leak/kills), so gold can only move via the drain. Run past one ~3.5s pulse.
+      e = mkBoss('siphon', { spd: 0, dist: 5 });
+      gold = 1000;
+      for (let i = 0; i < 300; i++) update(1/60);
+      const siphonDrains = gold < 1000;
+      // freeze pauses the drain — a frozen siphon boss must not touch gold.
+      e = mkBoss('siphon', { spd: 0, dist: 5, frozen: 999 });
+      gold = 1000;
+      for (let i = 0; i < 300; i++) update(1/60);
+      const frozenNoDrain = Math.abs(gold - 1000) < 1e-6;
+      // floored at 0 — with no gold the drain can never push you negative (no soft-lock).
+      e = mkBoss('siphon', { spd: 0, dist: 5 });
+      gold = 0;
+      for (let i = 0; i < 300; i++) update(1/60);
+      const siphonFloors = gold === 0;
+
       enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush, disruptorEmps, frozenNoEmp, buffImmune, juggIgnoresFreeze, frozenBossStays, juggIgnoresSlow };
+      return { vanillaEarly, rotation, regenHeals, frozenNoHeal, shieldSoaks, shieldRaised, adds, summonerCapped, enrageHastes, frozenNoHaste, blinked, sawInvuln, frozenNoBlink, frozenInvulnDecays, berserkerAccelerates, frozenNoRush, disruptorEmps, frozenNoEmp, buffImmune, juggIgnoresFreeze, frozenBossStays, juggIgnoresSlow, siphonDrains, frozenNoDrain, siphonFloors };
     });
     check('bosses below wave 20 stay vanilla (no archetype)', r.vanillaEarly);
     check('archetype rotation at w20/25/30/35/40 (regen→summoner→bulwark→…)', r.rotation);
@@ -2624,6 +2642,9 @@ async function main() {
     check('juggernaut boss is immune to freeze (still advances while frozen)', r.juggIgnoresFreeze);
     check('control: a frozen non-juggernaut boss stays pinned', r.frozenBossStays);
     check('juggernaut boss shrugs off frost slow (slow cleared)', r.juggIgnoresSlow);
+    check('siphon boss drains the player\'s gold while alive', r.siphonDrains);
+    check('freezing a siphon boss pauses its gold drain', r.frozenNoDrain);
+    check('siphon drain is floored at 0 (never negative)', r.siphonFloors);
 
     // Each archetype boss is still KILLABLE — inject one of each at modest HP, co-located
     // with a god tower at a real path point (pointAt(d) returns proper {x,y}; raw
@@ -2634,7 +2655,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2657,6 +2678,7 @@ async function main() {
     check('berserker boss is killable', killable.berserker.died, `guard=${killable.berserker.guard}`);
     check('disruptor boss is killable', killable.disruptor.died, `guard=${killable.disruptor.guard}`);
     check('juggernaut boss is killable', killable.juggernaut.died, `guard=${killable.juggernaut.guard}`);
+    check('siphon boss is killable', killable.siphon.died, `guard=${killable.siphon.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -3298,6 +3320,7 @@ async function main() {
         berserker: bossMechanicBadge(mk({ bossType:'berserker' })),
         disruptor: bossMechanicBadge(mk({ bossType:'disruptor' })),
         juggernaut: bossMechanicBadge(mk({ bossType:'juggernaut' })),
+        siphon: bossMechanicBadge(mk({ bossType:'siphon' })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3316,6 +3339,7 @@ async function main() {
     check('berserker badge labelled BERSERK (crimson)', r.berserker && r.berserker.label === 'BERSERK' && r.berserker.c === '255,106,106', JSON.stringify(r.berserker));
     check('disruptor badge labelled DISRUPTOR (cyan)', r.disruptor && r.disruptor.label === 'DISRUPTOR' && r.disruptor.c === '125,249,255', JSON.stringify(r.disruptor));
     check('juggernaut badge labelled UNSTOPPABLE (steel)', r.juggernaut && r.juggernaut.label === 'UNSTOPPABLE' && r.juggernaut.c === '192,200,214', JSON.stringify(r.juggernaut));
+    check('siphon badge labelled SIPHON (gold)', r.siphon && r.siphon.label === 'SIPHON' && r.siphon.c === '227,179,65', JSON.stringify(r.siphon));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

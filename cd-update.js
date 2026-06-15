@@ -183,6 +183,8 @@ function update(dt) {
     //                timer) — a coverage gap roams with it, pressuring tower uptime, not HP
     //   juggernaut : immune to freeze/slow (cleared unconditionally above, before slowMul) — a
     //                CC pressure axis; freeze/frost can't lock it down, so it needs raw DPS
+    //   siphon     : drains the player's GOLD every ~3.5s while alive (floored at 0) — a fresh
+    //                ECONOMIC pressure axis (no other archetype touches gold); kill it fast or it bleeds you
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
     // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
@@ -266,6 +268,26 @@ function update(dt) {
             addExplosion(e.x, e.y, '#7df9ff', 6, 90);
             SFX.zap();
             shake = Math.max(shake, 5);
+          }
+        }
+      } else if (e.bossType === 'siphon') {
+        // Gold leech (v1.71.0): every ~3.5s the boss drains a small, wave-scaled amount of the
+        // player's GOLD while it's alive — a fresh ECONOMIC pressure axis (no other archetype
+        // touches gold), on-theme with the recurring "money from the first 10 rounds" snowball
+        // feedback (you can't farm out of trouble while it's on the field). Bounded: floored at 0
+        // (never negative, so it can't soft-lock — kills still pay bounty), one pulse/3.5s, and
+        // freeze pauses it (gated block). Run-only timer, never persisted.
+        e.siphonCd = (e.siphonCd == null ? 3.5 : e.siphonCd) - dt;
+        if (e.siphonCd <= 0) {
+          e.siphonCd = 3.5;
+          if (gold > 0) {
+            const steal = Math.min(gold, 6 + Math.floor(wave * 0.4));
+            gold -= steal;
+            addFloater(e.x, e.y - 26, `-${steal}💰`, '#e3b341', 15);
+            addExplosion(e.x, e.y, '#e3b341', 8, 95);
+            SFX.siphon();
+            shake = Math.max(shake, 5);
+            updateHud();
           }
         }
       }

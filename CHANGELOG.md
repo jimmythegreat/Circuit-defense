@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.71.0 — 2026-06-15 — 💰 Siphon — 9th boss archetype (drains your gold)
+
+**Type:** New content (boss archetype). Minor bump. Run-only, save-safe.
+
+**What:** A 9th boss archetype, **💰 Siphon**, joins the wave-20+ rotation. While a Siphon boss is alive it **drains the player's gold every ~3.5s** (a small, wave-scaled amount: `6 + floor(wave·0.4)`), shown as a gold `-N💰` pop over the boss with a draining sound (`SFX.siphon()`) and a small shake. Cycle now `(w/5−4) % 9` → `regen → summoner → bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon` (w60 → siphon, w65 wraps to regen). The cycle reads `BOSS_ARCHETYPES.length`, so adding it to the array + its handlers was enough.
+
+**Why:** The 8 existing archetypes harden the late game through HP/heal, adds, shields, haste, blink, accel, tower-EMP, and CC-immunity — **none touched the player's economy**, which is the owner's #1 recurring "too easy / money snowballs early" complaint. Siphon opens that fresh **economic-pressure axis**: you can't farm your way through a tough boss wave, and the answer is to **kill it fast** before it bleeds you (rewards focused fire / burst). Distinct from every other archetype.
+
+**Bounded / fair:** the drain is **floored at 0** (never negative → can't soft-lock; kills still pay full bounty), fires **once per ~3.5s**, and like every boss mechanic a **Time Freeze pauses it** (gated block). No extra HP or speed — purely the gold bleed. It can never make a run *easier*.
+
+**Render:** gold aura ring (`227,179,65`) + a `SIPHON` boss-bar badge (`bossMechanicBadge()`), colour-matched.
+
+**Files:** `BOSS_ARCHETYPES` + comment (`cd-game.js`); `siphon` tick branch + comment (`cd-update.js`); `SFX.siphon()` (`cd-core.js`); badge + aura colour + comment (`cd-render.js`). All archetype fields are run-only / lazily initialised — **no save/schema/economy-baseline change** (old saves unaffected; cooldowns never persisted).
+
+**Tests:** group `[45]` extended — rotation now asserts `w60→siphon, w65→regen`; new checks that a siphon boss drains gold, that freezing it pauses the drain, that the drain floors at 0, and that it's killable. Group `[53]` extended — `SIPHON` (gold) badge. Suite green.
+
 ## v1.70.1 — 2026-06-15 — 🩺 Health check — all green (823/0, docs coherent, no drift)
 
 **Type:** Health check (every 6th run — no new feature). Patch bump.

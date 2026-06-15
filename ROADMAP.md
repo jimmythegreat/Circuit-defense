@@ -244,8 +244,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       HP/speed (base 0.45× boss speed → bounded/beatable); steel-grey aura ring + UNSTOPPABLE badge. Cycle now
       `(w/5−4)%8` (w55→juggernaut, w60→regen). Run-only/save-safe, behaviour-not-HP, no tunable number (CC immunity
       is binary, can't make a run *easier*). Test [45] (rotation + freeze-immune + control + slow-cleared + killable) + [53] (badge).
+      ✅ **9th archetype shipped v1.71.0 — 💰 Siphon** (drains your gold): from wave 20+ (w60 in the cycle, then every
+      9th boss) it bleeds `min(gold, 6 + floor(wave·0.4))` gold every ~3.5s while alive (`siphonCd` in cd-update.js,
+      floored at 0 + `-N💰` floater + `SFX.siphon()` + small shake). The **first ECONOMIC-pressure archetype** (no other
+      touches gold) — on-theme with the recurring "money snowballs early" feedback (can't farm out of a tough boss wave;
+      kill it fast). Bounded/save-safe: floors at 0 (no soft-lock, kills still pay bounty), freeze pauses it (gated block),
+      no extra HP/speed. Gold aura ring + SIPHON badge. Cycle now `(w/5−4)%9` (w60→siphon, w65→regen). Run-only. Test [45]
+      (rotation + drains-gold + freeze-pauses + floors-at-0 + killable) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      a 9th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      a 10th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -446,7 +453,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (0.7/0.5 asymptotes to +40%; +25.6% at w50), so it can't move past ~0.625; **lowering the
       archetype threshold w20 → w15** breaks test `[45]`'s "bosses below wave 20 stay vanilla"
       (deliberate tutorial-boss design). Remaining open levers if still too easy late: another boss
-      **archetype** (8 as of v1.56.0), the Frost/booster snowball item below, the boss armor slope
+      **archetype** (9 as of v1.71.0), the Frost/booster snowball item below, the boss armor slope
       again (now at `0.5`; further bumps ≤25%/run), or — needs sign-off — rebaselining the boss-HP
       invariant. Simulate before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`
