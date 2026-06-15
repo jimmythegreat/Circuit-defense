@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.65.0 — 2026-06-14 — 💀 Reaper — new legendary perk (execute non-boss enemies below 12% HP)
+
+**Type:** New content (legendary perk). Minor bump.
+
+**Pre-flight:** `git pull` clean (already up to date). No revert/veto commits since the last entry — the Vetoed section stands. Health-check counter: the previous health check was v1.60.1; since then v1.61.0 / v1.62.0 / v1.63.0 / v1.64.0 → this is normal run **#5** of the cycle, so a feature run (the **next** run, the 6th, will be the health check). FEEDBACK.md PENDING holds one `[low priority]` item (start-menu revamp, four slices shipped); the routine lets low-priority items be skipped, so I chose my own work. Recent runs leaned difficulty-side (breacher, boss armor); this one diversifies to the **player build-variety** side with a new legendary perk — the owner explicitly enjoys "a weird legendary perk" surprise — while keeping it bounded so it doesn't undercut the "too easy" difficulty work.
+
+**What changed.** Added **💀 Reaper** (legendary) to `PERKS` in `cd-defs.js`: an **execute** mechanic. When a tower hit drops a **non-boss** enemy below **12% of its max HP**, the enemy is instantly destroyed (a `💀 EXECUTE` floater pops). Implemented as a small block in `damage()`'s kill path (`cd-update.js`) — *not* in `effDmg()` — so it routes through the normal death path (combo / bounty / Overkill all credit correctly) and **doesn't churn the upgrade panel** (a combo/effDmg-based scaler would rebuild the panel every kill). Gated `perkState.reaper && e.kind!=='boss' && !fromOverkill` so **bosses are exempt** (the real difficulty axis is untouched) and an Overkill *splash* hit can't trigger an execute (single-layer). The executed remainder is credited to the firing tower's `dealt` (MVP accounting). `reaper:false` added to `freshPerkState()`.
+
+**Why bounded / "too easy"-safe.** It only shaves the last ≤12% off trash you'd have killed a beat later, so the effective non-boss DPS gain is ≤~12% — well below Diamond Core's flat +30% — and **zero** on bosses. As a legendary it's an 8%-draft → 1-of-14-legendaries pick, so it's rare. It pairs nicely with high-rate / chip-damage builds (which struggle to land a finishing blow but love chipping a swarm to the execute line) and with Overkill (an execute can chain an Overkill detonation). `resolveWildcard()` auto-includes it (any un-taken legendary) — no change needed there.
+
+**Save-safe.** `reaper` lives inside `perkState` (added to `freshPerkState()`, default `false`), persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)` — old saves default `false`. No new localStorage key, no economy/schema/balance-of-existing-systems impact.
+
+**Tests.** New group **[75]** (Reaper): execute fires below 12% and not at/above it; bosses exempt; off by default / no execute without the perk; `fromOverkill` splash doesn't execute; save→load round-trips the flag; `resolveWildcard` can roll it. Full suite green (subagent-run). Diff reviewed by a second subagent for guardrails (save compat, scope, theme).
+
+**Files:** `cd-defs.js` (perk + `freshPerkState`), `cd-update.js` (execute block in `damage()`), `cd-core.js` (`GAME_VERSION` + What's-New entry), `sw.js` (cache bump), `tests/run-tests.mjs` ([75]), docs.
+
+---
+
 ## v1.64.0 — 2026-06-14 — 🛡 Boss armor slope — late-game bosses harden (anti-armor builds rewarded)
 
 **Type:** Balance (late-game difficulty). Minor bump (behaviour change, no new content/UI).

@@ -474,6 +474,15 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   e.hp -= actual;
   if (!silent) e.flash = 0.08;
   if (src) src.dealt += applied;
+  // Reaper legendary (v1.65.0): execute a non-boss enemy that survives this hit but sits below
+  // 12% of its max HP — zero its HP so the normal death path below fires (combo/bounty/Overkill
+  // all credit correctly). Bosses are exempt (bounded), and Overkill-splash hits (fromOverkill)
+  // don't execute, keeping it single-layer. Credit the executed remainder to the firing tower.
+  if (perkState.reaper && e.hp > 0 && e.kind !== 'boss' && !fromOverkill && e.hp < e.maxHp * 0.12) {
+    if (src) src.dealt += e.hp;
+    e.hp = 0;
+    if (!silent) addFloater(e.x, e.y - 22, '💀 EXECUTE', '#ff5252', 13);
+  }
   if (e.hp <= 0) {
     e.dead = true;
     kills++;

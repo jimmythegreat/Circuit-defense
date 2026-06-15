@@ -4664,6 +4664,110 @@ async function main() {
     await page.close();
   }
 
+  // [75] Reaper legendary perk — execute non-boss enemies below 12% HP (v1.65.0)
+  console.log('\n[75] Reaper execute perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // perk exists in the pool and is a legendary; apply() sets the flag
+      const def = PERKS.find(p => p.id === 'reaper');
+      const inPool = !!def && def.rarity === 'legendary';
+      perkState.reaper = false;
+      def.apply(perkState);
+      const applies = perkState.reaper === true;
+
+      // freshPerkState default
+      const defaultsOk = freshPerkState().reaper === false;
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:200, frozen:0, slow:0, flash:0,
+        warded:0, shieldOn:false, blinkInvuln:0, x:0, y:0, r:11, armor:0, bounty:1,
+        color:'#3fb950', dealt:0
+      }, opts || {});
+
+      perkState.reaper = true;
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+
+      // --- a small hit that leaves the enemy below 12% executes it ---
+      const lowE = mk({ maxHp:100, hp:15 });        // 15-5=10 -> 10 < 12 -> execute
+      enemies.push(lowE);
+      const src = { dealt:0, kills:0 };
+      damage(lowE, 5, src);
+      const lowDied = lowE.dead === true && lowE.hp <= 0;
+      const credited = src.dealt >= 15;             // 5 applied + 10 executed remainder
+
+      // --- a hit that leaves it at/above 12% does NOT execute ---
+      enemies.length = 0;
+      const highE = mk({ maxHp:100, hp:20 });       // 20-5=15 -> 15 > 12 -> survives
+      enemies.push(highE);
+      damage(highE, 5, null);
+      const highSurvived = highE.dead !== true && Math.abs(highE.hp - 15) < 1e-6;
+
+      // --- bosses are exempt: a boss left below 12% is NOT executed ---
+      enemies.length = 0;
+      const bossE = mk({ kind:'boss', maxHp:100, hp:15 });
+      enemies.push(bossE);
+      damage(bossE, 5, null);
+      const bossSurvived = bossE.dead !== true && Math.abs(bossE.hp - 10) < 1e-6;
+
+      // --- off when the perk isn't held: a low hit just chips, no execute ---
+      perkState.reaper = false;
+      enemies.length = 0;
+      const offE = mk({ maxHp:100, hp:15 });
+      enemies.push(offE);
+      damage(offE, 5, null);
+      const offNoExec = offE.dead !== true && Math.abs(offE.hp - 10) < 1e-6;
+
+      // --- Overkill-splash hits (fromOverkill=true) don't execute (single layer) ---
+      perkState.reaper = true;
+      enemies.length = 0;
+      const splashE = mk({ maxHp:100, hp:11 });     // 11-5=6 -> below 12, but fromOverkill skips
+      enemies.push(splashE);
+      damage(splashE, 5, null, true, true, true);   // silent, ignoreArmor, fromOverkill
+      const splashNoExec = splashE.dead !== true && Math.abs(splashE.hp - 6) < 1e-6;
+
+      // save -> restore round-trip of the flag
+      perkState.reaper = true; saveRun();
+      perkState.reaper = false; loadRun();
+      const restored = perkState.reaper === true;
+      // old save missing the field migrates to default false
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.reaper;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.reaper === false;
+
+      // resolveWildcard can roll Reaper (un-taken legendary eligible)
+      runPerks.length = 0;
+      let wildcardCanRoll = false;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'reaper') wildcardCanRoll = true;
+      }
+
+      enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inPool, applies, defaultsOk, lowDied, credited, highSurvived,
+               bossSurvived, offNoExec, splashNoExec, restored, migratedOk, wildcardCanRoll };
+    });
+    check('Reaper is a legendary perk in the pool', r.inPool);
+    check('Reaper apply() sets the perkState flag', r.applies);
+    check('freshPerkState defaults reaper:false', r.defaultsOk);
+    check('Reaper executes a non-boss enemy below 12% HP', r.lowDied);
+    check('the executed remainder is credited to the firing tower', r.credited);
+    check('Reaper does NOT execute an enemy at/above 12% HP', r.highSurvived);
+    check('bosses are exempt from Reaper execute', r.bossSurvived);
+    check('no execute when Reaper is not held', r.offNoExec);
+    check('Overkill-splash hits do not execute (single layer)', r.splashNoExec);
+    check('save/reload round-trips the Reaper flag', r.restored);
+    check('old save missing reaper migrates to default', r.migratedOk);
+    check('resolveWildcard can roll Reaper', r.wildcardCanRoll);
+    check('no console errors during Reaper test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

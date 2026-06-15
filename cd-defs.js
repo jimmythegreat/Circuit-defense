@@ -269,6 +269,14 @@ const PERKS = [
   // mechanic. Single-layer (the splash never re-detonates, see the `fromOverkill` guard in
   // damage()), so it's bounded — you still must land the killing blow on each "seed" enemy.
   { id:'overkill',rarity:'legendary',icon:'💢', name:'Overkill',         desc:'Slain enemies detonate (25% max-HP splash)', apply:s=>s.overkill = true },
+  // Reaper (v1.65.0): an EXECUTE mechanic — any non-boss enemy dropped below 12% of its max HP
+  // by a tower hit is instantly slain, skipping the long tail of each kill. Deliberately
+  // bounded & "too easy"-safe: bosses (the real difficulty axis) are exempt, and it only
+  // shaves the last sliver of HP off trash, so it's a modest, chunky DPS boost (well below
+  // Diamond Core's flat +30%) that FEELS great on a weakened swarm. Implemented in damage()'s
+  // kill path (not effDmg) so the upgrade panel doesn't churn; routes through the normal death
+  // path so combo/bounty/Overkill all fire. The Wildcard perk can roll it.
+  { id:'reaper',  rarity:'legendary',icon:'💀', name:'Reaper',           desc:'Instantly slay non-boss enemies below 12% HP', apply:s=>s.reaper = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -276,7 +284,7 @@ function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
-    glassCannon:false, overkill:false };
+    glassCannon:false, overkill:false, reaper:false };
 }
 function ascendTowers() {
   for (const t of towers) {

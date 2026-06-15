@@ -164,6 +164,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       cascade), bosses excluded, scales with enemy max HP so it stays relevant late, pairs with the
       combo meter. `overkill` flag in `perkState`/`freshPerkState()` (save-safe); detonation block in
       `damage()`'s kill path (cd-update.js). Wildcard rolls it automatically. Test [70].
+      ✅ **Reaper shipped v1.65.0** — 💀 **Reaper** (legendary): an **execute** — a non-boss enemy
+      knocked below **12%** of its max HP by a tower hit is instantly slain (💀 EXECUTE pop). Routes
+      through the normal death path (combo/bounty/Overkill all fire), implemented in `damage()` *not*
+      `effDmg()` (no panel churn). Bounded/"too easy"-safe: **bosses exempt**, only shaves the kill tail
+      (≤~12% non-boss DPS, well below Diamond Core's +30%); single-layer (an Overkill-splash hit can't
+      execute, `fromOverkill` guard). `reaper` flag in `perkState`/`freshPerkState()` (save-safe); Wildcard
+      rolls it. Test [75]. Still open: maybe a *hidden unlock condition* for a secret legendary.
 - [x] **New quick-play map: "Gauntlet"** — shipped **v1.54.0**. A 4th hand-crafted quick map
       (`MAPS.gauntlet` in cd-maps.js, before Mayhem) — a 12-point axis-aligned switchback that
       funnels enemies through a dense central kill-box (closely-spaced vertical runs at x=300/480/660),
