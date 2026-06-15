@@ -3,6 +3,47 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.78.0 — 2026-06-15 — ⏱️ Speed bonus — fast victories score higher
+
+**Type:** Feature / scoring. Minor bump.
+
+**What & why.** Added a **speed multiplier** to the end-of-run score (`computeScore()`, cd-update.js).
+When the original scoring system shipped (v1.16.0) the owner asked it to weigh "kill time, remaining gold,
+using fewer towers" — gold and tower-count (efficiency) went in, but **kill time couldn't**, because the
+game had no clock. The **run timer landed in v1.74.0** (`gameTime`, accumulated in `update()`, persisted in
+`cd_save`), so this finally wires the missing axis: a **win** finished under par scores up to **+25%**,
+tapering linearly to +0% **at** par and clamped to +0% beyond it. It is a **pure carrot, never a stick** —
+a slow/turtle win is never penalised, only a fast one rewarded — which keeps it from being a balance lever
+(it's score-only / cosmetic, like the rest of the scoring). Pairs naturally with the ⏱️ Speed Demon
+achievement (v1.74.0) and gives score-chasers a reason to lean on the concurrent-wave rush.
+
+**Formula.** `spdMult = (victory && gameTime > 0) ? 1 + 0.25 · clamp((par − gameTime) / par, 0, 1) : 1`,
+with `par = victoryWave() · 20` seconds (≈600s for a 30-wave Quick win, ≈300s for campaign L1, ≈1080s for
+L40 — so it scales fairly across modes/lengths). `score = raw · diffMult · effMult · **spdMult**`. Applies
+only on a victory with logged time; a loss (no meaningful finish time) and a 0-time edge (never ran
+`update()`) both get `spdMult = 1` (no bonus, rather than the full one).
+
+**Surfaced.** When the bonus applies (`spdMult > 1`), `scoreBreakdownHtml()` adds a `× Speed (M:SS clear)`
+row to the collapsible end-screen breakdown, beside `× Difficulty` and `× Efficiency`. Hidden otherwise so
+losses/slow wins don't show a redundant ×1.00 row.
+
+**Implementation (additive, cosmetic — no save/economy/balance impact).**
+- `computeScore()` (cd-update.js): compute `par`/`spdMult`, multiply into `score`, add `spdMult` to the
+  returned object.
+- `scoreBreakdownHtml()` (cd-update.js): conditional `× Speed` row.
+- No new globals, no new localStorage key (reuses the already-persisted `gameTime`); old saves unaffected.
+
+**Tests.** Extended group **[31]** (8 new assertions): half-par win → +12.5%, at-par → +0%, over-par
+clamps to +0% (never a penalty), a fast win out-scores the same win at par, a slow win equals par (no
+penalty), a loss never gets the bonus, and the breakdown shows/hides the `× Speed` row correctly. Existing
+[31] assertions unchanged (the defeat/victory sub-runs log `gameTime = 0`, so `spdMult = 1` and their
+documented scores are byte-identical). Spawned a subagent to run the full suite; green, zero console errors.
+
+**Bump:** GAME_VERSION → v1.78.0, sw.js CACHE → circuit-defense-v1.78.0. The low-priority start-menu-revamp
+FEEDBACK item remains PENDING (left as-written per owner pref).
+
+---
+
 ## v1.77.0 — 2026-06-15 — 🔥 Molten — new CC-immune enemy (counters the Frost snowball)
 
 **Type:** Content / enemy type. Minor bump.

@@ -1598,11 +1598,29 @@ async function main() {
       const winNewBest = !!document.querySelector('.ovScoreNum .best.newbest');
       const winBest = +localStorage.getItem('cd_bestscore');
       backToMenu();
+
+      // --- Speed bonus (v1.78.0): a fast VICTORY scores higher, up to +25%, tapering to +0% at par.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      wave = victoryWave(); kills = 0; lives = 0; gold = 0; comboBest = 0; towers = []; victory = true;
+      const par = victoryWave() * 20;
+      gameTime = par * 0.5;  const fast  = computeScore();   // half par → +12.5%
+      gameTime = par;        const atPar = computeScore();   // at par   → +0%
+      gameTime = par * 2;    const slow  = computeScore();   // over par → clamped +0% (never a penalty)
+      // A loss never gets the bonus, regardless of how fast it ended.
+      victory = false; gameTime = par * 0.1; const lossNoBonus = computeScore().spdMult;
+      // Breakdown surfaces the × Speed row only when the bonus applies.
+      victory = true; gameTime = par * 0.5;
+      const breakHasSpeed = scoreBreakdownHtml(computeScore()).includes('× Speed');
+      victory = false; gameTime = par; const breakNoSpeed = scoreBreakdownHtml(computeScore()).includes('× Speed');
+      gameTime = 0; victory = false; backToMenu();
       ['cd_bestscore', 'cd_best_classic_normal', 'cd_best_classic_hard',
        'cd_best_normal', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
       return { scOk: sc.score === expected, scScore: sc.score, expected, scored, grade,
                numLen: numText.length, gridCells, bestPersisted, newBestShown,
-               winGrade, winNewBest, winBest };
+               winGrade, winNewBest, winBest,
+               spdFast: fast.spdMult, spdAtPar: atPar.spdMult, spdSlow: slow.spdMult,
+               fastBeatsPar: fast.score > atPar.score, parEqualsSlow: atPar.score === slow.score,
+               lossNoBonus, breakHasSpeed, breakNoSpeed };
     });
     check('computeScore() matches the documented formula', r.scOk, `got ${r.scScore}, want ${r.expected}`);
     check('overlay gains the .scored class (score UI shown)', r.scored);
@@ -1614,6 +1632,15 @@ async function main() {
     check('flawless victory grades S', r.winGrade === 'S', r.winGrade);
     check('higher-scoring victory flags a new best', r.winNewBest);
     check('best score updates to the higher victory score', r.winBest > r.expected, String(r.winBest));
+    // Speed bonus (v1.78.0)
+    check('fast victory (half par) gives +12.5% speed bonus', Math.abs(r.spdFast - 1.125) < 1e-9, String(r.spdFast));
+    check('victory at par gives no speed bonus', r.spdAtPar === 1, String(r.spdAtPar));
+    check('victory over par clamps to no bonus (never a penalty)', r.spdSlow === 1, String(r.spdSlow));
+    check('a fast win scores higher than the same win at par', r.fastBeatsPar);
+    check('a slow win scores the same as one at par (no penalty)', r.parEqualsSlow);
+    check('a loss never gets the speed bonus', r.lossNoBonus === 1, String(r.lossNoBonus));
+    check('breakdown shows × Speed row when bonus applies', r.breakHasSpeed);
+    check('breakdown hides × Speed row when no bonus', !r.breakNoSpeed);
     check('no console errors during scoring test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

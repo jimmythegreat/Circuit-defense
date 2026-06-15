@@ -915,6 +915,17 @@ function computeScore() {
   const nt = towers.length;
   // Efficiency: a clean clear with few towers beats a 30-tower zerg. ≤10 towers → up to +30%.
   const effMult = nt > 0 ? 1 + Math.max(0, 10 - nt) * 0.03 : 1;
+  // Speed bonus (v1.78.0, the owner-invited "kill time" axis — the run timer landed v1.74.0):
+  // a VICTORY finished under par scores higher, up to +25%, tapering linearly to +0% AT par and
+  // staying +0% beyond it (never a penalty — a slow/turtle win is never punished, only a fast one
+  // rewarded). par scales with the run's victory-wave count (victoryWave()×20s ≈ 600s for a 30-wave
+  // quick win, ~300s for campaign L1, ~1080s for L40), so it's fair across modes/lengths. Only
+  // applies on a win with logged time (gameTime>0) — a loss has no meaningful completion time, and
+  // a 0-time edge (never ran update()) gets no bonus rather than the full one.
+  const par = victoryWave() * 20;
+  const spdMult = (victory && gameTime > 0)
+    ? 1 + 0.25 * Math.max(0, Math.min(1, (par - gameTime) / par))
+    : 1;
   const parts = {
     wave: wave * 100,
     kills: kills * 5,
@@ -925,7 +936,7 @@ function computeScore() {
     victory: victory ? 2500 : 0,
   };
   const raw = parts.wave + parts.kills + parts.lives + parts.gold + parts.combo + parts.camp + parts.victory;
-  return { score: Math.max(0, Math.round(raw * diffMult * effMult)), parts, diffMult, effMult, nt };
+  return { score: Math.max(0, Math.round(raw * diffMult * effMult * spdMult)), parts, diffMult, effMult, spdMult, nt };
 }
 // Letter grade off how much of the run's victory target was reached (S = flawless win).
 function scoreGrade() {
@@ -974,6 +985,7 @@ function scoreBreakdownHtml(sc) {
   body += `<tr class="sub"><td>Subtotal</td><td>${fmtNum(subtotal)}</td></tr>`;
   body += `<tr><td>× Difficulty (${DIFFS[diffKey].name})</td><td>×${sc.diffMult}</td></tr>`;
   body += `<tr><td>× Efficiency (${sc.nt} tower${sc.nt === 1 ? '' : 's'})</td><td>×${sc.effMult.toFixed(2)}</td></tr>`;
+  if (sc.spdMult > 1) body += `<tr><td>× Speed (${fmtTime(gameTime)} clear)</td><td>×${sc.spdMult.toFixed(2)}</td></tr>`;
   body += `<tr class="tot"><td>Score</td><td>${fmtNum(sc.score)}</td></tr>`;
   return `<details class="ovBreak"><summary>Score breakdown</summary><table class="breakTbl">${body}</table></details>`;
 }

@@ -40,9 +40,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       and `fmtTime()` formats it (cd-game.js). Threshold sim-calibrated (sequential god rush ≈776s vs
       concurrent ≈272s → 420s demands concurrent-wave rushing); quick-only since campaign victory
       waves vary. Test [83]. **Follow-ups still open:** *toast/sound when a badge unlocks mid-menu*, a
-      **per-achievement chip reward** (would touch the chip economy — needs a balance pass first), and
-      now that a per-run clock exists, *an optional time-based component in `computeScore()`* (the owner
-      offered this in the v1.16.0 scoring feedback — "say the word for a speed/time component").
+      **per-achievement chip reward** (would touch the chip economy — needs a balance pass first).
+      ✅ **time-based score component shipped v1.78.0** — `computeScore()` now applies a `spdMult` speed
+      bonus (the owner-invited "kill time" axis from the v1.16.0 scoring feedback): a win under par
+      (`victoryWave()×20s`) scores up to +25%, tapering to +0% at par, never a penalty. Victory-only,
+      cosmetic, reuses the persisted `gameTime`. A `× Speed` row shows in the score breakdown. Test [31].
 - [x] **Endless-mode leaderboard / personal bests panel** — shipped v1.6.0. A
       🏆 Records start-screen panel shows highest wave per quick-mode map ×
       difficulty (new additive `cd_best_<map>_<diff>` keys), an "Any map" row from
