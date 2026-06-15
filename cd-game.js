@@ -184,6 +184,18 @@ function buildWave(w) {
     // owner flagged as "too easy"), without inflating the invariant-capped HP curve or economy.
     // Moderate HP + slow speed keep it stoppable: only a real coverage gap lets one through.
     if (w >= 17 && i % 12 === 11) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
+    // Molten (v1.77.0): a CC-IMMUNE regular enemy from wave 12+ in ALL modes. It sets
+    // ccImmune:true, reusing the Heatwave/Juggernaut infrastructure — the `if (e.ccImmune)`
+    // line in update() clears its frozen/slow every frame (before slowMul), and render draws
+    // the warm-orange cue ring — so the Freeze ability and Frost towers can't slow or freeze
+    // it: it plows down the path at full speed. A fresh difficulty axis for a REGULAR enemy
+    // (CC-immunity previously lived only on the w55+ Juggernaut boss and the Mayhem-only
+    // Heatwave mod), specifically checking the documented Frost/booster snowball in Classic &
+    // Campaign — the modes the owner flagged "too easy" — not just Mayhem/late bosses. Bounded:
+    // moderate HP (×1.35), normal speed, no other trick, so it can't make a run easier — it
+    // just demands real DPS instead of perma-slow. Run-only (enemies are never persisted). As
+    // the LAST regular-kind if it wins its slot on a collision.
+    if (w >= 12 && i % 13 === 6) e = { kind:'molten', hp:t.hp*1.35, spd:t.speed, r:12, bounty:Math.ceil(t.bounty*1.6), color:'#e8482e', armor:0, gap:0.75, ccImmune:true };
     // Warden Surge (Mayhem): convert a fraction of would-be basic enemies into warden
     // escorts so the wave is densely shielded — pressures TARGET PRIORITY (pop the
     // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
@@ -263,9 +275,10 @@ function waveComposition(w) {
     if (w >= 13 && i % 6  === 5) k = 'phantom';
     if (w >= 15 && i % 11 === 10) k = 'warden';
     if (w >= 17 && i % 12 === 11) k = 'breacher';
+    if (w >= 12 && i % 13 === 6) k = 'molten';   // LAST, mirrors buildWave (molten wins its slot)
     tally[k] = (tally[k] || 0) + 1;
   }
-  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher'];
+  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher','molten'];
   const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;
@@ -277,7 +290,7 @@ function waveComposition(w) {
 // difficulty and campaign level automatically. The per-kind HP multipliers + the boss multiplier
 // MIRROR buildWave() — KEEP IN SYNC if those change. Like waveComposition, this is the pre-mod
 // base (Mayhem wave-mods like swarm/titans aren't rolled yet), so it's a planning estimate.
-const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0 };
+const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0, molten:1.35 };
 function waveThreat(w) {
   const t = enemyTemplate(w);
   let total = 0;

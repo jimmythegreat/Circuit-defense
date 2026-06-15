@@ -489,6 +489,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       **leak-cost** axis: if it reaches the exit it drains **2 lives, not 1** (the leak site now
       reads `e.lifeCost`). Pressures **coverage** in Classic/Campaign too, off the invariant-capped
       HP curve and the economy; bounded (slow + only moderately tanky, you control leaks). Test [74].
+      **v1.77.0 added the 🔥 Molten enemy (w12+, ALL modes)** — a **CC-immune** regular enemy
+      (`ccImmune:true`, ×1.35 HP, normal speed) that the Freeze ability + Frost slow can't touch
+      (reuses the Heatwave/Juggernaut clear-line + cue ring). Brings CC-immunity — previously only on
+      the w55+ Juggernaut boss + the Mayhem-only Heatwave mod — to a normal enemy in Classic/Campaign,
+      directly checking the documented Frost/booster snowball (a freeze-everything build leaks Moltens
+      without real DPS). Bounded (no HP spike, normal speed → can't make a run easier). Test [86].
       **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
       (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
       hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is
@@ -528,8 +534,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       then `52→45` (v1.24.3, final slice) — `45 = 90×0.5`, the **literal halving complete**;
       cumulative coverage area is now 25% of the original (45²/90²), so a single booster reaches
       far fewer towers, hitting the solo-carry from the coverage side (Test [39]; FEEDBACK item
-      now closed). **Remaining power levers** (≤25%
-      each, sim first): trim **Frost Mastery**'s per-rank dmg, or add a **booster aura
+      now closed). **v1.77.0 added a soft check from the enemy side:** the 🔥 Molten enemy (w12+,
+      ALL modes) is CC-immune, so a freeze/frost-reliant build can't stall it — it must out-damage it.
+      Bounded (no HP spike) so it nudges rather than nerfs the snowball. Test [86]. **Remaining power
+      levers** (≤25% each, sim first): trim **Frost Mastery**'s per-rank dmg, or add a **booster aura
       soft-cap** if a single super-booster still solo-carries. Don't gut any single build.
 - [~] **Interest/economy curve review** — verify gold pacing across difficulties
       with the harness. Tie to the difficulty work above: the owner's "money from

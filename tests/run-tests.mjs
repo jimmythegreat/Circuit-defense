@@ -4806,7 +4806,9 @@ async function main() {
       setMod(null);
       const plainWave = buildWave(20);          // w20 -> includes a boss
       const plainNorm = plainWave.find(e => e.kind === 'norm');
-      const plainTagged = plainWave.some(e => e.ccImmune);
+      // (Molten enemies are intrinsically ccImmune in any mode (v1.77.0), so the "mod off"
+      // baseline excludes them — the assertion is that no OTHER enemy is tagged.)
+      const plainTagged = plainWave.some(e => e.ccImmune && e.kind !== 'molten');
 
       // HEATWAVE: every enemy + the boss is tagged ccImmune; base stats untouched.
       setMod('heatwave');
@@ -4843,7 +4845,7 @@ async function main() {
 
       // Inert again when the mod is cleared.
       setMod(null);
-      const inertOff = buildWave(20).some(e => e.ccImmune) === false;
+      const inertOff = buildWave(20).some(e => e.ccImmune && e.kind !== 'molten') === false;
 
       enemies.length = 0; waveMod = null;
       backToMenu(); localStorage.removeItem('cd_save');
@@ -5603,6 +5605,81 @@ async function main() {
     check('a fission field fully clears in bounded frames (no cascade)', r.cleared);
     check('fission spawnlings really appear (total kills > originals)', r.multiplied, 'kills=' + r.kills);
     check('no console errors during Fission test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [86] Molten enemy — CC-immune regular enemy from wave 12+ in all modes (v1.77.0)
+  console.log('\n[86] Molten enemy (crowd-control immune)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w12, present from w12; tagged ccImmune; HP ≈ template×1.35
+      const w11 = buildWave(11).some(e => e.kind === 'molten');
+      const w12list = buildWave(12).filter(e => e.kind === 'molten');
+      const w12 = w12list.length;
+      const allImmune = w12list.every(e => e.ccImmune === true);
+      const t12 = enemyTemplate(12);
+      const hpOk = w12list[0] ? Math.abs(w12list[0].maxHp - t12.hp * 1.35) < 0.01 : false;
+
+      // (b) CC immunity: a molten in the live enemy loop has freeze + slow cleared every frame,
+      // so it keeps moving even when "frozen". A norm control stays frozen (does not move).
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const mk = (kind, extra = {}) => { const p = pointAt(pathLen * 0.4); return ({ kind,
+        hp:100, maxHp:100, spd:1, r:12, bounty:1, color:'#fff', armor:0, gap:0, dist:pathLen*0.4,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:5, poison:null, flash:0, px:0, py:0, ...extra }); };
+
+      const molten = mk('molten', { ccImmune:true });
+      enemies.push(molten);
+      const mBefore = molten.dist; update(1/60);
+      const moltenMoved = molten.dist > mBefore && molten.frozen === 0 && molten.slow === 0;
+
+      enemies.length = 0;
+      const norm = mk('norm');
+      enemies.push(norm);
+      const nBefore = norm.dist; update(1/60);
+      const normFrozen = norm.dist === nBefore && norm.frozen > 0;   // still frozen, did not move
+      enemies.length = 0;
+
+      // (c) preview/render plumbing: composition + glyph + colour + HP mult all know it,
+      // and the threat number stays in sync with the real buildWave() total at w12.
+      const compHasMolten = waveComposition(12).some(c => c.kind === 'molten');
+      const glyph = enemyGlyph({ kind:'molten', frozen:0 });
+      const frozenGlyph = enemyGlyph({ kind:'molten', frozen:1 });   // frozen overrides to ❄ (cosmetic)
+      const hasColor = !!PREVIEW_COLOR.molten;
+      const hpMult = KIND_HP_MULT.molten;
+      const threatOk = Math.abs(waveThreat(12) - buildWave(12).reduce((s,e)=>s+e.maxHp,0)) < 0.01;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (d) integration: a real wave-12+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 14 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w11, w12, allImmune, hpOk, moltenMoved, normFrozen, compHasMolten, glyph,
+               frozenGlyph, hasColor, hpMult, threatOk, run };
+    });
+    check('no moltens before wave 12', r.w11 === false);
+    check('moltens spawn from wave 12', r.w12 >= 1, 'count=' + r.w12);
+    check('every molten is tagged ccImmune', r.allImmune);
+    check('molten HP is template×1.35', r.hpOk);
+    check('a frozen molten shrugs off CC and keeps moving', r.moltenMoved);
+    check('a frozen normal stays frozen (control)', r.normFrozen);
+    check('waveComposition includes molten at wave 12', r.compHasMolten);
+    check('enemyGlyph returns 🔥 for molten', r.glyph === '🔥', 'glyph=' + r.glyph);
+    check('a frozen molten still shows the ❄ glyph (cosmetic)', r.frozenGlyph === '❄');
+    check('PREVIEW_COLOR has a molten colour', r.hasColor);
+    check('KIND_HP_MULT.molten is 1.35 (matches buildWave)', r.hpMult === 1.35, 'mult=' + r.hpMult);
+    check('waveThreat stays in sync with buildWave at w12 (molten counted)', r.threatOk);
+    check('wave-12+ run with moltens reaches w>=14 alive', r.run.wave >= 14 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during molten tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -821,7 +821,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

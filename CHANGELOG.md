@@ -3,6 +3,43 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.77.0 — 2026-06-15 — 🔥 Molten — new CC-immune enemy (counters the Frost snowball)
+
+**Type:** Content / enemy type. Minor bump.
+
+**What & why.** Added a new enemy kind — the **🔥 Molten** (`kind:'molten'`, `#e8482e`, glyph 🔥) —
+spawning from **wave 12+ in ALL modes** (Classic, Campaign, Mayhem). Its mechanic: it is **immune to
+crowd control**. It sets `ccImmune:true`, reusing the proven Heatwave/Juggernaut infrastructure — the
+`if (e.ccImmune) { e.frozen = 0; e.slow = 0; }` line in `update()` (cd-update.js) clears its CC every
+frame before `slowMul`, and the warm-orange cue ring in `draw()` (cd-render.js) already keys off
+`e.ccImmune` — so the Freeze ability and Frost towers can't slow or freeze it: it plows down the path
+at full speed. This is a **fresh difficulty axis for a regular enemy** — CC-immunity previously lived
+only on the w55+ Juggernaut boss and the Mayhem-only Heatwave wave-mod — and it directly answers the
+recurring **"too easy" / Frost-booster-snowball** feedback by putting a "you must actually KILL this,
+not just stall it" threat into **Classic & Campaign** (the modes the owner flagged as easiest), not
+just deep boss/Mayhem waves. **Bounded:** moderate HP (×1.35 of the wave template), normal speed, no
+other trick, so it can't make a run easier — it just demands real DPS instead of perma-slow.
+
+**Implementation (additive, save-safe — enemies are never persisted).**
+- `buildWave()` (cd-game.js): a new **last** regular-kind `if` (`w >= 12 && i % 13 === 6`) so it wins
+  its slot on a collision, mirroring the warden/breacher pattern. Tagged `ccImmune:true`.
+- `waveComposition()` + `KIND_HP_MULT.molten = 1.35` + the `order` array (cd-game.js) learn it, so the
+  bottom-left wave preview discs and the ⚔ threat number count it (drift-guarded by test [40]'s
+  `waveThreat === sum(buildWave.maxHp)` invariant).
+- `enemyGlyph` → 🔥, `GLYPH_FONT['🔥']`, `PREVIEW_COLOR.molten` (cd-render.js); colorblind legend row
+  (cd-update.js). The CC-immune cue ring comment updated to note it now also marks Molten enemies.
+
+**Tests.** New group **[86]** (14 assertions): wave-gating (none < w12, present ≥ w12), `ccImmune`
+tagging, HP = template×1.35, a frozen Molten shrugs off CC and keeps moving while a frozen norm stays
+put (control), composition/glyph/colour/HP-mult plumbing, the threat drift-guard at w12, and a god-tower
+w12+ integration run. Updated the **Heatwave [76]** baseline assertions to exclude intrinsically-immune
+Moltens (`e.ccImmune && e.kind !== 'molten'`). Suite **918/0** green, zero console errors.
+
+**Bump:** GAME_VERSION → v1.77.0, sw.js CACHE → circuit-defense-v1.77.0. No save/economy/schema impact.
+The low-priority start-menu-revamp FEEDBACK item remains PENDING (left as-written per owner pref).
+
+---
+
 ## v1.76.0 — 2026-06-15 — 🧫 Fission — 17th Mayhem wave modifier (slain enemies multiply)
 
 **Type:** Content / wave modifier. Minor bump.

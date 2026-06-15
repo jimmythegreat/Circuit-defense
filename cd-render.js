@@ -15,6 +15,7 @@ function enemyGlyph(e) {
     case 'phantom': return '👻';
     case 'warden': return '◈';
     case 'breacher': return '‼';
+    case 'molten': return '🔥';
     case 'fast': return colorblindAid ? '»' : '';
     case 'tank': return colorblindAid ? '◆' : '';
     default: return '';
@@ -24,14 +25,14 @@ function enemyGlyph(e) {
 // KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
 const PREVIEW_COLOR = {
   norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
-  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', boss:'#f85149',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', molten:'#e8482e', boss:'#f85149',
 };
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
   '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
-  '‼': 'bold 12px sans-serif',
+  '‼': 'bold 12px sans-serif', '🔥': '10px sans-serif',
 };
 // Boss-bar mechanic badge (v1.36.0): names the active boss archetype (v1.25.0/v1.34.0)
 // so the colour-coded aura ring isn't the only cue — colour matches the aura. Bulwark
@@ -448,9 +449,9 @@ function draw() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // Heatwave wave-mod cue (v1.66.0): a warm orange ring marks an enemy immune to slow/freeze
-    // this wave (so a player can see why their Frost towers aren't biting). Drawn dashed-bright
-    // to read as "running hot", distinct from the solid rings above.
+    // CC-immune cue (Heatwave wave-mod v1.66.0; Molten enemy v1.77.0): a warm orange ring marks
+    // any enemy immune to slow/freeze (the whole wave under Heatwave, or an individual 🔥 Molten
+    // enemy in any mode) so the player can see why their Frost towers aren't biting.
     if (e.ccImmune && !e.dead) {
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + 2, 0, Math.PI*2);
