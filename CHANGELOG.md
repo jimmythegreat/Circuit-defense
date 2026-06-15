@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.74.1 — 2026-06-15 — 🩺 Health check — all green (878/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.70.1: v1.71.0, v1.71.1, v1.72.0, v1.73.0, v1.74.0.)
+
+**Test suite:** **878/0 green, exit 0** (83 groups `[1]`–`[83]`), zero console errors. Run via subagent.
+
+**Refactor audit:** all seven game files comfortably under the ~1500-line cap — cd-update.js **1080** (largest, growing ~10–30 lines/feature run; watch but no action), cd-render.js 791, cd-game.js 754, cd-core.js 477, cd-defs.js 417, cd-maps.js 293, cd-state.js 192. tower-defense.html 154, tower-defense.css 518, sw.js 51. **No dead code, no debug logging, no TODOs** in any game file (the only `TODO` grep hits are the word inside past changelog bodies). The dev-only `tests/run-tests.mjs` is now **5,447 lines** (83 groups, 878 assertions) — by far the largest file in the repo; ROADMAP "Split the test harness file" note refreshed.
+
+**Docs coherence:** CLAUDE.md, ROADMAP.md, FEEDBACK.md verified against the code — every count and formula still matches: **8** towers, **9** boss archetypes (`['regen','summoner','bulwark','enrager','teleporter','berserker','disruptor','juggernaut','siphon']`), **16** Mayhem wave modifiers, **16** achievements, **6** targeting modes (`first/last/strong/close/weak/support`), **4** abilities, boss HP slope `14 + w*0.6`, boss armor slope `w*0.5`, enemy-HP curve `(18 + w*7 + 1.25·w^1.9)·1.80·d.hp·campScale`. `GAME_VERSION`, the CHANGELOG heading, and the `sw.js` cache const are all consistent at **v1.74.1**. No drift found.
+
+**Integrity spot-checks:** double-click `file://` playability intact — classic `<script src>` in dependency order (cd-core → maps → defs → state → game → update → render), no ES modules, inline SVG favicon, relative paths, SW registration http/https-guarded so it can't fire on `file://`. Old-save migration verified: `loadMeta()` defaults `talents/achievements/stats/dmg/runs/bestCombo` on a minimal `{chips}` save; `loadRun()` restores the new v1.74.0 `gameTime` field under a `typeof === 'number'` guard (old saves start at 0). Deploy workflow (`pages.yml`) still copies index.html + tower-defense.html + tower-defense.css + cd-*.js + the PWA trio as a static deploy; CI (`ci.yml`) runs the harness on push/PR.
+
+**Table-stakes audit:** checklist remains **complete** (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, 44px tap targets). Audio note: the `AudioContext` is created lazily inside user-gesture click handlers, so it starts in the running state — no explicit `resume()` needed; no gap.
+
+**Findings → ROADMAP (no fixes needed this run):** test-harness file size (logged, low priority); cd-update.js trending toward the cap (informational). No owner vetoes/reverts since last run.
+
 ## v1.74.0 — 2026-06-15 — ⏱️ Run timer & Speed Demon achievement
 
 **Type:** New feature (run clock + achievement). Minor bump. Additive, save-safe.
