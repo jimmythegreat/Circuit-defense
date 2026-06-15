@@ -147,8 +147,9 @@ const ABILITIES = {
   meteor: { name:'Meteor',    icon:'☄️', key:'Q', cd:30, desc:'Click map: massive AoE damage' },
   freeze: { name:'Time Freeze',icon:'🧊', key:'W', cd:45, desc:'Freeze ALL enemies for 4s' },
   rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection' },
+  shock:  { name:'Shockwave', icon:'🌀', key:'R', cd:50, desc:'Blast ALL enemies backward along the path' },
 };
-let abilityCd = { meteor: 0, freeze: 0, rush: 0 };
+let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0 };
 let armedAbility = null;
 
 function renderAbilityBar() {
@@ -198,6 +199,27 @@ function triggerAbility(k) {
     addFloater(W/2, H/2, `💰 +${amount} GOLD`, '#ffd866', 24);
     SFX.perk();
     updateHud();
+  }
+  if (k === 'shock') {
+    // Knock every enemy backward along the path (rewind progress) — a defensive
+    // repositioning tool, distinct from Freeze's in-place pause. Pure utility (no
+    // damage), so it can't power-creep the "too easy" feedback. Crowd-control-immune
+    // enemies (Heatwave wave-mod / Juggernaut boss) shrug it off, reinforcing the CC axis.
+    abilityCd.shock = ABILITIES.shock.cd * metaCdMult();
+    abilityUsedThisRun = true;
+    for (const e of enemies) {
+      if (e.x === undefined || e.dead) continue;
+      if (e.ccImmune || (e.kind === 'boss' && e.bossType === 'juggernaut')) continue;
+      const kb = e.kind === 'boss' ? 28 : 75;
+      e.dist = Math.max(0, e.dist - kb);
+      e.frozen = Math.max(e.frozen, 0.35);   // brief stagger
+      e.flash = 0.2;
+    }
+    addFloater(W/2, H/2, '🌀 SHOCKWAVE', '#b392ff', 26);
+    addExplosion(W/2, H/2, '#b392ff', 30, 240);
+    addExplosion(W/2, H/2, '#7d5cff', 18, 150);
+    shake = Math.max(shake, 14);
+    SFX.shock();
   }
   refreshAbilityBar();
 }

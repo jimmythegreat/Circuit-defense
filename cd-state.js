@@ -50,7 +50,7 @@ function resetState() {
   waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;
   selectedShop = null; selectedTower = null; gameOver = false; victory = false;
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
-  abilityCd = { meteor: 0, freeze: 0, rush: 0 };
+  abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0 };
   armedAbility = null;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
@@ -149,7 +149,7 @@ function loadRun() {
   if (s.mapTheme && (THEMES[s.mapTheme] || s.mapTheme === 'chaos')) mapTheme = s.mapTheme;
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;
-  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0}, s.abilityCd);
+  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0,shock:0}, s.abilityCd);
   for (const st of s.towers) {
     const def = TOWER_TYPES[st.type];
     if (!def) continue;

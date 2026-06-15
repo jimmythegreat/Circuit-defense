@@ -4841,6 +4841,82 @@ async function main() {
     await page.close();
   }
 
+  // [77] Shockwave ability — knock all enemies backward along the path (v1.67.0)
+  console.log('\n[77] Shockwave ability');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const def = ABILITIES.shock;
+      const inBar = !!def && def.key === 'R';
+      const cdInit = abilityCd.shock === 0;      // resetState initialised the field
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:300, frozen:0, slow:0, flash:0,
+        x:100, y:100, r:11, armor:0, bounty:1, color:'#3fb950', dealt:0
+      }, opts || {});
+
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      const norm    = mk({ dist:300 });
+      const nearEnd = mk({ dist:30 });                                      // clamps at 0 (kb 75 > 30)
+      const boss    = mk({ kind:'boss', dist:300 });                        // smaller knockback (28)
+      const jug     = mk({ kind:'boss', bossType:'juggernaut', dist:300 }); // CC-immune boss
+      const heat    = mk({ ccImmune:true, dist:300 });                      // CC-immune enemy
+      enemies.push(norm, nearEnd, boss, jug, heat);
+
+      abilityUsedThisRun = false;
+      triggerAbility('shock');
+
+      const normKnocked = Math.abs(norm.dist - 225) < 1e-6;       // 300 - 75
+      const nearClamped = nearEnd.dist === 0;                     // clamped, not negative
+      const bossKnocked = Math.abs(boss.dist - 272) < 1e-6;       // 300 - 28
+      const jugImmune   = jug.dist === 300;
+      const heatImmune  = heat.dist === 300;
+      const noDamage    = norm.hp === 100 && boss.hp === 100;     // pure utility, no damage
+      const onCd        = abilityCd.shock > 0;
+      const usedFlag    = abilityUsedThisRun === true;            // counts against Pacifist
+      const staggered   = norm.frozen >= 0.35 - 1e-9;
+
+      // cooldown gate: a second cast while cooling is a no-op
+      const distBefore = norm.dist;
+      triggerAbility('shock');
+      const cdGated = Math.abs(norm.dist - distBefore) < 1e-6;
+
+      // old save missing shock in abilityCd migrates to 0
+      saveRun();
+      let migratedOk = false;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      if (old && old.abilityCd) {
+        delete old.abilityCd.shock;
+        localStorage.setItem('cd_save', JSON.stringify(old));
+        loadRun();
+        migratedOk = abilityCd.shock === 0;
+      }
+
+      enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inBar, cdInit, normKnocked, nearClamped, bossKnocked, jugImmune, heatImmune,
+               noDamage, onCd, usedFlag, staggered, cdGated, migratedOk };
+    });
+    check('Shockwave is a 4th ability bound to R', r.inBar);
+    check('abilityCd.shock initialises to 0', r.cdInit);
+    check('Shockwave knocks a normal enemy back 75 along the path', r.normKnocked);
+    check('knockback clamps at 0 (no negative dist)', r.nearClamped);
+    check('a boss is knocked back a smaller distance (28)', r.bossKnocked);
+    check('a Juggernaut boss is immune to the knockback', r.jugImmune);
+    check('a CC-immune (Heatwave) enemy is immune to the knockback', r.heatImmune);
+    check('Shockwave deals no damage (pure utility)', r.noDamage);
+    check('Shockwave goes on cooldown after use', r.onCd);
+    check('Shockwave sets abilityUsedThisRun (counts vs Pacifist)', r.usedFlag);
+    check('Shockwave briefly staggers enemies', r.staggered);
+    check('a second cast while cooling is a no-op', r.cdGated);
+    check('old save missing abilityCd.shock migrates to 0', r.migratedOk);
+    check('no console errors during Shockwave test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

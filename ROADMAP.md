@@ -106,6 +106,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Content & variety
 
+- [x] **New active ability: "Shockwave"** — shipped **v1.67.0**. The 4th ability (hotkey **R**,
+      gamepad **RT**) after Meteor/Freeze/Gold Rush — the first new one in a long time. `🌀 Shockwave`
+      (`ABILITIES.shock`, cd 50) **knocks every live enemy backward along the path** (`e.dist -= 75`,
+      bosses only `28`, clamped ≥0) with a brief 0.35s stagger — a defensive panic/repositioning tool,
+      distinct from Freeze's in-place pause (it rewinds progress + re-exposes enemies to towers). **Pure
+      utility — no damage** (so it can't power-creep the "too easy" balance), and **CC-immune enemies
+      shrug it off** (`e.ccImmune` Heatwave / `juggernaut` boss skip entirely), reinforcing the CC axis.
+      Sets `abilityUsedThisRun` (counts vs Pacifist). Run-only / save-safe (cooldowns never persisted;
+      `abilityCd.shock` defaults to 0 on old saves). `SFX.shock()` kinetic thump. The ability bar renders
+      generically, so the 4th button is automatic. Test [77]. **Follow-ups (optional):** *a per-tower
+      ability or an ability-cooldown talent axis*, *an expanding shockwave ring render effect* (currently
+      a center particle burst + shake), and maybe a *light-damage variant* gated behind a perk.
 - [x] **Per-map visual themes** — shipped v1.13.8 (owner FEEDBACK "all the maps look the
       same"). `THEMES` palette table in `cd-maps.js` drives the background, stars, grid and
       path layers in `draw()`. Classic=blue circuit, Spiral=emerald, Serpent=amber (fixed);

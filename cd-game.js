@@ -642,6 +642,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');
+  if (e.key === 'r' || e.key === 'R') triggerAbility('shock');
   const idx = parseInt(e.key) - 1;
   if (idx >= 0 && idx < TYPE_KEYS.length) {
     const key = TYPE_KEYS[idx];
@@ -702,6 +703,7 @@ function pollGamepad(dt) {
   if (E(4)) triggerAbility('meteor');                         // LB
   if (E(5)) triggerAbility('freeze');                         // RB
   if (E(6)) triggerAbility('rush');                           // LT
+  if (E(7)) triggerAbility('shock');                          // RT
 }
 // Cycle the shop selection to the next tower type the player can currently afford (X button).
 function gpCycleTower() {
