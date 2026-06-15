@@ -3,6 +3,38 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.70.0 — 2026-06-15 — 🩸 Weak — new tower targeting mode (lowest-HP finisher)
+
+**Type:** New content (tower targeting mode). Minor bump.
+
+**What:** A 6th per-tower targeting mode, **🩸 Weak**, joins ⏩ First / ⏪ Last / 💪 Strong / 📍 Close / 🛡 Support. A tower set to Weak fires at the **lowest current-HP enemy** in range, breaking ties toward the one **furthest along the path** (leak priority). `MODES`/`MODE_ICON` in `cd-defs.js` gain the entry; `pickTarget()` (`cd-update.js`) gains `case 'weak': val = -e.hp + e.dist * 1e-4`.
+
+**Why:** The targeting-priority axis hadn't been extended since Support (v1.49.0, 20 versions ago), and a dedicated **finisher** was the obvious missing lever. It's the natural counterpart to 💪 Strong (crack the tanks) — put a fast tower on Weak to mop up stragglers so nothing limps past — and it leans into two systems the game already invests in: the kill-streak **combo meter** (more confirmed kills/sec → longer streaks + hotter board glow) and the **💀 Reaper** execute perk (Weak tees up wounded enemies). Pure target-priority — it raises no stat, so it's not power creep (re: the recurring "too easy" feedback); it's a tactical choice.
+
+**Balance:** None — Weak changes *which* enemy a tower shoots, not how hard. No economy/HP/schema impact.
+
+**Save-safe:** The per-tower `mode` already round-trips through `saveRun`/`loadRun`, and `loadRun`'s `MODES.includes(st.mode) ? st.mode : 'first'` guard validates any old/unknown value to `'first'` — so old saves load unchanged and the new mode needs no migration. The shop, `cycleMode()`, the panel button and the `upgradeKey()` hash all auto-include it (data-driven from `MODES`).
+
+**Tests:** New group **[80]** — Weak is in `MODES`/`MODE_ICON`; picks the lowest-HP enemy over closer/further ones; ties break toward the furthest-along; it's the opposite pick from `strong`; `cycleMode` reaches it; save/resume round-trips it; an unknown saved mode still falls back to `first`; zero console errors. Full suite green.
+
+**Docs:** CLAUDE.md targeting-mode note updated (5 → 6 modes); ROADMAP/FEEDBACK bookkeeping. (Also backfilled the v1.69.0 CHANGELOG.md heading below, which was present in the in-game What's New panel but missing from this file.)
+
+---
+
+## v1.69.0 — 2026-06-15 — 🌌 Ambient start-menu backdrop — drifting glow behind the start screen
+
+**Type:** Polish / UX (start-menu revamp, slice 5). Minor bump.
+
+**What:** A `#startScreen::before` (in `tower-defense.css`, after the `#startScreen h2` rule) paints a slow-drifting radial glow in the circuit palette (blue/teal/violet) behind the menu content — `position:absolute; inset:0; z-index:-1` so it stays out of the flex flow, above `#startScreen`'s dark background but below the in-flow hero/config/buttons. `@keyframes startAmbient` sweeps `background-position` over 22s; the existing `@media (prefers-reduced-motion: reduce)` block adds `#startScreen::before { animation:none }` (gradient stays, drift stops).
+
+**Why:** The start screen was a flat near-black sheet; the ambient glow makes it read as a designed panel and pairs with the v1.41.0 PLAY glow/sheen. Next slice of the ongoing "revamp the starting menu" FEEDBACK item.
+
+**Save-safe:** CSS-only, start-screen-specific (the `::before` targets only `#startScreen`, not the shared `#overlay`/panel rule). No markup/JS/save/economy/gameplay impact.
+
+**Tests:** Group **[79]** — `::before` exists, runs `startAmbient`, is absolute/`z-index:-1`/non-interactive, paints a gradient, doesn't bleed onto `#overlay`, menu content stays on top, reduce-motion freezes the drift but keeps the gradient.
+
+---
+
 ## v1.68.0 — 2026-06-15 — ⏱️ Hair Trigger — new legendary perk (+55% fire rate, −25% damage)
 
 **Type:** New content (legendary run perk). Minor bump.

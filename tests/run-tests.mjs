@@ -5029,6 +5029,74 @@ async function main() {
     await page.close();
   }
 
+  // [80] Weak targeting mode — finisher: lowest-HP enemy first (v1.70.0)
+  console.log('\n[80] Weak targeting mode (lowest-HP finisher)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+
+      const inModes = MODES.includes('weak');
+      const hasIcon = typeof MODE_ICON.weak === 'string' && MODE_ICON.weak.length > 0;
+
+      const mk = (x, dist, hp) => ({ kind:'norm', x, y: 300, dist, hp, maxHp: hp,
+        dead: false, blinkInvuln: 0, armor: 0, frozen: 0 });
+      const t = { type:'gun', x: 0, y: 300, range: 99999, dmg: 10, rate: 0.5, cd: 0,
+        level: 1, baseCost: 50, invested: 50, angle: 0, mode: 'weak', spec: null,
+        dealt: 0, kills: 0, buffPower: 0, flash: 0 };
+      towers = [t];
+
+      // (a) the lowest-HP enemy is picked even though others are further along / closer.
+      enemies = [ mk(400, 900, 100), mk(200, 300, 12), mk(600, 700, 60) ];
+      const picksLowestHp = pickTarget(t) === enemies[1];
+
+      // (b) tie on HP → the furthest-along (higher dist) enemy wins (leak priority).
+      enemies = [ mk(200, 300, 40), mk(500, 800, 40) ];
+      const tieBreaksFurthest = pickTarget(t) === enemies[1];
+
+      // (c) it is genuinely distinct from 'strong' (which targets the HIGHEST HP).
+      enemies = [ mk(300, 500, 90), mk(400, 600, 20) ];
+      t.mode = 'strong'; const strongPick = pickTarget(t);
+      t.mode = 'weak';   const weakPick = pickTarget(t);
+      const distinctFromStrong = strongPick === enemies[0] && weakPick === enemies[1];
+
+      // (d) cycleMode eventually reaches 'weak'.
+      selectedTower = t; t.mode = 'first';
+      let reachedWeak = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (t.mode === 'weak') reachedWeak = true; }
+      hideUpgrade();
+
+      // (e) save/resume round-trips the weak mode.
+      t.mode = 'weak'; enemies = []; projectiles = [];
+      saveRun();
+      const rt = loadRun();
+      const restored = rt === true && towers.length === 1 && towers[0].mode === 'weak';
+
+      // (f) an unknown saved mode still falls back to 'first' (save-safe).
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      old.towers[0].mode = 'bogus';
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const unknownFallsBack = towers[0].mode === 'first';
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inModes, hasIcon, picksLowestHp, tieBreaksFurthest, distinctFromStrong,
+        reachedWeak, restored, unknownFallsBack };
+    });
+    check('weak is a valid targeting mode', r.inModes);
+    check('weak mode has a button label', r.hasIcon);
+    check('weak mode picks the lowest-HP enemy in range', r.picksLowestHp);
+    check('weak mode tie-breaks toward the furthest-along enemy', r.tieBreaksFurthest);
+    check('weak mode is distinct from strong (opposite HP pick)', r.distinctFromStrong);
+    check('cycleMode reaches the weak mode', r.reachedWeak);
+    check('save/resume round-trips the weak mode', r.restored);
+    check('unknown saved mode still falls back to first', r.unknownFallsBack);
+    check('no console errors during weak-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

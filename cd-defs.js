@@ -121,8 +121,8 @@ const TOWER_TYPES = {
   buff:   { name:'Booster',icon:'📡', cost:100, range:45,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'support'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', support:'🛡 Support' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true };
 

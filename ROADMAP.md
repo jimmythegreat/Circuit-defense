@@ -269,6 +269,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [x] **6th targeting mode: "Weak" (lowest-HP finisher)** — shipped **v1.70.0**. A per-tower
+      🩸 Weak mode (`MODES`/`MODE_ICON` in cd-defs.js; `pickTarget()` `case 'weak': val = -e.hp +
+      e.dist*1e-4` in cd-update.js) targets the lowest current-HP enemy in range, tie-breaking toward
+      the furthest-along (leak priority). The opposite of 💪 Strong — a finisher/cleanup tool that
+      secures kills (feeds the combo meter + the 💀 Reaper execute) so stragglers don't limp past.
+      First targeting-axis extension since Support (v1.49.0). Raises no stat (pure target priority,
+      not power creep); fully data-driven so shop/cycle/save auto-include it; save-safe (`loadRun`'s
+      `MODES.includes()` guard validates old/unknown values to 'first'). Test [80]. **Follow-ups
+      (optional):** a per-tower *default mode* preference, and a "lowest-HP-that-survives-the-shot"
+      smart-finisher variant that avoids overkill.
 - [~] **Start-menu revamp** (owner FEEDBACK, `[low priority]`: "main interface is getting clunky …
       buttons on the bottom row are huge compared to everything else … revamp the whole starting
       menu"). **First slice shipped v1.39.1:** the single flex row of ten equally-large 17px buttons

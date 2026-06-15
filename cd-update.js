@@ -376,6 +376,9 @@ function pickTarget(t) {
       case 'last':    val = -e.dist; break;
       case 'strong':  val = e.hp; break;
       case 'close':   val = -d; break;
+      // 'weak': finisher — lowest current HP first (secure kills → feed the combo meter &
+      // the Reaper execute), tie-break toward the furthest-along enemy so leaks get priority.
+      case 'weak':    val = -e.hp + e.dist * 1e-4; break;
       // 'support': prioritise aura enemies (heal/warden) — popping them un-buffs their
       // cluster. Support outranks everything; among same class, furthest-along wins (like 'first').
       case 'support': val = (SUPPORT_KINDS[e.kind] ? 1e7 : 0) + e.dist; break;
