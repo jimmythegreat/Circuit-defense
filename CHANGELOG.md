@@ -3,6 +3,26 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.70.1 — 2026-06-15 — 🩺 Health check — all green (823/0, docs coherent, no drift)
+
+**Type:** Health check (every 6th run — no new feature). Patch bump.
+
+**Counter:** 5 version entries since the last health check (v1.65.1): v1.66.0 Heatwave, v1.67.0 Shockwave, v1.68.0 Hair Trigger, v1.69.0 ambient backdrop, v1.70.0 Weak targeting → this run is the scheduled health check. (FEEDBACK PENDING holds one `[low priority]` start-menu item, not a `[bug]`, so the health check proceeds.)
+
+**1. Refactor audit:** All seven game files are well under the ~1500-line cap (largest: `cd-update.js` 1020, `cd-render.js` 778, `cd-game.js` 742). No new dead code or duplicated logic spotted. The only oversized file remains the dev-only test harness `tests/run-tests.mjs` (~5,110 lines, 80 groups) — already the standing top `[refactor]` item in ROADMAP (split into `tests/groups/*.mjs`); left as-is (low priority, suite green and fast).
+
+**2. Docs coherence:** Read CLAUDE.md/ROADMAP/FEEDBACK against the code. All documented counts verified against source: targeting `MODES` = 6 (first/last/strong/close/weak/support), `ABILITIES` = 4 (meteor/freeze/rush/shock), `WAVE_MODS` = 15, `BOSS_ARCHETYPES` = 8, `TOWER_TYPES` = 8, `ACHIEVEMENTS` = 15 — all match. `GAME_VERSION` and the `sw.js` `CACHE` const are in sync (both v1.70.1). **Fixed one drift:** the ROADMAP "split the test harness" item still read "~4,990 lines (78 groups, 805 assertions)" → corrected to ~5,110 lines / 80 groups `[1]`–`[80]` / 823 assertions. Vetoed section intact (still none recorded).
+
+**3. Table-stakes audit:** Checklist remains COMPLETE (favicon/meta/OG, PWA install, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, ~44px tap targets). No new gaps identified.
+
+**4. Integrity spot-checks:** Full suite **823/0 green**, ~18s, zero console errors (subagent-run). Double-click `file://` playability confirmed — the headless harness itself loads via `pathToFileURL` and the SW registration is http/https-guarded, so offline double-click is unaffected. Old-format save migration verified by reading `loadMeta()` (defaults `talents`/`achievements`/`stats` for minimal saves) and the `loadRun()` `Object.assign(freshPerkState(), …)` perk-state restore — old saves load through the additive defaults.
+
+**Findings → ROADMAP / fixes this run:** doc-drift fix applied; no code changes beyond the version + SW-cache bump. Resets the 5-run health-check counter.
+
+**Test evidence:** 823/0 green after the bump (test `[49]` asserts `sw.js` cache === `GAME_VERSION`, so the synced v1.70.1 bump is verified by the suite).
+
+---
+
 ## v1.70.0 — 2026-06-15 — 🩸 Weak — new tower targeting mode (lowest-HP finisher)
 
 **Type:** New content (tower targeting mode). Minor bump.

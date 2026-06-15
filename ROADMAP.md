@@ -614,8 +614,8 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
       shipped HTML).
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
-- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 health checks) —
-      `tests/run-tests.mjs` has grown to **~4,990 lines (78 groups `[1]`–`[78]`, 805 assertions)** in a
+- [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.70.1 health checks) —
+      `tests/run-tests.mjs` has grown to **~5,110 lines (80 groups `[1]`–`[80]`, 823 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing
