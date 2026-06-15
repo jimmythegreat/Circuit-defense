@@ -3,6 +3,21 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.80.0 — 2026-06-15 — ‼️ Breacher Surge — 18th Mayhem wave modifier (heavy escorts, double leak-cost)
+
+**Type:** New content (Mayhem wave modifier). Minor bump.
+
+**What:** A new Mayhem / Daily wave modifier, **‼️ Breacher Surge** (`breachers`). When it rolls, a fraction of the wave's basic enemies are converted into heavy **‼ Breacher** escorts — the slow, tanky units (×2.0 HP, ×0.7 speed) that drain **2 lives** instead of 1 if they reach the exit.
+
+**Why:** It's the **wave-wide cousin of the Breacher enemy** (the pattern established by Cloaking Field ↔ Phantom and Fission ↔ Splitter) and presses on the one axis no other modifier touches — **leak cost**. Every other mod scales HP, speed, economy, tower stats, armor, regen, tower uptime, target priority, CC, untargetability, or multiplication; none of them touch *lives*. Doubling the price of a leak rewards solid coverage / chokepoints over a gappy glass-cannon line, squarely serving the recurring "too easy" feedback. Bounded & fair: breachers are slow (they bunch up and are easy to focus), only **norms** convert (the rarer special kinds are untouched and the wave doesn't get longer — conversion, not addition), and it adds no extra HP curve — it can't make a run easier.
+
+**Implementation (mirrors Warden Surge v1.51.0):**
+- `cd-maps.js` — `WAVE_MODS` entry (inserted before `meteors`; pool **17 → 18**).
+- `cd-game.js` `buildWave` — one conversion line after the Warden Surge line: `if (modIs('breachers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'breacher', …, lifeCost:2 }`. The leak site already reads `e.lifeCost` (v1.63.0), and the render already draws the breacher glyph + `lifeCost>1` cue ring, so **no leak/render code changed** — fully data-driven.
+- Run-only (enemies are never persisted) → no save/schema/economy impact; one mod is ever active so no stacking with Warden Surge despite the shared slot.
+
+**Tests:** new group `[88]` — mod present; adds breachers to a wave; converted breachers well-formed (maxHp/colour/radius/lifeCost:2); conversion-not-addition (length unchanged); special kinds untouched; inert when off; a leaked surge breacher costs 2 lives (and feeds `perkState.livesLost` for Last Stand); a real Mayhem run with the mod in the pool drives clean. Full suite green.
+
 ## v1.79.1 — 2026-06-15 — 🩺 Health check — all green (938/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.74.1: v1.75.0, v1.76.0, v1.77.0, v1.78.0, v1.79.0.)

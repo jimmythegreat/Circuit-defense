@@ -5794,6 +5794,78 @@ async function main() {
     await page.close();
   }
 
+  // [88] Breacher Surge wave mod — heavy breacher escorts, double leak-cost (v1.80.0)
+  console.log('\n[88] Breacher Surge (leak-cost wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'breachers');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) breacher count for a wave-10 wave (no natural breachers until w17).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainBreachers = plainWave.filter(e => e.kind === 'breacher').length;
+
+      // BREACHER SURGE — a fraction of basic enemies become breachers, so the wave has MORE.
+      setMod('breachers');
+      const surgeWave = buildWave(10);
+      const surgeBreachers = surgeWave.filter(e => e.kind === 'breacher').length;
+      const moreBreachers = surgeBreachers > plainBreachers;
+      // Converted breachers carry full breacher stats (maxHp set, rose colour, lifeCost 2).
+      const conv = surgeWave.find(e => e.kind === 'breacher');
+      const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#d4566b' &&
+        conv.r === 15 && conv.lifeCost === 2;
+      // Conversion not addition: total wave length unchanged, special kinds untouched.
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+      // Inert when the mod is off.
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'breacher').length === plainBreachers;
+
+      // A surge breacher that leaks costs 2 lives at the single leak site (e.lifeCost).
+      towers.length = 0; spawners.length = 0; enemies.length = 0; pendingSpawns.length = 0;
+      lives = 20; livesLostThisRun = false; perkState.livesLost = 0;
+      const leaker = { kind:'breacher', hp:100, maxHp:100, spd:1, r:15, bounty:1, color:'#d4566b',
+        armor:0, gap:0, dist:pathLen + 1, lifeCost:2, x:0, y:0, slow:0, slowF:0.6, frozen:0,
+        poison:null, flash:0, px:0, py:0, dead:false, blinkInvuln:0 };
+      enemies.push(leaker);
+      const livesBefore = lives;
+      update(1/60);
+      const leakCosts2 = (livesBefore - lives) === 2 && perkState.livesLost === 2;
+
+      enemies.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, moreBreachers, wellFormed, sameLength, fastUntouched, inertOff,
+               leakCosts2, plainBreachers, surgeBreachers };
+    });
+    check('WAVE_MODS includes Breacher Surge', r.hasMod);
+    check('Breacher Surge adds breachers to the wave', r.moreBreachers, `${r.plainBreachers}->${r.surgeBreachers}`);
+    check('converted breachers are well-formed (maxHp/colour/radius/lifeCost)', r.wellFormed);
+    check('Breacher Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Breacher Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Breacher Surge is inert when the mod is off', r.inertOff);
+    check('a leaked surge breacher costs 2 lives', r.leakCosts2);
+    check('no console errors during Breacher Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+
+    // A real Mayhem run still drives to completion with the mod in the pool — no hang.
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 8 });
+      const out = { reached: wave >= 7, wave };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Mayhem run with Breacher Surge in the pool drives clean', drove.reached, JSON.stringify(drove));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

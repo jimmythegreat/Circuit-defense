@@ -201,6 +201,16 @@ function buildWave(w) {
     // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
     // overrides the rarer special kinds above; one mod is ever active so no stacking.
     if (modIs('wardens') && e.kind === 'norm' && i % 4 === 1) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
+    // Breacher Surge (Mayhem): convert a fraction of would-be basic enemies into heavy
+    // ‼ Breacher escorts (the wave-wide cousin of the Breacher enemy, like Warden Surge ↔
+    // the Warden). Mirrors the warden conversion exactly — only norms convert (so it never
+    // overrides the rarer special kinds above) and it's a conversion not an addition (wave
+    // length unchanged). The breachers carry the full enemy stats incl. lifeCost:2, so a
+    // densely-breached wave pressures COVERAGE on the LEAK-COST axis (no other mod touches
+    // lives) — leaking even a couple costs double. Bounded: breachers are slow (×0.7) so
+    // they bunch up and can be focused; only a real coverage gap lets one through, and one
+    // mod is ever active so no stacking. Run-only (enemies are never persisted).
+    if (modIs('breachers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;

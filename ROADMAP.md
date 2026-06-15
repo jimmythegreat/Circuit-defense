@@ -84,9 +84,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Pressures **coverage** in Classic/Campaign (the "too easy" modes) off the invariant-capped HP
       curve; bounded (slow + moderate HP, you control leaks). `buildWave`/`waveComposition`/
       `KIND_HP_MULT`(=2.0) + `enemyGlyph ‼`/`GLYPH_FONT`/`PREVIEW_COLOR` + cue ring + colorblind
-      legend. Run-only, no save impact; drift-guarded by test [40]. Test group [74]. **Follow-ups:**
-      *a breacher-heavy Mayhem wave modifier*, and maybe a variant that costs lives only if it
-      *survives* a tower's range (encouraging chokepoints).
+      legend. Run-only, no save impact; drift-guarded by test [40]. Test group [74]. ✅ **breacher-heavy
+      Mayhem wave modifier shipped v1.80.0** — ‼️ **Breacher Surge** (`breachers`): converts a fraction of
+      would-be basic enemies (slot `i%4===1`, norm-only) into ‼ Breacher escorts, so a leak drains **2 lives,
+      not 1** — pressures **coverage** on the leak-cost axis (no other mod touches lives). Mirrors Warden Surge
+      (conversion-not-addition, run-only); the leak site + render already key off `e.lifeCost`, so no leak/render
+      code changed. Test [88]. **Follow-up still open:** a variant that costs lives only if it *survives* a
+      tower's range (encouraging chokepoints).
 - [x] **New tower: "mortar"** — shipped **v1.23.0**. The 🎇 **Mortar** (8th tower, hotkey 8):
       a long-range (225), slow-firing (rate 2.0), lobbed **AoE that ignores armor** — a back-line
       siege/anti-armor piece distinct from the Cannon (mid-range armor-respecting splash). Deliberately
@@ -185,8 +189,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       bounded: the spawnlings carry no `fission` tag so they never re-burst (≤2 children/kill, the Overkill/Cloak
       bounding pattern); the boss is exempt and `split` excluded (no double-burst); the token bounty keeps it a
       net difficulty bump, not an economy farm — can't make a run easier. Dashed spring-green cue ring; run-only).
-      Pool 7→9→10→11→12→13→14→15→16→**17**.
-      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85].
+      Then **‼️ Breacher Surge** in **v1.80.0** (`breachers`: converts a fraction of would-be basic enemies into
+      heavy ‼ Breacher escorts (slot `i%4===1`, norm-only, conversion-not-addition) so a leak drains **2 lives,
+      not 1** — the **wave-wide cousin of the Breacher enemy** on the **leak-cost axis** no other mod touches.
+      Pressures coverage; bounded (breachers are slow, no extra HP curve). The leak site already reads
+      `e.lifeCost`, render already draws the breacher glyph + cue ring, so no leak/render code changed; run-only).
+      Pool 7→9→10→11→12→13→14→15→16→17→**18**.
+      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85] + [88].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).
