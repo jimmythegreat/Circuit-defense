@@ -33,9 +33,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       🧰 Full Arsenal** (win with all 8 tower types on the board, roster 14→15) — completes the
       build-style trio with Specialist (1 type) / Minimalist (≤5 towers), rewarding diversity over
       a mono-tower carry; data-driven, additive, save-safe (`new Set(towers.map(t=>t.type)).size
-      === TYPE_KEYS.length`). Test [48]. Follow-ups still open: *toast/sound when a badge unlocks mid-menu*, a
-      **speedrun** badge (needs a per-run clock — none exists yet), and a **per-achievement
-      chip reward** (would touch the chip economy — needs a balance pass first).
+      === TYPE_KEYS.length`). Test [48]. ✅ **speedrun badge shipped v1.74.0** — ⏱️ Speed Demon
+      (roster 15→16): win a Quick run (30 waves) in under 7 minutes (`won && gameMode==='quick' &&
+      gameTime < 420`). This required first surfacing the **run timer** — the `gameTime` accumulator
+      now drives a live HUD clock + an end-screen Time cell, is persisted in `cd_save` (save-safe),
+      and `fmtTime()` formats it (cd-game.js). Threshold sim-calibrated (sequential god rush ≈776s vs
+      concurrent ≈272s → 420s demands concurrent-wave rushing); quick-only since campaign victory
+      waves vary. Test [83]. **Follow-ups still open:** *toast/sound when a badge unlocks mid-menu*, a
+      **per-achievement chip reward** (would touch the chip economy — needs a balance pass first), and
+      now that a per-run clock exists, *an optional time-based component in `computeScore()`* (the owner
+      offered this in the v1.16.0 scoring feedback — "say the word for a speed/time component").
 - [x] **Endless-mode leaderboard / personal bests panel** — shipped v1.6.0. A
       🏆 Records start-screen panel shows highest wave per quick-mode map ×
       difficulty (new additive `cd_best_<map>_<diff>` keys), an "Any map" row from

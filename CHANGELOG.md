@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.74.0 — 2026-06-15 — ⏱️ Run timer & Speed Demon achievement
+
+**Type:** New feature (run clock + achievement). Minor bump. Additive, save-safe.
+
+**What:** The game now has a **run timer**. A run-only `gameTime` accumulator (already declared & zeroed in `resetState()`, incremented in `update()` since long ago but never surfaced) is now shown two ways: a **live HUD clock** (`⏱️` element in `#hud`, set in `updateHud()` and ticked every 0.25s via `update()`'s existing `abilityUiAcc` throttle) and a **Time stat cell** on the end-of-run screen (`renderEndScreen`'s `.scoreGrid`, now 7 cells). A new `fmtTime(s)` helper (cd-game.js, beside `fmtNum`) formats seconds as `M:SS` (or `H:MM:SS` past an hour, clamps negatives). A new **⏱️ Speed Demon** achievement (`speedrun`, the 16th badge) is granted for `won && gameMode === 'quick' && gameTime < 420` — win a Quick run (always 30 waves) in under 7 minutes.
+
+**Why:** The scoring system (v1.16.0) always wanted a "kill time" axis but noted "there's no per-run clock in the game"; ROADMAP listed a speedrun badge as blocked on the same gap. This adds the clock (engagement + a future-scoring hook) and a genuine skill challenge. The timer correctly **freezes on pause / draft / menu / game-over** (it sits after `update()`'s early-return) and **tracks in-game time, not wall-clock** (at 2×/3× speed `update()` runs N× per frame, so `gameTime` advances N×dt).
+
+**Threshold calibrated by simulation:** a god-tower **sequential** 30-wave rush takes ~776s (~13 min); a maximally-**concurrent** rush (overlapping up to 3 waves) takes ~272s (~4:32). So 420s (7 min) requires deliberate concurrent-wave rushing — achievable by a strong build, impossible by a leisurely auto-wave clear. **Quick-mode only** because campaign victory waves vary (15…54), making a flat time target unfair there.
+
+**Save-safe:** `gameTime` is now written into `cd_save` and restored in `loadRun()` (guarded `typeof s.gameTime === 'number'`, after `resetState()` zeroes it) — old saves simply lack the field and start at 0. Keeping it honest across resume also closes a quit-near-the-end exploit on the speedrun badge. No new localStorage key, no economy/balance/schema impact; cosmetic + one additive save field + one badge.
+
+**Tests:** new group **[83]** (21 checks): `fmtTime` formatting incl. hours & negative-clamp; `gameTime` zeroes fresh, accrues in `update()`, freezes while paused/drafting; HUD clock renders `M:SS`; save→resume round-trips `gameTime`; old save without the field defaults to 0; Speed Demon in the roster; granted on a sub-7-min Quick win, withheld on a slow win / a fast loss / a fast Campaign win; end screen shows the Time cell. Updated two count assertions ([31] stats grid 6→7, [48] roster 15→16). Full suite **878/0 green**; verified in-browser (live HUD clock, end-screen Time cell, zero console errors).
+
 ## v1.73.0 — 2026-06-15 — 🔥 Killing Spree — new legendary perk (combo-scaling tower damage)
 
 **Type:** New content (legendary perk). Minor bump. Run-only, save-safe.

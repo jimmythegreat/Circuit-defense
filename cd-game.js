@@ -340,6 +340,7 @@ function updateHud() {
   document.getElementById('wave').textContent = wave;
   document.getElementById('waveGoal').textContent = victory ? '∞' : victoryWave();
   document.getElementById('kills').textContent = kills;
+  document.getElementById('time').textContent = fmtTime(gameTime);
   document.getElementById('chips').textContent = meta.chips;
   document.getElementById('best').textContent = best;
   renderShop();
@@ -479,6 +480,15 @@ function fmtNum(n) {
   if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
   if (n >= 1e3) return (n/1e3).toFixed(1) + 'k';
   return Math.round(n);
+}
+// Format an elapsed-seconds duration as M:SS (or H:MM:SS past an hour) — the run
+// timer (run-only `gameTime`, accumulated in update() while playing). Used by the
+// HUD clock + the end-screen Time stat + the Speed Demon achievement (v1.74.0).
+function fmtTime(s) {
+  s = Math.max(0, Math.floor(s));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
 function hideUpgrade() { upPanel.style.display = 'none'; selectedTower = null; }
 function cycleMode() {

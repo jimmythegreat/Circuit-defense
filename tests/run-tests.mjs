@@ -1608,7 +1608,7 @@ async function main() {
     check('overlay gains the .scored class (score UI shown)', r.scored);
     check('defeat at 40% of goal grades D', r.grade === 'D', r.grade);
     check('score number renders in the hero', r.numLen > 0);
-    check('stats grid shows 6 cells', r.gridCells === 6, String(r.gridCells));
+    check('stats grid shows 7 cells', r.gridCells === 7, String(r.gridCells));
     check('best score persisted to cd_bestscore', r.bestPersisted === r.expected, String(r.bestPersisted));
     check('first run flags a new best score', r.newBestShown);
     check('flawless victory grades S', r.winGrade === 'S', r.winGrade);
@@ -2999,7 +2999,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 15 badges', r.total === 15, `total=${r.total}`);
+    check('achievement roster grew to 16 badges', r.total === 16, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -5331,6 +5331,103 @@ async function main() {
     check('old save missing comboPower migrates to default', r.migratedOk);
     check('resolveWildcard can roll Killing Spree', r.wildcardCanRoll);
     check('no console errors during Killing Spree test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [83] Run timer + Speed Demon achievement (v1.74.0)
+  console.log('\n[83] Run timer + Speed Demon achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // fmtTime formatting (M:SS, H:MM:SS past an hour, clamps negatives)
+      const fmt = {
+        z: fmtTime(0), five: fmtTime(5), oneoh5: fmtTime(65),
+        twooh5: fmtTime(125), hour: fmtTime(3661), neg: fmtTime(-3),
+      };
+
+      // gameTime accrues in update() and is gated by pause / draft / menu
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const t0 = gameTime;                 // resetState zeroed it
+      update(1/60); update(1/60);
+      const t2 = gameTime;                 // +2/60
+      paused = true; update(1/60); const tPaused = gameTime; paused = false;
+      draftOpen = true; update(1/60); const tDraft = gameTime; draftOpen = false;
+
+      // HUD clock element exists and reflects gameTime after updateHud()
+      const timeEl = document.getElementById('time');
+      gameTime = 125; updateHud();
+      const hudText = timeEl ? timeEl.textContent : null;
+
+      // persist + restore across save/resume (honest timer; closes a resume-near-end exploit)
+      gameTime = 123.5; wave = 2; lives = 20; gold = 100;
+      waveActive = false; towers.length = 0; enemies.length = 0;
+      saveRun();
+      const savedTime = JSON.parse(localStorage.getItem('cd_save')).gameTime;
+      gameTime = 0;
+      loadRun();
+      const restoredTime = gameTime;
+
+      // old save lacking gameTime → defaults to 0 (no crash)
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.gameTime;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      gameTime = 99;
+      loadRun();
+      const migratedTime = gameTime;
+      localStorage.removeItem('cd_save');
+
+      // achievement roster + grant conditions
+      const inRoster = !!ACH_BY_ID.speedrun;
+      const fresh = () => { meta.achievements = {}; meta.stats = { dmg: 0, runs: 0 }; };
+      daily = false; towers.length = 0; comboBest = 0; wave = 30; lives = 20; gold = 0;
+
+      gameMode = 'quick'; gameTime = 100; fresh();
+      grantAchievements(true);  const fastWin = !!meta.achievements.speedrun;
+
+      gameMode = 'quick'; gameTime = 500; fresh();
+      grantAchievements(true);  const slowWin = !!meta.achievements.speedrun;
+
+      gameMode = 'quick'; gameTime = 100; fresh();
+      grantAchievements(false); const fastLoss = !!meta.achievements.speedrun;
+
+      gameMode = 'campaign'; campLevel = 1; gameTime = 100; fresh();
+      grantAchievements(true);  const campFast = !!meta.achievements.speedrun;
+
+      // end screen surfaces a Time cell
+      gameMode = 'quick'; gameTime = 100; towers.length = 0; comboBest = 0;
+      renderEndScreen(true, 0, []);
+      const details = document.getElementById('ovDetails').innerHTML;
+      const endShowsTime = details.includes('Time') && details.includes('1:40');
+
+      // cleanup
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0 };
+      ['cd_save', 'cd_meta', 'cd_bestscore', 'cd_bestscore_classic_normal'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { fmt, t0, t2, tPaused, tDraft, hudText, savedTime, restoredTime, migratedTime,
+               inRoster, fastWin, slowWin, fastLoss, campFast, endShowsTime };
+    });
+    check('fmtTime(0) = 0:00', r.fmt.z === '0:00', r.fmt.z);
+    check('fmtTime(5) = 0:05', r.fmt.five === '0:05', r.fmt.five);
+    check('fmtTime(65) = 1:05', r.fmt.oneoh5 === '1:05', r.fmt.oneoh5);
+    check('fmtTime(125) = 2:05', r.fmt.twooh5 === '2:05', r.fmt.twooh5);
+    check('fmtTime(3661) = 1:01:01 (hours)', r.fmt.hour === '1:01:01', r.fmt.hour);
+    check('fmtTime clamps negatives to 0:00', r.fmt.neg === '0:00', r.fmt.neg);
+    check('gameTime starts at 0 on a fresh run', r.t0 === 0, 't0=' + r.t0);
+    check('gameTime accrues in update()', Math.abs(r.t2 - 2/60) < 1e-9, 't2=' + r.t2);
+    check('gameTime frozen while paused', r.tPaused === r.t2, `paused=${r.tPaused} t2=${r.t2}`);
+    check('gameTime frozen while a draft is open', r.tDraft === r.t2, `draft=${r.tDraft} t2=${r.t2}`);
+    check('HUD clock element renders M:SS', r.hudText === '2:05', 'hud=' + r.hudText);
+    check('gameTime is written to the save', Math.abs(r.savedTime - 123.5) < 1e-9, 'saved=' + r.savedTime);
+    check('gameTime restored on resume', Math.abs(r.restoredTime - 123.5) < 1e-9, 'restored=' + r.restoredTime);
+    check('old save without gameTime defaults to 0', r.migratedTime === 0, 'migrated=' + r.migratedTime);
+    check('Speed Demon is in the achievement roster', r.inRoster);
+    check('Speed Demon granted on a sub-7-min Quick win', r.fastWin);
+    check('Speed Demon NOT granted on a slow (>7min) win', !r.slowWin);
+    check('Speed Demon NOT granted on a fast loss', !r.fastLoss);
+    check('Speed Demon NOT granted on a fast Campaign win (quick-only)', !r.campFast);
+    check('end screen shows a Time stat cell', r.endShowsTime, 'details had Time+1:40');
+    check('no console errors during run-timer test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

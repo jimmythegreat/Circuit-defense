@@ -8,7 +8,10 @@ function update(dt) {
   // ability cooldowns
   for (const k of Object.keys(abilityCd)) abilityCd[k] = Math.max(0, abilityCd[k] - dt);
   abilityUiAcc += dt;
-  if (abilityUiAcc > 0.25) { abilityUiAcc = 0; refreshAbilityBar(); }
+  if (abilityUiAcc > 0.25) {
+    abilityUiAcc = 0; refreshAbilityBar();
+    const te = document.getElementById('time'); if (te) te.textContent = fmtTime(gameTime); // live HUD clock
+  }
 
   if (autoStartTimer > 0 && !waveActive) {
     autoStartTimer -= dt;
@@ -632,6 +635,7 @@ const ACHIEVEMENTS = [
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
   { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 8 tower types on the board' },
+  { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -656,6 +660,11 @@ function grantAchievements(won) {
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
   if (won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length) give('arsenal');
+  // Speed Demon (v1.74.0): win a Quick run (always 30 waves → comparable target) in under 7
+  // minutes of play time. The standard sequential clear takes ~13 min even rushing, so this
+  // demands deliberate concurrent-wave rushing — a skill goal, not an accident. Quick-only:
+  // campaign victory waves vary (15…54), so a flat time threshold there would be unfair.
+  if (won && gameMode === 'quick' && gameTime < 420) give('speedrun');
   if (daily && wave >= 20) give('daily20');
   // Streak badge — checked AFTER recordDailyStreak() has folded today's finish into the count
   // (endGame/winGame record the streak before calling grantAchievements), so currentDailyStreak()
@@ -975,6 +984,7 @@ function renderEndScreen(won, earned, newAch) {
     ['🪙', fmtNum(Math.floor(gold)), 'Gold'],
     ['🔥', comboBest ? comboBest + '×' : '—', 'Combo'],
     ['🗼', sc.nt, 'Towers'],
+    ['⏱️', fmtTime(gameTime), 'Time'],
   ];
   let html = '<div class="scoreGrid">'
     + cells.map(([ic, v, k]) => `<div class="cell"><div class="v">${ic} ${v}</div><div class="k">${k}</div></div>`).join('')

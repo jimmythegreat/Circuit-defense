@@ -89,7 +89,7 @@ function saveRun() {
   try {
     localStorage.setItem('cd_save', JSON.stringify({
       mapKey, diffKey, gameMode, campLevel, mapTheme,
-      gold: Math.floor(gold), lives, kills,
+      gold: Math.floor(gold), lives, kills, gameTime,
       // resume from the last fully-settled wave: quitting mid-wave (or mid-rush with
       // several waves in flight) replays the unsettled wave(s), never double-paying
       wave: waveActive ? lastSettledWave : wave,
@@ -146,6 +146,10 @@ function loadRun() {
   setActiveUI();
   resetState();
   gold = s.gold; lives = s.lives; wave = s.wave; kills = s.kills;
+  // Restore the elapsed run clock (additive field; old saves lack it → stays 0 from resetState).
+  // Keeping it honest across resume also stops a Speed Demon (speedrun) earn by quitting near the
+  // end and resuming — the timer keeps counting from where it was.
+  if (typeof s.gameTime === 'number') gameTime = s.gameTime;
   // A resumed run already past its victory wave is an endless-continue save (winGame now
   // clears the save, so this only happens after Continue Endless re-saved). Mark victory so
   // update() doesn't instantly re-fire winGame() on the first tick. Normal mid-run saves have
