@@ -1011,6 +1011,7 @@ function endGame() {
   renderEndScreen(false, earned, newAch);
   document.getElementById('ovContinue').style.display = 'none';
   document.getElementById('ovNext').style.display = 'none';
+  document.getElementById('ovRetry').style.display = daily ? 'none' : 'inline-block';
   document.getElementById('ovMain').textContent = 'Main Menu';
   document.getElementById('overlay').style.display = 'flex';
   applyRecordFlourish(rec);
@@ -1043,6 +1044,7 @@ function winGame() {
     document.getElementById('ovNext').style.display = 'none';
     document.getElementById('ovContinue').style.display = 'inline-block';
   }
+  document.getElementById('ovRetry').style.display = daily ? 'none' : 'inline-block';
   document.getElementById('ovMain').textContent = 'Main Menu';
   document.getElementById('overlay').style.display = 'flex';
   applyRecordFlourish(rec);

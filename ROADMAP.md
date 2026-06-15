@@ -302,6 +302,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [x] **One-click "Play Again" on the end screen** — shipped **v1.75.0**. The end-of-run overlay
+      (win or lose) gained a 🔄 Play Again button that restarts the same `gameMode`/`mapKey`/`diffKey`/
+      `campLevel` in one click (no menu round-trip) — instant rematch after a loss, or a score-chase
+      replay of a cleared Quick run; Campaign restarts the same level. Hidden for the 🗓 Daily Challenge
+      (one-off, date-seeded). `playAgain()` (cd-game.js) mirrors `nextLevel()`: hide overlay → `beginGame()`;
+      `#ovRetry` visibility toggled in `endGame()`/`winGame()` (`daily?'none':'inline-block'`). No save/economy/
+      balance impact (reuses run settings in memory). Test [84]. **Follow-ups (optional):** *a slide-in
+      animation on the overlay buttons*, and *a "quick restart" hotkey* (e.g. R on the overlay) for keyboard users.
 - [x] **6th targeting mode: "Weak" (lowest-HP finisher)** — shipped **v1.70.0**. A per-tower
       🩸 Weak mode (`MODES`/`MODE_ICON` in cd-defs.js; `pickTarget()` `case 'weak': val = -e.hp +
       e.dist*1e-4` in cd-update.js) targets the lowest current-HP enemy in range, tie-breaking toward

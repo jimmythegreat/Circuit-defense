@@ -115,6 +115,17 @@ function beginDaily() {
   setActiveUI();
   SFX.wave();
 }
+// Play Again (v1.75.0): one-click replay of the same run from the end-of-run overlay —
+// reuses the current gameMode/mapKey/diffKey/campLevel (all still set from the run that just
+// ended), so beginGame() restarts an identical fresh run with no trip back to the menu. Hidden
+// for the Daily Challenge (one-off, deterministic per date — replaying the same seed is pointless
+// and it never persists). Mirrors nextLevel(): hide the overlay, then beginGame() (which clearRun()s
+// + resetState()s). No save/economy impact (a defeat/win already cleared the save when !daily).
+function playAgain() {
+  if (daily) return;  // belt-and-suspenders: the button is hidden for daily runs
+  document.getElementById('overlay').style.display = 'none';
+  beginGame();
+}
 function backToMenu() {
   started = false;
   daily = false;

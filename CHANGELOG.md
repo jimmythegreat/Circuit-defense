@@ -3,6 +3,21 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.75.0 — 2026-06-15 — 🔄 Play Again — one-click replay from the end screen
+
+**Type:** Feature / QoL. Minor bump.
+
+**What changed:** The end-of-run overlay (win or lose) now has a **🔄 Play Again** button that restarts the same run — same `gameMode` / `mapKey` / `diffKey` / `campLevel` — in a single click, with no trip back to the start menu to re-pick everything. It removes the friction from the core replay loop the owner values: instant rematch after a near-loss, or replay a cleared Quick run to chase a better score. In Campaign it restarts the **same level** (useful for grinding a tough one or improving the grade), shown alongside the existing `Next Level ▶` / `Continue Endless ∞`. It is **hidden for the 🗓 Daily Challenge** — that's a one-off, date-seeded run, so replaying the identical seed is meaningless and the daily never persists.
+
+**Implementation:**
+- `tower-defense.html` — a new `#ovRetry` button in the overlay button row (green `#238636`, `display:none` by default), `onclick="playAgain()"`.
+- `cd-game.js` — `playAgain()` (beside `backToMenu()`): a belt-and-suspenders `if (daily) return`, hide the overlay, then `beginGame()` (which `clearRun()`s + `resetState()`s a fresh identical run from the globals still in memory). Mirrors `nextLevel()`.
+- `cd-update.js` — `endGame()` and `winGame()` set `ovRetry.style.display = daily ? 'none' : 'inline-block'`.
+
+**Save/economy impact:** **None.** Reuses run settings already in memory; no new localStorage key, no schema change, no balance/economy/render change. A defeat/win already `clearRun()`s when `!daily`, so `beginGame()`'s `clearRun()` is a harmless no-op.
+
+**Tests:** new group **[84]** — button exists; shown on a Quick defeat and a Quick victory; hidden on a Daily run; `playAgain()` restarts a fresh run (`started`/`gameOver`/`wave` reset, same mode/map/difficulty) and hides the overlay; zero console errors. **Suite 889/0 green, exit 0.** Verified live in-browser (button renders with correct label/colour on the defeat overlay; click restarts a fresh wave-0 run; daily hides it; no console errors).
+
 ## v1.74.1 — 2026-06-15 — 🩺 Health check — all green (878/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.70.1: v1.71.0, v1.71.1, v1.72.0, v1.73.0, v1.74.0.)

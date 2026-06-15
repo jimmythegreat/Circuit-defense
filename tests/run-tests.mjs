@@ -5431,6 +5431,67 @@ async function main() {
     await page.close();
   }
 
+  // [84] Play Again button on the end-of-run overlay (v1.75.0)
+  console.log('\n[84] Play Again — one-click replay');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const retry = document.getElementById('ovRetry');
+      const hasFn = typeof playAgain === 'function';
+      const btnExists = !!retry;
+
+      // ---- Quick defeat: Play Again is offered ----
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      lives = 0; wave = 7; towers.length = 0; enemies.length = 0;
+      endGame();
+      const lossShows = retry.style.display !== 'none';
+
+      // clicking it (playAgain) hides the overlay + starts a fresh identical run
+      playAgain();
+      const afterStarted = started;
+      const afterGameOver = gameOver;
+      const afterWave = wave;                 // resetState() zeroes wave
+      const afterMode = gameMode, afterMap = mapKey, afterDiff = diffKey;
+      const overlayHidden = document.getElementById('overlay').style.display === 'none';
+
+      // ---- Quick victory: Play Again is offered (score chasing) ----
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); wave = 30; lives = 20; towers.length = 0; enemies.length = 0;
+      winGame();
+      const winShows = retry.style.display !== 'none';
+      document.getElementById('overlay').style.display = 'none';
+
+      // ---- Daily: Play Again is hidden (one-off, deterministic per date) ----
+      beginDaily();
+      lives = 0; wave = 5; towers.length = 0; enemies.length = 0;
+      endGame();
+      const dailyHidden = retry.style.display === 'none';
+
+      // cleanup
+      daily = false;
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0 };
+      Object.keys(localStorage).filter(k => k.startsWith('cd_')).forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { hasFn, btnExists, lossShows, afterStarted, afterGameOver, afterWave,
+               afterMode, afterMap, afterDiff, overlayHidden, winShows, dailyHidden };
+    });
+    check('playAgain() function exists', r.hasFn);
+    check('#ovRetry button exists in the overlay', r.btnExists);
+    check('Play Again shown after a Quick defeat', r.lossShows);
+    check('Play Again restarts a fresh run (started=true)', r.afterStarted);
+    check('Play Again clears game-over state', r.afterGameOver === false, 'gameOver=' + r.afterGameOver);
+    check('Play Again resets the wave counter', r.afterWave === 0, 'wave=' + r.afterWave);
+    check('Play Again reuses the same mode/map/difficulty',
+          r.afterMode === 'quick' && r.afterMap === 'classic' && r.afterDiff === 'normal',
+          `${r.afterMode}/${r.afterMap}/${r.afterDiff}`);
+    check('Play Again hides the overlay', r.overlayHidden);
+    check('Play Again shown after a Quick victory', r.winShows);
+    check('Play Again hidden on a Daily Challenge run', r.dailyHidden);
+    check('no console errors during Play Again test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
