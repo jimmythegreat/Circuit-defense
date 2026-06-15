@@ -3,6 +3,38 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.79.0 — 2026-06-15 — 🎇 Mortar shells now arc through the air
+
+**Type:** Polish / game-feel. Minor bump.
+
+**What & why.** The 🎇 **Mortar** is the long-range siege tower, but its lobbed shells flew **dead-flat**
+toward the target — identical to the Cannon's bomb — which never sold the "heavy shell raining down from
+above" fantasy (a noted ROADMAP follow-up, twice: *"a visual arc for the lobbed shell would sell the
+artillery feel"*). Mortar shells now **rise in a parabola and fall onto the target**, with a faint ground
+shadow drifting beneath to anchor the height. The arc is **taller for longer shots** (capped), so you can
+read which tower is the artillery at a glance.
+
+**Implementation.** Render-only, fully decoupled from gameplay:
+- **cd-update.js** — when a mortar fires, the projectile records its launch point as `x0`/`y0` and a
+  `lob: true` flag (only mortar; gun/sniper/cannon-bomb/etc. keep `lob` falsy). One small change in the
+  projectile-spawn block; the muzzle coords are computed once into `px`/`py`.
+- **cd-render.js** — a new pure helper `lobLift(p)` returns the upward pixel offset for a lobbed shell:
+  `frac = traveled/(traveled+remaining)` (robust as the target moves; 0 at launch → ~1 at impact),
+  `peak = min(46, total*0.2)`, `lift = peak·4·frac·(1−frac)` (parabola, peaks at mid-flight). The
+  projectile-draw loop lifts the orb, trail and highlight by `lift` and draws a fading ground shadow
+  ellipse under the shell — **`p.x`/`p.y` stay the ground truth used by hit detection** (targeting,
+  damage, blast radius, armor-ignore all untouched). Returns `0` for any non-lob projectile, so Cannon
+  bombs and all bullets render byte-identically.
+
+**Save/economy/balance:** zero impact — projectiles are transient run-only objects (never persisted), and
+the change touches only the *drawn* position of mortar shells. No new localStorage key.
+
+**Test evidence:** new group `[87]` (12 checks) — `lobLift()` purity (0 for non-lob, ≈40 peak mid-flight for
+a 200px shot, 0 at both ends, symmetric, rises-then-falls, capped ≈46 on an 800px shot); a *fired* mortar
+shell carries `lob/x0/y0` with a positive in-flight arc while a fired gun bullet stays flat; and a lobbed
+shell still homes & lands its hit (gameplay unaffected). Suite green; PWA `CACHE` bumped to
+`circuit-defense-v1.79.0` (test `[49]`).
+
 ## v1.78.0 — 2026-06-15 — ⏱️ Speed bonus — fast victories score higher
 
 **Type:** Feature / scoring. Minor bump.

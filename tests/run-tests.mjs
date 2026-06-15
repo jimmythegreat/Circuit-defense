@@ -5710,6 +5710,90 @@ async function main() {
     await page.close();
   }
 
+  // [87] Lobbed mortar shell arc — render-only parabola (v1.79.0)
+  console.log('\n[87] Lobbed mortar shell arc (v1.79.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // (a) lobLift() is a pure parabola: 0 for a non-lob projectile, 0 at both flight
+      //     ends, peak at the middle, symmetric, and capped on very long shots.
+      const helperOk = typeof lobLift === 'function';
+      const nonLob = lobLift({ lob: false, x: 50, y: 0, x0: 0, y0: 0, target: { x: 200, y: 0 } });
+      const mk = (x) => ({ lob: true, x, y: 0, x0: 0, y0: 0, target: { x: 200, y: 0 } });  // 200px flat shot
+      const lStart = lobLift(mk(0));     // frac 0   → 0
+      const lMid   = lobLift(mk(100));   // frac 0.5 → peak (= min(46, 200*0.2)=40)
+      const lEnd   = lobLift(mk(200));   // frac 1   → 0
+      const lQ1    = lobLift(mk(50));    // frac 0.25
+      const lQ3    = lobLift(mk(150));   // frac 0.75
+      const peakOk = Math.abs(lMid - 40) < 0.5;
+      const endsZero = lStart === 0 && Math.abs(lEnd) < 1e-9;
+      const symmetric = Math.abs(lQ1 - lQ3) < 0.5;
+      const risesThenFalls = lQ1 > lStart && lMid > lQ1 && lQ3 < lMid && lEnd < lQ3;
+      const capped = lobLift({ lob: true, x: 400, y: 0, x0: 0, y0: 0, target: { x: 800, y: 0 } }); // total 800 → peak capped 46
+      const cappedOk = Math.abs(capped - 46) < 0.5;
+
+      // (b) spawn fields: a fired mortar shell is lobbed (lob/x0/y0 set); a gun bullet is not.
+      //     Towers are placed at their target's actual on-path position (the enemy loop
+      //     repositions e.x/e.y from pointAt() each frame, before towers fire).
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      gold = 1e9; towers.length = 0; enemies.length = 0; projectiles.length = 0;
+      const dM = pathLen * 0.3, dG = pathLen * 0.65;
+      const pM = pointAt(dM), pG = pointAt(dG);
+      const mortar = { type: 'mortar', x: pM.x, y: pM.y - 50, level: 1, spec: null,
+        dmg: TOWER_TYPES.mortar.dmg, rate: TOWER_TYPES.mortar.rate, range: 225,
+        dealt: 0, kills: 0, buffPower: 0.25, mode: 'first', cd: 0, flash: 0, angle: 0, empT: 0 };
+      // gun sits 130px off-path (within its 200 range) so its fast bullet (spd 480 →
+      // ~8px/frame) survives the frame it spawns — a point-blank shot resolves & is
+      // filtered same-tick (the documented fire-detection gotcha), hiding the projectile.
+      const gun = { type: 'gun', x: pG.x, y: pG.y - 130, level: 1, spec: null,
+        dmg: TOWER_TYPES.gun.dmg, rate: TOWER_TYPES.gun.rate, range: 200,
+        dealt: 0, kills: 0, buffPower: 0.25, mode: 'first', cd: 0, flash: 0, angle: 0, empT: 0 };
+      towers.push(mortar, gun);
+      const mkE = (dist) => { const p = pointAt(dist); return ({ kind: 'norm', hp: 1e6, maxHp: 1e6,
+        spd: 0, r: 11, bounty: 1, color: '#fff', armor: 0, gap: 0, dist, x: p.x, y: p.y,
+        slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px: 0, py: 0, dead: false, blinkInvuln: 0 }); };
+      enemies.push(mkE(dM), mkE(dG));
+      update(1 / 60);   // enemy loop repositions, then both towers fire
+      const mProj = projectiles.find(p => p.kind === 'mortar');
+      const gProj = projectiles.find(p => p.kind === 'bullet');
+      const mortarLobbed = !!mProj && mProj.lob === true
+        && typeof mProj.x0 === 'number' && typeof mProj.y0 === 'number';
+      const gunFlat = !!gProj && !gProj.lob;
+      const arcsInFlight = mProj ? lobLift(mProj) > 0 : false;   // real positive arc mid-flight
+
+      // (c) hit detection is unaffected — the ground-truth p.x/p.y still homes & lands.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const tp = pointAt(pathLen * 0.4);
+      const tgt = { kind: 'norm', hp: 500, maxHp: 500, spd: 0, r: 11, bounty: 1, color: '#fff',
+        armor: 0, gap: 0, dist: pathLen * 0.4, x: tp.x, y: tp.y, slow: 0, slowF: 0.6, frozen: 0,
+        poison: null, flash: 0, px: 0, py: 0, dead: false, blinkInvuln: 0 };
+      enemies.push(tgt);
+      projectiles.push({ x: tp.x - 60, y: tp.y, x0: tp.x - 60, y0: tp.y, lob: true, target: tgt,
+        dmg: 200, kind: 'mortar', src: { dealt: 0, kills: 0 }, crit: false, ignoreArmor: true,
+        color: '#fff', spd: 200 });
+      let guard = 0;
+      while (projectiles.length && guard++ < 600) update(1 / 60);
+      const hitLanded = tgt.hp < 500;
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { helperOk, nonLob, peakOk, endsZero, symmetric, risesThenFalls, cappedOk,
+               mortarLobbed, gunFlat, arcsInFlight, hitLanded };
+    });
+    check('lobLift() helper exists', r.helperOk);
+    check('lobLift returns 0 for a non-lobbed projectile', r.nonLob === 0);
+    check('lobLift peaks at mid-flight (≈40 for a 200px shot)', r.peakOk);
+    check('lobLift is 0 at launch and impact', r.endsZero);
+    check('lobLift arc is symmetric', r.symmetric);
+    check('lobLift rises then falls across the flight', r.risesThenFalls);
+    check('lobLift peak is capped on long shots (≈46)', r.cappedOk);
+    check('a fired mortar shell is lobbed (lob/x0/y0 set)', r.mortarLobbed);
+    check('a fired gun bullet flies flat (no lob)', r.gunFlat);
+    check('a spawned mortar shell has a positive arc in flight', r.arcsInFlight);
+    check('lobbed shell still homes & hits its target (gameplay unaffected)', r.hitLanded);
+    check('no console errors during mortar-arc test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

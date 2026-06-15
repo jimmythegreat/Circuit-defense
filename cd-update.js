@@ -369,11 +369,16 @@ function update(dt) {
     if (def.proj === 'chain') {
       fireChain(t, target, dmg);
     } else {
+      // Mortar shells are LOBBED (v1.79.0): they get a render-only parabolic arc. The
+      // launch point (px/py) is recorded as x0/y0 so the arc helper can compute flight
+      // progress; only the drawn orb/trail/shadow lift — hit math still uses p.x/p.y.
+      const px = t.x + Math.cos(t.angle)*14, py = t.y + Math.sin(t.angle)*14;
       projectiles.push({
-        x: t.x + Math.cos(t.angle)*14, y: t.y + Math.sin(t.angle)*14,
+        x: px, y: py,
         target, dmg, kind: def.proj, src: t, crit,
         ignoreArmor: t.spec === 'ap' || t.type === 'mortar',  // mortar shells always ignore armor
-        color: def.color, spd: def.proj === 'bomb' ? 260 : def.proj === 'mortar' ? 200 : 480
+        color: def.color, spd: def.proj === 'bomb' ? 260 : def.proj === 'mortar' ? 200 : 480,
+        lob: def.proj === 'mortar', x0: px, y0: py
       });
       if (t.type === 'sniper') SFX.snipe();
       else if (t.type === 'frost') SFX.frost();

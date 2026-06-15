@@ -34,6 +34,22 @@ const GLYPH_FONT = {
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
   '‼': 'bold 12px sans-serif', '🔥': '10px sans-serif',
 };
+// Lobbed-shell arc (v1.79.0): a Mortar shell rises then falls along a parabola for
+// real artillery feel, instead of homing flat like the Cannon's bomb. RENDER-ONLY —
+// hit detection still uses the ground position p.x/p.y; only the drawn orb/trail/shadow
+// are lifted. frac = traveled/(traveled+remaining) is robust as the target moves (0 at
+// launch → ~1 at impact); peak height scales with shot distance (capped). Returns the
+// upward pixel offset (0 for any non-lob projectile). Pure → unit-testable.
+function lobLift(p) {
+  if (!p || !p.lob) return 0;
+  const traveled = Math.hypot(p.x - p.x0, p.y - p.y0);
+  const remaining = Math.hypot(p.target.x - p.x, p.target.y - p.y);
+  const total = traveled + remaining;
+  if (total < 1) return 0;
+  const frac = traveled / total;            // 0..1 flight progress
+  const peak = Math.min(46, total * 0.2);   // taller arc for longer shots, capped
+  return peak * 4 * frac * (1 - frac);       // parabola, peaks at frac=0.5
+}
 // Boss-bar mechanic badge (v1.36.0): names the active boss archetype (v1.25.0/v1.34.0)
 // so the colour-coded aura ring isn't the only cue — colour matches the aura. Bulwark
 // flips to SHIELDED while its damage-soak window is up. Returns null for vanilla
@@ -603,11 +619,20 @@ function draw() {
   // projectiles with motion trails
   for (const p of projectiles) {
     const big = p.kind === 'bomb' || p.kind === 'mortar';   // heavy shells draw a chunkier trail/orb
+    const lift = lobLift(p);                 // mortar shells arc up then down (render-only)
+    const dy0 = p.y - lift;                  // lifted draw position; p.x/p.y stay the ground truth
     const pdx = p.target.x - p.x, pdy = p.target.y - p.y;
     const pdd = Math.hypot(pdx, pdy) || 1;
     const trailLen = big ? 18 : 13;
-    const tx = p.x - pdx/pdd * trailLen, ty = p.y - pdy/pdd * trailLen;
-    const tg = ctx.createLinearGradient(tx, ty, p.x, p.y);
+    const tx = p.x - pdx/pdd * trailLen, ty = (p.y - pdy/pdd * trailLen) - lift;
+    // a faint ground shadow under a lofted shell anchors the arc (sells the height)
+    if (lift > 0.5) {
+      ctx.globalAlpha = Math.max(0, 0.3 - lift * 0.004);
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, 5, 2, 0, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    const tg = ctx.createLinearGradient(tx, ty, p.x, dy0);
     tg.addColorStop(0, 'rgba(0,0,0,0)');
     tg.addColorStop(1, p.color);
     ctx.strokeStyle = tg;
@@ -615,11 +640,11 @@ function draw() {
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(tx, ty);
-    ctx.lineTo(p.x, p.y);
+    ctx.lineTo(p.x, dy0);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(p.x, p.y, big ? 6 : 3.5, 0, Math.PI*2);
-    const pg = ctx.createRadialGradient(p.x - 1.5, p.y - 1.5, 0.5, p.x, p.y, big ? 6 : 3.5);
+    ctx.arc(p.x, dy0, big ? 6 : 3.5, 0, Math.PI*2);
+    const pg = ctx.createRadialGradient(p.x - 1.5, dy0 - 1.5, 0.5, p.x, dy0, big ? 6 : 3.5);
     pg.addColorStop(0, '#fff');
     pg.addColorStop(1, p.color);
     ctx.fillStyle = pg;

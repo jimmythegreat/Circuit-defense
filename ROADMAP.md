@@ -95,8 +95,10 @@ _None currently known._ (Add any here as they're found — these are top priorit
       **Saturation** (+55% blast radius); plus a **Mortar Mastery** talent (auto-wires via the
       `mastery_<type>` lookup). Save-safe (additive; `loadRun` rebuilds any type generically).
       Test [42]. **Follow-ups:** the **arc/chain** tower is still open (chain-lightning that bounces —
-      a swarm counter, distinct from Tesla's fixed chain); and a *visual arc* for the lobbed shell
-      (currently homes straight like the bomb) would sell the artillery feel.
+      a swarm counter, distinct from Tesla's fixed chain). ✅ **visual arc for the lobbed shell shipped
+      v1.79.0** — mortar shells now rise/fall in a render-only parabola (`lobLift(p)` in cd-render.js;
+      `lob`/`x0`/`y0` set at spawn in cd-update.js) with a ground shadow, selling the artillery feel;
+      hit detection still uses the ground-truth `p.x`/`p.y` so gameplay/balance are untouched. Test [87].
 - [x] **Daily challenge seed** — shipped **v1.28.0**. A 🗓 **Daily Challenge** start-screen
       button (`beginDaily()`) launches today's date-seeded run: the map path, difficulty
       (normal/hard) and the per-wave Mayhem modifier schedule are all generated from a
