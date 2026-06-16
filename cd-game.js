@@ -239,6 +239,19 @@ function buildWave(w) {
     // they bunch up and can be focused; only a real coverage gap lets one through, and one
     // mod is ever active so no stacking. Run-only (enemies are never persisted).
     if (modIs('breachers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
+    // Jammer Surge (Mayhem, v1.96.0): convert a fraction of would-be basic enemies into ⚡ Jammer
+    // escorts (the wave-wide cousin of the Jammer enemy, like Warden Surge ↔ the Warden / Breacher
+    // Surge ↔ the Breacher). Mirrors those conversions exactly — only norms convert (so it never
+    // overrides the rarer special kinds above) and it's a conversion not an addition (wave length
+    // unchanged). A densely-jammed wave pressures TOWER UPTIME/COVERAGE: each jammer periodically
+    // knocks the nearest tower offline as it advances (the kind==='jammer' tick in update() handles
+    // the converted ones identically — its lazy jamCd inits on first tick regardless of wave), so
+    // roaming blackouts stack across the wave. Distinct from Static Storm's single global timer —
+    // here the dead-zones are SPATIAL and scale with how many you let through. Bounded: each jams
+    // one tower per pulse for a brief self-recovering window, buff/support towers are immune, freeze
+    // pauses it, and one mod is ever active so no stacking with wardens/breachers despite the shared
+    // slot. Run-only (enemies are never persisted) — no save migration.
+    if (modIs('jammers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'jammer', hp:t.hp*1.15, spd:t.speed*0.95, r:12, bounty:Math.ceil(t.bounty*1.9), color:'#f2e34a', armor:0, gap:0.8 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;

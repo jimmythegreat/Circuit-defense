@@ -168,6 +168,7 @@ const WAVE_MODS = [
   { id:'cloak',   icon:'🫥', name:'Cloaking Field', desc:'Enemies phase out, briefly untargetable' },
   { id:'fission', icon:'🧫', name:'Fission',        desc:'Slain enemies burst into weak spawn' },
   { id:'breachers',icon:'‼️', name:'Breacher Surge', desc:'Heavy breacher escorts — leaks cost double' },
+  { id:'jammers', icon:'📡', name:'Jammer Surge',   desc:'Jammer escorts disable your towers' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
 const MOD_BY_ID = Object.fromEntries(WAVE_MODS.map(m => [m.id, m]));

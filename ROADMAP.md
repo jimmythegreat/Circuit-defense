@@ -253,8 +253,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       not 1** — the **wave-wide cousin of the Breacher enemy** on the **leak-cost axis** no other mod touches.
       Pressures coverage; bounded (breachers are slow, no extra HP curve). The leak site already reads
       `e.lifeCost`, render already draws the breacher glyph + cue ring, so no leak/render code changed; run-only).
-      Pool 7→9→10→11→12→13→14→15→16→17→**18**.
-      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85] + [88].
+      Then **📡 Jammer Surge** in **v1.96.0** (`jammers`: converts a fraction of would-be basic enemies
+      (slot `i%4===1`, norm-only, conversion-not-addition) into ⚡ Jammer escorts so several roaming
+      tower-blackouts stack across the wave — the **wave-wide cousin of the Jammer enemy** on the
+      **tower-uptime/coverage axis**. Distinct from Static Storm (`emp`)'s single global timer: the blackouts
+      are spatial + scale with how many jammers you let through. Reuses the general `kind==='jammer'` tick +
+      render, so it's two lines; bounded (one tower/pulse, brief self-recovering disable, buff towers immune,
+      freeze pauses it); run-only).
+      Pool 7→9→10→11→12→13→14→15→16→17→18→**19**.
+      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85] + [88] + [103].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).
@@ -627,8 +634,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Disruptor boss / Static Storm mod (like the Molten brought CC-immunity from boss/mayhem to a
       regular enemy), bringing tower-disable pressure to Classic/Campaign too, off the invariant-capped
       HP curve. Bounded (modest HP ×1.15, one tower/pulse, brief disable, buff towers immune, freeze
-      pauses it, self-recovers) → can't make a run easier. Test [99]. **Follow-up (optional):** a Mayhem
-      "jammer surge" wave-mod cousin, or a tower spec/perk that hardens a tower against being jammed.
+      pauses it, self-recovers) → can't make a run easier. Test [99]. ✅ **Mayhem "jammer surge" wave-mod
+      cousin shipped v1.96.0** — 📡 **Jammer Surge** (`jammers`): converts a fraction of would-be basic
+      enemies (slot `i%4===1`, norm-only, conversion-not-addition) into ⚡ Jammer escorts, so several roaming
+      tower-blackouts stack across the wave — the **wave-wide cousin of the Jammer enemy** on the
+      **tower-uptime/coverage axis** (distinct from Static Storm's single global timer: the dead-zones are
+      spatial + scale with how many you let through). Mirrors Warden/Breacher Surge; reuses the general
+      `kind==='jammer'` tick + render, so it needed only a `WAVE_MODS` entry + the `buildWave` conversion
+      line. Bounded (one tower/pulse, brief disable, buff towers immune, freeze pauses it); run-only/save-safe.
+      Test [103]. **Follow-up (optional):** a tower spec/perk that hardens a tower against being jammed.
       **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
       (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
       hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is
@@ -815,7 +829,7 @@ v1.19.0 + the mid-game draft cards v1.20.0.)_
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush), spec
       selection at level 5, mayhem path-shift on resume, campaign next-level flow.
 - [ ] **Split the test harness file** (noted v1.24.2, re-confirmed v1.27.1 + v1.32.1 + v1.37.1 + v1.40.1 + v1.45.1 + v1.50.1 + v1.55.1 + v1.60.1 + v1.65.1 + v1.70.1 + v1.74.1 + v1.79.1 + v1.84.1 + v1.89.1 + v1.95.0 health checks) —
-      `tests/run-tests.mjs` has grown to **~6,937 lines (102 groups `[1]`–`[102]`, 1101 assertions)** in a
+      `tests/run-tests.mjs` has grown to **~7,010 lines (103 groups `[1]`–`[103]`, 1110 assertions)** in a
       single file. Dev-only, doesn't touch the shipped game, but it's well past the readability
       point; could split per-group into `tests/groups/*.mjs` with a small runner. Low priority
       (suite runs ~30s, green) — but it's by far the largest single file in the repo now and growing

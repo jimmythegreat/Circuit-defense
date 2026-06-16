@@ -6921,6 +6921,76 @@ async function main() {
     await page.close();
   }
 
+  // [103] Jammer Surge wave mod — converts basic enemies into tower-disabling jammers (v1.96.0)
+  console.log('\n[103] Jammer Surge (tower-uptime wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'jammers');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) jammer count for a wave-10 wave (no natural jammers until w16).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainJammers = plainWave.filter(e => e.kind === 'jammer').length;
+
+      // JAMMER SURGE — a fraction of basic enemies become jammers, so the wave has MORE.
+      setMod('jammers');
+      const surgeWave = buildWave(10);
+      const surgeJammers = surgeWave.filter(e => e.kind === 'jammer').length;
+      const moreJammers = surgeJammers > plainJammers;
+      // Converted jammers carry full jammer stats (maxHp set, electric-yellow colour, radius 12).
+      const conv = surgeWave.find(e => e.kind === 'jammer');
+      const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#f2e34a' && conv.r === 12;
+      // Conversion not addition: total wave length unchanged, special kinds untouched.
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+      // Inert when the mod is off.
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'jammer').length === plainJammers;
+
+      // A converted jammer disables the nearest tower (its lazy jamCd ticks regardless of wave).
+      const dp = pointAt(60);
+      towers.length = 0; enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      enemies.push({ kind:'jammer', hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#f2e34a',
+        armor:0, gap:0.8, dist:60, x:dp.x, y:dp.y, px:dp.x, py:dp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 });
+      towers.push({ type:'gun', x:dp.x+40, y:dp.y, range:120, dmg:1, rate:1, cd:0, level:1,
+        baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, empT:0 });
+      let jammed = false;
+      for (let i = 0; i < 360 && !jammed; i++) { update(1/60); if (towers[0] && towers[0].empT > 0) jammed = true; }
+
+      enemies.length = 0; towers.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, moreJammers, wellFormed, sameLength, fastUntouched, inertOff, jammed,
+               plainJammers, surgeJammers };
+    });
+    check('WAVE_MODS includes Jammer Surge', r.hasMod);
+    check('Jammer Surge adds jammers to the wave', r.moreJammers, `${r.plainJammers}->${r.surgeJammers}`);
+    check('converted jammers are well-formed (maxHp/colour/radius)', r.wellFormed);
+    check('Jammer Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Jammer Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Jammer Surge is inert when the mod is off', r.inertOff);
+    check('a converted jammer disables the nearest tower (empT > 0)', r.jammed);
+    check('no console errors during Jammer Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+
+    // A real Mayhem run still drives to completion with the mod in the pool — no hang.
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 8 });
+      const out = { reached: wave >= 7, wave };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Mayhem run with Jammer Surge in the pool drives without hanging', drove.reached, 'wave=' + drove.wave);
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

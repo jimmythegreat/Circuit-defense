@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.96.0 — 2026-06-16 — 📡 Jammer Surge — 19th Mayhem wave modifier (tower-disabling escorts)
+
+**Type:** New content (Mayhem wave modifier). Minor bump.
+
+**What & why:** Added **📡 Jammer Surge** (`jammers`), the 19th Mayhem wave modifier and the wave-wide cousin of the v1.91.0 ⚡ Jammer enemy — explicitly listed as an open follow-up in ROADMAP ("a Mayhem 'jammer surge' wave-mod cousin"). When it rolls, `buildWave` converts every would-be basic `norm` at slot `i % 4 === 1` into a ⚡ **Jammer escort** (`hp ×1.15`, `spd ×0.95`, full jammer stats) — exactly mirroring the Warden Surge (v1.51.0) and Breacher Surge (v1.80.0) conversion pattern: only `norm`s convert (the rarer special kinds are untouched) and it's a **conversion, not an addition**, so the wave is no longer than usual. Each converted jammer is driven by the existing general `e.kind === 'jammer'` tick in `update()` (its lazy `e.jamCd` pulse knocks the nearest non-buff tower within 105px offline via `t.empT`, reusing the Static Storm `empT` infrastructure), so a **densely-jammed wave produces several roaming tower-blackouts** instead of `emp`/Static Storm's single global timer — pressuring **tower uptime / coverage / spacing** on a fresh axis no other mod hits the same way. This serves the long-running "too easy" feedback off the invariant-capped HP curve.
+
+**Bounded / "too easy"-safe:** each jammer disables just one tower per pulse for a brief self-recovering window, buff/support towers are immune, freeze pauses the sabotage, and only one mod is ever active at a time (so no stacking with wardens/breachers despite the shared `i % 4 === 1` slot). It converts existing enemies rather than adding HP/speed, so it can never make a run *easier*. Mayhem-only.
+
+**Save-safe:** the modifier and its converted enemies are run-only and never serialized — old saves load unchanged; no chips/talents/gold/economy/balance/schema impact. Render (electric-yellow ring + ⚡ glyph), `waveComposition`/`waveThreat`/`KIND_HP_MULT`, and the colorblind legend already learned the Jammer enemy in v1.91.0, so the surge needed **only two lines** (a `WAVE_MODS` entry + the `buildWave` conversion).
+
+**Tests:** new group **[103]** (8 + 1 checks): `WAVE_MODS` includes Jammer Surge; the surge adds jammers; converted jammers are well-formed (maxHp/colour/radius); it converts without lengthening the wave; special kinds untouched; inert when off; a converted jammer disables the nearest tower; no console errors; and a full Mayhem run with the mod in the pool drives to completion without hanging. **Suite 1110/0 green** (was 1101/0).
+
 ## v1.95.0 — 2026-06-16 — 🩺 Health check — all green (1101/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass; 6 normal runs since v1.89.1: v1.90.0–v1.94.0). Patch bump. No new feature.
