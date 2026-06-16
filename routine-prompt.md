@@ -49,18 +49,19 @@ Record everything found in a CHANGELOG.md entry titled "🩺 Health check" (this
 - Do not touch .git config, do not force-push, do not rewrite history.
 
 ## Testing — required before every commit
+- BEFORE you start editing, run the full suite once on the clean pull to confirm it's already green (N/0). If it's red on an unmodified tree, your job THIS run is to fix that first (a prior-run or CI/environment regression) — never build on a broken baseline, or you'll mask which change broke what.
 - A headless test harness lives in tests/ (Node + Playwright driving the real HTML file). If it doesn't exist yet, creating it IS your first run's improvement. It must at minimum verify: the page loads with zero console errors; a scripted run clears several waves (drive the game by calling update(1/60) in a loop — requestAnimationFrame throttles in hidden tabs, so never rely on wall-clock); defeat and victory paths both trigger; save → reload → resume round-trips; a draft opens at wave 5 and a pick applies.
 - Spawn a SUBAGENT to run the full test suite against your change and report results. Spawn a second subagent to review your diff for guardrail violations (save compat, scope, theme) before committing. Fix anything they find.
 - Add at least one new test when your change adds new behavior.
 - If you cannot get tests green, revert everything (git checkout/restore) and instead commit a ROADMAP.md note describing what you attempted and why it failed. A clean failure report is an acceptable run; a broken game is not.
 
 ## Bookkeeping — every run
-- CHANGELOG.md: prepend an entry (date, what changed, why, test evidence).
+- CHANGELOG.md: prepend a CONCISE entry — version heading + 1–3 sentences (≤ ~60 words): what changed and why. Deep rationale/implementation detail belongs in code comments or CLAUDE.md, NOT here. For tests, "suite green (N/0)" is enough — never paste logs.
 - ROADMAP.md: check off what you did; add any new ideas you had.
 - CLAUDE.md: update if architecture, conventions, or design decisions changed.
-- The in-game "What's New" panel (create it if missing — a small button on the start screen listing the last ~10 changelog entries): add your entry.
+- The in-game "What's New" panel: add ONE short, player-facing line (≤ ~140 chars) — what changed from a player's view, no implementation detail. KEEP every past entry (never trim the list — the panel scrolls and the owner wants the full history), but each entry must stay this brief.
 - Version number: the game has a semver-ish version (e.g. v1.4.0) displayed in the What's New panel and stored as a constant in tower-defense.html. Bump it every run — patch for fixes/balance, minor for features/content — and use the same version in your CHANGELOG.md entry heading.
-- Commit with a clear message and push to the remote.
+- Commit message: imperative subject ≤ 70 chars; optional body ≤ 3 short lines on the WHY (no test-output dumps, no essays). Then push to the remote.
 
 ## Tone of additions
 The owner likes: addictive progression loops, meaningful choices, chunky game-feel (screen shake, sound, particles), and being able to grind. Surprise them occasionally — a secret, an achievement, a weird legendary perk — but never at the cost of stability.

@@ -7483,6 +7483,145 @@ async function main() {
     await page.close();
   }
 
+  // [110] Balance invariants — a difficulty FLOOR (no defense always loses) and a
+  // CEILING (a maxed defense can always win), so future balance tweaks can't drift
+  // the game into "trivially easy" or "literally impossible". Bounds, not exact
+  // outcomes — both scenarios have enormous margins so randomness can't flip them.
+  console.log('\n[110] Balance invariants (difficulty floor & ceiling)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // --- FLOOR: with ZERO towers, a quick run must LOSE well before victory. ---
+    const floorNormal = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();                       // lives come from the difficulty (small)
+      // No towers placed: every enemy leaks. Drive to the end (it ends in defeat).
+      const r = __cdDrive({ maxWave: 9999 });
+      const out = { gameOver: r.gameOver, victory: r.victory, lives: r.lives, wave: r.wave, vw: victoryWave() };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('difficulty floor: zero-tower normal run loses',
+      floorNormal.gameOver && !floorNormal.victory, JSON.stringify(floorNormal));
+    check('difficulty floor: zero-tower normal run dies early (well before victory wave)',
+      floorNormal.lives <= 0 && floorNormal.wave < 10 && floorNormal.wave < floorNormal.vw,
+      JSON.stringify(floorNormal));
+
+    const floorHard = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; campLevel = 1;
+      beginGame();
+      const r = __cdDrive({ maxWave: 9999 });
+      const out = { gameOver: r.gameOver, victory: r.victory, lives: r.lives, wave: r.wave, vw: victoryWave() };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('difficulty floor: zero-tower hard run loses',
+      floorHard.gameOver && !floorHard.victory, JSON.stringify(floorHard));
+    check('difficulty floor: zero-tower hard run dies early (well before victory wave)',
+      floorHard.lives <= 0 && floorHard.wave < 10 && floorHard.wave < floorHard.vw,
+      JSON.stringify(floorHard));
+
+    // --- CEILING: a maxed (god-tower) defense must always be able to WIN. ---
+    const ceilNormal = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      gold = 1e9; lives = 99999;          // generous: isolate "can the board clear waves?"
+      __cdGodTowers(12);
+      const r = __cdDrive({ maxWave: 9999 });
+      const out = { victory: r.victory, wave: r.wave, hitCap: r.hitCap, vw: victoryWave() };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('difficulty ceiling: god-tower normal run wins',
+      ceilNormal.victory === true && ceilNormal.wave === ceilNormal.vw && !ceilNormal.hitCap,
+      JSON.stringify(ceilNormal));
+
+    const ceilHard = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; campLevel = 1;
+      beginGame();
+      gold = 1e9; lives = 99999;
+      __cdGodTowers(12);
+      const r = __cdDrive({ maxWave: 9999 });
+      const out = { victory: r.victory, wave: r.wave, hitCap: r.hitCap, vw: victoryWave() };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('difficulty ceiling: god-tower hard run wins',
+      ceilHard.victory === true && ceilHard.wave === ceilHard.vw && !ceilHard.hitCap,
+      JSON.stringify(ceilHard));
+
+    check('no console errors during balance-invariants test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [111] Performance guardrail — catch creeping slowness / quadratic blowups /
+  // unbounded entity growth as features accumulate. Builds a HEAVY but realistic
+  // state (many god towers driven to a deep wave) then runs a measured update+draw
+  // loop. Two assertions: a STRUCTURAL bound on the entity arrays (CPU-independent,
+  // the robust core) and a GENEROUS wall-clock budget (catches only a true blowup).
+  console.log('\n[111] Performance guardrail (frame budget + bounded entities)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const perf = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'hard'; campLevel = 1;
+      beginGame();
+      gold = 1e9; lives = 99999;
+      __cdGodTowers(36);                 // a heavy board (~36 towers)
+      // Drive deep so many waves are concurrently in flight (lots of enemies/projectiles/particles).
+      __cdDrive({ maxWave: 22 });
+      // Keep spawning pressure high during the measured loop: queue several waves.
+      autoWave = false;
+      for (let i = 0; i < 3 && (wave - lastSettledWave) < (typeof MAX_CONCURRENT_WAVES === 'number' ? MAX_CONCURRENT_WAVES : 3); i++) {
+        if (!gameOver) startWave();
+      }
+
+      const ITER = 600;
+      let maxEnt = 0;
+      const t0 = performance.now();
+      for (let i = 0; i < ITER; i++) {
+        update(1 / 60);
+        draw();
+        if (draftOpen) {               // auto-dismiss drafts so the loop keeps running
+          const card = document.getElementById('draftCards').children[0];
+          if (card) card.click(); else draftOpen = false;
+        }
+        if (!waveActive && !gameOver) startWave();   // keep the field busy
+        const ent = enemies.length + projectiles.length + particles.length + beams.length + floaters.length;
+        if (ent > maxEnt) maxEnt = ent;
+      }
+      const t1 = performance.now();
+      const avgMs = (t1 - t0) / ITER;
+
+      const out = {
+        avgMs, maxEnt,
+        enemies: enemies.length, projectiles: projectiles.length,
+        particles: particles.length, beams: beams.length, floaters: floaters.length,
+        wave,
+      };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+
+    console.log(`     [111] observed avg frame = ${perf.avgMs.toFixed(3)}ms, max entities = ${perf.maxEnt} (final wave ${perf.wave})`);
+
+    // (a) STRUCTURAL — entity arrays stay bounded (catches leaks/runaway spawning
+    //     regardless of CPU speed). A healthy deep wave peaks in the low hundreds;
+    //     5000 is a vast, regression-only ceiling.
+    check('perf: entity arrays stay bounded under heavy load (max < 5000)',
+      perf.maxEnt < 5000, 'maxEnt=' + perf.maxEnt);
+
+    // (b) WALL-CLOCK budget. Real-time is 16.7ms/frame. Observed local avg ≈ a few ms
+    //     for update+draw on this heavy board; CI machines are slower. Per the CI lesson,
+    //     the ceiling is a generous hard-coded constant (>= ~50ms, and well above 5× the
+    //     local observation) so it only ever trips on a true catastrophic blowup.
+    const FRAME_BUDGET_MS = 60;          // generous: ~3.6× real-time, >> observed local avg (a few ms)
+    check(`perf: avg update+draw frame under budget (${FRAME_BUDGET_MS}ms)`,
+      perf.avgMs < FRAME_BUDGET_MS, `avgMs=${perf.avgMs.toFixed(3)} budget=${FRAME_BUDGET_MS}`);
+
+    check('no console errors during performance guardrail test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

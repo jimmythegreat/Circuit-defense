@@ -2,6 +2,19 @@
 
 A browser tower defense game. **The game is `tower-defense.html` (markup) + `tower-defense.css` (styles) + seven domain-split JS files (v1.8.2).** Everything is wired with classic `<link rel="stylesheet">` and `<script src>` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
 
+## Design pillars (north-star — what the game should always FEEL like)
+
+These describe *feel*, not theme (the visual/narrative theme may drift). When inventing your own change, prefer ones that reinforce a pillar; when balancing, protect them.
+
+- **Addictive loop, no wasted time** — every run feeds meta-progress (chips → talents); even a loss advances you toward something.
+- **Earned difficulty — "too easy" is a bug** — the game must stay genuinely challenging and reward planning/skill; power is grinded for, never trivial. (The single most recurring owner complaint.) Test group `[110]` is the automated floor/ceiling guard.
+- **Meaningful choices, no dominated options** — towers, specs, perks, talents, targeting each carry real trade-offs; if one pick is always correct, rebalance it.
+- **Every strategy viable** — multiple builds should be able to win; balance toward diversity, not a single dominant line.
+- **Chunky game-feel** — kills, crits, bosses and milestones hit hard (shake, synth SFX, particles, floaters); juice is a feature, but always gated by the reduced-motion / particle-density settings.
+- **Readable at a glance** — distinct enemy/tower silhouettes + glyphs, colorblind-safe cues; clarity beats spectacle when they conflict.
+- **Zero friction, saves sacred** — instant offline play by double-click (no install/build/network/account); existing saves must always keep loading.
+- **A run is a session, not a chore** — quick/campaign runs are finite and satisfying (a few to ~15 min); endless is opt-in.
+
 `index.html` is a tiny `<meta http-equiv="refresh">` **redirect** to `tower-defense.html` (added in the public-release commit) so the GitHub Pages **root URL** lands on the game; it carries no game code. The Pages deploy workflow (`.github/workflows/`) copies `index.html` + `tower-defense.html` + `tower-defense.css` + `cd-*.js` + the **PWA trio** (`manifest.webmanifest` + `sw.js` + `icon.svg`, v1.30.0) into `_site` and publishes them as a **static** deploy (no build step) on every push to `master`. Don't break it.
 
 **PWA / installable (v1.30.0):** the **hosted** (http/https) game is an installable, offline-cacheable PWA. `manifest.webmanifest` (name/short_name/`start_url:./tower-defense.html`/`display:standalone`/theme+bg `#0d1117`/maskable `icon.svg`), `icon.svg` (gold-⚡ maskable app icon matching the inline favicon), and `sw.js` (a service worker: precache the app shell in a versioned cache `circuit-defense-<GAME_VERSION>` (e.g. `circuit-defense-v1.32.1`), cache-first fetch with a same-origin runtime cache + offline fallback to `tower-defense.html`; **bump the `CACHE` const to the new `GAME_VERSION` every release** so `activate` evicts the stale shell — else hosted/installed PWA users keep an old cached game offline. **Test `[49]` asserts `sw.js`'s cache version === `GAME_VERSION`** (added v1.32.1 after the const silently drifted v1.30.0→v1.32.0), so a forgotten bump now fails the suite). The HTML head links the manifest + apple-touch-icon + iOS web-app meta tags. **SW registration lives at the end of `cd-render.js`'s startup block, guarded to `location.protocol` http/https only** — it can't register (or throw) on `file://`, so double-click play **and the headless harness (also `file://`) are byte-identical/unaffected**. NOT a module, no build step, no runtime network dep, **no localStorage/save change** (the SW uses the separate Cache API). Test group `[49]`.
