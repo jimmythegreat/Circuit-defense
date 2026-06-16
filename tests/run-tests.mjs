@@ -6991,6 +6991,75 @@ async function main() {
     await page.close();
   }
 
+  // [104] Surge Protector rare perk — towers recover from jamming faster (v1.97.0)
+  console.log('\n[104] Surge Protector perk (faster jam recovery)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const def = PERKS.find(p => p.id === 'surgeprot');
+      const inPool = !!def && def.rarity === 'rare';
+      const notLegendary = def && def.rarity !== 'legendary';   // so resolveWildcard() won't roll it
+
+      // apply the perk → empResist ×3
+      perkState.empResist = 1;
+      def.apply(perkState);
+      const multOk = Math.abs(perkState.empResist - 3) < 1e-9;
+
+      // The empT offline timer decays by dt × empResist in update()'s fire loop, so a protected
+      // tower (empResist=3) shrugs off a jam ~3× faster than baseline (empResist=1).
+      const mkTower = () => ({ type:'gun', x:700, y:300, level:1, cd:99, range:80, dmg:10, rate:1,
+        mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, angle:0, empT:1.2 });
+      enemies.length = 0; pendingSpawns.length = 0; spawners.length = 0;
+
+      // baseline empResist=1: 30 frames (0.5s) of decay → 1.2 − 0.5 = 0.70 still offline
+      perkState.empResist = 1;
+      towers.length = 0; towers.push(mkTower());
+      for (let i = 0; i < 30; i++) update(1/60);
+      const baseEmp = towers[0].empT;
+
+      // protected empResist=3: same 0.5s decays 1.5s worth → fully recovered (clamped to 0)
+      perkState.empResist = 3;
+      towers.length = 0; towers.push(mkTower());
+      for (let i = 0; i < 30; i++) update(1/60);
+      const protEmp = towers[0].empT;
+
+      const baseStillOff = baseEmp > 0.5;        // baseline barely recovered after 0.5s
+      const protRecovered = protEmp <= 0.001;    // protected fully shrugged it off
+      const fasterDecay = protEmp < baseEmp - 0.3;
+
+      // freshPerkState default + save/reload round-trip + old-save migration
+      const defaultsOk = freshPerkState().empResist === 1;
+      perkState.empResist = 3;
+      saveRun();
+      perkState.empResist = 1;
+      loadRun();
+      const restored = Math.abs(perkState.empResist - 3) < 1e-9;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.empResist;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.empResist === 1;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, notLegendary, multOk, baseStillOff, protRecovered, fasterDecay, defaultsOk, restored, migratedOk };
+    });
+    check('Surge Protector is a rare perk in the pool', r.inPool);
+    check('Surge Protector is not legendary (Wildcard cannot roll it)', r.notLegendary);
+    check('Surge Protector apply sets empResist ×3', r.multOk);
+    check('baseline tower still offline after 0.5s', r.baseStillOff);
+    check('protected tower (empResist×3) recovers from jam within 0.5s', r.protRecovered);
+    check('empResist decays the empT offline timer faster', r.fasterDecay);
+    check('freshPerkState defaults empResist:1', r.defaultsOk);
+    check('save/reload round-trips empResist', r.restored);
+    check('old save missing empResist migrates to default 1', r.migratedOk);
+    check('no console errors during Surge Protector test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

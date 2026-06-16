@@ -642,7 +642,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       spatial + scale with how many you let through). Mirrors Warden/Breacher Surge; reuses the general
       `kind==='jammer'` tick + render, so it needed only a `WAVE_MODS` entry + the `buildWave` conversion
       line. Bounded (one tower/pulse, brief disable, buff towers immune, freeze pauses it); run-only/save-safe.
-      Test [103]. **Follow-up (optional):** a tower spec/perk that hardens a tower against being jammed.
+      Test [103]. ✅ **jam-counter perk shipped v1.97.0** — 🔌 **Surge Protector** (rare): towers shrug off
+      jamming **3× faster** (`perkState.empResist` multiplies the `empT` decay in cd-update.js's fire loop —
+      a single site that covers all three disable sources: Static Storm / Disruptor / Jammer). The first
+      player counter to tower-disabling content, on a fresh defensive/uptime axis; situational + "too easy"-safe
+      (zero damage/range/economy — only shortens downtime, so it can't make a run easier). Save-safe (`empResist`
+      in perkState, default 1; rare so Wildcard won't roll it). Test [104]. **Follow-up (optional, still open):**
+      a tower *spec* (per-type) version, or a meta talent that grants permanent jam resistance.
       **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
       (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
       hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is

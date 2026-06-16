@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.97.0 — 2026-06-16 — 🔌 Surge Protector — new rare run perk (towers shake off jamming 3× faster)
+
+**Type:** New content (run perk). Minor bump.
+
+**What & why:** Added **🔌 Surge Protector** (`surgeprot`, rare), the **first player counter to the game's tower-disabling content**. The game grew three sources that knock a tower offline by setting its run-only `t.empT` timer — the Mayhem ⚡ **Static Storm** modifier (2.2s), the 🔵 **Disruptor** boss (2.2s), and the ⚡ **Jammer** enemy (1.6s) — but the player had no answer; a jammed tower just sat dark for the full window. Surge Protector multiplies the **`empT` decay rate ×3** (via `perkState.empResist`), so a jammed tower recovers in ~⅓ the usual time (a 2.2s blackout → ~0.73s, a 1.6s one → ~0.53s). It answers all three sources at once because they share the same `empT` infrastructure: the change is a **single site** — the per-frame decay line in `cd-update.js`'s tower-fire loop (`t.empT -= dt * perkState.empResist`).
+
+**Why a perk / why "too easy"-safe:** it's a fresh **defensive / tower-uptime axis** no other perk touches (the pool had damage/rate/gold/CC/range/ability-cooldown perks but nothing for jam resistance), so it's a meaningful, situational draft choice — like the slow-boosting **Cryo Tech** doing nothing without slows, Surge Protector does nothing in a run with no jamming. It adds **zero damage, range, or economy** — it only shortens downtime, so it can't make a run *easier*; it's pure counter-pressure to the recent jam content (Static Storm / Disruptor / Jammer), squarely in keeping with the "too easy" feedback's design (answer pressure with tools, not raw power). A **rare** (not legendary), so `resolveWildcard()` won't roll it.
+
+**Save-safe / additive:** `empResist` lives **inside `perkState`** (added to `freshPerkState()`, default `1`), so it's persisted whole by `saveRun()` and restored save-safely via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)` — old saves default to `1` (no bonus). No new localStorage key, no economy/balance/schema impact.
+
+**Test evidence:** new test group **[104]** (perk in pool + rare/not-legendary; `apply` sets `empResist ×3`; the `empT` decay folds in `empResist` so a protected tower fully recovers a 1.2s jam within 0.5s while a baseline tower is still offline; `freshPerkState` default 1; save/reload round-trip; old-save migration to 1; zero console errors). Full suite green (1110 → 1120 assertions).
+
+**Files touched:** `cd-defs.js` (perk + `freshPerkState`), `cd-update.js` (decay multiplier), `cd-core.js` (version + What's-New entry), `sw.js` (cache bump), `tests/run-tests.mjs` ([104]).
+
 ## v1.96.0 — 2026-06-16 — 📡 Jammer Surge — 19th Mayhem wave modifier (tower-disabling escorts)
 
 **Type:** New content (Mayhem wave modifier). Minor bump.

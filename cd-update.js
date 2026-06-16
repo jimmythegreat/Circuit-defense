@@ -382,7 +382,7 @@ function update(dt) {
   // towers fire
   for (const t of towers) {
     t.flash = Math.max(0, t.flash - dt);
-    if (t.empT > 0) t.empT = Math.max(0, t.empT - dt);   // Static Storm: tick down offline timer (all tower types)
+    if (t.empT > 0) t.empT = Math.max(0, t.empT - dt * perkState.empResist);   // tick down offline timer (all tower types); Surge Protector perk (empResist) recovers faster
     if (t.type === 'buff') continue;
     t.cd -= dt;
     if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire

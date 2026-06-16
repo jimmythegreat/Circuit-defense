@@ -319,6 +319,18 @@ const PERKS = [
   // adding raw board DPS. `abilityCdMult` lives in perkState (save-safe default 1), multiplied
   // into every abilityCd assignment alongside the existing metaCdMult()/meteorCdMult.
   { id:'capacitor',rarity:'rare', icon:'🔋', name:'Capacitor',        desc:'Abilities recharge 25% faster', apply:s=>s.abilityCdMult *= 0.75 },
+  // Surge Protector (v1.97.0): the perk pool's FIRST counter to tower-disabling content. The game
+  // grew three sources that knock a tower offline (set its run-only `empT` timer): the Mayhem ⚡ Static
+  // Storm modifier (2.2s), the 🔵 Disruptor boss (2.2s) and the ⚡ Jammer enemy (1.6s) — but the player
+  // had no answer; a jammed tower just sat dark. This makes towers shrug off jamming 3× faster
+  // (`empResist` multiplies the `empT` decay in cd-update.js's fire loop — a SINGLE site that covers all
+  // three sources, since they share the empT infra), cutting a 2.2s blackout to ~0.7s and a 1.6s one to
+  // ~0.5s. A fresh DEFENSIVE/uptime axis no other perk touches, and a meaningful situational draft pick
+  // (it does nothing in a run with no jam content, like Cryo Tech with no slows). Deliberately
+  // "too easy"-safe: it adds ZERO damage/range/economy — it only shortens downtime, so it can't make a
+  // run easier, it just answers a specific pressure (squarely the recurring "too easy" feedback's
+  // counter-pressure design). `empResist` lives in perkState (save-safe default 1).
+  { id:'surgeprot',rarity:'rare', icon:'🔌', name:'Surge Protector',  desc:'Towers shrug off jamming 3× faster', apply:s=>s.empResist *= 3 },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -380,7 +392,7 @@ function freshPerkState() {
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
-    ambush:false, abilityCdMult:1 };
+    ambush:false, abilityCdMult:1, empResist:1 };
 }
 function ascendTowers() {
   for (const t of towers) {
