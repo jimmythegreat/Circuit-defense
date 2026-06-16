@@ -592,6 +592,24 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
     e.hp = 0;
     if (!silent) addFloater(e.x, e.y - 22, '💀 EXECUTE', '#ff5252', 13);
   }
+  // Revenant boss archetype (v1.88.0, the 11th — a fresh DEATH-DEFIANCE axis: no other archetype
+  // cheats its own death). The FIRST time a Revenant boss would die it instead reboots at 35% of
+  // its max HP (a one-time second life), so emptying the bar isn't the kill — you must drop it
+  // TWICE. Distinct from the Hydra (which dies and spawns weak heads); the Revenant itself rises,
+  // keeping its full boss stats/armor. Bounded & single-layer: `revived` latches so it can never
+  // revive again. Fires regardless of freeze (it's a death-trigger, like the hydra split). Run-only
+  // (enemies are never serialized) → no save impact. Gated before the kill block so no bounty/combo
+  // is paid on the fake death — only the real second kill below pays out.
+  if (e.kind === 'boss' && e.bossType === 'revenant' && !e.revived && e.hp <= 0) {
+    e.revived = true;
+    e.hp = e.maxHp * 0.35;
+    e.flash = 0.2;
+    addExplosion(e.x, e.y, '#e34fd0', 22, 190);
+    addFloater(e.x, e.y - 50, '↻ IT RISES!', '#e34fd0', 18);
+    SFX.revenant();
+    shake = Math.max(shake, 10);
+    return;
+  }
   if (e.hp <= 0) {
     e.dead = true;
     kills++;

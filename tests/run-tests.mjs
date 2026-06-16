@@ -2494,13 +2494,14 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 10 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, hydra, then wraps (w70 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 11 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, revenant, then wraps (w75 → regen again).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
-                    && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'regen';
+                    && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
+                    && bt(75) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -2682,7 +2683,7 @@ async function main() {
       beginGame();
       const sp = pointAt(60);
       const results = {};
-      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra']) {
+      for (const bt of ['regen', 'bulwark', 'summoner', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant']) {
         enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
         towers.push({ type:'gun', x:sp.x, y:sp.y, range:99999, dmg:1e9, rate:0.05, cd:0,
           level:1, baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0,
@@ -2707,6 +2708,7 @@ async function main() {
     check('juggernaut boss is killable', killable.juggernaut.died, `guard=${killable.juggernaut.guard}`);
     check('siphon boss is killable', killable.siphon.died, `guard=${killable.siphon.guard}`);
     check('hydra boss is killable', killable.hydra.died, `guard=${killable.hydra.guard}`);
+    check('revenant boss is killable (revives once, then dies)', killable.revenant.died, `guard=${killable.revenant.guard}`);
 
     // Full late wave with the archetype boss still drives to completion (multi-tower
     // god setup via the harness driver — the proven pattern from groups [2]/[3]).
@@ -3349,6 +3351,8 @@ async function main() {
         disruptor: bossMechanicBadge(mk({ bossType:'disruptor' })),
         juggernaut: bossMechanicBadge(mk({ bossType:'juggernaut' })),
         siphon: bossMechanicBadge(mk({ bossType:'siphon' })),
+        revenant: bossMechanicBadge(mk({ bossType:'revenant' })),
+        revenantUsed: bossMechanicBadge(mk({ bossType:'revenant', revived:true })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3368,6 +3372,8 @@ async function main() {
     check('disruptor badge labelled DISRUPTOR (cyan)', r.disruptor && r.disruptor.label === 'DISRUPTOR' && r.disruptor.c === '125,249,255', JSON.stringify(r.disruptor));
     check('juggernaut badge labelled UNSTOPPABLE (steel)', r.juggernaut && r.juggernaut.label === 'UNSTOPPABLE' && r.juggernaut.c === '192,200,214', JSON.stringify(r.juggernaut));
     check('siphon badge labelled SIPHON (gold)', r.siphon && r.siphon.label === 'SIPHON' && r.siphon.c === '227,179,65', JSON.stringify(r.siphon));
+    check('revenant badge labelled REVENANT (magenta)', r.revenant && r.revenant.label === 'REVENANT' && r.revenant.c === '227,79,208', JSON.stringify(r.revenant));
+    check('revenant badge flips to REVIVED once its second life is used', r.revenantUsed && r.revenantUsed.label === 'REVIVED', JSON.stringify(r.revenantUsed));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6394,6 +6400,78 @@ async function main() {
     check('Cascade save/resume round-trips', rec.restored, JSON.stringify(rec));
 
     check('no console errors during Cascade map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [96] Revenant boss archetype — the 11th: reboots ONCE on death at 35% HP (v1.88.0)
+  console.log('\n[96] Revenant boss (death-defiance archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // it's the 11th archetype, in the rotation at w70 (then wraps at w75 → regen).
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(70) === 'revenant';
+      const wrapsAt75 = bt(75) === 'regen';
+
+      const sp = pointAt(60);
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      const mk = () => ({ kind:'boss', bossType:'revenant', hp:5000, maxHp:5000, spd:0, r:24, bounty:100,
+        color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+
+      // First "kill": the Revenant does NOT die — it reboots at 35% max HP, latches `revived`.
+      const boss = mk();
+      enemies.push(boss);
+      const goldBefore = gold; const killsBefore = kills;
+      damage(boss, 1e9, null);
+      const survivedFirst = !boss.dead && boss.hp > 0;
+      const revivedAt35 = Math.abs(boss.hp - boss.maxHp * 0.35) < 1e-6;
+      const latched = boss.revived === true;
+      const noBountyOnRevive = gold === goldBefore && kills === killsBefore;   // fake death pays nothing
+
+      // Second kill: now it really dies (no second revive).
+      damage(boss, 1e9, null);
+      const diedSecond = boss.dead === true && boss.hp <= 0;
+
+      // Control: a frozen Revenant still revives (death-trigger ignores freeze, like the hydra split).
+      enemies.length = 0; pendingSpawns.length = 0;
+      const frozenBoss = mk(); frozenBoss.frozen = 5;
+      enemies.push(frozenBoss);
+      damage(frozenBoss, 1e9, null);
+      const revivesWhileFrozen = !frozenBoss.dead && frozenBoss.revived === true;
+
+      // Control: a non-revenant boss of the same shape dies on the first hit (no revive).
+      enemies.length = 0; pendingSpawns.length = 0;
+      const ctrl = mk(); ctrl.bossType = 'regen';
+      enemies.push(ctrl);
+      damage(ctrl, 1e9, null);
+      const controlDiesOnce = ctrl.dead === true;
+
+      // render-side wiring: badge resolves to REVENANT, flips to REVIVED once used.
+      const badgeFresh = bossMechanicBadge({ kind:'boss', bossType:'revenant' });
+      const badgeUsed  = bossMechanicBadge({ kind:'boss', bossType:'revenant', revived:true });
+      const badgeOk = badgeFresh && badgeFresh.label === 'REVENANT' && badgeUsed && badgeUsed.label === 'REVIVED';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt75, survivedFirst, revivedAt35, latched, noBountyOnRevive,
+               diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
+               archCount: BOSS_ARCHETYPES.length };
+    });
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 11);
+    check('rotation wraps after revenant (w75 → regen)', r.wrapsAt75);
+    check('revenant survives the first lethal hit', r.survivedFirst);
+    check('revenant reboots at exactly 35% max HP', r.revivedAt35);
+    check('revenant latches `revived` (one-time)', r.latched);
+    check('the fake death pays no bounty/combo', r.noBountyOnRevive);
+    check('revenant dies for real on the second kill', r.diedSecond);
+    check('revenant revives even while frozen (death-trigger)', r.revivesWhileFrozen);
+    check('control: a non-revenant boss dies on the first hit', r.controlDiesOnce);
+    check('boss-bar badge resolves REVENANT → REVIVED', r.badgeOk);
+    check('no console errors during Revenant test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

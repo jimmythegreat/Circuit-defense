@@ -366,8 +366,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
       Lime aura ring + HYDRA badge (cd-render.js). Cycle now `(w/5−4)%10` (w65→hydra, w70→regen). Run-only/save-safe.
       Test [90] (rotation + 2-on-death + bounded HP + heads-not-bosses + no-cascade + control-no-split + badge) + [45]
       (rotation extended + killable sweep) + [53] (badge).
+      ✅ **11th archetype shipped v1.88.0 — ↻ Revenant** (reboots once on death): the first DEATH-DEFIANCE archetype
+      (every other acts while alive; even the Hydra dies for real and spawns heads — the Revenant cheats its OWN death).
+      The first lethal hit instead reboots it at 35% max HP (`damage()` in cd-update.js, after the HP subtraction + reaper
+      but before the kill block, gated `e.bossType==='revenant' && !e.revived && e.hp<=0` → sets `e.hp=e.maxHp*0.35`,
+      latches `revived`, plays `↻ IT RISES!`/`SFX.revenant()`, and `return`s so the fake death pays no bounty/combo).
+      You must drop it TWICE. Bounded/single-layer: revives exactly once (`revived` latches), otherwise a normal boss
+      (one-time +35% effective HP, no extra speed), fires regardless of freeze (death-trigger like the hydra split),
+      first appears at w70 (deep/late only). Magenta aura ring + REVENANT↔REVIVED badge. Cycle now `(w/5−4)%11`
+      (w70→revenant, w75→regen). Run-only/save-safe, behaviour-not-HP. Test [96] (rotation + revive-at-35% + one-time +
+      no-bounty-on-fake-death + dies-second-kill + revives-while-frozen + control + badge) + [45] (rotation + killable) + [53] (badge).
       **Follow-ups still open:** *step the threshold/intensity if late game is still soft* (w20 → w15);
-      an 11th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
+      a 12th archetype; per-campaign-tier *fixed* archetypes (vs the current wave-number cycle).
 - [~] **Tower spec pass** — audit the 2 specs per tower for one clearly-weaker
       option and buff it (justify with sim). v1.10.0 reworked the three the owner
       flagged (booster **Network** +10% power, cannon **Mega Blast** +15% dmg, plus
@@ -585,7 +595,7 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (0.7/0.5 asymptotes to +40%; +25.6% at w50), so it can't move past ~0.625; **lowering the
       archetype threshold w20 → w15** breaks test `[45]`'s "bosses below wave 20 stay vanilla"
       (deliberate tutorial-boss design). Remaining open levers if still too easy late: another boss
-      **archetype** (9 as of v1.71.0), the Frost/booster snowball item below, the boss armor slope
+      **archetype** (11 as of v1.88.0), the Frost/booster snowball item below, the boss armor slope
       again (now at `0.5`; further bumps ≤25%/run), or — needs sign-off — rebaselining the boss-HP
       invariant. Simulate before/after; ≤25% per number per run.
       - ⚠ **Norm-HP curve is at its ceiling — `w^1.9` coeff can't go past `1.25`

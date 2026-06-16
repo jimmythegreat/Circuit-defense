@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.88.0 — 2026-06-16 — ↻ Revenant — 11th boss archetype (reboots once on death)
+
+**Type:** Content (new boss archetype). Minor bump.
+
+**What & why:** Added the **Revenant**, the 11th boss archetype (first new one since the Hydra, v1.82.0). It enters the deep-boss rotation at **wave 70** (then every 11th boss) with a trick no other boss has: the **first** time you'd kill it, it **refuses to die** — it reboots at **35% max HP** and keeps coming, so you have to drop it **twice**. It's a fresh axis — a *death-DEFIANCE* mechanic. Every other archetype acts *while alive*, and even the Hydra dies for real (spawning weaker heads); the Revenant itself rises, with full stats and armor intact. That punishes a defense tuned to delete the boss in one clean burst and move on, and rewards keeping sustained firepower trained on it until it's truly gone. Squarely serves the long-running "too easy" feedback for **deep/late** runs, via behaviour rather than a raw HP-bar inflation.
+
+**Bounded & fair:** it revives **exactly once** (`e.revived` latches → never an endless loop), comes back at just over a third health, and is otherwise a normal boss — a one-time twist, not a health-bar balloon. First appears at w70, so normal-length runs (Quick = 30 waves, Campaign finals ≤ w54) never even see it. A **magenta** aura ring and a **REVENANT** boss-bar badge warn you it's coming; the badge flips to **REVIVED** once its second life is spent, and an **"↻ IT RISES!"** flash with a rising power-up swell (`SFX.revenant()`) fires the moment it cheats death.
+
+**Implementation:** one entry in `BOSS_ARCHETYPES` (cd-game.js, cycle length reads `.length` so it auto-extends) + a revive intercept in `damage()` (cd-update.js) placed **after** the HP subtraction (and the reaper-execute) but **before** the kill block, gated `e.kind==='boss' && e.bossType==='revenant' && !e.revived && e.hp<=0` — it sets `e.hp = e.maxHp*0.35`, latches `revived`, plays the FX, and `return`s (so the fake death pays **no** bounty/combo — only the real second kill pays out). Fires regardless of freeze (a death-trigger, like the hydra split). Plus a badge case + aura-ring colour in cd-render.js and `SFX.revenant()` in cd-core.js. **All run-only** — enemies are never serialized, so **no save/schema/economy/balance impact**; old saves load unchanged.
+
+**Tests:** new group `[96]` (revenant is the 11th archetype at w70 + rotation wraps at w75; survives the first lethal hit and reboots at exactly 35% HP; latches `revived`; the fake death pays no bounty/combo; dies for real on the second kill; revives even while frozen; control — a non-revenant boss dies on the first hit; badge resolves REVENANT → REVIVED). Updated `[45]` (rotation + killable sweep now include revenant) and `[53]` (badge). Full suite **1034/0 green**.
+
 ## v1.87.0 — 2026-06-16 — ❄ Cascade — new 5th quick-play map (frozen stepped descent, Ice theme)
 
 **Type:** Content (new map). Minor bump.
