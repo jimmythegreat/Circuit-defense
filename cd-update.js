@@ -361,6 +361,10 @@ function update(dt) {
     }
     if (t.spec === 'executor' && (target.kind === 'tank' || target.kind === 'boss')) dmg *= 1.9;
     if (perkState.bossDmg > 1 && (target.kind === 'tank' || target.kind === 'boss')) dmg *= perkState.bossDmg;
+    // Ambush rare (v1.85.0): +30% damage to enemies still above 80% HP — the OPENER counterpart to
+    // Reaper's execute. Keyed to the primary target's current HP, so it lives here (not effDmg);
+    // applied before the proj branch so chain/rail/poison opening shots benefit too.
+    if (perkState.ambush && target.hp > target.maxHp * 0.8) dmg *= 1.3;
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and

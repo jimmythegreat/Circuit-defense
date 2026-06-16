@@ -274,6 +274,15 @@ const PERKS = [
   // (breachers' 2-life leaks, cloaking, fog) rather than adding raw DPS, so it's a meaningful draft
   // pick, not power creep. `rangeMult` lives in perkState (save-safe default 1).
   { id:'optics',  rarity:'rare', icon:'🔭', name:'Targeting Array',  desc:'All towers +20% range',         apply:s=>s.rangeMult *= 1.2 },
+  // Ambush (v1.85.0): the OPENER counterpart to the 💀 Reaper legendary (which EXECUTES enemies below
+  // 12% HP). Ambush adds +30% damage to enemies still above 80% HP — rewarding burst/front-loaded
+  // damage on fresh spawns, a fresh axis no other perk touches (every other damage perk is flat or
+  // tower-type-keyed; this is current-HP-keyed). Strictly NARROWER than a flat +30% type buff (only the
+  // opening hits qualify; trash you'd one-shot anyway sees no gain, and a high-HP boss spends only a
+  // brief window above 80%), so it's a modest, "too easy"-safe rare, not power creep. Applied in the
+  // fire loop (target-HP-conditional → can't live in effDmg, like Reaper/Killing Spree). `ambush` lives
+  // in perkState (save-safe default false). Pairs with Reaper for a bookend "burst then finish" build.
+  { id:'ambush',  rarity:'rare', icon:'🏹', name:'Ambush',           desc:'+30% damage to enemies above 80% HP', apply:s=>s.ambush = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -334,7 +343,8 @@ function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
-    glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1 };
+    glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
+    ambush:false };
 }
 function ascendTowers() {
   for (const t of towers) {

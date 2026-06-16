@@ -154,6 +154,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       panel now shows `effRange(t)` (was base `t.range`), so Targeting Array / Glass Cannon / Fog all
       visibly move the number. Save-safe (`rangeMult` in `perkState`, default 1). Test [89].
       **Follow-up (optional):** a *legendary* tier "+40% range, +tower sight" or a per-tower range talent.
+- [x] **New run perk: Ambush (high-HP opener bonus)** — shipped **v1.85.0**. 🏹 **Ambush** (rare,
+      `ambush`): +30% damage to enemies still above 80% HP — the **opener counterpart** to the 💀 Reaper
+      legendary (execute below 12% HP), so the two form an "open big, then finish" bookend. First perk keyed
+      to the target's **current HP fraction** (every other damage perk is flat or tower-type-keyed). Applied
+      in the fire loop (target-HP-conditional → not `effDmg`, like Reaper/Killing Spree), before the proj
+      branch so chain/rail/poison opening shots benefit. "Too easy"-safe: only the first hits qualify (trash
+      you'd one-shot gains nothing; a high-HP boss is above 80% only briefly), so it's strictly narrower than
+      a flat +30% type buff. Save-safe (`ambush` in `perkState`, default false). Test [93].
+      **Follow-up (optional):** a legendary tier that ramps the bonus the FULLER the enemy is, or one that
+      grants a brief execute window on a fresh-spawn first-hit.
 - [x] **New active ability: "Shockwave"** — shipped **v1.67.0**. The 4th ability (hotkey **R**,
       gamepad **RT**) after Meteor/Freeze/Gold Rush — the first new one in a long time. `🌀 Shockwave`
       (`ABILITIES.shock`, cd 50) **knocks every live enemy backward along the path** (`e.dist -= 75`,

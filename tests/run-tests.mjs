@@ -6160,6 +6160,78 @@ async function main() {
     await page.close();
   }
 
+  // [93] Ambush rare perk — +30% damage to enemies above 80% HP (v1.85.0)
+  console.log('\n[93] Ambush perk (high-HP opener bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'ambush');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // ambush is keyed to current HP in the fire loop, so it must NOT be in effDmg (no panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.ambush = false;
+      const effBefore = effDmg(probe);
+      perkState.ambush = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // fire one instant rail shot and measure raw damage dealt at a given HP fraction
+      function shot(ambushOn, hpFrac) {
+        perkState.ambush = ambushOn;
+        perkState.critChance = 0;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
+        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:160, y:300, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return before - e.hp;
+      }
+      const base   = shot(false, 1.0);   // fresh enemy, no perk
+      const fresh  = shot(true,  1.0);    // fresh enemy (>80% HP), perk → +30%
+      const low    = shot(true,  0.5);    // wounded enemy (<80% HP), perk → no bonus
+      const bonusOk = Math.abs(fresh - base * 1.3) < 1e-4;
+      const noBonusBelow = Math.abs(low - base) < 1e-4;
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().ambush === false;
+      perkState.ambush = true;
+      saveRun();
+      perkState.ambush = false;
+      const loaded = loadRun();
+      const restored = perkState.ambush === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.ambush;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.ambush === false;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, notInEffDmg, base, fresh, low, bonusOk, noBonusBelow, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Ambush is a rare perk in the pool', r.inPool);
+    check('Ambush is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Ambush gives +30% damage to a >80% HP enemy', r.bonusOk, `base=${r.base} fresh=${r.fresh}`);
+    check('Ambush gives no bonus to a <80% HP enemy', r.noBonusBelow, `base=${r.base} low=${r.low}`);
+    check('freshPerkState defaults ambush:false', r.defaultsOk);
+    check('save/reload round-trips the ambush flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing ambush migrates to default false', r.migratedOk);
+    check('no console errors during Ambush test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

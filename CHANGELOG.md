@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.85.0 — 2026-06-15 — 🏹 Ambush — new rare run perk (+30% damage to high-HP enemies)
+
+**Type:** Content (new run perk). Minor bump.
+
+**What & why:** Added 🏹 **Ambush** (rare), the **opener counterpart** to the 💀 **Reaper** legendary. Reaper *executes* non-boss enemies below 12% HP (a finisher); Ambush adds **+30% damage to any enemy still above 80% HP** (an opener). Drafting both gives a thematic "open big, then execute" bookend build. It's a **fresh damage axis** — every other damage perk is either flat (Diamond Core, Overcharge) or tower-type-keyed (Sharpshooter, Heavy Rounds, Frostbite); Ambush is the first keyed to the target's **current HP fraction**.
+
+**"Too easy"-safe / not power creep:** the bonus only ever touches the *first* hits on a unit. Trash you'd one-shot anyway gains nothing; a high-HP boss spends only a brief window above 80%, so the real-world payoff is far below a flat +30% type buff. It's strictly narrower than the common +30% type-damage perks, so it sits comfortably (on the modest side) in the rare tier — keeping faith with the recurring "too easy" feedback.
+
+**Implementation:**
+- `cd-defs.js` — `PERKS` rare entry `ambush` (`apply: s=>s.ambush = true`); `freshPerkState()` gains `ambush:false`.
+- `cd-update.js` — one line in the tower-fire loop, after the boss-damage line and before the proj/chain branch (so chain/rail/poison opening shots benefit too): `if (perkState.ambush && target.hp > target.maxHp * 0.8) dmg *= 1.3;`. Keyed to the primary target's **current** HP → it lives in the fire path, **not** `effDmg()` (so the upgrade panel doesn't churn — mirrors Reaper/Killing Spree). No `upgradeKey` change needed.
+
+**Save-safe:** `ambush` lives in `perkState`, persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)`; old saves default `false`. No new localStorage key, no economy/schema impact. (It's a *rare*, so the legendary-only Wildcard doesn't roll it.)
+
+**Test:** new group **[93]** — perk is in the pool as rare; **not** reflected in `effDmg` (panel-churn guard); a rail shot deals exactly +30% to a >80%-HP enemy and +0% to a <80%-HP one (one-tick `update()` drive); `freshPerkState` default false; save/reload round-trip; old-save migration to default. Full suite green (subagent-run), zero console errors.
+
 ## v1.84.1 — 2026-06-15 — 🩺 Health check — all green (986/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.79.1: v1.80.0, v1.81.0, v1.82.0, v1.83.0, v1.84.0.)
