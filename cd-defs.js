@@ -148,7 +148,7 @@ const SPECS = {
   tesla:  [ {id:'super',   name:'Superconductor',desc:'Chains 5 targets, softer falloff'}, {id:'overcharge',name:'Overcharge',  desc:'No chain damage falloff'} ],
   poison: [ {id:'virulent',name:'Virulent',     desc:'Poison DPS ×2'},           {id:'lingering',name:'Lingering',    desc:'Poison duration ×2'} ],
   mortar: [ {id:'demo',    name:'Demolisher',   desc:'+35% damage'},             {id:'saturate', name:'Saturation',   desc:'+55% blast radius'} ],
-  rail:   [ {id:'railpen', name:'Penetrator',   desc:'+35% damage'},             {id:'railwide', name:'Overcharged Coil', desc:'Wider beam — hits a broader line'} ],
+  rail:   [ {id:'railpen', name:'Penetrator',   desc:'+20% damage'},             {id:'railwide', name:'Overcharged Coil', desc:'Wider beam — hits a broader line'} ],
   buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
 };
 function specOf(t) {

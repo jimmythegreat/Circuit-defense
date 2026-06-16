@@ -254,7 +254,18 @@
     .startPlay .ctl.play::after { animation: none; display: none; }
     #startScreen::before { animation: none; }
   }
-  .startUtil { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 780px; }
+  /* Utility toolbar (menu-revamp slice 7, v2.0.0, owner FEEDBACK "main interface is getting
+     clunky … revamp the whole starting menu"). The six secondary buttons (Talents/Achievements/
+     Records/What's New/Settings/Reset) used to float loose under the PLAY row, reading as a
+     scattered "huge bottom row". They're now wrapped in a single contained, bordered toolbar
+     BAR — same visual language as the .startOpts config card — so the start screen reads as a
+     stack of deliberate panels (hero → config card → play row → tool bar) instead of free
+     buttons. No markup change (the .startUtil div itself is styled), so it stays #startScreen's
+     last child (test [58]); the ≤920px block compacts it on phones. The fuller left-rail revamp
+     stays open (FEEDBACK PENDING). */
+  .startUtil { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
+    max-width: 720px; margin: 4px auto 0; padding: 9px 12px; border-radius: 12px;
+    background: rgba(22,27,34,.55); border: 1px solid #21262d; box-shadow: inset 0 0 0 1px rgba(255,255,255,.02); }
   .startUtil .ctl { font-size: 13px; padding: 7px 14px; font-weight: 600; opacity: .9; }
   .startUtil .ctl:hover { opacity: 1; }
   /* Polished hover affordance on the menu's utility toolbar + the secondary play-row

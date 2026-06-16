@@ -256,6 +256,16 @@ const DIFFS = {
   easy:   { name:'Easy',   desc:'Very easy · lots of gold & lives', hp:0.6,  gold:190, lives:36, bounty:1.15, chipMult:0.5 },
   normal: { name:'Normal', desc:'The way it should be', hp:0.85, gold:120, lives:22, bounty:1,    chipMult:1 },
   hard:   { name:'Hard',   desc:'For veterans',         hp:1.3, gold:100, lives:10, bounty:0.9,  chipMult:1.6 },
+  // 🌑 Nightmare (v2.0.0, the v2 headline) — a brand-new tier ABOVE Hard for the players who keep
+  // out-scaling the game (the recurring "too easy" feedback). It's NEW CONTENT, not a rebalance of
+  // an existing number, so the ≤25%/run swing rule doesn't apply to its raw stats: tankier enemies
+  // (hp 1.7 vs Hard's 1.3), a thinner safety margin (8 lives, 90 gold, 0.85× bounty), and the
+  // game's top chip payout (2.2×) to reward the grind. It ALSO gets a steeper quick-mode late-scale
+  // than Hard (see enemyTemplate's lateScale) so deep waves bite hard. Fully data-driven — every
+  // selector/Records/best-key path iterates Object.keys(DIFFS), so adding the entry is enough; the
+  // additive cd_best_nightmare / cd_best_<map>_nightmare keys read with `||0` → save-safe. The Daily
+  // Challenge deliberately rolls only normal/hard, so it never lands on Nightmare.
+  nightmare: { name:'🌑 Nightmare', desc:'Brutal · scales hard late', hp:1.7, gold:90, lives:8, bounty:0.85, chipMult:2.2 },
 };
 let diffKey = 'normal';
 

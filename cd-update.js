@@ -371,7 +371,7 @@ function update(dt) {
         shake = Math.max(shake, 6);
         updateHud();
       } else {
-        const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks 2
+        const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks lifeCost (3 as of v2.0.0); boss 5
         lives -= dmgLives;
         livesLostThisRun = true;
         perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
@@ -808,6 +808,7 @@ const ACHIEVEMENTS = [
   { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 9 tower types on the board' },
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
   { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
+  { id:'nightmare_win', icon:'🌑', name:'Nightmare Walker', desc:'Win a game on Nightmare difficulty' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -821,7 +822,8 @@ function grantAchievements(won) {
   const give = id => { if (!meta.achievements[id]) { meta.achievements[id] = true; newly.push(ACH_BY_ID[id]); } };
   if (won) give('first_win');
   if (won && !livesLostThisRun) give('flawless');
-  if (won && diffKey === 'hard') give('hard_win');
+  if (won && (diffKey === 'hard' || diffKey === 'nightmare')) give('hard_win');   // Nightmare ≥ Hard
+  if (won && diffKey === 'nightmare') give('nightmare_win');   // 🌑 v2.0.0 — the new top tier
   if (won && gameMode === 'campaign' && campLevel >= 10) give('camp10');
   if (won && gameMode === 'campaign' && campLevel >= CAMPAIGN_LEVELS) give('camp_done');
   if (wave >= 50) give('endless50');

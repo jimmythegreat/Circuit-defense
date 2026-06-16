@@ -3029,7 +3029,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 17 badges', r.total === 17, `total=${r.total}`);
+    check('achievement roster grew to 18 badges', r.total === 18, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -4656,8 +4656,8 @@ async function main() {
     await page.close();
   }
 
-  // [74] Breacher enemy — heavy w17+ unit that costs 2 lives if it leaks (v1.63.0)
-  console.log('\n[74] Breacher enemy (2-life leak cost)');
+  // [74] Breacher enemy — heavy w17+ unit that costs 3 lives if it leaks (v1.63.0; bumped 2→3 v2.0.0)
+  console.log('\n[74] Breacher enemy (3-life leak cost)');
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
@@ -4667,10 +4667,10 @@ async function main() {
       const w16 = buildWave(16).some(e => e.kind === 'breacher');
       const w17list = buildWave(17).filter(e => e.kind === 'breacher');
       const w17 = w17list.length;
-      // (b) the breacher carries the lifeCost:2 field that the leak site reads
+      // (b) the breacher carries the lifeCost:3 field that the leak site reads
       const lifeCost = w17list[0] ? w17list[0].lifeCost : null;
 
-      // (c) leak cost: a breacher at the exit drains 2 lives; a norm drains 1 (control).
+      // (c) leak cost: a breacher at the exit drains 3 lives; a norm drains 1 (control).
       // x/y are seeded from the path point so the first-frame leak check is valid.
       enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
       autoStartTimer = -1; waveActive = false;
@@ -4679,7 +4679,7 @@ async function main() {
         x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
 
       lives = 1000;
-      enemies.push(atEnd('breacher', { lifeCost: 2 }));
+      enemies.push(atEnd('breacher', { lifeCost: 3 }));
       const beforeB = lives; update(1/60); const breacherCost = beforeB - lives;
 
       enemies.length = 0;
@@ -4712,8 +4712,8 @@ async function main() {
     });
     check('no breachers before wave 17', r.w16 === false);
     check('breachers spawn from wave 17', r.w17 >= 1, 'count=' + r.w17);
-    check('breacher carries lifeCost:2', r.lifeCost === 2, 'lifeCost=' + r.lifeCost);
-    check('a leaked breacher costs 2 lives', r.breacherCost === 2, 'cost=' + r.breacherCost);
+    check('breacher carries lifeCost:3', r.lifeCost === 3, 'lifeCost=' + r.lifeCost);
+    check('a leaked breacher costs 3 lives', r.breacherCost === 3, 'cost=' + r.breacherCost);
     check('a leaked normal still costs 1 life (control)', r.normCost === 1, 'cost=' + r.normCost);
     check('waveComposition includes breacher at wave 17', r.compHasBreacher);
     check('enemyGlyph returns ‼ for breacher', r.glyph === '‼', 'glyph=' + r.glyph);
@@ -5804,7 +5804,7 @@ async function main() {
     await page.close();
   }
 
-  // [88] Breacher Surge wave mod — heavy breacher escorts, double leak-cost (v1.80.0)
+  // [88] Breacher Surge wave mod — heavy breacher escorts, 3-life leak-cost (v1.80.0; cost 2→3 v2.0.0)
   console.log('\n[88] Breacher Surge (leak-cost wave mod)');
   {
     const { page, consoleErrors } = await newPage(browser);
@@ -5825,10 +5825,10 @@ async function main() {
       const surgeWave = buildWave(10);
       const surgeBreachers = surgeWave.filter(e => e.kind === 'breacher').length;
       const moreBreachers = surgeBreachers > plainBreachers;
-      // Converted breachers carry full breacher stats (maxHp set, rose colour, lifeCost 2).
+      // Converted breachers carry full breacher stats (maxHp set, rose colour, lifeCost 3 as of v2.0.0).
       const conv = surgeWave.find(e => e.kind === 'breacher');
       const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#d4566b' &&
-        conv.r === 15 && conv.lifeCost === 2;
+        conv.r === 15 && conv.lifeCost === 3;
       // Conversion not addition: total wave length unchanged, special kinds untouched.
       const sameLength = surgeWave.length === plainWave.length;
       const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
@@ -5837,16 +5837,16 @@ async function main() {
       setMod(null);
       const inertOff = buildWave(10).filter(e => e.kind === 'breacher').length === plainBreachers;
 
-      // A surge breacher that leaks costs 2 lives at the single leak site (e.lifeCost).
+      // A surge breacher that leaks costs 3 lives at the single leak site (e.lifeCost; v2.0.0).
       towers.length = 0; spawners.length = 0; enemies.length = 0; pendingSpawns.length = 0;
       lives = 20; livesLostThisRun = false; perkState.livesLost = 0;
       const leaker = { kind:'breacher', hp:100, maxHp:100, spd:1, r:15, bounty:1, color:'#d4566b',
-        armor:0, gap:0, dist:pathLen + 1, lifeCost:2, x:0, y:0, slow:0, slowF:0.6, frozen:0,
+        armor:0, gap:0, dist:pathLen + 1, lifeCost:3, x:0, y:0, slow:0, slowF:0.6, frozen:0,
         poison:null, flash:0, px:0, py:0, dead:false, blinkInvuln:0 };
       enemies.push(leaker);
       const livesBefore = lives;
       update(1/60);
-      const leakCosts2 = (livesBefore - lives) === 2 && perkState.livesLost === 2;
+      const leakCosts2 = (livesBefore - lives) === 3 && perkState.livesLost === 3;
 
       enemies.length = 0; waveMod = null;
       backToMenu(); localStorage.removeItem('cd_save');
@@ -5859,7 +5859,7 @@ async function main() {
     check('Breacher Surge converts (does not lengthen) the wave', r.sameLength);
     check('Breacher Surge leaves the special kinds untouched', r.fastUntouched);
     check('Breacher Surge is inert when the mod is off', r.inertOff);
-    check('a leaked surge breacher costs 2 lives', r.leakCosts2);
+    check('a leaked surge breacher costs 3 lives', r.leakCosts2);
     check('no console errors during Breacher Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
 
     // A real Mayhem run still drives to completion with the mod in the pool — no hang.
@@ -6028,7 +6028,7 @@ async function main() {
       const dBase = effDmg(rt0);
       rt0.spec = 'railpen';
       const dPen = effDmg(rt0);
-      const penOk = Math.abs(dPen - dBase * 1.35) < 1e-6;
+      const penOk = Math.abs(dPen - dBase * 1.20) < 1e-6;   // v2.0.0: nerfed 1.35 → 1.20
       rt0.spec = null;
 
       // PIERCE: a railgun at (100,300) aimed east (+x) should hit EVERY enemy lined up
@@ -6102,7 +6102,7 @@ async function main() {
     check('Railgun is in the shop tower keys', r.inShopKeys);
     check('SFX.rail beam sound exists', r.sfxOk);
     check('Railgun button rendered in the shop', r.shopHasRail);
-    check('Penetrator spec = +35% damage', r.penOk);
+    check('Penetrator spec = +20% damage', r.penOk);
     check('Railgun pierces ALL enemies in a line', r.lineHits === 3, `lineHits=${r.lineHits}`);
     check('Railgun misses off-line / behind / out-of-range enemies', r.offMissed);
     check('Railgun draws a straight tracer beam', r.beamDrawn);
@@ -7377,6 +7377,109 @@ async function main() {
     check('barrierTimer is never serialized into cd_save', r.notSaved);
     check('barrierTimer + charges reset to 0 on resume (run-only)', r.resetOnLoad);
     check('no console errors during ability-bar bugfix test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [109] v2.0.0 release bundle — Nightmare difficulty, quick-mode late-scale on hard/nightmare,
+  // Railgun Penetrator nerf, campaign auto-level-select. (Breacher 2→3 covered by [74]/[88].)
+  console.log('\n[109] v2.0.0 release (Nightmare + late-scale + rail nerf + campaign auto-select)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // --- Railgun Penetrator now ×1.20 (was 1.35) ---
+    const rail = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const base = { type:'rail', dmg:36, spec:null, buffPower:0, level:1 };
+      const pen  = { type:'rail', dmg:36, spec:'railpen', buffPower:0, level:1 };
+      const ratio = effDmg(pen) / effDmg(base);
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { ratio };
+    });
+    check('Railgun Penetrator is now +20% (×1.20), not +35%', Math.abs(rail.ratio - 1.20) < 1e-6, 'ratio=' + rail.ratio);
+
+    // --- 🌑 Nightmare difficulty entry + ordering ---
+    const nm = await page.evaluate(() => {
+      const d = DIFFS.nightmare;
+      return {
+        exists: !!d,
+        stats: !!d && d.hp === 1.7 && d.lives === 8 && d.chipMult === 2.2,
+        harderThanHard: !!d && d.hp > DIFFS.hard.hp && d.lives < DIFFS.hard.lives,
+        topChip: !!d && d.chipMult === Math.max(...Object.values(DIFFS).map(x => x.chipMult)),
+      };
+    });
+    check('Nightmare difficulty entry exists', nm.exists);
+    check('Nightmare stats (hp 1.7 / lives 8 / chip 2.2×)', nm.stats);
+    check('Nightmare is harder than Hard (more HP, fewer lives)', nm.harderThanHard);
+    check('Nightmare pays the top chip multiplier', nm.topChip);
+
+    // --- Quick-mode late-scale: ramps + caps on hard/nightmare, leaves Normal & Campaign alone ---
+    const ls = await page.evaluate(() => {
+      const base = (w, dh) => (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * dh;
+      gameMode = 'quick'; campLevel = 1;
+      diffKey = 'normal';
+      const normalNoScale = Math.abs(enemyTemplate(30).hp - base(30, DIFFS.normal.hp)) < 1e-6;
+      diffKey = 'hard';
+      const hardBelow = Math.abs(enemyTemplate(10).hp - base(10, DIFFS.hard.hp)) < 1e-6; // w10 < threshold 15
+      const hardW30 = enemyTemplate(30).hp / base(30, DIFFS.hard.hp);   // 1 + min(.25,(30-15)*.015)=1.225
+      const hardCap = enemyTemplate(60).hp / base(60, DIFFS.hard.hp);   // capped at 1.25
+      diffKey = 'nightmare';
+      const nightW30 = enemyTemplate(30).hp / base(30, DIFFS.nightmare.hp); // 1 + min(.40,(30-10)*.02)=1.40
+      // Campaign is deliberately exempt (gated to gameMode==='quick'); campLevel 1 → campScale 1.
+      gameMode = 'campaign'; diffKey = 'hard';
+      const campaignExempt = Math.abs(enemyTemplate(30).hp - base(30, DIFFS.hard.hp)) < 1e-6;
+      gameMode = 'quick'; diffKey = 'normal';
+      return { normalNoScale, hardBelow, hardW30, hardCap, nightW30, campaignExempt };
+    });
+    check('Normal HP is unchanged by late-scale (test-[16] invariant safe)', ls.normalNoScale);
+    check('Hard late-scale is inert below the wave threshold (w10)', ls.hardBelow);
+    check('Hard ramps to +22.5% at w30', Math.abs(ls.hardW30 - 1.225) < 1e-6, 'r=' + ls.hardW30);
+    check('Hard late-scale caps at +25%', Math.abs(ls.hardCap - 1.25) < 1e-6, 'r=' + ls.hardCap);
+    check('Nightmare ramps harder (+40% at w30)', Math.abs(ls.nightW30 - 1.40) < 1e-6, 'r=' + ls.nightW30);
+    check('Campaign is exempt from the quick late-scale', ls.campaignExempt);
+
+    // --- Nightmare win grants 🌑 Nightmare Walker + counts as a Hard win ---
+    const ach = await page.evaluate(() => {
+      meta.achievements = {};
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'nightmare'; campLevel = 1;
+      beginGame();
+      wave = victoryWave();
+      towers.push({ type: 'gun', dealt: 500, kills: 10 });
+      const got = grantAchievements(true);
+      const out = { nm: got.some(a => a.id === 'nightmare_win'), hard: !!meta.achievements.hard_win };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('a Nightmare win grants 🌑 Nightmare Walker', ach.nm);
+    check('a Nightmare win also grants No Mercy (hard_win)', ach.hard);
+
+    // --- Campaign auto-level-select: mode-switch + back-to-menu after a win ---
+    const camp = await page.evaluate(() => {
+      localStorage.setItem('cd_campaign', '3');   // pretend levels 1-3 are cleared
+      // (a) clicking the Campaign mode button jumps to the next un-cleared level (4)
+      gameMode = 'quick'; campLevel = 1;
+      renderStartScreen();
+      const modeBtns = document.getElementById('modeRow').children;
+      modeBtns[1].click();   // the Campaign mode button
+      const modeSwitchSelectsNext = campLevel === 4;
+      // (b) finishing level 4 and returning to the menu auto-advances to 5
+      localStorage.setItem('cd_campaign', '4');
+      gameMode = 'campaign'; campLevel = 4; victory = true; started = true;
+      backToMenu();
+      const backAdvances = campLevel === 5;
+      // (c) a DEFEAT (victory false) does NOT advance
+      localStorage.setItem('cd_campaign', '4');
+      gameMode = 'campaign'; campLevel = 4; victory = false; started = true;
+      backToMenu();
+      const lossKeepsLevel = campLevel === 4;
+      localStorage.removeItem('cd_campaign'); localStorage.removeItem('cd_save');
+      return { modeSwitchSelectsNext, backAdvances, lossKeepsLevel };
+    });
+    check('clicking Campaign selects the next un-cleared level', camp.modeSwitchSelectsNext);
+    check('winning a level + back-to-menu auto-advances the selection', camp.backAdvances);
+    check('a campaign defeat keeps the current level selected', camp.lossKeepsLevel);
+
+    check('no console errors during v2.0.0 release test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.0.0 — 2026-06-16 — 🎉 Version 2.0 — 🌑 Nightmare difficulty + late-game scaling, Railgun/Breacher balance, campaign QoL, menu polish
+
+**Type:** Major release (owner FEEDBACK [highest priority]: "push out a big change … do as many as possible … bump the version to 2 … include a big special change not listed"). Minor/major bump (v1.100.1 → v2.0.0). Six changes shipped together; balance ≤25%/run per existing number (the new Nightmare tier is new content, not a rebalance, so its raw stats aren't bound by the swing rule).
+
+**Headline special (not in FEEDBACK/ROADMAP) — 🌑 Nightmare difficulty.** A brand-new 4th `DIFFS` tier above Hard (`cd-maps.js`): `hp:1.7, gold:90, lives:8, bounty:0.85, chipMult:2.2`. Tankier enemies, a thin safety margin, and the game's top chip payout to reward the grind (the recurring "too easy" feedback, answered with a new ceiling rather than nerfing the dominant build). Fully **data-driven** — every selector / Records grid / best-key path iterates `Object.keys(DIFFS)`, so the entry is all that's needed; the additive `cd_best_nightmare` / `cd_best_<map>_nightmare` / `cd_bestscore_<map>_nightmare` keys read with `||0` → **save-safe**. New **🌑 Nightmare Walker** achievement (`nightmare_win`, roster 17→18) on a Nightmare win; a Nightmare win also grants 🔥 No Mercy (`hard_win` now `hard || nightmare`). The Daily Challenge still rolls only normal/hard, so it never lands on Nightmare.
+
+**Owner FEEDBACK items knocked out this run:**
+
+1. **Progressive late-game hardness on Hard/Nightmare** ("scale the hardness on hard more as the waves progress … good early, easier mid, super easy late; campaign is good"). A new `lateScale` multiplier in `enemyTemplate()` (cd-game.js), **gated to `gameMode==='quick'` AND `hard`/`nightmare`** — so Normal/Easy and ALL campaign runs are byte-identical (the test-[16] Normal HP invariant is untouched; campaign already ramps via `campScale`, which the owner praised). It ramps from a wave threshold and **caps**, so each later wave is a bigger jump (the literal ask) while staying bounded: hard = `+1.5%/wave from w15, cap +25%` (≈+7.5% w20, +22.5% w30); nightmare = `+2%/wave from w10, cap +40%`. Bosses derive from the template, so late bosses harden too.
+2. **Railgun Penetrator nerf** ("does too much at lvl 5 with Penetrator — more than snipers"). `effDmg`'s `railpen` multiplier `1.35 → 1.20` (+35% → +20%); spec desc updated. The piercing Railgun is a positioning side-grade again, not a Sniper-beater.
+3. **Tougher leaks** ("the enemies that have increased life taking should be upped"). The ‼ Breacher (and the Mayhem **Breacher Surge** conversion) now costs **3 lives** on a leak, up from 2 (`lifeCost:2 → 3` in `buildWave`; the leak site already reads `e.lifeCost`). **Bosses already cost 5 lives** — more than the requested 3 — so they were deliberately left unchanged (lowering them to 3 would be a *nerf*, opposite to "should take more lives"); noted in FEEDBACK for owner confirmation.
+4. **Campaign auto-level-select** ("auto-select the next level on back-to-menu instead of clicking Next; select the last completed level when clicking Campaign"). Clicking the **Campaign** mode button now selects `campaignDone()+1` (the next un-cleared level); and `backToMenu()` after a campaign **win** (`victory` true) auto-advances `campLevel` so the menu shows the next level pre-selected.
+5. **Start-menu polish slice** ("the main interface is getting clunky … revamp the whole starting menu", [high priority]). The 6 secondary buttons (`.startUtil`) are now grouped into a single bordered **toolbar bar** (same visual language as the `.startOpts` config card), so the menu reads as deliberate stacked panels instead of scattered buttons. CSS-only on the existing `.startUtil` div (stays `#startScreen`'s last child, test [58]). The fuller left-rail revamp stays **PENDING** (per owner pref, the item is left as-written until fully done).
+
+**Tests.** New group **[109]** asserts: Penetrator now ×1.20; Breacher `lifeCost===3` (enemy + Breacher Surge); the hard/nightmare quick `lateScale` ramps + caps while Normal is unchanged; the Nightmare `DIFFS` entry + records keys; the Nightmare-win achievements; and campaign auto-advance on back-to-menu + mode-switch. `sw.js` cache → `v2.0.0` (test [49]).
+
+**Why it's safe.** New tier + new keys are additive (old saves read them as 0); `lateScale` is gated away from Normal/Easy/Campaign so no existing balanced surface moves; the Railgun/Breacher tweaks are single bounded numbers. No save-schema change.
+
 ## v1.100.1 — 2026-06-16 — 🐛 Ability-bar bug fixes — Gold Rush gated pre-wave + Barrier charges fade
 
 **Type:** Bug fix (owner FEEDBACK [bug]). Patch bump.

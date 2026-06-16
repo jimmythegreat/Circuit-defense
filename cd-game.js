@@ -47,7 +47,10 @@ function renderStartScreen() {
     const b = document.createElement('button');
     b.className = 'optBtn' + (gameMode === m.id ? ' sel' : '');
     b.innerHTML = `${m.name}<small>${m.desc}</small>`;
-    b.onclick = () => { gameMode = m.id; renderStartScreen(); };
+    // v2.0.0 (owner FEEDBACK): clicking into Campaign jumps the selection to the next
+    // un-cleared level (the one you'd actually play) instead of leaving it on whatever
+    // was last selected. campaignDone()+1, clamped to the final level.
+    b.onclick = () => { gameMode = m.id; if (m.id === 'campaign') campLevel = Math.min(CAMPAIGN_LEVELS, campaignDone() + 1); renderStartScreen(); };
     modeRow.appendChild(b);
   }
   const mapRow = document.getElementById('mapRow');
@@ -129,6 +132,12 @@ function playAgain() {
 function backToMenu() {
   started = false;
   daily = false;
+  // v2.0.0 (owner FEEDBACK): after CLEARING a campaign level, returning to the menu auto-advances
+  // the selection to the next level — no need to click "Next Level ▶" on the victory screen first.
+  // winGame() already wrote cd_campaign, so campaignDone() reflects the just-beaten level; we bump
+  // campLevel before renderStartScreen() (which then shows the next level selected). Guarded on
+  // `victory` so a defeat→menu keeps the current level, and resetState() (below) clears `victory`.
+  if (gameMode === 'campaign' && victory && campLevel < CAMPAIGN_LEVELS) campLevel++;
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
   renderStartScreen();
@@ -148,7 +157,21 @@ function enemyTemplate(w) {
   //    (~+7% at w5, +12% at w10) and grows toward — but never exceeds — +25% as the
   //    term dominates (asymptote = 1.25), so it stays inside the ≤25%/number guardrail
   //    at EVERY wave incl. deep endless, while making each later wave a bigger jump.
-  const hpBase = (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * d.hp * campScale;
+  // Progressive late-game hardness for the harder QUICK difficulties (v2.0.0, owner FEEDBACK:
+  // "scale the hardness on hard more as the waves progress … good early, easier mid, super easy
+  // late; campaign progression is good"). Campaign already ramps via campScale and the owner
+  // praised it, so this is gated to gameMode==='quick' AND hard/nightmare — Normal/Easy and ALL
+  // campaign runs are byte-identical (so the test-[16] Normal HP invariant is untouched). It
+  // ramps from a wave threshold and CAPS, so it stays inside the per-run swing guardrail and
+  // makes each LATER wave a bigger jump (exactly the "scale more as waves progress" ask):
+  //   • hard:      +1.5%/wave from w15, cap +25% (reached ≈w32) → +7.5% w20, +22.5% w30.
+  //   • nightmare: +2%/wave from w10, cap +40% (reached w30) — the new tier ramps harder.
+  const lateScale = gameMode === 'quick'
+    ? (diffKey === 'nightmare' ? 1 + Math.min(0.40, Math.max(0, w - 10) * 0.02)
+     : diffKey === 'hard'      ? 1 + Math.min(0.25, Math.max(0, w - 15) * 0.015)
+     : 1)
+    : 1;
+  const hpBase = (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * d.hp * campScale * lateScale;
   // Bounty per kill, trimmed v1.16.1 to cool the front-loaded gold snowball (owner FEEDBACK
   // "I clear classic-normal with money from the first 10 rounds"). Kills are ~69% of early
   // income; cutting the FLAT term 4->3 (slope w*0.6 kept) trims bounty ~20% at w1, fading to
@@ -178,12 +201,14 @@ function buildWave(w) {
     if (w >= 11 && i % 10 === 9) e = { kind:'split', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*1.5), color:'#e3b341', armor:0, gap:0.9 };
     if (w >= 13 && i % 6 === 5)  e = { kind:'phantom', hp:t.hp*0.9, spd:t.speed*1.15, r:10, bounty:Math.ceil(t.bounty*1.8), color:'#39d0d8', armor:0, gap:0.6 };
     if (w >= 15 && i % 11 === 10) e = { kind:'warden', hp:t.hp*1.3, spd:t.speed*0.85, r:13, bounty:Math.ceil(t.bounty*2.4), color:'#58a6ff', armor:0, gap:0.85 };
-    // Breacher (v1.63.0): a slow, heavy unit from wave 17+ that costs 2 LIVES if it leaks
+    // Breacher (v1.63.0): a slow, heavy unit from wave 17+ that costs LIVES if it leaks
     // (read at the leak site via e.lifeCost). A fresh difficulty axis — no other enemy varies
     // leak cost — that pressures COVERAGE in ALL modes (incl. Classic/Campaign, the modes the
     // owner flagged as "too easy"), without inflating the invariant-capped HP curve or economy.
     // Moderate HP + slow speed keep it stoppable: only a real coverage gap lets one through.
-    if (w >= 17 && i % 12 === 11) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
+    // v2.0.0: leak cost 2 → 3 (owner FEEDBACK "the enemies that have increase life taking should
+    // be upped"), so a leaked Breacher now drains 3 lives. (Bosses already cost 5 — see leak site.)
+    if (w >= 17 && i % 12 === 11) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:3 };
     // Molten (v1.77.0): a CC-IMMUNE regular enemy from wave 12+ in ALL modes. It sets
     // ccImmune:true, reusing the Heatwave/Juggernaut infrastructure — the `if (e.ccImmune)`
     // line in update() clears its frozen/slow every frame (before slowMul), and render draws
@@ -233,12 +258,12 @@ function buildWave(w) {
     // ‼ Breacher escorts (the wave-wide cousin of the Breacher enemy, like Warden Surge ↔
     // the Warden). Mirrors the warden conversion exactly — only norms convert (so it never
     // overrides the rarer special kinds above) and it's a conversion not an addition (wave
-    // length unchanged). The breachers carry the full enemy stats incl. lifeCost:2, so a
-    // densely-breached wave pressures COVERAGE on the LEAK-COST axis (no other mod touches
-    // lives) — leaking even a couple costs double. Bounded: breachers are slow (×0.7) so
+    // length unchanged). The breachers carry the full enemy stats incl. lifeCost:3 (v2.0.0, up
+    // from 2 — matches the base Breacher), so a densely-breached wave pressures COVERAGE on the
+    // LEAK-COST axis (no other mod touches lives) — leaking even one stings. Bounded: slow (×0.7) so
     // they bunch up and can be focused; only a real coverage gap lets one through, and one
     // mod is ever active so no stacking. Run-only (enemies are never persisted).
-    if (modIs('breachers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:2 };
+    if (modIs('breachers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'breacher', hp:t.hp*2.0, spd:t.speed*0.7, r:15, bounty:Math.ceil(t.bounty*2.5), color:'#d4566b', armor:0, gap:0.9, lifeCost:3 };
     // Jammer Surge (Mayhem, v1.96.0): convert a fraction of would-be basic enemies into ⚡ Jammer
     // escorts (the wave-wide cousin of the Jammer enemy, like Warden Surge ↔ the Warden / Breacher
     // Surge ↔ the Breacher). Mirrors those conversions exactly — only norms convert (so it never
@@ -627,7 +652,7 @@ function effDmg(t) {
   if (t.spec === 'cluster') d *= 1.5;
   if (t.spec === 'mega') d *= 1.15;
   if (t.spec === 'demo') d *= 1.35;
-  if (t.spec === 'railpen') d *= 1.35;
+  if (t.spec === 'railpen') d *= 1.20;   // v2.0.0: was 1.35 — Penetrator out-DPS'd the Sniper at L5 (owner FEEDBACK)
   if (modIs('surge')) d *= 1.3;
   // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
