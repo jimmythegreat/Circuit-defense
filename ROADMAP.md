@@ -173,9 +173,15 @@ _None currently known._ (Add any here as they're found — these are top priorit
       shrug it off** (`e.ccImmune` Heatwave / `juggernaut` boss skip entirely), reinforcing the CC axis.
       Sets `abilityUsedThisRun` (counts vs Pacifist). Run-only / save-safe (cooldowns never persisted;
       `abilityCd.shock` defaults to 0 on old saves). `SFX.shock()` kinetic thump. The ability bar renders
-      generically, so the 4th button is automatic. Test [77]. **Follow-ups (optional):** *a per-tower
-      ability or an ability-cooldown talent axis*, *an expanding shockwave ring render effect* (currently
-      a center particle burst + shake), and maybe a *light-damage variant* gated behind a perk.
+      generically, so the 4th button is automatic. Test [77]. ✅ **ability-cooldown axis shipped v1.86.0** —
+      🔋 **Capacitor** (rare perk): ALL active abilities recharge 25% faster (`perkState.abilityCdMult ×0.75`,
+      folded into every `abilityCd` assignment beside `metaCdMult()`/`meteorCdMult`). The pool's first
+      all-ability cooldown reducer (Singularity is meteor-only; Overdrive talent is a meta unlock), making the
+      ability bar a real build pillar. Bounded/"too easy"-safe (one −25% on 30–60s cooldowns; mostly utility
+      abilities). Save-safe (`abilityCdMult` in perkState, default 1); rare so Wildcard won't roll it. Test [94].
+      **Follow-ups (optional):** *a per-tower ability*, *an ability-cooldown talent* (meta-tier version of
+      Capacitor), *an expanding shockwave ring render effect* (currently a center particle burst + shake), and
+      maybe a *light-damage variant* gated behind a perk.
 - [x] **Per-map visual themes** — shipped v1.13.8 (owner FEEDBACK "all the maps look the
       same"). `THEMES` palette table in `cd-maps.js` drives the background, stars, grid and
       path layers in `draw()`. Classic=blue circuit, Spiral=emerald, Serpent=amber (fixed);

@@ -6232,6 +6232,75 @@ async function main() {
     await page.close();
   }
 
+  // [94] Capacitor rare perk — all abilities recharge 25% faster (v1.86.0)
+  console.log('\n[94] Capacitor perk (all-ability cooldown reduction)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      meta.talents = {};            // zero Overdrive so metaCdMult() === 1
+      beginGame();
+
+      const def = PERKS.find(p => p.id === 'capacitor');
+      const inPool = !!def && def.rarity === 'rare';
+      const notLegendary = def && def.rarity !== 'legendary';   // so resolveWildcard() won't roll it
+
+      const base = metaCdMult();    // 1 with no talents
+
+      // apply the perk → abilityCdMult ×0.75
+      perkState.abilityCdMult = 1;
+      def.apply(perkState);
+      const multOk = Math.abs(perkState.abilityCdMult - 0.75) < 1e-9;
+
+      // each ability assignment must fold in abilityCdMult
+      enemies.length = 0;
+      abilityCd.freeze = 0;
+      triggerAbility('freeze');
+      const freezeOk = Math.abs(abilityCd.freeze - ABILITIES.freeze.cd * base * 0.75) < 1e-6;
+
+      abilityCd.rush = 0;
+      triggerAbility('rush');
+      const rushOk = Math.abs(abilityCd.rush - ABILITIES.rush.cd * base * 0.75) < 1e-6;
+
+      abilityCd.shock = 0;
+      triggerAbility('shock');
+      const shockOk = Math.abs(abilityCd.shock - ABILITIES.shock.cd * base * 0.75) < 1e-6;
+
+      abilityCd.meteor = 0;
+      castMeteor(W / 2, H / 2);     // meteor folds meteorCdMult (1) AND abilityCdMult
+      const meteorOk = Math.abs(abilityCd.meteor - ABILITIES.meteor.cd * base * perkState.meteorCdMult * 0.75) < 1e-6;
+
+      // freshPerkState default + save/reload round-trip + old-save migration
+      const defaultsOk = freshPerkState().abilityCdMult === 1;
+      perkState.abilityCdMult = 0.75;
+      saveRun();
+      perkState.abilityCdMult = 1;
+      loadRun();
+      const restored = Math.abs(perkState.abilityCdMult - 0.75) < 1e-9;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.abilityCdMult;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.abilityCdMult === 1;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, notLegendary, multOk, freezeOk, rushOk, shockOk, meteorOk, defaultsOk, restored, migratedOk };
+    });
+    check('Capacitor is a rare perk in the pool', r.inPool);
+    check('Capacitor is not legendary (Wildcard cannot roll it)', r.notLegendary);
+    check('Capacitor apply sets abilityCdMult ×0.75', r.multOk);
+    check('Time Freeze cooldown folds in abilityCdMult', r.freezeOk);
+    check('Gold Rush cooldown folds in abilityCdMult', r.rushOk);
+    check('Shockwave cooldown folds in abilityCdMult', r.shockOk);
+    check('Meteor cooldown folds in abilityCdMult', r.meteorOk);
+    check('freshPerkState defaults abilityCdMult:1', r.defaultsOk);
+    check('save/reload round-trips abilityCdMult', r.restored);
+    check('old save missing abilityCdMult migrates to default 1', r.migratedOk);
+    check('no console errors during Capacitor test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

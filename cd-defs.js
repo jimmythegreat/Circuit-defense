@@ -188,14 +188,14 @@ function triggerAbility(k) {
     return;
   }
   if (k === 'freeze') {
-    abilityCd.freeze = ABILITIES.freeze.cd * metaCdMult();
+    abilityCd.freeze = ABILITIES.freeze.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     for (const e of enemies) e.frozen = 4;
     addFloater(W/2, H/2, '🧊 TIME FREEZE', '#79c0ff', 26);
     SFX.freeze();
   }
   if (k === 'rush') {
-    abilityCd.rush = ABILITIES.rush.cd * metaCdMult();
+    abilityCd.rush = ABILITIES.rush.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     const amount = 50 + wave * 5;
     gold += amount;
@@ -208,7 +208,7 @@ function triggerAbility(k) {
     // repositioning tool, distinct from Freeze's in-place pause. Pure utility (no
     // damage), so it can't power-creep the "too easy" feedback. Crowd-control-immune
     // enemies (Heatwave wave-mod / Juggernaut boss) shrug it off, reinforcing the CC axis.
-    abilityCd.shock = ABILITIES.shock.cd * metaCdMult();
+    abilityCd.shock = ABILITIES.shock.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
@@ -227,7 +227,7 @@ function triggerAbility(k) {
   refreshAbilityBar();
 }
 function castMeteor(x, y) {
-  abilityCd.meteor = ABILITIES.meteor.cd * metaCdMult() * perkState.meteorCdMult;
+  abilityCd.meteor = ABILITIES.meteor.cd * metaCdMult() * perkState.meteorCdMult * perkState.abilityCdMult;
   armedAbility = null;
   abilityUsedThisRun = true;
   const dmg = (120 + wave * 14) * perkState.meteorMult;
@@ -283,6 +283,16 @@ const PERKS = [
   // fire loop (target-HP-conditional → can't live in effDmg, like Reaper/Killing Spree). `ambush` lives
   // in perkState (save-safe default false). Pairs with Reaper for a bookend "burst then finish" build.
   { id:'ambush',  rarity:'rare', icon:'🏹', name:'Ambush',           desc:'+30% damage to enemies above 80% HP', apply:s=>s.ambush = true },
+  // Capacitor (v1.86.0): the perk pool's first ALL-ABILITY cooldown reducer — every active
+  // ability (Meteor/Time Freeze/Gold Rush/Shockwave) recharges 25% faster. A fresh axis no
+  // perk touched (Singularity is meteor-ONLY; the 🌟 Overdrive talent's metaCdMult is a meta
+  // unlock, not a draft pick), it makes the underused ability bar a real build pillar — more
+  // freeze/shock uptime for a defensive line, more meteor/rush for an aggressive one. Bounded
+  // & "too easy"-safe: a single −25% on cooldowns of 30–60s, and the abilities are mostly
+  // utility (shock/freeze deal no damage; rush is gold), so it enables a playstyle rather than
+  // adding raw board DPS. `abilityCdMult` lives in perkState (save-safe default 1), multiplied
+  // into every abilityCd assignment alongside the existing metaCdMult()/meteorCdMult.
+  { id:'capacitor',rarity:'rare', icon:'🔋', name:'Capacitor',        desc:'Abilities recharge 25% faster', apply:s=>s.abilityCdMult *= 0.75 },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -344,7 +354,7 @@ function freshPerkState() {
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
-    ambush:false };
+    ambush:false, abilityCdMult:1 };
 }
 function ascendTowers() {
   for (const t of towers) {

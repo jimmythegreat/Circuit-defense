@@ -3,6 +3,21 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.86.0 — 2026-06-15 — 🔋 Capacitor — new rare run perk (all abilities recharge 25% faster)
+
+**Type:** Content (new run perk). Minor bump.
+
+**What & why:** Added 🔋 **Capacitor** (rare) — the perk pool's **first all-ability cooldown reducer**: every active ability (☄️ Meteor / 🧊 Time Freeze / 💰 Gold Rush / 🌀 Shockwave) recharges **25% faster** (`abilityCdMult ×0.75`). A **genuinely fresh axis** no perk touched: the 🕳️ Singularity legendary only halves the **Meteor's** cooldown, and the 🌟 Overdrive talent's `metaCdMult()` is a permanent meta unlock, not a draft pick. Capacitor makes the underused **ability bar** a real build pillar — more Freeze/Shockwave uptime for a defensive line, more Meteor/Rush for an aggressive one — a meaningful draft choice rather than another raw-DPS bump.
+
+**"Too easy"-safe / not power creep:** a single −25% on cooldowns that are already 30–60s long, and most abilities are **utility** (Shockwave & Freeze deal no damage; Gold Rush is gold), so it enables a *playstyle* rather than pumping board damage. It sits comfortably in the rare tier next to 🔭 Targeting Array and 🏹 Ambush.
+
+**Implementation:**
+- `cd-defs.js` — `PERKS` rare entry `capacitor` (`apply: s=>s.abilityCdMult *= 0.75`); `freshPerkState()` gains `abilityCdMult:1`; the four ability-cooldown assignments (`triggerAbility()` freeze/rush/shock + `castMeteor()`) now multiply by `perkState.abilityCdMult` alongside the existing `metaCdMult()`/`meteorCdMult`.
+
+**Save-safe:** `abilityCdMult` lives in `perkState`, persisted whole by `saveRun()` and restored via `loadRun()`'s `Object.assign(freshPerkState(), s.perkState)`; old saves default `1`. No new localStorage key, no economy/schema impact. Ability cooldowns themselves are never persisted (run-only). It's a *rare*, so the legendary-only Wildcard doesn't roll it.
+
+**Test:** new group **[94]** — perk is in the pool as rare (and not legendary, so Wildcard can't roll it); `apply` sets `abilityCdMult` to 0.75; all four abilities (freeze/rush/shock/meteor) fold the multiplier into their assigned cooldown; `freshPerkState` default 1; save/reload round-trip; old-save migration to default 1. Full suite green (subagent-run), zero console errors.
+
 ## v1.85.0 — 2026-06-15 — 🏹 Ambush — new rare run perk (+30% damage to high-HP enemies)
 
 **Type:** Content (new run perk). Minor bump.
