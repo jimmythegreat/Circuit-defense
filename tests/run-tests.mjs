@@ -7170,6 +7170,80 @@ async function main() {
     await page.close();
   }
 
+  // [106] Bastion Surge wave mod — converts basic enemies into splash-resistant bastions (v1.99.0)
+  console.log('\n[106] Bastion Surge (splash-resist wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'bastions');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) bastion count for a wave-10 wave (no natural bastions until w14).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainBastions = plainWave.filter(e => e.kind === 'bastion').length;
+
+      // BASTION SURGE — a fraction of basic enemies become bastions, so the wave has MORE.
+      setMod('bastions');
+      const surgeWave = buildWave(10);
+      const surgeBastions = surgeWave.filter(e => e.kind === 'bastion').length;
+      const moreBastions = surgeBastions > plainBastions;
+      // Converted bastions carry full bastion stats (aoeResist, maxHp set, slate colour, radius 14).
+      const conv = surgeWave.find(e => e.kind === 'bastion');
+      const wellFormed = !!conv && conv.aoeResist === true && conv.maxHp === conv.hp &&
+                         conv.color === '#7a86c8' && conv.r === 14;
+      // Conversion not addition: total wave length unchanged, special kinds untouched.
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+      // Inert when the mod is off.
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'bastion').length === plainBastions;
+
+      // A converted bastion takes HALF the Cannon/Mortar splash of a norm at the same point.
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const pt = pointAt(pathLen * 0.4);
+      const mk = (kind, extra = {}) => ({ kind, hp:1000, maxHp:1000, spd:1, r:12, bounty:1,
+        color:'#fff', armor:0, gap:0, dist:pathLen*0.4, x:pt.x, y:pt.y, slow:0, slowF:0.6,
+        frozen:0, poison:null, flash:0, px:0, py:0, ...extra });
+      const bBomb = mk('bastion', { aoeResist:true }), nBomb = mk('norm');
+      enemies.push(bBomb, nBomb);
+      hitEnemy({ kind:'bomb', target:{ x:pt.x, y:pt.y }, dmg:100, src:null, ignoreArmor:false });
+      const splashHalved = Math.abs((1000 - bBomb.hp) - 50) < 0.01 && Math.abs((1000 - nBomb.hp) - 100) < 0.01;
+      enemies.length = 0;
+
+      waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, moreBastions, wellFormed, sameLength, fastUntouched, inertOff, splashHalved,
+               plainBastions, surgeBastions };
+    });
+    check('WAVE_MODS includes Bastion Surge', r.hasMod);
+    check('Bastion Surge adds bastions to the wave', r.moreBastions, `${r.plainBastions}->${r.surgeBastions}`);
+    check('converted bastions are well-formed (aoeResist/maxHp/colour/radius)', r.wellFormed);
+    check('Bastion Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Bastion Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Bastion Surge is inert when the mod is off', r.inertOff);
+    check('a converted bastion takes half splash damage (norm full)', r.splashHalved);
+    check('no console errors during Bastion Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+
+    // A real Mayhem run still drives to completion with the mod in the pool — no hang.
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      __cdGodTowers(8);
+      const res = __cdDrive({ maxWave: 8 });
+      const out = { reached: wave >= 7, wave };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Mayhem run with Bastion Surge in the pool drives without hanging', drove.reached, 'wave=' + drove.wave);
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

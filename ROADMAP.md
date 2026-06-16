@@ -260,8 +260,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       are spatial + scale with how many jammers you let through. Reuses the general `kind==='jammer'` tick +
       render, so it's two lines; bounded (one tower/pulse, brief self-recovering disable, buff towers immune,
       freeze pauses it); run-only).
-      Pool 7→9→10→11→12→13→14→15→16→17→18→**19**.
-      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85] + [88] + [103].
+      Then **⬢ Bastion Surge** in **v1.99.0** (`bastions`: converts a fraction of would-be basic enemies
+      (slot `i%4===1`, norm-only, conversion-not-addition) into ⬢ Bastion escorts carrying `aoeResist:true`,
+      so a densely-shelled wave pressures the dominant AoE/splash build on the **damage-source axis** — the
+      two explosive splash towers (Cannon bomb + Mortar shell) deal them ×0.5. The **wave-wide cousin of the
+      Bastion enemy** (like Warden/Breacher/Jammer Surge ↔ their enemies). Reuses the `aoeResist` resist
+      already at the two `hitEnemy()` splash loops, so it needed only a `WAVE_MODS` entry + the `buildWave`
+      conversion line — no damage/render change. Bounded (resist not immunity, moderate HP ×1.6, heavy gait
+      ×0.9, single-target fire deals full → can't make a run easier); run-only/save-safe.
+      Pool 7→9→10→11→12→13→14→15→16→17→18→19→**20**.
+      Test [46] + [54] + [57] + [67] + [69] + [76] + [81] + [85] + [88] + [103] + [106].
       **Still open from the original idea:** *bounty boom* (≈ existing `goldrush`/`titans`), *double-speed*
       (≈ existing `frenzy` +35% spd — a stronger ×1.6 variant could differ), and a genuinely new one:
       a *path swap* (direction reverses).
@@ -642,8 +650,13 @@ _None currently known._ (Add any here as they're found — these are top priorit
       single-target DPS (Gun/Sniper/Railgun deal full). Resist not immunity (×0.5), moderate HP (×1.6) → bounded,
       can't make a run easier. Implemented at the two splash loops in `hitEnemy()` (no `damage()` change); Tesla
       chain + Overkill detonation are full-damage by construction. The first enemy that resists a *damage source*
-      (vs HP/speed/CC/leak-cost axes). Run-only/save-safe. Test [98]. **Follow-up (optional):** a tower spec or
-      perk that *adds* explosion penetration vs blast-shells, or a Mayhem "bastion surge" wave-mod cousin.
+      (vs HP/speed/CC/leak-cost axes). Run-only/save-safe. Test [98]. ✅ **Mayhem "bastion surge" wave-mod cousin
+      shipped v1.99.0** — ⬢ **Bastion Surge** (`bastions`): converts a fraction of would-be basic enemies (slot
+      `i%4===1`, norm-only, conversion-not-addition) into ⬢ Bastion escorts so a densely-shelled wave pressures
+      the AoE/splash build on the damage-source axis; reuses the existing `aoeResist` resist at the two `hitEnemy()`
+      splash loops, so it's a one-line `buildWave` conversion + a `WAVE_MODS` entry. Bounded/run-only/save-safe.
+      Test [106]. **Follow-up (optional, still open):** a tower spec or perk that *adds* explosion penetration vs
+      blast-shells.
       **v1.91.0 added the ⚡ Jammer enemy (w16+, ALL modes)** — a tower-DISABLING regular enemy on a
       brand-new **tower uptime/coverage** axis: while alive it periodically knocks the nearest tower
       offline for ~1.6s (reuses the Static Storm `empT` infra). It's the regular-enemy cousin of the

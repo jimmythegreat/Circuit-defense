@@ -252,6 +252,19 @@ function buildWave(w) {
     // pauses it, and one mod is ever active so no stacking with wardens/breachers despite the shared
     // slot. Run-only (enemies are never persisted) — no save migration.
     if (modIs('jammers') && e.kind === 'norm' && i % 4 === 1) e = { kind:'jammer', hp:t.hp*1.15, spd:t.speed*0.95, r:12, bounty:Math.ceil(t.bounty*1.9), color:'#f2e34a', armor:0, gap:0.8 };
+    // Bastion Surge (Mayhem, v1.99.0): convert a fraction of would-be basic enemies into ⬢ Bastion
+    // escorts (the wave-wide cousin of the Bastion enemy, like Warden Surge ↔ the Warden / Breacher
+    // Surge ↔ the Breacher / Jammer Surge ↔ the Jammer). Mirrors those conversions exactly — only
+    // norms convert (so it never overrides the rarer special kinds above) and it's a conversion not
+    // an addition (wave length unchanged). The bastions carry aoeResist:true, so a densely-shelled
+    // wave pressures the dominant AoE/splash build on the DAMAGE-SOURCE axis: the two explosive
+    // splash towers (Cannon bomb + Mortar shell) deal them only HALF damage (applied at the splash
+    // loops in hitEnemy(), unchanged), so a pure-bombardment line chunks the wave slowly and is
+    // pushed to bring single-target DPS (Gun/Sniper/Railgun deal full). Bounded: resist not immunity
+    // (×0.5), moderate HP (×1.6), slightly heavy gait (×0.9), so it can't make a run easier; one mod
+    // is ever active so no stacking with wardens/breachers/jammers despite the shared slot. Run-only
+    // (enemies are never persisted) — no save migration.
+    if (modIs('bastions') && e.kind === 'norm' && i % 4 === 1) e = { kind:'bastion', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*2.2), color:'#7a86c8', armor:0, gap:0.85, aoeResist:true };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;

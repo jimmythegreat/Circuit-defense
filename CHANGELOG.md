@@ -3,6 +3,36 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.99.0 — 2026-06-16 — ⬢ Bastion Surge — 20th Mayhem wave modifier (blast-shell escorts resist explosive splash)
+
+**Type:** New content (Mayhem wave modifier). Minor bump.
+
+**What & why:** Added **Bastion Surge** (`bastions`, ⬢), the 20th Mayhem wave modifier — the
+**wave-wide cousin of the ⬢ Bastion enemy**, exactly as Warden Surge / Breacher Surge / Jammer Surge
+mirror their respective enemies. When it rolls, a fraction of the wave's would-be basic enemies are
+**converted** into ⬢ Bastion escorts (slot `i%4===1`, **norm-only**, in `buildWave`'s enemy loop right
+after the Jammer Surge line) — heavy blast-shells carrying `aoeResist:true`. Because the resist already
+lives at the two explosive-splash loops in `hitEnemy()` (the Cannon bomb + Mortar shell deal an
+`aoeResist` enemy ×0.5), **no damage/render code changed** — only the one-line conversion. A
+densely-shelled wave pressures the documented dominant **AoE/splash-clear** build (a big part of the
+recurring "too easy" feedback) on the **damage-source axis** no other mod touches: a pure-bombardment
+line chunks the wave slowly and is pushed to bring single-target DPS (Gun/Sniper/Railgun deal full
+damage, and Tesla chain / Overkill detonation are not "explosion"-coded so they're unresisted either).
+
+**Bounded / "too easy"-safe:** it's a **conversion not an addition** (wave length unchanged), it's
+**resist not immunity** (×0.5), the bastions have only moderate HP (×1.6) and a slightly heavy gait
+(×0.9) so any direct-fire line stops them, and only one modifier is ever active at a time (no stacking
+with wardens/breachers/jammers despite the shared `i%4===1` slot). It can't make a run easier.
+
+**Save safety:** the modifier and its converted enemies are **run-only** and never serialized, so old
+saves load unchanged and there's no schema/economy/balance impact. `WAVE_MODS` 19 → 20.
+
+**Test evidence:** new test group **[106]** — Bastion Surge is in `WAVE_MODS`; it adds bastions to a
+wave-10 wave (none naturally before w14); converted bastions are well-formed (`aoeResist`/`maxHp`/slate
+colour/r=14); it converts rather than lengthens (wave length unchanged, `fast` count untouched); it's
+inert when off; a converted bastion takes **half** Cannon-bomb splash vs a norm's full; and a real
+Mayhem run with the mod in the pool drives clean. Full suite **1145/0 green**, zero console errors.
+
 ## v1.98.0 — 2026-06-16 — 🟣 Nexus — new 6th quick-play map (central crossfire convergence, Violet theme)
 
 **Type:** New content (map). Minor bump.
