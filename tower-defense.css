@@ -529,12 +529,18 @@
     #hud { font-size: 11px; padding: 3px 8px; gap: 3px 10px; margin-bottom: 4px; }
     #rotateHint { display: none; }
     #game { max-height: calc(100vh - 150px); max-width: calc(100vw - 12px); width: auto; height: auto; margin: 0 auto; }
-    /* Compact the shop into a tight single row so the controls (Start Wave) stay
-       on-screen alongside the now-tall board. */
-    #shop { margin-top: 4px; gap: 5px; }
-    .towerBtn { min-width: 60px; padding: 3px 5px; font-size: 9.5px; line-height: 1.2; }
+    /* Pin the shop to ONE non-wrapping row so the controls (Start Wave) stay
+       on-screen alongside the now-tall board. nowrap + overflow-x means the row
+       can never grow vertically no matter how many towers exist or how wide the
+       browser renders fonts — it scrolls sideways instead of pushing Start Wave
+       off the bottom (the bug that broke 9-tower landscape on CI font metrics).
+       overflow-x is contained, so it adds no page-level horizontal overflow. */
+    #shop { margin-top: 4px; gap: 5px; flex-wrap: nowrap; overflow-x: auto;
+            max-width: calc(100vw - 12px); justify-content: flex-start; }
+    .towerBtn { flex: 0 0 auto; min-width: 52px; padding: 3px 5px; font-size: 9.5px; line-height: 1.2; }
     .towerBtn .icon { font-size: 14px; }
     .towerBtn .key { display: none; }
+    .towerBtn small { display: none; }   /* drop the description line to keep buttons slim */
     #controls { margin-top: 4px; }
     button.ctl { padding: 6px 10px; font-size: 12px; }
     .hint { display: none; }
