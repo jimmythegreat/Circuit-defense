@@ -156,6 +156,29 @@ function specOf(t) {
   return SPECS[t.type].find(s => s.id === t.spec) || null;
 }
 
+// ================= Tower veterancy (v1.100.0) =================
+// Purely COSMETIC kill-milestone ranks. Towers accumulate lifetime kills (`t.kills`,
+// already saved/restored — old saves default to 0), and crossing a threshold promotes
+// the tower a rank, shown as star pips over it (cd-render.js), a rank label in the
+// upgrade panel (cd-game.js) and a chunky promotion flash/sound/floater (cd-update.js).
+// NO stat effect of any kind — it's recognition/game-feel like the combo meter, so it
+// can't power-creep the recurring "too easy" balance concern. Run-only render state only.
+const TOWER_RANKS = [
+  { name: 'Rookie',  min: 0,   color: null },
+  { name: 'Veteran', min: 15,  color: '#cd7f32' }, // bronze
+  { name: 'Elite',   min: 40,  color: '#c9d1d9' }, // silver
+  { name: 'Ace',     min: 90,  color: '#ffd866' }, // gold
+  { name: 'Legend',  min: 200, color: '#ff7bd5' }, // legendary pink
+];
+function towerRankTier(kills) {
+  let tier = 0;
+  for (let i = TOWER_RANKS.length - 1; i >= 1; i--) {
+    if ((kills || 0) >= TOWER_RANKS[i].min) { tier = i; break; }
+  }
+  return tier;
+}
+function towerRank(kills) { return TOWER_RANKS[towerRankTier(kills)]; }
+
 // ================= Abilities =================
 const ABILITIES = {
   meteor: { name:'Meteor',    icon:'☄️', key:'Q', cd:30, desc:'Click map: massive AoE damage' },

@@ -3,6 +3,46 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.100.0 — 2026-06-16 — ⭐ Tower Veterancy — towers earn battlefield ranks as they rack up kills
+
+**Type:** New game-feel / cosmetic progression. Minor bump.
+
+**What changed.** Towers now earn a **veterancy rank** from their lifetime kills — a pure
+recognition layer, like the kill-combo meter. Every tower already tracks `t.kills` (shown
+in the upgrade panel and saved with the run); crossing a milestone now **promotes** it:
+**15 → ⭐ Veteran** (bronze), **40 → Elite** (silver), **90 → Ace** (gold), **200 → Legend**
+(legendary-pink). A small row of `★` pips sits over each tower for its rank, the upgrade
+panel names the rank beside the kill count, and the instant a tower ranks up it flashes a
+particle burst + a floating `⭐ ELITE!` banner + a touch of screen-shake + a rising
+`SFX.rankup()` chime (the pips pulse brighter for ~0.7s via a run-only `rankFlash`).
+
+**Why.** The owner likes addictive progression loops, chunky game-feel, and the occasional
+surprise — veterancy turns the reliable workhorse gun into a decorated unit you get attached
+to, watching its kill count climb toward the next star. It's the first *per-tower* progression
+the game has shown.
+
+**"Too easy"-safe / balance-neutral.** Veterancy grants **NO stats whatsoever** — no damage,
+range, fire-rate or economy — so it cannot make a run easier (mindful of the recurring
+"too easy" feedback). It is recognition/feedback only, exactly like the combo meter.
+
+**Save-safe.** Ranks are *derived* from the kill counts already serialized in `cd_save`, so a
+resumed run keeps every tower's hard-earned rank and old saves simply start at their stored
+counts. Buff/booster towers deal no damage, so they stay rankless (Rookie). No new
+localStorage key, no schema change.
+
+**Implementation.** `TOWER_RANKS` + `towerRankTier()`/`towerRank()` in `cd-defs.js`; the
+promotion flash in `damage()`'s kill block + a `rankFlash` decay in the tower-fire loop
+(`cd-update.js`); the pips in `draw()` (`cd-render.js`); the panel label + a `towerRankTier`
+hash in `upgradeKey()` (`cd-game.js`); `SFX.rankup(tier)` (`cd-core.js`). `sw.js` cache
+bumped to `v1.100.0`.
+
+**Tests.** New group **[107]** — helper thresholds (0/15/40/90/200), a real milestone kill
+promotes the tower (`rankFlash` fires) exactly once, `effDmg` is unchanged by rank (cosmetic),
+a non-milestone kill doesn't re-fire, and a rank survives a save/resume round-trip. Full suite
+**1153/0 green**, zero console errors.
+
+---
+
 ## v1.99.0 — 2026-06-16 — ⬢ Bastion Surge — 20th Mayhem wave modifier (blast-shell escorts resist explosive splash)
 
 **Type:** New content (Mayhem wave modifier). Minor bump.

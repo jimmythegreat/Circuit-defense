@@ -7244,6 +7244,75 @@ async function main() {
     await page.close();
   }
 
+  // [107] Tower veterancy — cosmetic kill-milestone ranks (v1.100.0)
+  console.log('\n[107] Tower veterancy (kill-rank cosmetics)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // Helper math: tiers map to the documented thresholds, monotonic, clamps.
+      const exists = typeof towerRankTier === 'function' && typeof towerRank === 'function' &&
+                     Array.isArray(TOWER_RANKS) && TOWER_RANKS.length === 5;
+      const thresholds = towerRankTier(0) === 0 && towerRankTier(14) === 0 && towerRankTier(15) === 1 &&
+                         towerRankTier(39) === 1 && towerRankTier(40) === 2 && towerRankTier(89) === 2 &&
+                         towerRankTier(90) === 3 && towerRankTier(199) === 3 && towerRankTier(200) === 4 &&
+                         towerRankTier(99999) === 4;
+      const names = towerRank(0).name === 'Rookie' && towerRank(15).name === 'Veteran' &&
+                    towerRank(90).name === 'Ace' && towerRank(200).name === 'Legend';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // A kill that crosses a threshold promotes the tower (rankFlash set) exactly once.
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0;
+      const tw = { type:'gun', x:100, y:100, range:99999, dmg:1e9, rate:0.05, cd:0, level:1,
+        baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:14, buffPower:0.25, flash:0 };
+      towers.length = 0; towers.push(tw);
+      const mkE = () => ({ kind:'norm', hp:1, maxHp:50, spd:1, r:12, bounty:1, color:'#fff', armor:0,
+        gap:0, dist:50, x:100, y:100, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, dead:false });
+      const dmgBefore = effDmg(tw);
+      const e1 = mkE(); enemies.push(e1);
+      damage(e1, 9999, tw);                 // 14 -> 15 kills: promotes to Veteran
+      const promoted = tw.kills === 15 && towerRankTier(tw.kills) === 1 && tw.rankFlash > 0;
+      // Cosmetic only: the tower's effective damage is unchanged by ranking up.
+      const noStatChange = Math.abs(effDmg(tw) - dmgBefore) < 1e-6;
+      // A further kill that does NOT cross a threshold doesn't re-fire the promotion flash.
+      tw.rankFlash = 0;
+      const e2 = mkE(); enemies.push(e2);
+      damage(e2, 9999, tw);                 // 15 -> 16: no new tier
+      const noRefire = tw.kills === 16 && tw.rankFlash === 0;
+      enemies.length = 0;
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { exists, thresholds, names, promoted, noStatChange, noRefire };
+    });
+    check('TOWER_RANKS + towerRank helpers exist (5 tiers)', r.exists);
+    check('rank thresholds map correctly (0/15/40/90/200)', r.thresholds);
+    check('rank names resolve (Rookie/Veteran/Ace/Legend)', r.names);
+    check('a milestone kill promotes the tower (rankFlash fires)', r.promoted);
+    check('veterancy is cosmetic — effDmg unchanged by rank', r.noStatChange);
+    check('a non-milestone kill does not re-fire the promotion', r.noRefire);
+
+    // Ranks derive from saved kill counts → survive a save/resume round-trip.
+    const rt = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      towers.push({ type:'gun', x:120, y:120, range:120, dmg:10, rate:0.5, cd:0, level:3,
+        baseCost:50, invested:120, angle:0, mode:'first', spec:null, dealt:500, kills:120, buffPower:0.25, flash:0 });
+      wave = 4; saveRun();
+      resetState();
+      const loaded = loadRun();
+      const t = towers[0];
+      const out = { loaded, kills: t ? t.kills : -1, tier: t ? towerRankTier(t.kills) : -1 };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('tower rank survives save/resume (kills restored → Ace)',
+      rt.loaded && rt.kills === 120 && rt.tier === 3, JSON.stringify(rt));
+    check('no console errors during veterancy test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

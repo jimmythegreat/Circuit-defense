@@ -446,6 +446,19 @@ _None currently known._ (Add any here as they're found — these are top priorit
 
 ## Game feel / polish
 
+- [x] **Tower veterancy ranks** — shipped **v1.100.0**. Towers now earn a cosmetic
+      **rank** from their lifetime kills (`t.kills`, already saved): 15 → ⭐ Veteran, 40 → Elite,
+      90 → Ace, 200 → Legend. A row of `★` pips sits over each tower (bronze→silver→gold→pink),
+      the upgrade panel names the rank beside the kill count, and a promotion fires a particle
+      burst + `⭐ NAME!` floater + shake + `SFX.rankup()` (the pips pulse via run-only `rankFlash`).
+      The first *per-tower* progression loop — addictive recognition like the combo meter.
+      **Balance-neutral / "too easy"-safe:** grants NO stats (damage/range/rate/economy), so it
+      can't make a run easier. Save-safe (ranks are derived from saved kill counts; buff towers
+      stay rankless). `TOWER_RANKS`/`towerRankTier()` (cd-defs.js) + kill-block flash (cd-update.js)
+      + pips (cd-render.js) + panel label/`upgradeKey` hash (cd-game.js) + `SFX.rankup` (cd-core.js).
+      Test [107]. **Follow-ups (optional):** *a lifetime cross-run "tower kills" meta stat / badge*
+      (e.g. a "1,000 career kills" achievement), and *rank-tinted barrel/dome colour* for an even
+      stronger veteran look (still cosmetic).
 - [x] **One-click "Play Again" on the end screen** — shipped **v1.75.0**. The end-of-run overlay
       (win or lose) gained a 🔄 Play Again button that restarts the same `gameMode`/`mapKey`/`diffKey`/
       `campLevel` in one click (no menu round-trip) — instant rematch after a loss, or a score-chase

@@ -393,6 +393,22 @@ function draw() {
       ctx.fillText('★', t.x, t.y - 22);
       ctx.textAlign = 'left';
     }
+    // veterancy rank pips (cosmetic, v1.100.0): a row of small stars over the tower for
+    // its lifetime-kill rank, above the spec star. Pulses brighter+bigger right after a
+    // promotion (rankFlash). Buff towers deal no damage, so they never rank up.
+    const rTier = towerRankTier(t.kills);
+    if (rTier > 0) {
+      const rk = TOWER_RANKS[rTier];
+      const pulse = t.rankFlash > 0 ? 1 + t.rankFlash * 0.6 : 1;
+      ctx.save();
+      ctx.fillStyle = rk.color;
+      ctx.textAlign = 'center';
+      ctx.font = `bold ${(8.5 * pulse).toFixed(1)}px sans-serif`;
+      if (t.rankFlash > 0) { ctx.shadowColor = rk.color; ctx.shadowBlur = 8 * t.rankFlash; }
+      ctx.fillText('★'.repeat(rTier), t.x, (t.spec ? t.y - 32 : t.y - 22));
+      ctx.restore();
+      ctx.textAlign = 'left';
+    }
     ctx.fillStyle = '#ffd866';
     for (let i = 0; i < t.level - 1; i++) {
       ctx.fillRect(t.x - 13 + i*4.5, t.y + 15, 3.2, 3.2);

@@ -382,6 +382,7 @@ function update(dt) {
   // towers fire
   for (const t of towers) {
     t.flash = Math.max(0, t.flash - dt);
+    if (t.rankFlash > 0) t.rankFlash = Math.max(0, t.rankFlash - dt * 1.4);   // veterancy promotion pulse (cosmetic, v1.100.0)
     if (t.empT > 0) t.empT = Math.max(0, t.empT - dt * perkState.empResist);   // tick down offline timer (all tower types); Surge Protector perk (empResist) recovers faster
     if (t.type === 'buff') continue;
     t.cd -= dt;
@@ -658,7 +659,21 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   if (e.hp <= 0) {
     e.dead = true;
     kills++;
-    if (src) src.kills++;
+    if (src) {
+      src.kills++;
+      // Tower veterancy (v1.100.0): a kill that crosses a rank threshold promotes the
+      // tower — a chunky cosmetic flash (no stat change, "too easy"-safe). Compare the
+      // tier before/after this single kill so it fires exactly once at each milestone.
+      const newTier = towerRankTier(src.kills);
+      if (newTier > towerRankTier(src.kills - 1)) {
+        const rk = TOWER_RANKS[newTier];
+        src.rankFlash = 1;
+        addFloater(src.x, src.y - 30, '⭐ ' + rk.name.toUpperCase(), rk.color || '#fff', 15);
+        addExplosion(src.x, src.y, rk.color || '#fff', 10, 110);
+        SFX.rankup(newTier);
+        shake = Math.max(shake, 4);
+      }
+    }
     // kill-streak combo: count this death, refresh the window, celebrate milestones
     comboCount++;
     comboTimer = COMBO_WINDOW;

@@ -513,7 +513,7 @@ function upgradeKey(t) {
   const stat = t.type === 'buff'
     ? Math.round(effBuffPower(t) * 100) + '|' + Math.round(effBuffRange(t))
     : Math.round(effDmg(t)) + '|' + effRate(t).toFixed(3) + '|' + Math.round(effRange(t));
-  return [t.level, t.spec, gold >= upCost, Math.floor(t.invested * sellRatio()), t.mode, Math.floor(t.dealt / 500), stat].join('|');
+  return [t.level, t.spec, gold >= upCost, Math.floor(t.invested * sellRatio()), t.mode, Math.floor(t.dealt / 500), towerRankTier(t.kills), stat].join('|');
 }
 function maybeRefreshUpgrade() {
   if (!selectedTower || upPanel.style.display !== 'block') return;
@@ -542,7 +542,7 @@ function showUpgrade(t) {
       ? `<span class="statline">aura +${Math.round(effBuffPower(t)*100)}% dmg · range ${Math.round(effBuffRange(t))}</span><br>
          <span class="statline">auras don't stack — strongest applies</span>`
       : `<span class="statline">dmg ${Math.round(effDmg(t))} · range ${Math.round(effRange(t))} · ${(1/effRate(t)).toFixed(1)}/s</span><br>
-         <span class="statline">dealt: ${fmtNum(t.dealt)} · kills: ${t.kills}</span>`}
+         <span class="statline">dealt: ${fmtNum(t.dealt)} · kills: ${t.kills}${(() => { const rt = towerRankTier(t.kills); return rt > 0 ? ` · <b style="color:${TOWER_RANKS[rt].color}">${'★'.repeat(rt)} ${TOWER_RANKS[rt].name}</b>` : ''; })()}</span>`}
     ${specHtml}
     ${!isBuff ? `<button class="mode" onclick="cycleMode()">${MODE_ICON[t.mode]}</button>` : ''}
     <button ${maxed || gold < upCost ? 'disabled' : ''} onclick="upgradeTower()">${maxed ? 'MAX LEVEL' : `⬆ Upgrade ${upCost}💰`}</button>
