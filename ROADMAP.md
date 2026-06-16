@@ -298,6 +298,17 @@ _None currently known._ (Add any here as they're found — these are top priorit
       `CAMPAIGN_THEMES`. Fully data-driven (selector/Records/best-key/loadRun pick it up automatically);
       additive, save-safe (new `cd_best_gauntlet_<diff>` key, `||0`). Test [68]. **Follow-ups:** *ground
       textures/patterns per theme* (still solid-colour path fills), and the forking/multi-lane map below.
+- [x] **New quick-play map: "Cascade"** — shipped **v1.87.0**. A 5th hand-crafted quick map
+      (`MAPS.cascade` in cd-maps.js, before Mayhem) — a 12-point axis-aligned **staircase / stepped
+      descent**: the path marches steadily down-and-across, then a tall climb + final plunge to the exit.
+      A flow no other map has — enemies keep making **forward progress** (a DPS race) rather than doubling
+      back through one kill-box, and each step's **inside corner** is a pocket where a tower covers two path
+      segments at once (splash + the new Railgun line-beam love the bunched steps). Path length ≈1800.
+      Carries the **`ice`** palette (`MAP_THEME.cascade`) as its fixed identity — the last static theme not
+      yet used as a map signature; `ice` was already in `THEMES` + `CAMPAIGN_THEMES`. Fully data-driven
+      (selector/Records/best-key/loadRun auto-pick it); additive, save-safe (new `cd_best_cascade_<diff>` /
+      `cd_bestscore_cascade_<diff>` keys, `||0`). Test [95]. **Follow-ups:** same as Gauntlet (per-theme
+      ground textures; the forking/multi-lane map below).
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes. (Bigger lift — needs multi-path enemy distribution + targeting/`distToPath`
       over more than one path; its own run when tackled.)

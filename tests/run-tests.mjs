@@ -6301,6 +6301,102 @@ async function main() {
     await page.close();
   }
 
+  // [95] Cascade map — 5th quick-play map + Ice theme identity (v1.87.0)
+  console.log('\n[95] Cascade map (stepped descent + Ice theme)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Map definition: present, named, well-formed axis-aligned path enters off-left, exits off-right.
+    const def = await page.evaluate(() => {
+      const m = MAPS.cascade;
+      const pts = m && m.pts;
+      let axisAligned = !!pts && pts.length >= 4;
+      if (pts) for (let i = 0; i < pts.length - 1; i++) {
+        const sameX = pts[i][0] === pts[i + 1][0], sameY = pts[i][1] === pts[i + 1][1];
+        if (sameX === sameY) { axisAligned = false; break; }   // both same (zero-len) or neither (diagonal)
+      }
+      const inBounds = !!pts && pts.every(([x, y]) => x >= -40 && x <= 940 && y >= 0 && y <= 560);
+      return {
+        exists: !!m, named: !!m && typeof m.name === 'string' && m.name.length > 0,
+        hasPath: Array.isArray(pts), axisAligned, inBounds,
+        entersLeft: !!pts && pts[0][0] === -30, exitsRight: !!pts && pts[pts.length - 1][0] === 930,
+        notLast: Object.keys(MAPS).indexOf('cascade') < Object.keys(MAPS).indexOf('mayhem'),
+      };
+    });
+    check('Cascade map exists and is named', def.exists && def.named);
+    check('Cascade has an axis-aligned path (no diagonals/zero-length segs)', def.axisAligned);
+    check('Cascade path stays within the board', def.inBounds);
+    check('Cascade path enters off-left (-30) and exits off-right (930)', def.entersLeft && def.exitsRight);
+    check('Cascade sits before Mayhem in the map order', def.notLast);
+
+    // Theme: Ice palette exists and is the map's fixed identity.
+    const theme = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'cascade'; diffKey = 'normal';
+      const fixed = MAP_THEME.cascade;
+      const hasPalette = !!THEMES.ice && typeof THEMES.ice.glow === 'string';
+      const inCampaignPool = CAMPAIGN_THEMES.includes('ice');
+      const picks = pickMapTheme();              // quick-mode cascade -> fixed ice
+      beginGame();
+      const resolved = mapTheme;                 // resetState() set it via pickMapTheme()
+      const pal = mapPalette();                  // concrete palette for the frame
+      const ok = pal && pal.glow === THEMES.ice.glow;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fixed, hasPalette, inCampaignPool, picks, resolved, ok };
+    });
+    check('Ice theme palette exists', theme.hasPalette);
+    check('Cascade maps to the Ice theme', theme.fixed === 'ice' && theme.picks === 'ice');
+    check('Ice is available to the campaign palette pool', theme.inCampaignPool);
+    check('a Cascade run resolves to the Ice palette', theme.resolved === 'ice' && theme.ok);
+
+    // The map appears as a selectable button on the start screen.
+    const btn = await page.evaluate(() => {
+      renderStartScreen();
+      return /Cascade/.test(document.getElementById('mapRow').innerHTML);
+    });
+    check('Cascade appears in the start-screen map selector', btn);
+
+    // A real run drives to completion on the new path (pathing/spawning work, no hang).
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'cascade'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const pathOk = pathLen > 1000 && Array.isArray(waypoints) && waypoints === MAPS.cascade.pts;
+      __cdGodTowers(8);
+      __cdDrive({ maxWave: 6 });
+      const out = { reached: wave >= 5, wave, pathOk };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Cascade buildPath wires the static path', drove.pathOk, JSON.stringify(drove));
+    check('a Cascade run drives clean to wave 5+', drove.reached, JSON.stringify(drove));
+
+    // Records: a finished quick run logs a per-map best under cd_best_cascade_<diff>,
+    // and the map validates on save/resume (loadRun accepts MAPS[mapKey]).
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_cascade_hard');
+      gameMode = 'quick'; mapKey = 'cascade'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_cascade_hard') || 0);
+
+      // save/resume round-trip on the static map
+      gameMode = 'quick'; mapKey = 'cascade'; diffKey = 'normal';
+      beginGame(); wave = 3;
+      saveRun();
+      const loaded = loadRun();
+      const restored = loaded === true && mapKey === 'cascade';
+
+      ['cd_best_cascade_hard', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { mapBest, restored };
+    });
+    check('Cascade records a per-map best (hard = 9)', rec.mapBest === 9, JSON.stringify(rec));
+    check('Cascade save/resume round-trips', rec.restored, JSON.stringify(rec));
+
+    check('no console errors during Cascade map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

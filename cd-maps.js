@@ -13,6 +13,9 @@ const MAPS = {
   gauntlet: { name:'Gauntlet', desc:'Dense central kill-box', pts: [
     [-30,300],[120,300],[120,110],[300,110],[300,420],[480,420],[480,110],[660,110],[660,420],[820,420],[820,240],[930,240]
   ]},
+  cascade: { name:'Cascade', desc:'Frozen stepped descent', pts: [
+    [-30,70],[150,70],[150,180],[330,180],[330,290],[510,290],[510,400],[690,400],[690,180],[820,180],[820,470],[930,470]
+  ]},
   mayhem: { name:'🌀 Mayhem', desc:'Path shifts every 5 waves · chaos modifiers', pts: null },
 };
 let mapKey = 'classic';
@@ -267,7 +270,7 @@ const THEMES = {
   crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
 };
 // Fixed identity per named quick-map; campaign draws from the tame set below.
-const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson' };
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice' };
 const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson'];
 let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
 function pickMapTheme() {

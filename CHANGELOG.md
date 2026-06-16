@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.87.0 — 2026-06-16 — ❄ Cascade — new 5th quick-play map (frozen stepped descent, Ice theme)
+
+**Type:** Content (new map). Minor bump.
+
+**What & why:** Added **Cascade**, the 5th quick-play map (first new map since the Gauntlet, v1.54.0). It's a **frozen stepped descent**: the path marches down-and-across in a staircase, then a tall climb and a final plunge to the exit — a flow no other map has. Where Serpent/Gauntlet double back through a single kill-box, Cascade keeps enemies making **forward progress** (more of a DPS race), and every step's **inside corner** is a tidy pocket where one tower covers two path segments at once — splash towers and the new Railgun line-beam feast on the bunched-up steps. Path length ≈1,800px (between Serpent and Gauntlet). It carries the **Ice** palette (`MAP_THEME.cascade = 'ice'`) as its fixed identity — the last of the six static themes that wasn't yet a map's signature look; `ice` was already in `THEMES` + `CAMPAIGN_THEMES`, so no new palette.
+
+**Additive & save-safe:** the whole change is one `MAPS.cascade` entry (inserted **before** `mayhem` so mayhem stays the last key, per the architecture rule) + one `MAP_THEME` line. Everything else auto-generates from `Object.keys(MAPS)`: the start-screen MAP selector, the Records best-wave / best-score grids, the additive `cd_best_cascade_<diff>` / `cd_bestscore_cascade_<diff>` keys (read `||0`), and `loadRun`'s `MAPS[mapKey]` validation. No economy/balance/schema impact; old saves load unchanged.
+
+**Tests:** new group `[95]` (map exists/named, axis-aligned in-bounds path entering off-left/exiting off-right, sits before Mayhem, Ice theme identity + palette resolve, appears in the selector, a real run drives clean to wave 5+, per-map best record + save/resume round-trip, zero console errors). Full suite green.
+
 ## v1.86.0 — 2026-06-15 — 🔋 Capacitor — new rare run perk (all abilities recharge 25% faster)
 
 **Type:** Content (new run perk). Minor bump.
