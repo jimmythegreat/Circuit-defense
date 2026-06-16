@@ -21,6 +21,16 @@ const TALENTS = {
   momentum:   { sect:'CORE', name:'Momentum',    icon:'🚀', max:6,  cost: r => 8 + r*6,    desc: r => `wave-clear bonus +${10*r}%` },
   critlab:    { sect:'CORE', name:'Crit Lab',    icon:'🔬', max:5,  cost: r => 11 + r*10,  desc: r => `+${2*r}% crit chance (×2.5)` },
   piercing:   { sect:'CORE', name:'Piercing',    icon:'🗡️', max:5,  cost: r => 9 + r*7,    desc: r => `towers ignore ${2*r} armor` },
+  // Farsight (v1.92.0): the CORE tree's first GLOBAL tower-range talent. The masteries give a tiny
+  // per-type +2%/rank range and Targeting Array is a run-only rare perk, but nothing in the META tree
+  // raised range — so coverage was a damage-only progression axis. Range is the gentlest power lever
+  // (it helps you HIT, not hit harder), and a meta range option directly counters the coverage-pressure
+  // content (breachers' 2-life leaks, jammers disabling towers, cloak/fog) — a meaningful, "too easy"-safe
+  // meta choice, not raw DPS creep. Applies to FIRING range only (effRange), never booster auras
+  // (effBuffRange), the same boundary Targeting Array/Glass Cannon respect, so it can't feed the
+  // documented booster-coverage snowball. +2%/rank → +10% at rank 5. Save-safe (loadMeta auto-migrates
+  // a new talent key to 0 for old saves via the Object.keys(TALENTS) loop).
+  farsight:   { sect:'CORE', name:'Farsight',    icon:'🔭', max:5,  cost: r => 9 + r*7,    desc: r => `+${2*r}% tower range` },
   overdrive:  { sect:'CORE', name:'Overdrive',   icon:'🌟', max:2,  cost: r => 120 + r*180, desc: r => `tower max level +${r}` },
   // — tower mastery: upgrade your towers permanently — (cheapest big-damage talents pre-v1.38.0;
   //   doubled in cost so stacking +30% dmg across eight tower types is a real grind, not a freebie)
@@ -59,6 +69,7 @@ function tRank(k) { return meta.talents[k] || 0; }
 function metaDmgMult() { return 1 + 0.03 * tRank('firepower'); }
 function metaCostMult() { return 1 - 0.03 * tRank('engineering'); }
 function metaCdMult() { return 1 - 0.06 * tRank('surge'); }
+function metaRangeMult() { return 1 + 0.02 * tRank('farsight'); }
 function sellRatio() { return Math.min(0.95, 0.6 + 0.05 * tRank('salvage') + (perkState ? perkState.sellBonus : 0)); }
 
 function openTalents() { renderTalents(); document.getElementById('talentPanel').style.display = 'flex'; focusPanel('talentPanel'); }

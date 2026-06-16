@@ -154,6 +154,11 @@ _None currently known._ (Add any here as they're found — these are top priorit
       panel now shows `effRange(t)` (was base `t.range`), so Targeting Array / Glass Cannon / Fog all
       visibly move the number. Save-safe (`rangeMult` in `perkState`, default 1). Test [89].
       **Follow-up (optional):** a *legendary* tier "+40% range, +tower sight" or a per-tower range talent.
+      **Meta range talent done — v1.92.0:** 🔭 **Farsight** (CORE talent, max 5, +2%/rank → +10% global
+      firing range via `metaRangeMult()`, wired in `effRange` only). Gave the meta tree its first range axis
+      (it was damage/economy/lives/cooldown only) — the gentlest power lever and a permanent counter to the
+      coverage-pressure content. Save-safe (auto-migrates to rank 0). Test [100]. (A *legendary* +40% range
+      perk remains the open optional follow-up.)
 - [x] **New run perk: Ambush (high-HP opener bonus)** — shipped **v1.85.0**. 🏹 **Ambush** (rare,
       `ambush`): +30% damage to enemies still above 80% HP — the **opener counterpart** to the 💀 Reaper
       legendary (execute below 12% HP), so the two form an "open big, then finish" bookend. First perk keyed

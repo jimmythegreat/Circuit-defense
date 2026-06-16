@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.92.0 — 2026-06-16 — 🔭 Farsight — new meta talent (+2%/rank global tower range)
+
+**Type:** Content / progression (new meta talent). Minor bump. Talents 22 → 23.
+
+**What:** Added **🔭 Farsight** to the CORE talent tree (`max 5`, cost `9 + 7·r` → 150 chips to max — the same curve as Piercing). Each rank gives **+2% firing range to all towers**, capped at **+10%** at rank 5. Wired via a new `metaRangeMult()` (`1 + 0.02·rank`, in `cd-defs.js` beside `metaDmgMult`/`metaCostMult`/`metaCdMult`) multiplied into `effRange()` (`cd-game.js`).
+
+**Why:** The meta tree had no range axis — every other talent pushes damage (Firepower/Crit Lab/Masteries), economy (Scholar/Engineering/Banking/Fortune/Salvage), lives (Fortitude), or cooldowns (Surge); range was a damage-only progression dead end (the per-type Masteries give a tiny +2%/rank and Targeting Array is a *run-only* rare perk). Range is the gentlest power lever (it helps you *hit*, not hit harder), so it's a "too easy"-safe meta choice rather than raw DPS creep, and it directly counters the recent coverage-pressure content (Breacher double-leaks, Jammer tower-disables, cloak/fog). Applies to **firing range only** (`effRange`), never booster auras (`effBuffRange`) — the same boundary Targeting Array/Glass Cannon respect, so it can't feed the documented booster-coverage snowball.
+
+**Balance:** +10% max range is well inside the ≤25%/number/run guardrail; it's a persistent meta talent gated behind a real chip grind. `upgradeKey()` already hashes `effRange`, so the upgrade panel live-updates.
+
+**Save-safe:** purely additive — `loadMeta()`'s `Object.keys(TALENTS)` migration loop defaults the new `farsight` key to 0 for any old `cd_meta`, and `resetTalents()` refunds it generically. No new localStorage key, no economy/save-schema impact.
+
+**Tests:** new group **[100]** — talent exists in CORE (max 5); rank 0 → `metaRangeMult 1` (no effect), rank 5 → +10% firing range; booster aura range untouched; `loadMeta` migrates a pre-Farsight save (key defaults 0); zero console errors. Full suite green.
+
+**Note:** the talent code (the `farsight` definition + `metaRangeMult()` + the `effRange` wiring) was present uncommitted in the working tree at the start of this run (an interrupted prior run); this run verified it, added the missing test [100], and completed all version/doc bookkeeping.
+
 ## v1.91.0 — 2026-06-16 — ⚡ Jammer — new enemy that knocks your towers offline
 
 **Type:** Content (new enemy kind). Minor bump. Enemy kinds 11 → 12.

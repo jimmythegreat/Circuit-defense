@@ -621,9 +621,10 @@ function effRate(t) {
 }
 function effRange(t) {
   // Glass Cannon legendary (v1.32.0): −30% combat range (the cost of the +50% damage in effDmg).
-  // Targeting Array rare perk (v1.81.0): ×rangeMult (+20% per pick). Both apply to firing range
-  // only, not booster auras (effBuffRange) — buff towers deal no damage.
-  return t.range * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult;
+  // Targeting Array rare perk (v1.81.0): ×rangeMult (+20% per pick). Farsight talent (v1.92.0):
+  // ×metaRangeMult (+2%/rank, meta tree). All apply to firing range only, not booster auras
+  // (effBuffRange) — buff towers deal no damage.
+  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult;
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');

@@ -6738,6 +6738,57 @@ async function main() {
     await page.close();
   }
 
+  // [100] Farsight meta talent — global +2%/rank firing range, booster aura untouched (v1.92.0)
+  console.log('\n[100] Farsight range talent');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // talent exists in the CORE tree, max 5
+      const def = TALENTS.farsight;
+      const inTree = !!def && def.sect === 'CORE' && def.max === 5;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // rank 0 -> metaRangeMult is 1 (no effect); rank 5 -> +10% firing range
+      meta.talents = {}; // zero everything (incl. mastery_gun) so only farsight moves the number
+      perkState.rangeMult = 1;
+      const rBase = effRange(gun);
+      const mult0 = metaRangeMult();
+      meta.talents.farsight = 5;
+      const rMax = effRange(gun);
+      const mult5 = metaRangeMult();
+
+      // booster aura range (effBuffRange) is NOT affected by the talent
+      const booster = { type:'buff', x:400, y:300, level:1, spec:null, range:45, buffPower:0.25 };
+      towers.push(booster);
+      const buffRange = effBuffRange(booster);
+      const buffExpected = booster.range; // mastery_buff rank 0 => ×1, farsight must not apply
+
+      // loadMeta auto-migrates the new key to 0 for an old save that predates it
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 42, talents: { firepower: 2 } }));
+      loadMeta();
+      const migratedOk = meta.talents.farsight === 0 && meta.talents.firepower === 2 && meta.chips === 42;
+
+      // cleanup
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+      loadMeta();
+      localStorage.removeItem('cd_meta'); localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inTree, rBase, rMax, mult0, mult5, buffRange, buffExpected, migratedOk };
+    });
+    check('Farsight is a CORE talent (max 5)', r.inTree);
+    check('Farsight rank 0 => metaRangeMult 1 (no effect)', Math.abs(r.mult0 - 1) < 1e-9 && Math.abs(r.rMax / r.rBase - 1.10) < 1e-6, JSON.stringify(r));
+    check('Farsight rank 5 => +10% firing range', Math.abs(r.mult5 - 1.10) < 1e-9, 'mult5=' + r.mult5);
+    check('Farsight leaves booster aura range untouched', Math.abs(r.buffRange - r.buffExpected) < 1e-6, `buff=${r.buffRange}`);
+    check('loadMeta migrates a pre-Farsight save (key defaults 0)', r.migratedOk, JSON.stringify(r));
+    check('no console errors during Farsight test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
