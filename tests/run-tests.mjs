@@ -6875,6 +6875,52 @@ async function main() {
     await page.close();
   }
 
+  // [102] Start-menu hover polish — util toolbar + secondary play-row buttons lift/brighten
+  // on hover; primary PLAY button excluded; reduce-motion drops the lift (v1.94.0)
+  console.log('\n[102] Start-menu hover polish (menu-revamp slice 6)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+
+    // a util button has a transition declared (so hover changes ease, not snap)
+    const base = await page.evaluate(() => {
+      const u = document.querySelector('.startUtil .ctl');
+      const cs = getComputedStyle(u);
+      return { hasTransition: cs.transitionProperty.includes('transform'), boundingTop: u.getBoundingClientRect().top };
+    });
+    check('util button declares a transform transition', base.hasTransition, base.hasTransition);
+
+    // hovering a util button lifts it (transform becomes a non-none matrix)
+    await page.hover('.startUtil .ctl');
+    const hov = await page.evaluate(() => {
+      const u = document.querySelector('.startUtil .ctl');
+      const cs = getComputedStyle(u);
+      return { transform: cs.transform, brightnessApplied: cs.filter && cs.filter !== 'none' };
+    });
+    check('util button lifts on hover (transform applied)', hov.transform && hov.transform !== 'none', hov.transform);
+    check('util button brightens on hover (filter applied)', hov.brightnessApplied, hov.filter);
+
+    // the primary PLAY button is excluded from the lift treatment (keeps its own glow)
+    await page.hover('.startPlay .ctl.play');
+    const play = await page.evaluate(() => {
+      const p = document.querySelector('.startPlay .ctl.play');
+      // PLAY still runs its breathing glow animation, and isn't given the menu lift transform
+      return { glow: getComputedStyle(p).animationName };
+    });
+    check('PLAY button keeps its glow animation (not the menu lift)', play.glow === 'playGlow', play.glow);
+
+    // reduce-motion drops the lift (transform:none on hover) but keeps the button usable
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.hover('.startUtil .ctl');
+    const rm = await page.evaluate(() => {
+      const u = document.querySelector('.startUtil .ctl');
+      return { transform: getComputedStyle(u).transform };
+    });
+    check('reduce-motion drops the hover lift (transform:none)', rm.transform === 'none', rm.transform);
+    check('no console errors during hover-polish test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

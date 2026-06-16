@@ -257,6 +257,29 @@
   .startUtil { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 780px; }
   .startUtil .ctl { font-size: 13px; padding: 7px 14px; font-weight: 600; opacity: .9; }
   .startUtil .ctl:hover { opacity: 1; }
+  /* Polished hover affordance on the menu's utility toolbar + the secondary play-row
+     buttons (v1.94.0, owner FEEDBACK "the main interface is getting clunky", menu-revamp
+     slice 6). Previously these only faded opacity .9→1 (util) or did nothing (Resume/
+     Daily) on hover, which read flat. They now lift, brighten and cast a soft shadow on a
+     smooth transition for a more responsive, less "clunky" feel. The primary ▶ PLAY button
+     is excluded (:not(.play)) so its animated playGlow box-shadow isn't overridden.
+     Cosmetic only; the lift is gated off under prefers-reduced-motion (below). */
+  .startUtil .ctl, .startPlay .ctl:not(.play) {
+    transition: transform .14s ease, box-shadow .14s ease, filter .14s ease, opacity .14s ease;
+  }
+  .startUtil .ctl:hover, .startPlay .ctl:not(.play):hover {
+    transform: translateY(-2px); filter: brightness(1.12);
+    box-shadow: 0 5px 16px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+  .startUtil .ctl:active, .startPlay .ctl:not(.play):active {
+    transform: translateY(0); filter: brightness(1.05);
+  }
+  /* v1.94.0: under reduce-motion keep the brighten/shadow but drop the hover/active LIFT.
+     Placed AFTER the hover rules above so this equal-specificity override wins on source order. */
+  @media (prefers-reduced-motion: reduce) {
+    .startUtil .ctl:hover, .startPlay .ctl:not(.play):hover,
+    .startUtil .ctl:active, .startPlay .ctl:not(.play):active { transform: none; }
+  }
   .lvlBtn {
     width: 56px; padding: 7px 0; background: #161b22; border: 2px solid #30363d;
     border-radius: 8px; color: #e6edf3; cursor: pointer; font-size: 13px; font-weight: bold;

@@ -465,9 +465,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       panel instead of a flat dark sheet (pairs with the v1.41.0 PLAY glow/sheen). 22s drift, reduce-motion
       freezes it (gradient stays). CSS-only, start-screen-specific (no bleed onto #overlay/panels), save-safe,
       no economy/gameplay impact. Test [79].
+      **Sixth slice shipped v1.94.0:** richer hover states on the utility toolbar + secondary play-row
+      buttons (Talents/Achievements/Records/What's New/Settings/Reset + Resume/Daily). They previously
+      only faded opacity `.9→1` (util) or did nothing (Resume/Daily) on hover; now they lift 2px,
+      brighten, and cast a soft shadow on a smooth `.14s` transition (press back down on `:active`). The
+      primary ▶ PLAY button is excluded (`:not(.play)`) so its animated `playGlow` box-shadow is untouched.
+      Reduce-motion drops the lift (keeps brighten/shadow), with the override placed AFTER the hover rules
+      so equal-specificity source order wins. CSS-only, save-safe, no layout/economy/gameplay impact. Test [102].
       **Remaining (the broader "revamp"):** the utility toolbar could move to a left rail / panel
-      layout; consider per-block visual polish (icons, richer hover states on the util buttons). FEEDBACK
-      item stays PENDING (as-written, per owner pref) until the fuller revamp lands.
+      layout; consider per-block icons / accent-matched glows. FEEDBACK item stays PENDING (as-written,
+      per owner pref) until the fuller revamp lands.
 - [x] **Grid placement** — shipped **v1.24.0** (owner FEEDBACK, commit `3664000`: "the spaces to
       place the turrets were more of a grid so you could line them up cleaner"). Tower placement snaps
       to the centre of a `PLACE_GRID` (32px) cell — `gridSnap` global + `snapGridCoord()`/`placeCoord()`

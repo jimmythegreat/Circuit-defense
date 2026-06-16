@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.94.0 — 2026-06-16 — ✨ Start-menu hover polish — responsive utility & secondary buttons
+
+**Type:** UX polish (CSS-only). Minor bump. Latest slice of the ongoing "start-menu revamp" FEEDBACK item (after v1.39.1 hierarchy, v1.41.0 PLAY sheen, v1.42.0 config card, v1.45.0 hero header, v1.69.0 ambient backdrop).
+
+**What:** Gave the start-menu **utility toolbar** (Talents / Achievements / Records / What's New / Settings / Reset) and the **secondary play-row** buttons (Resume Run / Daily Challenge) a proper hover affordance. They previously only faded opacity `.9→1` (util) or did nothing at all (Resume/Daily) on hover, which read flat/clunky. Now on hover they **lift 2px, brighten (`filter: brightness(1.12)`), and cast a soft drop-shadow** on a smooth `.14s` transition, and press back down (`translateY(0)`) on `:active`.
+- New rules in `tower-defense.css` right after the `.startUtil` block: a shared `transition` + `:hover`/`:active` treatment scoped to `.startUtil .ctl, .startPlay .ctl:not(.play)`.
+- The primary **▶ PLAY** button is excluded via `:not(.play)` so its animated `playGlow` box-shadow is never overridden.
+
+**Why:** Owner FEEDBACK (`[low priority]`, still PENDING as-written): "the main interface is getting clunky … revamp the whole starting menu." The button sizing was fixed long ago; the remaining gap (per ROADMAP) was "richer hover states on the util buttons." Flat, unresponsive hover is a big part of the "clunky" read.
+
+**Reduced-motion:** the existing `@media (prefers-reduced-motion: reduce)` block now also sets `transform: none` on the hover/active states, so the **lift** is dropped while the brighten/shadow stay (matches the project's reduce-motion care, like the v1.41.0 PLAY sheen).
+
+**Save-safe / scope:** pure CSS, no markup/JS change → no layout, gameplay, balance, economy, or save impact; `.startUtil` remains `#startScreen`'s last child (test [58]/[60] invariant) and the mobile `!important` sizing rules are untouched.
+
+**Tests:** new group **[102]** (hover lift via real Playwright `.hover()` + computed-style read on a util button; PLAY button excluded from the lift; reduce-motion drops the transform; transition present; no console errors). Full suite green. `sw.js` `CACHE` bumped to `circuit-defense-v1.94.0`.
+
 ## v1.93.0 — 2026-06-16 — 🛡️ Barrier — new 5th active ability (vaporize leaking enemies, no lives lost)
 
 **Type:** Content (new active ability). Minor bump. Abilities 4 → 5.
