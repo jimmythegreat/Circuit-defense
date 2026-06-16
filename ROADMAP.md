@@ -592,6 +592,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       the w55+ Juggernaut boss + the Mayhem-only Heatwave mod — to a normal enemy in Classic/Campaign,
       directly checking the documented Frost/booster snowball (a freeze-everything build leaks Moltens
       without real DPS). Bounded (no HP spike, normal speed → can't make a run easier). Test [86].
+      **v1.90.0 added the ⬢ Bastion enemy (w14+, ALL modes)** — a heavy "blast-shell" on a brand-new
+      **damage-source-resistance** axis: it takes **50% less** damage from the two explosive splash towers
+      (Cannon bomb + Mortar shell), so the dominant AoE-clear build chips it slowly and is pushed to bring
+      single-target DPS (Gun/Sniper/Railgun deal full). Resist not immunity (×0.5), moderate HP (×1.6) → bounded,
+      can't make a run easier. Implemented at the two splash loops in `hitEnemy()` (no `damage()` change); Tesla
+      chain + Overkill detonation are full-damage by construction. The first enemy that resists a *damage source*
+      (vs HP/speed/CC/leak-cost axes). Run-only/save-safe. Test [98]. **Follow-up (optional):** a tower spec or
+      perk that *adds* explosion penetration vs blast-shells, or a Mayhem "bastion surge" wave-mod cousin.
       **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
       (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
       hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is

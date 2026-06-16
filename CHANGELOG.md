@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.90.0 — 2026-06-16 — ⬢ Bastion — new enemy that resists explosive splash
+
+**Type:** Content (new enemy kind). Minor bump. Enemy kinds 10 → 11.
+
+**What & why.** Added the **⬢ Bastion**, a heavy "blast-shell" enemy that appears from **wave 14 in every mode** (Classic, Campaign, Mayhem) — the first new enemy kind since the Molten (v1.77.0). It takes **50% less damage from the two explosive splash towers** (the Cannon's bomb and the Mortar's shell). This targets the long-standing **"too easy"** feedback on a **fresh axis**: splash/AoE bombardment is the dominant clear-everything build and nothing pushed back on it. The Bastion does — a pure Cannon/Mortar wall chips these down slowly, so they reward bringing **single-target DPS** (Gun/Sniper/Railgun all deal it **full** damage). A meaningful build decision, not a raw HP spike.
+
+**Bounded / "too easy"-safe.** It's **resistance, not immunity** (×0.5), with only moderate HP (`×1.6`) and a slightly heavy gait (`×0.9`), so any direct-fire line stops it cleanly — it can never make a run *easier*. **Tesla's chain lightning and the Overkill perk's true-damage detonation cut through it normally** — it's specifically the *explosive* towers it armors against.
+
+**Implementation (confined diff, no `damage()` signature change).**
+- `buildWave` (cd-game.js): appended `if (w >= 14 && i % 14 === 13) e = { kind:'bastion', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*2.2), color:'#7a86c8', armor:0, gap:0.85, aoeResist:true }` — the final regular-kind override on a slot collision. `waveComposition` + `KIND_HP_MULT` (=1.6) mirror it (drift-guarded by test `[40]`).
+- The **resist lives at the two splash loops in `hitEnemy()`** (cd-update.js): each multiplies `p.dmg` by `(e.aoeResist ? 0.5 : 1)` before `damage()`. `damage()` itself is untouched, so the direct-fire path (`else`/`bullet`), Tesla chain (`fireChain`), and Overkill detonation are all full-damage by construction.
+- Render (cd-render.js): slate sphere `#7a86c8`, always-shown `⬢` glyph (`enemyGlyph`/`GLYPH_FONT`/`PREVIEW_COLOR`), a slate cue ring keyed on `e.aoeResist`, plus the colorblind symbol-legend entry.
+
+**Save-safe.** Enemies are never serialized, and `aoeResist` is a run-only flag, so old saves load unchanged; no new localStorage key, no economy/balance change to any existing number.
+
+**Tests.** New group `[98]`: wave gating (none < w14, present from w14), `aoeResist` tag, HP ×1.6, **Cannon bomb + Mortar shell each deal a Bastion half what a norm takes** (and a **direct single-target hit deals it full**), preview plumbing (composition/glyph/colour/HP-mult/threat-in-sync), and a wave-14+ god-tower integration run clearing to w16. Full suite green (see test evidence below).
+
 ## v1.89.1 — 2026-06-16 — 🩺 Health check — all green (1045/0, docs coherent, no drift)
 
 **Type:** Health check (maintenance, no new feature). Patch bump. This is the periodic 6th-run check (5 feature entries since the v1.84.1 health check: v1.85.0–v1.89.0).

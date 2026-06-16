@@ -6565,6 +6565,93 @@ async function main() {
     await page.close();
   }
 
+  // [98] Bastion enemy — blast-shell that resists explosive splash from wave 14+ (v1.90.0)
+  console.log('\n[98] Bastion enemy (splash-resistant)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w14, present from w14; tagged aoeResist; HP ≈ template×1.6
+      const w13 = buildWave(13).some(e => e.kind === 'bastion');
+      const w14list = buildWave(14).filter(e => e.kind === 'bastion');
+      const w14 = w14list.length;
+      const allResist = w14list.every(e => e.aoeResist === true);
+      const t14 = enemyTemplate(14);
+      const hpOk = w14list[0] ? Math.abs(w14list[0].maxHp - t14.hp * 1.6) < 0.01 : false;
+
+      // (b) splash resistance: a Bastion takes HALF the Cannon/Mortar splash damage of a norm
+      // control at the same point, but a direct (single-target) hit deals it FULL damage.
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const pt = pointAt(pathLen * 0.4);
+      const mk = (kind, extra = {}) => ({ kind, hp:1000, maxHp:1000, spd:1, r:12, bounty:1,
+        color:'#fff', armor:0, gap:0, dist:pathLen*0.4, x:pt.x, y:pt.y, slow:0, slowF:0.6,
+        frozen:0, poison:null, flash:0, px:0, py:0, ...extra });
+
+      // Cannon bomb splash over a bastion + a norm sitting on the same tile.
+      const bBomb = mk('bastion', { aoeResist:true }), nBomb = mk('norm');
+      enemies.push(bBomb, nBomb);
+      hitEnemy({ kind:'bomb', target:{ x:pt.x, y:pt.y }, dmg:100, src:null, ignoreArmor:false });
+      const bombBastionLoss = 1000 - bBomb.hp, bombNormLoss = 1000 - nBomb.hp;
+      const bombHalved = Math.abs(bombBastionLoss - 50) < 0.01 && Math.abs(bombNormLoss - 100) < 0.01;
+
+      // Mortar shell splash — same expectation.
+      enemies.length = 0;
+      const bMort = mk('bastion', { aoeResist:true }), nMort = mk('norm');
+      enemies.push(bMort, nMort);
+      hitEnemy({ kind:'mortar', target:{ x:pt.x, y:pt.y }, dmg:100, color:'#fff', src:null, ignoreArmor:true });
+      const mortHalved = Math.abs((1000 - bMort.hp) - 50) < 0.01 && Math.abs((1000 - nMort.hp) - 100) < 0.01;
+
+      // Direct single-target hit (not splash) deals a Bastion FULL damage.
+      enemies.length = 0;
+      const bDirect = mk('bastion', { aoeResist:true });
+      enemies.push(bDirect);
+      hitEnemy({ kind:'bullet', target:bDirect, dmg:100, color:'#fff', src:null, ignoreArmor:false });
+      const directFull = Math.abs((1000 - bDirect.hp) - 100) < 0.01;
+      enemies.length = 0;
+
+      // (c) preview/render plumbing: composition + glyph + colour + HP mult all know it,
+      // and the threat number stays in sync with the real buildWave() total at w14.
+      const compHasBastion = waveComposition(14).some(c => c.kind === 'bastion');
+      const glyph = enemyGlyph({ kind:'bastion', frozen:0 });
+      const frozenGlyph = enemyGlyph({ kind:'bastion', frozen:1 });   // frozen overrides to ❄
+      const hasColor = !!PREVIEW_COLOR.bastion;
+      const hpMult = KIND_HP_MULT.bastion;
+      const threatOk = Math.abs(waveThreat(14) - buildWave(14).reduce((s,e)=>s+e.maxHp,0)) < 0.01;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (d) integration: a real wave-14+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 16 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w13, w14, allResist, hpOk, bombHalved, mortHalved, directFull, compHasBastion,
+               glyph, frozenGlyph, hasColor, hpMult, threatOk, run };
+    });
+    check('no bastions before wave 14', r.w13 === false);
+    check('bastions spawn from wave 14', r.w14 >= 1, 'count=' + r.w14);
+    check('every bastion is tagged aoeResist', r.allResist);
+    check('bastion HP is template×1.6', r.hpOk);
+    check('Cannon bomb splash deals a bastion half (norm full)', r.bombHalved);
+    check('Mortar shell splash deals a bastion half (norm full)', r.mortHalved);
+    check('a direct single-target hit deals a bastion full damage', r.directFull);
+    check('waveComposition includes bastion at wave 14', r.compHasBastion);
+    check('enemyGlyph returns ⬢ for bastion', r.glyph === '⬢', 'glyph=' + r.glyph);
+    check('a frozen bastion still shows the ❄ glyph (cosmetic)', r.frozenGlyph === '❄');
+    check('PREVIEW_COLOR has a bastion colour', r.hasColor);
+    check('KIND_HP_MULT.bastion is 1.6 (matches buildWave)', r.hpMult === 1.6, 'mult=' + r.hpMult);
+    check('waveThreat stays in sync with buildWave at w14 (bastion counted)', r.threatOk);
+    check('wave-14+ run with bastions reaches w>=16 alive', r.run.wave >= 16 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during bastion tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

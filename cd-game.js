@@ -196,6 +196,21 @@ function buildWave(w) {
     // just demands real DPS instead of perma-slow. Run-only (enemies are never persisted). As
     // the LAST regular-kind if it wins its slot on a collision.
     if (w >= 12 && i % 13 === 6) e = { kind:'molten', hp:t.hp*1.35, spd:t.speed, r:12, bounty:Math.ceil(t.bounty*1.6), color:'#e8482e', armor:0, gap:0.75, ccImmune:true };
+    // Bastion (v1.90.0): a heavy blast-SHELL enemy from wave 14+ in ALL modes. It sets
+    // aoeResist:true, which makes the two explosive splash towers — the Cannon's bomb and
+    // the Mortar's shell — deal it only HALF damage (the resist is applied at those two
+    // splash loops in hitEnemy(), NOT in damage(), so no other damage path changes). A
+    // fresh difficulty axis aimed straight at the documented dominant strategy: splash/AoE
+    // clears everything (Cannon+Mortar), which is a big part of the recurring "too easy"
+    // feedback. The Bastion shrugs off explosions, so a pure-bombardment build chunks it
+    // slowly — it rewards bringing real SINGLE-TARGET DPS (Gun/Sniper/Railgun deal full
+    // damage), a meaningful build choice rather than a raw HP spike. Bounded: it's resist,
+    // not immunity (50%), with moderate HP (×1.6) and a slightly heavy gait (×0.9), so any
+    // direct-fire line stops it — it can't make a run easier. Tesla chain and the Overkill
+    // perk's true-damage detonation are deliberately NOT resisted (it's "explosion"-coded:
+    // the two dedicated explosive towers). Run-only (enemies are never persisted) — no save
+    // migration. Appended last, so it's the final regular-kind override on a slot collision.
+    if (w >= 14 && i % 14 === 13) e = { kind:'bastion', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*2.2), color:'#7a86c8', armor:0, gap:0.85, aoeResist:true };
     // Warden Surge (Mayhem): convert a fraction of would-be basic enemies into warden
     // escorts so the wave is densely shielded — pressures TARGET PRIORITY (pop the
     // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
@@ -285,10 +300,11 @@ function waveComposition(w) {
     if (w >= 13 && i % 6  === 5) k = 'phantom';
     if (w >= 15 && i % 11 === 10) k = 'warden';
     if (w >= 17 && i % 12 === 11) k = 'breacher';
-    if (w >= 12 && i % 13 === 6) k = 'molten';   // LAST, mirrors buildWave (molten wins its slot)
+    if (w >= 12 && i % 13 === 6) k = 'molten';
+    if (w >= 14 && i % 14 === 13) k = 'bastion';  // LAST, mirrors buildWave (final override)
     tally[k] = (tally[k] || 0) + 1;
   }
-  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher','molten'];
+  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher','molten','bastion'];
   const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;
@@ -300,7 +316,7 @@ function waveComposition(w) {
 // difficulty and campaign level automatically. The per-kind HP multipliers + the boss multiplier
 // MIRROR buildWave() — KEEP IN SYNC if those change. Like waveComposition, this is the pre-mod
 // base (Mayhem wave-mods like swarm/titans aren't rolled yet), so it's a planning estimate.
-const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0, molten:1.35 };
+const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0, molten:1.35, bastion:1.6 };
 function waveThreat(w) {
   const t = enemyTemplate(w);
   let total = 0;

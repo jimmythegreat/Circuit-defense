@@ -16,6 +16,7 @@ function enemyGlyph(e) {
     case 'warden': return '◈';
     case 'breacher': return '‼';
     case 'molten': return '🔥';
+    case 'bastion': return '⬢';
     case 'fast': return colorblindAid ? '»' : '';
     case 'tank': return colorblindAid ? '◆' : '';
     default: return '';
@@ -25,14 +26,14 @@ function enemyGlyph(e) {
 // KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
 const PREVIEW_COLOR = {
   norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
-  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', molten:'#e8482e', boss:'#f85149',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', molten:'#e8482e', bastion:'#7a86c8', boss:'#f85149',
 };
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
   '❄': '10px sans-serif', '☠': 'bold 16px sans-serif', '+': 'bold 12px sans-serif',
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
-  '‼': 'bold 12px sans-serif', '🔥': '10px sans-serif',
+  '‼': 'bold 12px sans-serif', '🔥': '10px sans-serif', '⬢': 'bold 13px sans-serif',
 };
 // Lobbed-shell arc (v1.79.0): a Mortar shell rises then falls along a parabola for
 // real artillery feel, instead of homing flat like the Cannon's bomb. RENDER-ONLY —
@@ -500,6 +501,16 @@ function draw() {
       ctx.setLineDash([3, 3]);
       ctx.stroke();
       ctx.restore();
+    }
+    // Bastion cue (v1.90.0): a slate hex ring marks the blast-shell enemy that takes half
+    // damage from Cannon/Mortar splash — so the player can read why their explosions barely
+    // dent it and switch to single-target fire.
+    if (e.aoeResist && !e.dead) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(122,134,200,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
     // breacher cue (v1.63.0): a dark-red outer ring flags the heavy unit that costs 2 lives
     // if it leaks, so it reads as a priority threat in a crowd (the colour/glyph also code it).

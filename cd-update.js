@@ -533,7 +533,9 @@ function hitEnemy(p) {
     addExplosion(p.target.x, p.target.y, '#ffd866', 14, 140);
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
-      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg, p.src, false, p.ignoreArmor);
+      // Bastion (v1.90.0) resists explosive splash: the blast-shell takes half damage from
+      // the Cannon bomb (and the Mortar shell below) so a pure-bombardment build can't melt it.
+      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist ? 0.5 : 1), p.src, false, p.ignoreArmor);
     }
   } else if (p.kind === 'mortar') {
     // Lobbed siege shell: an armor-ignoring blast (p.ignoreArmor is forced true at
@@ -546,7 +548,8 @@ function hitEnemy(p) {
     addExplosion(p.target.x, p.target.y, '#ffd866', 8, 90);
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
-      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg, p.src, false, true);
+      // Bastion (v1.90.0) resists explosive splash: half damage from the Mortar shell too.
+      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist ? 0.5 : 1), p.src, false, true);
     }
   } else if (p.kind === 'poison') {
     let dur = perkState.poisonDur;
@@ -911,7 +914,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ⬢ bastion · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }
