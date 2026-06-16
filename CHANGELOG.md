@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.95.0 — 2026-06-16 — 🩺 Health check — all green (1101/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass; 6 normal runs since v1.89.1: v1.90.0–v1.94.0). Patch bump. No new feature.
+
+**What ran:**
+- **Refactor audit** — all seven game source files comfortably under the ~1,500-line cap (largest: `cd-update.js` 1,247). No dead code, no `console.log`/debug logging, no real TODO/FIXME markers. The dev-only test harness `tests/run-tests.mjs` is now **6,937 lines / 102 groups / 1,101 assertions** — still the largest file in the repo and still flagged for a per-group split (ROADMAP, low priority).
+- **Docs coherence** — `GAME_VERSION`, the CHANGELOG top entry, and the `sw.js` offline cache const all read **v1.95.0** (bumped this run; test [49] pins cache === GAME_VERSION). Every headline count in CLAUDE.md matches the code: **9 towers, 5 abilities, 23 talents, 17 achievements, 18 Mayhem wave modifiers, 11 boss archetypes, 6 targeting modes, 12 enemy kinds (+ boss)**, plus the boss HP slope (×0.6/wave), boss armor slope (×0.5/wave) and the enemy-HP curve. Fixed the one piece of doc rot found: the ROADMAP "Split the test harness file" note still cited ~6,581 lines / 97 groups / 1045 assertions, and the table-stakes re-audit version list was missing this run.
+- **Table-stakes audit** — checklist remains **complete** (favicon/meta/OG, PWA install + offline SW, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI, responsive/mobile, ≥44px tap targets). No new gaps.
+- **Integrity spot-checks** — full suite **1101/0, exit 0**, zero console errors (verified by subagent). Double-click `file://` playability intact: seven classic `<script src>` tags in dependency order, no `type="module"`, inline SVG favicon, all relative paths, no build step. Old-format save migration confirmed: `loadRun()` fills `abilityCd` (incl. the new `barrier`/`shock`) and the whole `perkState` from additive `Object.assign` defaults, so a minimal pre-update `cd_save`/`cd_meta` loads cleanly.
+
+**Why:** routine maintenance — keep the docs honest, the files lean, and the basics solid. **No gameplay, balance, economy, save-schema, or behaviour change** (only the version/cache strings + this changelog moved).
+
 ## v1.94.0 — 2026-06-16 — ✨ Start-menu hover polish — responsive utility & secondary buttons
 
 **Type:** UX polish (CSS-only). Minor bump. Latest slice of the ongoing "start-menu revamp" FEEDBACK item (after v1.39.1 hierarchy, v1.41.0 PLAY sheen, v1.42.0 config card, v1.45.0 hero header, v1.69.0 ambient backdrop).
