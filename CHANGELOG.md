@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.84.0 — 2026-06-15 — 🎯 Sharpshooter — new achievement (master the Railgun's piercing line)
+
+**Type:** New content (achievement). Minor bump.
+
+**What:** A 17th achievement badge — **🎯 Sharpshooter** (`railhit5` in `ACHIEVEMENTS`, cd-update.js): *Hit 5+ enemies with a single Railgun beam.* The Railgun (v1.83.0) is the only tower that fires a dead-straight line and rakes every enemy it crosses, so this badge rewards mastering its signature trick — line the shot down a long straight path run (the Gauntlet kill-box, serpentine bends) when a crowd is bunched and one shot skewers the whole column. A new run-only counter `railBestHit` (declared in cd-state.js beside the combo vars, reset in `resetState()`, **never saved**) tracks the peak single-beam rake: `fireRail()` (cd-update.js) now counts the enemies it strikes and updates `railBestHit = max(railBestHit, hits)`. `grantAchievements()` grants the badge when `railBestHit >= 5`, with **no `won` gate** (a feat, not a victory condition — earnable in any mode, win or lose, like Combo Master). It slots next to the build-style badges (Specialist/Minimalist/Full Arsenal/Combo Master). Also fixed a **stale label**: the 🧰 Full Arsenal badge desc now reads *"all 9 tower types"* (the condition has counted `TYPE_KEYS.length` = 9 since the Railgun shipped, but the visible text still said 8).
+
+**Why:** Content additions have dominated recent runs (tower/boss/perk/wave-mod); this gives players a fun skill *"aha"* moment and a reason to build and aim the newest tower well, extending the addictive completion loop the owner likes — without piling on more difficulty content. It keeps faith with the "too easy" feedback indirectly (the reward is for skillful positioning, not raw power) and ties the just-shipped Railgun into the meta. Roster: **16 → 17 badges**.
+
+**Save/economy:** Fully additive & save-safe. `railBestHit` is run-only (never persisted; the feat is momentary and can recur any time the rail fires, so no force-on-resume like Flawless/Pacifist). `meta.achievements`/`meta.stats` load unchanged; no new localStorage key; no chips/talents/gold/balance impact.
+
+**Tests:** New group **[92]** — badge defined & wired, the Full-Arsenal "9 tower types" label fix, `railBestHit` resets on a new run, `fireRail` tracks a 6-in-a-line rake, `railBestHit>=5` grants the badge on a loss, a 4-enemy beam does **not** grant it, zero console errors. Suite green.
+
+---
+
 ## v1.83.0 — 2026-06-15 — 🛤️ Railgun — new 9th tower (instant piercing line-beam)
 
 **Type:** New content (tower). Minor bump.

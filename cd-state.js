@@ -19,6 +19,10 @@ let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, 
 { const _sp = +localStorage.getItem('cd_speed'); if (_sp === 2 || _sp === 3) speed = _sp; }
 // Kill-streak combo (run-only, never saved): consecutive kills within COMBO_WINDOW seconds
 let comboCount = 0, comboTimer = 0, comboBest = 0, comboFlash = 0;
+// Sharpshooter tracking (v1.84.0): peak number of enemies struck by a single Railgun beam
+// this run. Run-only, never saved (enemies aren't persisted, and the feat is a momentary one
+// that can recur any time the rail fires — so a resumed run can still earn it; no force-on-load).
+let railBestHit = 0;
 const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
@@ -67,6 +71,7 @@ function resetState() {
   abilityUsedThisRun = false;
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
+  railBestHit = 0;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);

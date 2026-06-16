@@ -494,6 +494,7 @@ function fireRail(t, target, dmg) {
   const range = effRange(t);
   const ux = Math.cos(t.angle), uy = Math.sin(t.angle);   // unit dir toward the target
   const halfW = t.spec === 'railwide' ? 26 : 14;          // beam half-width (perp tolerance)
+  let hits = 0;                                           // enemies raked by this single beam
   for (const e of enemies) {
     if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;  // skip intangible (phantom/cloak)
     const rx = e.x - t.x, ry = e.y - t.y;
@@ -503,7 +504,10 @@ function fireRail(t, target, dmg) {
     if (perp > halfW + e.r) continue;            // too far off the line to be struck
     damage(e, dmg, t);
     addExplosion(e.x, e.y, def.color, 4, 70);
+    hits++;
   }
+  // 🎯 Sharpshooter (v1.84.0): track the best single-beam rake for the achievement.
+  if (hits > railBestHit) railBestHit = hits;
   // straight tracer from the muzzle to the far end of range (render-only)
   const mx = t.x + ux*14, my = t.y + uy*14;
   beams.push({ x1: mx, y1: my, x2: t.x + ux*range, y2: t.y + uy*range,
@@ -709,8 +713,9 @@ const ACHIEVEMENTS = [
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
-  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 8 tower types on the board' },
+  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 9 tower types on the board' },
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
+  { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -731,6 +736,7 @@ function grantAchievements(won) {
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
   if (comboBest >= 30) give('combo30');
+  if (railBestHit >= 5) give('railhit5');
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');

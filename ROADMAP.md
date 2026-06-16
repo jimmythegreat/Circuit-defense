@@ -116,7 +116,12 @@ _None currently known._ (Add any here as they're found — these are top priorit
       core (new `b.straight` branch in `draw()`'s beam loop) + `SFX.rail()` electromagnetic crack. Save-safe
       (additive; `loadRun` rebuilds generically; beam is render-only/never serialized). The 🧰 Full Arsenal
       achievement is data-driven (`TYPE_KEYS.length`) so it now needs all 9 types. Test [91].
-      **Follow-ups still open:** the **arc/chain** tower (chain-lightning that bounces — a swarm counter,
+      ✅ **Railgun mastery achievement shipped v1.84.0** — 🎯 **Sharpshooter** (`railhit5`, roster 16→17):
+      hit 5+ enemies with a single Railgun beam. A run-only `railBestHit` counter (cd-state.js, reset in
+      `resetState()`, never saved) tracks the peak single-beam rake (`fireRail()` counts hits); `grantAchievements()`
+      grants it at `>=5` with no `won` gate (earnable any mode, win/lose). Rewards mastering the new tower's
+      positioning trick; additive/save-safe. Same run fixed the stale 🧰 Full Arsenal desc (8→9 tower types).
+      Test [92]. **Follow-ups still open:** the **arc/chain** tower (chain-lightning that bounces — a swarm counter,
       distinct from Tesla's fixed chain); a Railgun spec that *charges up* (ramps dmg the longer it fires).
 - [x] **Daily challenge seed** — shipped **v1.28.0**. A 🗓 **Daily Challenge** start-screen
       button (`beginDaily()`) launches today's date-seeded run: the map path, difficulty

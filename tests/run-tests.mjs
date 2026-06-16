@@ -3027,7 +3027,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 16 badges', r.total === 16, `total=${r.total}`);
+    check('achievement roster grew to 17 badges', r.total === 17, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6105,6 +6105,58 @@ async function main() {
     check('Railgun respects armor (not a boss-melter)', r.respectsArmor);
     check('placed Railgun save/resume round-trips', r.roundTrips);
     check('no console errors during Railgun test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [92] Sharpshooter achievement — hit 5+ enemies with a single Railgun beam (v1.84.0)
+  console.log('\n[92] Sharpshooter achievement (railhit5)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // badge defined & wired
+      const badgeOk = !!ACH_BY_ID.railhit5 && /Railgun/.test(ACH_BY_ID.railhit5.desc);
+      // stale-label fix: Full Arsenal now reads "9 tower types"
+      const arsenalOk = /9 tower types/.test(ACH_BY_ID.arsenal.desc);
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      // railBestHit starts at 0 after beginGame()/resetState()
+      const startsZero = railBestHit === 0;
+
+      // line up 6 enemies along a railgun's beam → one shot rakes all 6
+      towers.length = 0; enemies.length = 0; beams.length = 0;
+      const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:40, rate:1.7, range:200,
+                   dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      towers.push(rg);
+      const mk = (x, y) => ({ x, y, r:11, hp:500, maxHp:500, armor:0, dead:false, flash:0,
+                              kind:'norm', blinkInvuln:0, bounty:1, dist:0 });
+      for (const x of [130, 160, 190, 220, 250, 280]) enemies.push(mk(x, 300));
+      fireRail(rg, enemies[0], 40);
+      const tracked = railBestHit;   // expect 6
+
+      // a finished run with railBestHit>=5 grants railhit5 (win OR loss)
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0 };
+      railBestHit = 6;
+      towers.length = 0; towers.push({ type:'rail', dealt: 100, kills: 5 });
+      const grantedOnLoss = grantAchievements(false).map(a => a.id).includes('railhit5');
+
+      // a beam that hit only 4 does NOT grant it
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0 };
+      railBestHit = 4;
+      grantAchievements(false);
+      const notUnder5 = !meta.achievements.railhit5;
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { badgeOk, arsenalOk, startsZero, tracked, grantedOnLoss, notUnder5 };
+    });
+    check('Sharpshooter badge defined (railhit5, Railgun desc)', r.badgeOk);
+    check('Full Arsenal desc updated to "9 tower types"', r.arsenalOk);
+    check('railBestHit resets to 0 on a new run', r.startsZero);
+    check('fireRail tracks the peak single-beam rake (6 in a line)', r.tracked === 6, `tracked=${r.tracked}`);
+    check('railBestHit>=5 grants Sharpshooter (win or loss)', r.grantedOnLoss);
+    check('a 4-enemy beam does NOT grant Sharpshooter', r.notUnder5);
+    check('no console errors during Sharpshooter test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
