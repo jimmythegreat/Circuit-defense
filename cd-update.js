@@ -349,15 +349,28 @@ function update(dt) {
     }
     if (e.dist >= pathLen) {
       e.dead = true;
-      const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks 2
-      lives -= dmgLives;
-      livesLostThisRun = true;
-      perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
-      shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
-      addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
-      SFX.life();
-      if (lives <= 0) { lives = 0; endGame(); }
-      updateHud();
+      if (barrierCharges > 0) {
+        // 🛡️ Barrier ability (v1.93.0): vaporize the leaker at the exit — no lives lost,
+        // no bounty paid (purely defensive). Blocks any kind incl. a boss leak (which would
+        // otherwise cost 5), so it's a real panic save; bounded by charge count + cooldown.
+        barrierCharges--;
+        const ex = waypoints[waypoints.length-1][0], ey = waypoints[waypoints.length-1][1];
+        addExplosion(ex, ey, '#58e0ff', 22, 200);
+        addFloater(ex, ey - 24, barrierCharges > 0 ? `🛡️ BLOCKED (${barrierCharges})` : '🛡️ BLOCKED', '#58e0ff', 16);
+        SFX.barrier();
+        shake = Math.max(shake, 6);
+        updateHud();
+      } else {
+        const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks 2
+        lives -= dmgLives;
+        livesLostThisRun = true;
+        perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
+        shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
+        addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
+        SFX.life();
+        if (lives <= 0) { lives = 0; endGame(); }
+        updateHud();
+      }
     }
   }
   enemies = enemies.filter(e => !e.dead);

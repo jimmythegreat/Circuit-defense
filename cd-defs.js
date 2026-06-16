@@ -162,8 +162,10 @@ const ABILITIES = {
   freeze: { name:'Time Freeze',icon:'🧊', key:'W', cd:45, desc:'Freeze ALL enemies for 4s' },
   rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection' },
   shock:  { name:'Shockwave', icon:'🌀', key:'R', cd:50, desc:'Blast ALL enemies backward along the path' },
+  barrier:{ name:'Barrier',   icon:'🛡️', key:'T', cd:60, desc:'Vaporize the next 3 enemies that reach the exit — no lives lost' },
 };
-let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0 };
+const BARRIER_CHARGES = 3;   // leak-blocks granted per Barrier cast (v1.93.0)
+let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
 let armedAbility = null;
 
 function renderAbilityBar() {
@@ -234,6 +236,19 @@ function triggerAbility(k) {
     addExplosion(W/2, H/2, '#7d5cff', 18, 150);
     shake = Math.max(shake, 14);
     SFX.shock();
+  }
+  if (k === 'barrier') {
+    // Barrier (v1.93.0): bank a few leak-blocks — the next enemies that reach the exit
+    // are vaporized for zero lives (consumed at the leak site in cd-update.js). Purely
+    // DEFENSIVE: it pays no bounty and only matters when you're about to leak, so it can't
+    // power-creep the "too easy" feedback — a panic wall vs an overwhelming wave / boss leak,
+    // countering the leak-pressure content (Breacher / Breacher Surge).
+    abilityCd.barrier = ABILITIES.barrier.cd * metaCdMult() * perkState.abilityCdMult;
+    abilityUsedThisRun = true;
+    barrierCharges = BARRIER_CHARGES;
+    addFloater(W/2, H/2, `🛡️ BARRIER ×${BARRIER_CHARGES}`, '#58e0ff', 26);
+    addExplosion(W/2, H/2, '#58e0ff', 22, 160);
+    SFX.barrier();
   }
   refreshAbilityBar();
 }

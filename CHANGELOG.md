@@ -3,6 +3,24 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.93.0 — 2026-06-16 — 🛡️ Barrier — new 5th active ability (vaporize leaking enemies, no lives lost)
+
+**Type:** Content (new active ability). Minor bump. Abilities 4 → 5.
+
+**What:** Added **🛡️ Barrier** to the ability bar (hotkey **T** / gamepad **Y**) — the first new ability since Shockwave (v1.67.0). Casting it banks **3 charges** (`BARRIER_CHARGES`); each charge **vaporizes the next enemy that reaches the exit for zero lives lost** (consumed at the single leak site in `cd-update.js`, before the life-deduction `else` branch). A pulsing cyan shield ring + `🛡️N` counter renders over the 🏠 exit marker while charges are banked. Cooldown 60s; deals no damage, pays no bounty.
+- `ABILITIES.barrier` + `BARRIER_CHARGES = 3` + a `triggerAbility('barrier')` branch (`cd-defs.js`).
+- Run-only `barrierCharges` global (`cd-state.js`, declared + zeroed in `resetState()`, **never serialized**).
+- Leak-site if/else: `barrierCharges>0` → decrement + exit burst + `SFX.barrier()`, no `lives`/bounty change; else the unchanged real-leak path (still `endGame()`s at `lives<=0`).
+- Hotkey **T** (`cd-game.js` keydown), gamepad **Y** = button 3 (`pollGamepad`), `SFX.barrier()` shield-up shimmer (`cd-core.js`), exit shield render (`cd-render.js`).
+
+**Why:** The four existing abilities cover damage (Meteor), CC (Freeze), economy (Gold Rush) and knockback (Shockwave) — there was no pure **defensive** panic button. Barrier fills that roster gap and directly counters the recent leak-pressure content (the ‼ Breacher enemy + Breacher Surge mod, which cost 2 lives per leak); it even blocks a boss leak (which would otherwise cost 5).
+
+**Balance ("too easy"-safe):** purely defensive — no damage, no bounty, capped at 3 charges per cast on a 60s cooldown, and it only matters when you were about to *lose* a life, so it can't speed clears or snowball an already-winning run (it only softens a near-loss). Counts as an ability cast (sets `abilityUsedThisRun`, so it forgoes 🕊️ Pacifist like the others).
+
+**Save-safe:** `barrierCharges` is run-only and never written to `cd_save` (resets to 0 on resume); `loadRun()`'s `abilityCd` `Object.assign` default gains `barrier:0` so old saves migrate cleanly. No economy/schema impact.
+
+**Tests:** new group **[101]** (14 checks: ability registered on T; charges bank/spend; 3 leaks blocked then the 4th costs a life; blocked leak pays no gold; boss leak blocked by one charge; cooldown gate; never serialized; resets on resume; old-save migration; no console errors). Full suite **1095/0 green**. Verified in-browser (5 ability buttons, leak + boss-leak blocked, clean render, zero console errors). `sw.js` `CACHE` bumped to `circuit-defense-v1.93.0`.
+
 ## v1.92.0 — 2026-06-16 — 🔭 Farsight — new meta talent (+2%/rank global tower range)
 
 **Type:** Content / progression (new meta talent). Minor bump. Talents 22 → 23.

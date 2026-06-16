@@ -6789,6 +6789,92 @@ async function main() {
     await page.close();
   }
 
+  // [101] Barrier ability — bank leak-blocks: enemies that reach the exit are vaporized
+  // for no lives lost, no bounty; purely defensive, run-only/save-safe (v1.93.0)
+  console.log('\n[101] Barrier ability');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = ABILITIES.barrier;
+      const inBar = !!def && def.key === 'T';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const cdInit = abilityCd.barrier === 0 && barrierCharges === 0;   // resetState initialised both
+
+      const mk = (opts) => Object.assign({
+        kind:'norm', spd:1, hp:100, maxHp:100, dist:pathLen + 50, frozen:0, slow:0, flash:0,
+        x:100, y:100, r:11, armor:0, bounty:7, color:'#3fb950', dealt:0
+      }, opts || {});
+
+      // cast Barrier -> 3 charges, on cooldown, counts vs Pacifist
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+      abilityUsedThisRun = false;
+      triggerAbility('barrier');
+      const charged = barrierCharges === 3;
+      const onCd    = abilityCd.barrier > 0;
+      const usedFlag = abilityUsedThisRun === true;
+
+      // four enemies all reach the exit this frame: first 3 are blocked (no life), 4th costs a life
+      lives = 20; const goldBefore = gold;
+      enemies.push(mk(), mk(), mk(), mk());
+      update(1/60);
+      const blockedThree = lives === 19;            // only the 4th leak cost a life
+      const chargesSpent = barrierCharges === 0;    // all 3 charges consumed
+      const noBounty     = gold === goldBefore;     // blocked leaks pay no gold
+
+      // a boss leak (would cost 5) is blocked by a single charge
+      enemies.length = 0;
+      barrierCharges = 1; lives = 20;
+      enemies.push(mk({ kind:'boss', maxHp:5000, hp:5000 }));
+      update(1/60);
+      const bossBlocked = lives === 20 && barrierCharges === 0;
+
+      // cooldown gate: a second cast while cooling is a no-op (charges stay 0)
+      barrierCharges = 0;
+      triggerAbility('barrier');
+      const cdGated = barrierCharges === 0;
+
+      // run-only: charges are never persisted — save+load resets them to 0
+      barrierCharges = 3; saveRun();
+      const savedStr = localStorage.getItem('cd_save');
+      const notSaved = savedStr ? !('barrierCharges' in JSON.parse(savedStr)) : true;
+      loadRun();
+      const resetOnLoad = barrierCharges === 0;
+
+      // old save missing abilityCd.barrier migrates to 0
+      saveRun();
+      let migratedOk = false;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      if (old && old.abilityCd) {
+        delete old.abilityCd.barrier;
+        localStorage.setItem('cd_save', JSON.stringify(old));
+        loadRun();
+        migratedOk = abilityCd.barrier === 0;
+      }
+
+      enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inBar, cdInit, charged, onCd, usedFlag, blockedThree, chargesSpent,
+               noBounty, bossBlocked, cdGated, notSaved, resetOnLoad, migratedOk };
+    });
+    check('Barrier is a 5th ability bound to T', r.inBar);
+    check('abilityCd.barrier + barrierCharges initialise to 0', r.cdInit);
+    check('Barrier banks 3 charges on cast', r.charged);
+    check('Barrier goes on cooldown after use', r.onCd);
+    check('Barrier sets abilityUsedThisRun (counts vs Pacifist)', r.usedFlag);
+    check('3 leaks are blocked, the 4th costs a life', r.blockedThree);
+    check('all 3 charges are consumed by the leaks', r.chargesSpent);
+    check('a blocked leak pays no bounty/gold', r.noBounty);
+    check('a boss leak is blocked by a single charge (no lives lost)', r.bossBlocked);
+    check('a second cast while cooling is a no-op', r.cdGated);
+    check('barrierCharges is never serialized into cd_save', r.notSaved);
+    check('barrierCharges resets to 0 on resume (run-only)', r.resetOnLoad);
+    check('old save missing abilityCd.barrier migrates to 0', r.migratedOk);
+    check('no console errors during Barrier test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

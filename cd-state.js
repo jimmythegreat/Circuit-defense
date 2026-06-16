@@ -5,6 +5,10 @@ let livesLostThisRun = false;
 // Pacifist tracking (v1.29.0): true once any ability (meteor/freeze/rush) is cast this run.
 // Run-only, never saved; forced true on resume (loadRun) so a resumed run can't earn Pacifist.
 let abilityUsedThisRun = false;
+// Barrier ability (v1.93.0): banked leak-blocks. Each charge vaporizes one enemy that
+// reaches the exit (no lives lost). Run-only, never saved (cooldowns/charges are transient);
+// resetState() zeroes it, so a resumed run starts with no charges (consistent with abilityCd).
+let barrierCharges = 0;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -65,8 +69,9 @@ function resetState() {
   waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;
   selectedShop = null; selectedTower = null; gameOver = false; victory = false;
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
-  abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0 };
+  abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
   armedAbility = null;
+  barrierCharges = 0;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
   waveMod = null; meteorRainTimer = 0;
@@ -170,7 +175,7 @@ function loadRun() {
   if (s.mapTheme && (THEMES[s.mapTheme] || s.mapTheme === 'chaos')) mapTheme = s.mapTheme;
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;
-  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0,shock:0}, s.abilityCd);
+  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0,shock:0,barrier:0}, s.abilityCd);
   for (const st of s.towers) {
     const def = TOWER_TYPES[st.type];
     if (!def) continue;

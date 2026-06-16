@@ -165,6 +165,25 @@ function draw() {
   ctx.font = '22px sans-serif';
   ctx.fillText('🏠', Math.min(W-30, exitPt[0]-14), exitPt[1]+8);
 
+  // 🛡️ Barrier charges (v1.93.0): a pulsing cyan shield ring over the exit while banked.
+  if (barrierCharges > 0 && started) {
+    ctx.save();
+    const bx = Math.min(W-30, exitPt[0]-3), by = exitPt[1]+2;
+    const pulse = reduceMotion() ? 0.75 : 0.55 + 0.25 * Math.sin(performance.now() / 200);
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = '#58e0ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(bx, by, 22, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#58e0ff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🛡️' + barrierCharges, bx, by - 28);
+    ctx.restore();
+  }
+
   // run perks display (the "milestone bonuses" drafted every 5 waves) — hover an
   // icon to see what it does (canvas-drawn, so we detect the hover + draw a tooltip)
   if (runPerks.length && started) {

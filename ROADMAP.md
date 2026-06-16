@@ -184,9 +184,18 @@ _None currently known._ (Add any here as they're found — these are top priorit
       all-ability cooldown reducer (Singularity is meteor-only; Overdrive talent is a meta unlock), making the
       ability bar a real build pillar. Bounded/"too easy"-safe (one −25% on 30–60s cooldowns; mostly utility
       abilities). Save-safe (`abilityCdMult` in perkState, default 1); rare so Wildcard won't roll it. Test [94].
+      ✅ **5th ability shipped v1.93.0 — 🛡️ Barrier** (hotkey T / gamepad Y, cd 60): banks 3 charges, each
+      vaporizing the next enemy that reaches the exit for **zero lives lost** (consumed at the leak site in
+      cd-update.js, before the life-deduction `else`). Fills the ability roster's missing **defensive** axis
+      (the other four are damage/CC/economy/knockback) and counters the leak-pressure content (Breacher +
+      Breacher Surge); blocks a boss leak (worth 5 lives) too. "Too easy"-safe: no damage, no bounty, charge-
+      and cooldown-bounded, only matters when about to leak (can't speed clears / snowball). Run-only
+      `barrierCharges` (never serialized; `abilityCd.barrier` migrates to 0); pulsing cyan shield over the exit.
+      Counts vs Pacifist. Test [101].
       **Follow-ups (optional):** *a per-tower ability*, *an ability-cooldown talent* (meta-tier version of
-      Capacitor), *an expanding shockwave ring render effect* (currently a center particle burst + shake), and
-      maybe a *light-damage variant* gated behind a perk.
+      Capacitor), *an expanding shockwave ring render effect* (currently a center particle burst + shake),
+      a *light-damage Shockwave variant* gated behind a perk, and a *Barrier upgrade talent* (more charges /
+      shorter cooldown).
 - [x] **Per-map visual themes** — shipped v1.13.8 (owner FEEDBACK "all the maps look the
       same"). `THEMES` palette table in `cd-maps.js` drives the background, stars, grid and
       path layers in `draw()`. Classic=blue circuit, Spiral=emerald, Serpent=amber (fixed);
