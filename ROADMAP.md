@@ -75,7 +75,7 @@ _None currently known._ (Add any here as found — top priority.)
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
 
 ### Tech / tooling
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~7,400 lines (109 groups, ~1179
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~7,500 lines (109 groups, 1179
       assertions)**, by far the largest file in the repo, growing ~50 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~30s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,

@@ -3,6 +3,22 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.0.1 — 2026-06-16 — 🩺 Health check — all green (1179/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (7 feature entries since the last health check v1.95.0: v1.96.0, v1.97.0, v1.98.0, v1.99.0, v1.100.0, v1.100.1, v2.0.0 — well past the 5-run trigger.)
+
+**1. Test suite.** Ran the full headless harness via a subagent: **1179 passed / 0 failed, exit code 0**, across 109 groups (last group `[109]` v2.0.0 release). Zero console errors. Matches the v2.0.0 CHANGELOG claim.
+
+**2. Refactor audit.** Every game source file is comfortably under the ~1500-line cap — largest is `cd-update.js` at **1274** lines; then `cd-render.js` 915, `cd-game.js` 878, `tower-defense.css` 558, `cd-core.js` 532, `cd-defs.js` 516, `cd-maps.js` 313, `cd-state.js` 206, `tower-defense.html` 155. No dead code, leftover debug logging, or TODOs surfaced; no cleanup needed. (The dev-only test harness `tests/run-tests.mjs` is 7499 lines — already flagged in ROADMAP as a split candidate; refreshed the stale "~7400" note.)
+
+**3. Docs coherence.** Verified every headline count in CLAUDE.md / ROADMAP.md against the actual code — all match: **9 towers** (TYPE_KEYS), **5 abilities** (meteor/freeze/rush/shock/barrier), **20 Mayhem wave mods** (frenzy…bastions + meteors), **11 boss archetypes** (regen…revenant), **18 achievements** (…nightmare_win), **6 targeting modes** (first/last/strong/close/weak/support), **13 enemy kinds incl. boss** (norm/fast/tank/heal/shield/split/molten/phantom/bastion/warden/jammer/breacher/boss), **4 difficulties** (easy/normal/hard/nightmare), **6 quick maps**. `GAME_VERSION` === `sw.js` CACHE === `v2.0.1`. ROADMAP is condensed and current; the "Vetoed by owner" section is intact (no new reverts in `git log`). No CLAUDE.md drift found.
+
+**4. Table-stakes audit.** The polished-browser-game checklist remains COMPLETE: favicon + meta/OG (v1.8.6), PWA install/offline (v1.30.0), responsive/mobile (v1.14.0/v1.15.0), touch/pointer + 44px tap targets (v1.16.3/v1.46.0), gamepad (v1.43.0), keyboard a11y menus + draft (v1.19.0/v1.20.0), colorblind aid (v1.18.0), reduced-motion (v1.10.0), volume slider (v1.13.2), high-DPI (v1.17.0), settings persistence. No new gaps identified.
+
+**5. Integrity spot-checks.** **file:// playability:** seven classic `<script src>` tags in dependency order, no `type="module"`; SW registration guarded to `location.protocol` http/https only (so double-click play and the file:// harness are unaffected); inline favicon, relative paths, no build step. **Old-save migration:** `loadMeta()` back-fills new talents at rank 0 via the `Object.keys(TALENTS)` loop and defaults `achievements`/`stats`; `loadRun()` merges `perkState` (`Object.assign(freshPerkState(), …)`) and `abilityCd` (with `barrier:0`), guards `gameTime`/`mapTheme` — a minimal pre-update save loads cleanly.
+
+**Findings → ROADMAP; no code/balance/economy/save changes this run.** Counter reset (next health check after 5 more feature runs).
+
 ## v2.0.0 — 2026-06-16 — 🎉 Version 2.0 — 🌑 Nightmare difficulty + late-game scaling, Railgun/Breacher balance, campaign QoL, menu polish
 
 **Type:** Major release (owner FEEDBACK [highest priority]: "push out a big change … do as many as possible … bump the version to 2 … include a big special change not listed"). Minor/major bump (v1.100.1 → v2.0.0). Six changes shipped together; balance ≤25%/run per existing number (the new Nightmare tier is new content, not a rebalance, so its raw stats aren't bound by the swing rule).
