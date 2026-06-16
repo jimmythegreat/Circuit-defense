@@ -5,6 +5,8 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
+[highest priority] We are at version 1.100.1. I think its time we push out a big change. Ignore the max of one small change per run. Do as many as possible. Bump the version to 2. Include a big special change not listed in feedback or roadmap.
+
 [high priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu.
 
 [medium priority] Railgun does way too much damage at lvl 5 with penetrator. It more than snipers!
@@ -14,6 +16,8 @@ When it completes an item it moves it to DONE below with the date and version.
 Bosses should take more lives. From one to 3. The enemies that have increase life taking should be upped as well.
 
 On campaign it should automatically select the next level when you go back to menu instead of clicking next on the victory screen. It should also select the last level you've completed when you click on campaign.
+
+
 
 ## DONE
 
