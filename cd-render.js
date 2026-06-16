@@ -169,7 +169,11 @@ function draw() {
   if (barrierCharges > 0 && started) {
     ctx.save();
     const bx = Math.min(W-30, exitPt[0]-3), by = exitPt[1]+2;
-    const pulse = reduceMotion() ? 0.75 : 0.55 + 0.25 * Math.sin(performance.now() / 200);
+    // Fade out + quicken the pulse over the last 5s as the charges near expiry (v1.100.1),
+    // so the player can see the barrier is about to fade rather than vanish without warning.
+    const expiring = barrierTimer < 5;
+    const fade = expiring ? Math.max(0.25, barrierTimer / 5) : 1;
+    const pulse = (reduceMotion() ? 0.75 : 0.55 + 0.25 * Math.sin(performance.now() / (expiring ? 90 : 200))) * fade;
     ctx.globalAlpha = pulse;
     ctx.strokeStyle = '#58e0ff';
     ctx.lineWidth = 3;

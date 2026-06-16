@@ -7,6 +7,16 @@ function update(dt) {
 
   // ability cooldowns
   for (const k of Object.keys(abilityCd)) abilityCd[k] = Math.max(0, abilityCd[k] - dt);
+  // 🛡️ Barrier charges fade after BARRIER_DURATION (v1.100.1): unused charges expire so the
+  // leak-prevention doesn't last forever (owner FEEDBACK). Ticks only while charges are banked
+  // and only during live play (this is past update()'s pause/draft/gameOver early-return).
+  if (barrierCharges > 0) {
+    barrierTimer = Math.max(0, barrierTimer - dt);
+    if (barrierTimer <= 0) {
+      barrierCharges = 0;
+      addFloater(W/2, H/2, '🛡️ Barrier faded', '#8b949e', 18);
+    }
+  }
   abilityUiAcc += dt;
   if (abilityUiAcc > 0.25) {
     abilityUiAcc = 0; refreshAbilityBar();

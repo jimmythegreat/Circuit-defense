@@ -3,6 +3,36 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.100.1 — 2026-06-16 — 🐛 Ability-bar bug fixes — Gold Rush gated pre-wave + Barrier charges fade
+
+**Type:** Bug fix (owner FEEDBACK [bug]). Patch bump.
+
+**What changed.** Two issues with the ability bar, fixed together (owner asked for both in one run).
+
+1. **Gold Rush no longer works before the waves start.** `triggerAbility()` was gated on
+   `started` but not on whether any wave had begun, so on the board before round one you could
+   fire 💰 Gold Rush over and over (waiting out the 60s cooldown each time) to bankroll a full
+   board of towers before a single enemy spawned — an economy exploit. The `rush` branch now
+   early-returns with a small `⏳ Start a wave first` floater while `wave < 1`. Once Wave 1 has
+   started, `wave` is ≥1 for the rest of the run, so normal between-waves use is unchanged.
+2. **Barrier charges now FADE.** Banked 🛡️ leak-blocks used to persist forever if you never
+   leaked, so you could pre-cast Barrier and carry the protection indefinitely. A new run-only
+   `barrierTimer` is set to `BARRIER_DURATION` (20s) on cast and decayed in `update()` (only
+   while charges are banked, only during live play — past the pause/draft/gameOver early-return);
+   when it hits 0 any unused charges clear with a `🛡️ Barrier faded` note. The cyan exit-ring
+   dims + pulses faster over its final 5s as a warning (render-only).
+
+**Why.** Both close "free power" loopholes (an infinite-gold pre-game farm; a permanent defensive
+wall) — squarely in line with the recurring "too easy" feedback. Neither adds power.
+
+**Save-safe.** `barrierTimer` is run-only and never serialized (verified by test) — old saves and
+resumed runs are unaffected. No change to chips, talents, economy, or any existing balance number.
+
+**Tests.** New group [108] (gold-rush pre-wave gate, post-wave restore, barrier fade, run-only
+non-persistence). Updated [61] (gamepad) and [94] (Capacitor) to start a wave before invoking Gold
+Rush, reflecting the new gate. Full suite **1162/0 green**; verified live in-browser (v1.100.1,
+BARRIER_DURATION=20, pre-wave gold unchanged, post-wave works, barrier banks→fades), zero console errors.
+
 ## v1.100.0 — 2026-06-16 — ⭐ Tower Veterancy — towers earn battlefield ranks as they rack up kills
 
 **Type:** New game-feel / cosmetic progression. Minor bump.

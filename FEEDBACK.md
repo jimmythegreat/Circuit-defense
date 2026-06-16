@@ -5,9 +5,17 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[low priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everthing else. I think its time we revamp the whole starting menu.
+[high priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu.
+
+[medium priority] Railgun does way too much damage at lvl 5 with penetrator. It more than snipers!
+
+[medium priority] Scale the hardness factor on hard more as the waves progress. I feel like its good difficulty early game. Then easier mid game (once you get a lvl5+ tower) then super easy late game.
+
+Bosses should take more lives. From one to 3. The enemies that have increase life taking should be upped as well.
 
 ## DONE
+
+- **2026-06-16 · v1.100.1** — "[medium priority bug] I should not be able to use the gold skill over and over before starting round one. It should allow me to use it only once the waves have started. Also, barrier should fade. The 3 live prevention shouldn't last forever. Do both of these in one run." → **Both fixed in one run.** (1) Gold Rush is now locked until Wave 1 has started — `triggerAbility()`'s `rush` branch early-returns (with a `⏳ Start a wave first` floater) while `wave < 1`, closing the pre-game gold-farming exploit; normal between-waves use is unchanged. (2) Barrier charges now fade after 20s — a run-only `barrierTimer` (set on cast, decayed in `update()`) clears unused charges when it expires (with a `🛡️ Barrier faded` note), and the exit ring dims/quickens over its final 5s as a warning. Save-safe (`barrierTimer` is run-only, never serialized). New test [108]; updated [61]/[94] for the new gate; suite 1162/0 green; verified in-browser. See CHANGELOG v1.100.1.
 
 - **2026-06-13 · v1.38.1** — "[bug] Completing a level doesn't reset 'resume'. You can resume from the last level over and over. Also, sometimes clicking to select a tower blinks the tower youre trying to click on and off." → **Both fixed.** (1) `winGame()` never cleared the saved run (only `endGame()` did), so finishing a Campaign level / winning a Quick run left `cd_save` intact and the Resume button re-offered the already-won level (verified: `⏯ Resume (wave 14, Campaign 1)` after a campaign win). `winGame()` now `clearRun()`s (guarded `!daily`, like `endGame`); the Daily Challenge still leaves your normal save untouched, and Continue-Endless still resumes (a resumed save past `victoryWave()` now pre-sets `victory` so it doesn't re-fire the win screen). (2) The tower "blink": with a shop tower type selected, moving the cursor over an existing tower drew the red "can't place" placement ghost on top of it, flickering as grid-snap jumped between cells. Extracted a shared `towerAt(x,y)` hit-test and the placement preview is now hidden whenever the cursor is over a selectable tower (you can't place there anyway). Save-safe, no economy/balance impact. New test [56]; verified in-browser; suite green. See CHANGELOG v1.38.1.
 

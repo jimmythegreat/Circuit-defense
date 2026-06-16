@@ -188,6 +188,7 @@ const ABILITIES = {
   barrier:{ name:'Barrier',   icon:'🛡️', key:'T', cd:60, desc:'Vaporize the next 3 enemies that reach the exit — no lives lost' },
 };
 const BARRIER_CHARGES = 3;   // leak-blocks granted per Barrier cast (v1.93.0)
+const BARRIER_DURATION = 20;  // seconds unused barrier charges last before fading (v1.100.1)
 let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
 let armedAbility = null;
 
@@ -231,6 +232,12 @@ function triggerAbility(k) {
     SFX.freeze();
   }
   if (k === 'rush') {
+    // Gold Rush is locked until the waves have started (v1.100.1, owner FEEDBACK [bug]):
+    // before round one `wave` is 0, and without this gate you could farm the injection
+    // repeatedly (waiting out the cooldown) to bankroll a full board pre-combat. Once you
+    // start wave 1, `wave` is ≥1 for the rest of the run, so normal between-waves use is
+    // unaffected. Silent like the other early-returns, plus a hint floater so it's not confusing.
+    if (wave < 1) { addFloater(W/2, H/2, '⏳ Start a wave first', '#8b949e', 18); return; }
     abilityCd.rush = ABILITIES.rush.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     const amount = 50 + wave * 5;
@@ -269,6 +276,7 @@ function triggerAbility(k) {
     abilityCd.barrier = ABILITIES.barrier.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     barrierCharges = BARRIER_CHARGES;
+    barrierTimer = BARRIER_DURATION;   // charges fade after this many seconds (v1.100.1)
     addFloater(W/2, H/2, `🛡️ BARRIER ×${BARRIER_CHARGES}`, '#58e0ff', 26);
     addExplosion(W/2, H/2, '#58e0ff', 22, 160);
     SFX.barrier();

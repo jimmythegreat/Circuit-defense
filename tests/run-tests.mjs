@@ -3843,6 +3843,7 @@ async function main() {
       allUp(); pollGamepad(1 / 60);
       press(5); pollGamepad(1 / 60); release(5);
       const rbFreeze = abilityCd.freeze > 0;
+      wave = Math.max(wave, 1);   // Gold Rush is gated until waves start (v1.100.1)
       const goldBeforeRush = gold;
       allUp(); pollGamepad(1 / 60);
       press(6); pollGamepad(1 / 60); release(6);
@@ -6265,6 +6266,7 @@ async function main() {
       const freezeOk = Math.abs(abilityCd.freeze - ABILITIES.freeze.cd * base * 0.75) < 1e-6;
 
       abilityCd.rush = 0;
+      wave = Math.max(wave, 1);   // Gold Rush is gated until waves start (v1.100.1)
       triggerAbility('rush');
       const rushOk = Math.abs(abilityCd.rush - ABILITIES.rush.cd * base * 0.75) < 1e-6;
 
@@ -7310,6 +7312,71 @@ async function main() {
     check('tower rank survives save/resume (kills restored → Ace)',
       rt.loaded && rt.kills === 120 && rt.tier === 3, JSON.stringify(rt));
     check('no console errors during veterancy test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [108] Ability bar bug fixes (v1.100.1): Gold Rush locked until waves start (no pre-game
+  // gold farming); Barrier charges fade after BARRIER_DURATION instead of lasting forever.
+  console.log('\n[108] Ability bar bug fixes (gold-rush gate + barrier fade)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // --- Gold Rush gate: before wave 1 (wave===0) it does nothing ---
+      const preWave = wave === 0;
+      abilityCd.rush = 0;
+      const goldBefore = gold;
+      triggerAbility('rush');
+      const gatedNoGold = gold === goldBefore;        // no gold injected pre-wave
+      const gatedNoCd   = abilityCd.rush === 0;        // didn't even go on cooldown
+
+      // --- once a wave has started it works as before ---
+      startWave();                                     // wave -> 1
+      const waveStarted = wave >= 1;
+      abilityCd.rush = 0;
+      const goldBefore2 = gold;
+      triggerAbility('rush');
+      const worksAfter = gold > goldBefore2 && abilityCd.rush > 0;
+
+      // --- Barrier fade: charges expire after BARRIER_DURATION seconds ---
+      // quiesce the sim so nothing spawns / auto-starts and consumes a charge during the loop
+      enemies.length = 0; spawners.length = 0; autoWave = false; autoStartTimer = -1; waveActive = false;
+      abilityCd.barrier = 0;
+      triggerAbility('barrier');
+      const banked = barrierCharges === 3 && barrierTimer > 0 && barrierTimer <= BARRIER_DURATION;
+      // advance time past the duration (1s ticks); charges should clear at 0
+      for (let i = 0; i < BARRIER_DURATION + 2; i++) update(1);
+      const faded = barrierCharges === 0 && barrierTimer === 0;
+
+      // --- a fresh cast re-arms the timer; charges persist while it has time left ---
+      abilityCd.barrier = 0;
+      triggerAbility('barrier');
+      update(1);                                       // 1s elapsed, still well within duration
+      const survivesShort = barrierCharges === 3 && barrierTimer > 0;
+
+      // --- run-only: barrierTimer is never serialized ---
+      barrierCharges = 2; barrierTimer = 10; saveRun();
+      const savedStr = localStorage.getItem('cd_save');
+      const notSaved = savedStr ? !('barrierTimer' in JSON.parse(savedStr)) : true;
+      loadRun();
+      const resetOnLoad = barrierTimer === 0 && barrierCharges === 0;
+
+      enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { preWave, gatedNoGold, gatedNoCd, waveStarted, worksAfter,
+               banked, faded, survivesShort, notSaved, resetOnLoad };
+    });
+    check('before wave 1, Gold Rush injects no gold', r.gatedNoGold);
+    check('before wave 1, Gold Rush does not go on cooldown', r.gatedNoCd);
+    check('after a wave starts, Gold Rush works again', r.waveStarted && r.worksAfter);
+    check('Barrier banks 3 charges + arms a fade timer', r.banked);
+    check('Barrier charges fade to 0 after BARRIER_DURATION', r.faded);
+    check('Barrier charges survive a short interval (timer still > 0)', r.survivesShort);
+    check('barrierTimer is never serialized into cd_save', r.notSaved);
+    check('barrierTimer + charges reset to 0 on resume (run-only)', r.resetOnLoad);
+    check('no console errors during ability-bar bugfix test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
