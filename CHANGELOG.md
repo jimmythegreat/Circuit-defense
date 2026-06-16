@@ -3,6 +3,37 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.98.0 — 2026-06-16 — 🟣 Nexus — new 6th quick-play map (central crossfire convergence, Violet theme)
+
+**Type:** New content (map). Minor bump.
+
+**What & why:** Added **Nexus**, the 6th hand-crafted quick-play map (inserted in `cd-maps.js`'s
+`MAPS` table before Mayhem, so Mayhem stays the last key). Unlike every other map — which keeps
+enemies flowing past your towers — Nexus folds the path back on **itself**: the route weaves through
+a central convergence zone several times from different directions, so a tower wedged in one of the
+crossing pockets rakes the same crowd repeatedly as it loops through the middle. That's a genuinely
+distinct identity from the Gauntlet's *parallel* kill-box runs — there the lanes sit side-by-side;
+here they actually **intersect** (the long vertical run at x=450 and the long horizontal run at y=280
+cross at the dead-center point 450,280, with several more crossings around it). Splash towers, Tesla
+chains and the Railgun's piercing line-beam feast on the overlapping traffic; the open outer arms
+reward range. It carries the **Violet** palette (`MAP_THEME.nexus = 'violet'`) as its signature look —
+the last of the six static themes that wasn't yet a map's identity (Violet was already in
+`CAMPAIGN_THEMES`, so no new palette was needed). Path length ≈3300, axis-aligned, enters off-left
+(−30) and exits off-right (930).
+
+**Fully additive & save-safe:** the map shows up automatically in the start-screen picker, the Records
+waves/scores grids, and `loadRun()` validation (all iterate `Object.keys(MAPS)` / read `MAPS[mapKey]`);
+it gets its own additive `cd_best_nexus_<diff>` / `cd_bestscore_nexus_<diff>` keys (read `|| 0`, so old
+saves are unaffected). No gameplay, balance, economy, or save-schema impact. Campaign still rolls a
+random tame palette per attempt (unchanged); only the quick-mode Nexus map has Violet as a fixed
+identity.
+
+**Tests:** New group **[105]** — map exists/named, axis-aligned path in-bounds entering left/exiting
+right, sits before Mayhem, maps to the Violet theme (palette resolves on a real run), appears in the
+selector, **the path crosses itself at the central convergence (450,280)** (the identity assertion), a
+real god-tower run drives clean to wave 5+, and per-map best + save/resume round-trip. Full suite
+**1136/0 green**, zero console errors. Double-click `file://` play unaffected (additive data only).
+
 ## v1.97.0 — 2026-06-16 — 🔌 Surge Protector — new rare run perk (towers shake off jamming 3× faster)
 
 **Type:** New content (run perk). Minor bump.

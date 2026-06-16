@@ -16,6 +16,9 @@ const MAPS = {
   cascade: { name:'Cascade', desc:'Frozen stepped descent', pts: [
     [-30,70],[150,70],[150,180],[330,180],[330,290],[510,290],[510,400],[690,400],[690,180],[820,180],[820,470],[930,470]
   ]},
+  nexus: { name:'Nexus', desc:'Central crossfire convergence', pts: [
+    [-30,90],[450,90],[450,470],[200,470],[200,280],[700,280],[700,150],[330,150],[330,390],[560,390],[560,210],[930,210]
+  ]},
   mayhem: { name:'🌀 Mayhem', desc:'Path shifts every 5 waves · chaos modifiers', pts: null },
 };
 let mapKey = 'classic';
@@ -271,7 +274,7 @@ const THEMES = {
   crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
 };
 // Fixed identity per named quick-map; campaign draws from the tame set below.
-const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice' };
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet' };
 const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson'];
 let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
 function pickMapTheme() {

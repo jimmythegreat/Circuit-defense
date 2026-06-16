@@ -330,6 +330,22 @@ _None currently known._ (Add any here as they're found — these are top priorit
       (selector/Records/best-key/loadRun auto-pick it); additive, save-safe (new `cd_best_cascade_<diff>` /
       `cd_bestscore_cascade_<diff>` keys, `||0`). Test [95]. **Follow-ups:** same as Gauntlet (per-theme
       ground textures; the forking/multi-lane map below).
+- [x] **New quick-play map: "Nexus"** — shipped **v1.98.0**. A 6th hand-crafted quick map
+      (`MAPS.nexus` in cd-maps.js, before Mayhem) — a **central crossfire convergence**: the axis-aligned
+      path folds back on itself so it crosses through the middle several times from perpendicular
+      directions (the long vertical run at x=450 and the long horizontal run at y=280 intersect at the
+      dead-center point 450,280, with more crossings around it). A distinct identity from the Gauntlet's
+      *parallel* kill-box runs — here the lanes actually **intersect**, so a tower in a crossing pocket
+      rakes the same crowd repeatedly as it loops through (splash / Tesla chain / Railgun line-beam love
+      the overlapping traffic; the open outer arms reward range). Path length ≈3300. Carries the **`violet`**
+      palette (`MAP_THEME.nexus`) as its fixed identity — the **last** static theme not yet used as a map
+      signature; `violet` was already in `THEMES` + `CAMPAIGN_THEMES`. Fully data-driven (selector/Records/
+      best-key/loadRun auto-pick it); additive, save-safe (new `cd_best_nexus_<diff>` /
+      `cd_bestscore_nexus_<diff>` keys, `||0`). Test [105] (incl. a self-crossing assertion at 450,280).
+      **Note:** all SIX static `THEMES` palettes are now claimed as fixed map identities
+      (classic→circuit, spiral→verdant, serpent→ember, gauntlet→crimson, cascade→ice, nexus→violet) — a
+      7th named map would need a brand-new palette. **Follow-ups:** per-theme ground textures; the
+      forking/multi-lane "crossroads" map below.
 - [ ] **Map: "crossroads"** — a path that forks and rejoins, or two simultaneous
       lanes. (Bigger lift — needs multi-path enemy distribution + targeting/`distToPath`
       over more than one path; its own run when tackled.)

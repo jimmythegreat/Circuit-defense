@@ -7060,6 +7060,116 @@ async function main() {
     await page.close();
   }
 
+  // [105] Nexus map — 6th quick-play map + Violet theme identity (v1.98.0)
+  console.log('\n[105] Nexus map (central crossfire convergence + Violet theme)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Map definition: present, named, well-formed axis-aligned path enters off-left, exits off-right.
+    const def = await page.evaluate(() => {
+      const m = MAPS.nexus;
+      const pts = m && m.pts;
+      let axisAligned = !!pts && pts.length >= 4;
+      if (pts) for (let i = 0; i < pts.length - 1; i++) {
+        const sameX = pts[i][0] === pts[i + 1][0], sameY = pts[i][1] === pts[i + 1][1];
+        if (sameX === sameY) { axisAligned = false; break; }   // both same (zero-len) or neither (diagonal)
+      }
+      const inBounds = !!pts && pts.every(([x, y]) => x >= -40 && x <= 940 && y >= 0 && y <= 560);
+      return {
+        exists: !!m, named: !!m && typeof m.name === 'string' && m.name.length > 0,
+        hasPath: Array.isArray(pts), axisAligned, inBounds,
+        entersLeft: !!pts && pts[0][0] === -30, exitsRight: !!pts && pts[pts.length - 1][0] === 930,
+        notLast: Object.keys(MAPS).indexOf('nexus') < Object.keys(MAPS).indexOf('mayhem'),
+      };
+    });
+    check('Nexus map exists and is named', def.exists && def.named);
+    check('Nexus has an axis-aligned path (no diagonals/zero-length segs)', def.axisAligned);
+    check('Nexus path stays within the board', def.inBounds);
+    check('Nexus path enters off-left (-30) and exits off-right (930)', def.entersLeft && def.exitsRight);
+    check('Nexus sits before Mayhem in the map order', def.notLast);
+
+    // Theme: Violet palette exists and is the map's fixed identity.
+    const theme = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'nexus'; diffKey = 'normal';
+      const fixed = MAP_THEME.nexus;
+      const hasPalette = !!THEMES.violet && typeof THEMES.violet.glow === 'string';
+      const inCampaignPool = CAMPAIGN_THEMES.includes('violet');
+      const picks = pickMapTheme();              // quick-mode nexus -> fixed violet
+      beginGame();
+      const resolved = mapTheme;                 // resetState() set it via pickMapTheme()
+      const pal = mapPalette();                  // concrete palette for the frame
+      const ok = pal && pal.glow === THEMES.violet.glow;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fixed, hasPalette, inCampaignPool, picks, resolved, ok };
+    });
+    check('Violet theme palette exists', theme.hasPalette);
+    check('Nexus maps to the Violet theme', theme.fixed === 'violet' && theme.picks === 'violet');
+    check('Violet is available to the campaign palette pool', theme.inCampaignPool);
+    check('a Nexus run resolves to the Violet palette', theme.resolved === 'violet' && theme.ok);
+
+    // The map appears as a selectable button on the start screen.
+    const btn = await page.evaluate(() => {
+      renderStartScreen();
+      return /Nexus/.test(document.getElementById('mapRow').innerHTML);
+    });
+    check('Nexus appears in the start-screen map selector', btn);
+
+    // The path genuinely crosses itself (the convergence identity): the long vertical run at
+    // x=450 and the long horizontal run at y=280 intersect at the central point (450,280).
+    const crosses = await page.evaluate(() => {
+      const pts = MAPS.nexus.pts;
+      const onSeg = (a, b, px, py) => {
+        if (a[0] === b[0]) return a[0] === px && py >= Math.min(a[1], b[1]) && py <= Math.max(a[1], b[1]);
+        return a[1] === py && px >= Math.min(a[0], b[0]) && px <= Math.max(a[0], b[0]);
+      };
+      let hits = 0;
+      for (let i = 0; i < pts.length - 1; i++) if (onSeg(pts[i], pts[i + 1], 450, 280)) hits++;
+      return hits;
+    });
+    check('Nexus path crosses itself at the central convergence (450,280)', crosses >= 2, 'hits=' + crosses);
+
+    // A real run drives to completion on the new path (pathing/spawning work, no hang).
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'nexus'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const pathOk = pathLen > 1000 && Array.isArray(waypoints) && waypoints === MAPS.nexus.pts;
+      __cdGodTowers(8);
+      __cdDrive({ maxWave: 6 });
+      const out = { reached: wave >= 5, wave, pathOk };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Nexus buildPath wires the static path', drove.pathOk, JSON.stringify(drove));
+    check('a Nexus run drives clean to wave 5+', drove.reached, JSON.stringify(drove));
+
+    // Records: a finished quick run logs a per-map best under cd_best_nexus_<diff>,
+    // and the map validates on save/resume (loadRun accepts MAPS[mapKey]).
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_nexus_hard');
+      gameMode = 'quick'; mapKey = 'nexus'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_nexus_hard') || 0);
+
+      // save/resume round-trip on the static map
+      gameMode = 'quick'; mapKey = 'nexus'; diffKey = 'normal';
+      beginGame(); wave = 3;
+      saveRun();
+      const loaded = loadRun();
+      const restored = loaded === true && mapKey === 'nexus';
+
+      ['cd_best_nexus_hard', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { mapBest, restored };
+    });
+    check('Nexus records a per-map best (hard = 9)', rec.mapBest === 9, JSON.stringify(rec));
+    check('Nexus save/resume round-trips', rec.restored, JSON.stringify(rec));
+
+    check('no console errors during Nexus map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
