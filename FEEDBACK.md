@@ -11,7 +11,7 @@ When it completes an item it moves it to DONE below with the date and version.
 ## PENDING
 
 [high priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu.
-  - _Progress (not done): seven incremental slices shipped (v1.39.1 button hierarchy, v1.41.0 PLAY sheen, v1.42.0 config card, v1.45.0 hero header, v1.69.0 ambient backdrop, v1.94.0 hover polish, v2.0.0 grouped utility toolbar). The fuller revamp — a left-rail / panel layout for the utility toolbar, per-block icons / accent-matched glows — is still open. Left PENDING as-written per owner pref until the full revamp lands._
+  - _Progress (not done): eight incremental slices shipped (v1.39.1 button hierarchy, v1.41.0 PLAY sheen, v1.42.0 config card, v1.45.0 hero header, v1.69.0 ambient backdrop, v1.94.0 hover polish, v2.0.0 grouped utility toolbar, v2.0.2 per-button accent tiles). The fuller revamp — a left-rail / panel layout for the utility toolbar (rather than a horizontal bar) — is still open. Left PENDING as-written per owner pref until the full revamp lands._
 
 
 

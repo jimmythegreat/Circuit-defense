@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.0.2 — 2026-06-16 — 🎨 Start-menu accent tiles (menu-revamp slice 8)
+
+**Type:** UX polish (FEEDBACK [high] menu revamp, next slice). Patch bump.
+
+The six start-screen utility buttons (Talents/Achievements/Records/What's New/Settings/Reset) were clashing solid colour blocks. They're now a cohesive set of dark **tiles**, each with its own accent colour as a left rail (`--acc`) + an accent-matched hover glow — the "per-block / accent-matched glows" piece of the revamp. CSS + inline-var only; `.startUtil` stays `#startScreen`'s last child; no save/economy/gameplay impact. Suite green (1196/0); new test [112]. Fuller left-rail revamp stays PENDING.
+
 ## v2.0.1 — 2026-06-16 — 🩺 Health check — all green (1179/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (7 feature entries since the last health check v1.95.0: v1.96.0, v1.97.0, v1.98.0, v1.99.0, v1.100.0, v1.100.1, v2.0.0 — well past the 5-run trigger.)

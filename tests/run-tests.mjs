@@ -7622,6 +7622,44 @@ async function main() {
     await page.close();
   }
 
+  // [112] Utility-toolbar accent tiles — the six secondary buttons are cohesive dark
+  // tiles with a per-button accent rail (--acc) instead of clashing solid fills (v2.0.2,
+  // menu-revamp slice 8). Asserts: each util button carries an --acc custom property +
+  // a uniform dark base (NOT the old purple/amber solid fills) + a left accent border;
+  // the .startUtil-last-child invariant survives.
+  console.log('\n[112] Utility-toolbar accent tiles (menu-revamp slice 8)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const btns = [...document.querySelectorAll('.startUtil .ctl')];
+      const accs = btns.map(b => getComputedStyle(b).getPropertyValue('--acc').trim());
+      const first = btns[0];
+      const cs = getComputedStyle(first);
+      return {
+        count: btns.length,
+        allHaveAcc: accs.length > 0 && accs.every(a => a.length > 0),
+        // Talents tile is no longer the old solid purple rgb(110,64,201).
+        notOldPurple: cs.backgroundColor !== 'rgb(110, 64, 201)',
+        // a left accent rail thicker than the rest of the border
+        leftBorder: parseFloat(cs.borderLeftWidth) >= 3,
+        // the left border colour resolves to the tile's accent (purple a371f7)
+        leftIsAccent: cs.borderLeftColor === 'rgb(163, 113, 247)',
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+        // load-bearing ids still present after the markup tweak
+        ids: ['chipsBtn','achBtn','resetBtn','wnBtn'].every(id => document.getElementById(id)),
+      };
+    });
+    check('all six util buttons carry an --acc accent property', d.allHaveAcc && d.count === 6, `count=${d.count}`);
+    check('util tiles use a uniform dark base, not the old solid purple fill', d.notOldPurple);
+    check('util tiles show a left accent rail (≥3px)', d.leftBorder);
+    check('util accent rail is coloured to its --acc (Talents purple)', d.leftIsAccent);
+    check('.startUtil is still #startScreen last child (test [58] invariant)', d.lastChildUtil);
+    check('load-bearing util ids survived the accent-tile restyle', d.ids);
+    check('no console errors during accent-tile test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

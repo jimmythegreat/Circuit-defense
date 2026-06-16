@@ -268,6 +268,26 @@
     background: rgba(22,27,34,.55); border: 1px solid #21262d; box-shadow: inset 0 0 0 1px rgba(255,255,255,.02); }
   .startUtil .ctl { font-size: 13px; padding: 7px 14px; font-weight: 600; opacity: .9; }
   .startUtil .ctl:hover { opacity: 1; }
+  /* Accent tiles (menu-revamp slice 8, v2.0.2, owner FEEDBACK "main interface … clunky …
+     revamp the whole starting menu"; the "per-block / accent-matched glows" remaining piece).
+     The six utility buttons used to be clashing solid colour blocks (purple/amber/blue + three
+     grays). They're now a cohesive set of dark TILES, each carrying its own accent colour (a
+     left rail via --acc) so identity reads from a tidy accent stripe + matched hover glow
+     instead of a full-bleed fill — turning the toolbar into deliberate labelled tiles. Each
+     button passes its accent inline as `--acc`. The #startScreen … selector raises specificity
+     so the uniform dark base wins over .ctl.gray/.blue/base fills (inline backgrounds removed in
+     the markup). Hover keeps the v1.94.0 lift/brighten (lower-specificity transform/filter rules
+     still apply) and adds an accent-matched ring+glow. CSS+inline-var only; no JS/save/economy
+     impact and .startUtil stays #startScreen's last child (test [58]). */
+  #startScreen .startUtil .ctl {
+    background: rgba(13,17,23,.55);
+    border: 1px solid #2b313a; border-left: 3px solid var(--acc, #58a6ff);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  #startScreen .startUtil .ctl:hover {
+    background: rgba(22,27,34,.92); border-color: var(--acc, #58a6ff);
+    box-shadow: 0 5px 16px rgba(0,0,0,.4), 0 0 0 1px var(--acc, #58a6ff), 0 0 16px -3px var(--acc, #58a6ff);
+  }
   /* Polished hover affordance on the menu's utility toolbar + the secondary play-row
      buttons (v1.94.0, owner FEEDBACK "the main interface is getting clunky", menu-revamp
      slice 6). Previously these only faded opacity .9→1 (util) or did nothing (Resume/
