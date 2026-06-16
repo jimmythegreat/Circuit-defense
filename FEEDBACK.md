@@ -9,9 +9,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 [medium priority] Railgun does way too much damage at lvl 5 with penetrator. It more than snipers!
 
-[medium priority] Scale the hardness factor on hard more as the waves progress. I feel like its good difficulty early game. Then easier mid game (once you get a lvl5+ tower) then super easy late game.
+[medium priority] Scale the hardness factor on hard more as the waves progress. I feel like its good difficulty early game. Then easier mid game (once you get a lvl5+ tower) then super easy late game. The campaign difficulty is good (it progressively gets harder).
 
 Bosses should take more lives. From one to 3. The enemies that have increase life taking should be upped as well.
+
+On campaign it should automatically select the next level when you go back to menu instead of clicking next on the victory screen. It should also select the last level you've completed when you click on campaign.
 
 ## DONE
 
