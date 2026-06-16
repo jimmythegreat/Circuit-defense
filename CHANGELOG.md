@@ -3,6 +3,27 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.84.1 — 2026-06-15 — 🩺 Health check — all green (986/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v1.79.1: v1.80.0, v1.81.0, v1.82.0, v1.83.0, v1.84.0.)
+
+**Test suite:** Green — **986 assertions across 92 groups [1]–[92], 0 failures, exit 0**, zero console errors (subagent-run).
+
+**Integrity spot-checks:**
+- **`file://` playability:** intact — `tower-defense.html` links the CSS + seven classic `<script src>` tags in dependency order (`cd-core`→`cd-maps`→`cd-defs`→`cd-state`→`cd-game`→`cd-update`→`cd-render`), **no `type="module"`**, inline-SVG favicon, all relative paths, no build step. `index.html` redirect intact. The SW registration in `cd-render.js` stays http/https-guarded, so double-click play + the headless harness (both `file://`) are unaffected.
+- **Old-save migration:** the suite's save/resume + old-format-save groups pass; `loadRun()` restores newer fields via additive defaults — `gameTime` (guarded `typeof === 'number'`, else 0), `mapTheme` (validated against `THEMES`/chaos, else `pickMapTheme()`), `perkState` (`Object.assign(freshPerkState(), s.perkState)` so every new flag defaults off), per-tower `mode` (`MODES.includes()` guard → 'first'); `loadMeta()` still defaults `achievements`/`stats`/`bestCombo` for minimal `cd_meta`.
+- **PWA cache version:** `sw.js` `CACHE` bumped `circuit-defense-v1.84.0 → v1.84.1` to match `GAME_VERSION` (test [49] guards this).
+
+**Docs coherence (CLAUDE.md vs code — all match):** 9 towers (`TOWER_TYPES`), 10 enemy kinds + boss (`PREVIEW_COLOR`), **10 boss archetypes** (`BOSS_ARCHETYPES`: regen/summoner/bulwark/enrager/teleporter/berserker/disruptor/juggernaut/siphon/hydra), **18 Mayhem wave mods** (`WAVE_MODS`), **17 achievements** (`ACHIEVEMENTS`), 6 targeting modes (`MODES`), 4 abilities (`ABILITIES`), 22 talents / 9 mastery (`TALENTS`), boss HP slope `14 + w*0.6`, boss armor slope `w*0.5`. `CHANGELOG_ENTRIES` newest = `v1.84.0`, in sync with this file. Versions consistent everywhere.
+
+**Refactor audit:** every game file under the ~1500-line cap (largest `cd-update.js` ~1175, then `cd-render.js` ~853, `cd-game.js` ~791). No dead code, debug logging (`console.log`/`debugger`), or TODO/FIXME markers in the `cd-*.js` files. The dev-only test harness `tests/run-tests.mjs` is now **~6,176 lines** (the largest file in the repo) — still flagged on ROADMAP for a per-group split; low priority (suite ~30s, green).
+
+**Table-stakes audit:** checklist remains **complete** (favicon/meta/OG, PWA install + offline, touch/pointer, gamepad, keyboard a11y for menus + draft, colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile, bigger tap targets). Only open follow-ups are non-blocking: a raster PNG icon set for stricter PWA installability audits (needs a binary asset; repo is asset-free), and the long-standing test-harness file split.
+
+**Findings → ROADMAP:** refreshed the test-harness-size note (was "5,810 lines / 87 groups / 938 assertions" → "6,176 lines / 92 groups / 986 assertions") and appended v1.84.1 to the table-stakes re-audit list. No bugs found; no code behavior changed this run.
+
+---
+
 ## v1.84.0 — 2026-06-15 — 🎯 Sharpshooter — new achievement (master the Railgun's piercing line)
 
 **Type:** New content (achievement). Minor bump.
