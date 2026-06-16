@@ -600,6 +600,14 @@ _None currently known._ (Add any here as they're found — these are top priorit
       chain + Overkill detonation are full-damage by construction. The first enemy that resists a *damage source*
       (vs HP/speed/CC/leak-cost axes). Run-only/save-safe. Test [98]. **Follow-up (optional):** a tower spec or
       perk that *adds* explosion penetration vs blast-shells, or a Mayhem "bastion surge" wave-mod cousin.
+      **v1.91.0 added the ⚡ Jammer enemy (w16+, ALL modes)** — a tower-DISABLING regular enemy on a
+      brand-new **tower uptime/coverage** axis: while alive it periodically knocks the nearest tower
+      offline for ~1.6s (reuses the Static Storm `empT` infra). It's the regular-enemy cousin of the
+      Disruptor boss / Static Storm mod (like the Molten brought CC-immunity from boss/mayhem to a
+      regular enemy), bringing tower-disable pressure to Classic/Campaign too, off the invariant-capped
+      HP curve. Bounded (modest HP ×1.15, one tower/pulse, brief disable, buff towers immune, freeze
+      pauses it, self-recovers) → can't make a run easier. Test [99]. **Follow-up (optional):** a Mayhem
+      "jammer surge" wave-mod cousin, or a tower spec/perk that hardens a tower against being jammed.
       **v1.64.0 steepened the boss ARMOR slope `w*0.4 → w*0.5`** — the genuinely-open late lever
       (flat-subtraction armor barely touches high-dmg towers, is ignored by Mortar/AP/Poison, but
       hardens the cheap high-rate-low-dmg gun build the owner flagged: a leveled gun's boss kill is

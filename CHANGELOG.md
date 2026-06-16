@@ -3,6 +3,23 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.91.0 — 2026-06-16 — ⚡ Jammer — new enemy that knocks your towers offline
+
+**Type:** Content (new enemy kind). Minor bump. Enemy kinds 11 → 12.
+
+**What & why.** Added the **⚡ Jammer**, a tower-**disabling** enemy that appears from **wave 16 in every mode** (Classic, Campaign, Mayhem). While alive (and not frozen) it periodically knocks the **nearest firing tower offline** for ~1.6s as it advances, so a small coverage blackout rolls down the path with it. This targets the long-standing **"too easy"** feedback on a **fresh axis — tower uptime/coverage**. Until now, tower-disable lived only on the deep **Disruptor** boss (w20+) and the Mayhem-only **Static Storm** wave-mod; the Jammer is the **regular-enemy cousin** of those (just as the Molten brought CC-immunity from boss/mayhem to a regular enemy), bringing that pressure to **Classic & Campaign** — the modes the owner flagged as too soft — off the invariant-capped HP curve. It rewards spacing towers out, building redundancy, and focusing the Jammer down fast.
+
+**Bounded / "too easy"-safe.** It can never make a run *easier*: modest HP (`×1.15`), near-normal speed (`×0.95`), **one tower per pulse**, a **brief 1.6s** disable on a ~3s cycle (shorter than Static Storm/Disruptor's 2.2s), **buff/support towers immune**, **freeze pauses it**, a **local 105px reach**, and any disabled tower **self-recovers** (the `empT` timer decays unconditionally even if the Jammer dies mid-disable).
+
+**Implementation (confined diff, reuses existing EMP infra).**
+- `buildWave` (cd-game.js): appended `if (w >= 16 && i % 15 === 14) e = { kind:'jammer', hp:t.hp*1.15, spd:t.speed*0.95, r:12, bounty:Math.ceil(t.bounty*1.9), color:'#f2e34a', armor:0, gap:0.8 }` — the final regular-kind override on a slot collision. `waveComposition` + `KIND_HP_MULT` (=1.15) mirror it (drift-guarded by test `[40]`).
+- The EMP **pulse lives in the enemy loop** (cd-update.js, gated `e.kind==='jammer' && e.frozen<=0`): a lazy `e.jamCd` timer (~3s) sets the nearest in-range non-buff tower's `t.empT = 1.6` + a cyan burst + `SFX.zap()` + small shake. It **reuses the Static Storm `empT` infrastructure** — the firing-skip, per-frame unconditional decay, and render dim/⚡ ring are all general (not mod-gated) — so the pulse is the only new logic.
+- Render (cd-render.js): electric-yellow sphere `#f2e34a`, always-shown `⚡` glyph (`enemyGlyph`/`GLYPH_FONT`/`PREVIEW_COLOR`), an electric-yellow cue ring keyed on `e.kind==='jammer'`, plus the colorblind symbol-legend entry (cd-update.js).
+
+**Save-safe.** Enemies are run-only (never persisted) and `jamCd` is lazily initialised — no save/schema change, no economy/balance impact on existing numbers. `GAME_VERSION` → v1.91.0; `sw.js` `CACHE` bumped to match.
+
+**Tests.** New group `[99]` (cd tests/run-tests.mjs): wave gating (none <16, present ≥16), HP = template×1.15, knocks the nearest tower offline, freeze pauses it, buff towers immune, out-of-range (>105px) safe, composition/glyph/colour/HP-mult plumbing + `waveThreat===buildWave` sync at w16, and a wave-16+ god-tower integration run that clears alive. Full suite **1075/0 green**; verified in-browser (jammers gate at w16, a real tower hits `empT≈1.58`, ⚡ glyph, clean `draw()`, zero console errors).
+
 ## v1.90.0 — 2026-06-16 — ⬢ Bastion — new enemy that resists explosive splash
 
 **Type:** Content (new enemy kind). Minor bump. Enemy kinds 10 → 11.

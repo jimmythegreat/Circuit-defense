@@ -6652,6 +6652,92 @@ async function main() {
     await page.close();
   }
 
+  // [99] Jammer enemy — tower-disabling regular enemy from wave 16+ (v1.91.0)
+  console.log('\n[99] Jammer enemy (tower-disabling)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w16, present from w16; HP ≈ template×1.15
+      const w15 = buildWave(15).some(e => e.kind === 'jammer');
+      const w16list = buildWave(16).filter(e => e.kind === 'jammer');
+      const w16 = w16list.length;
+      const t16 = enemyTemplate(16);
+      const hpOk = w16list[0] ? Math.abs(w16list[0].maxHp - t16.hp * 1.15) < 0.01 : false;
+
+      // (b) EMP behaviour: a jammer knocks the nearest firing tower offline (sets empT > 0);
+      // freeze pauses it; buff towers are immune. Co-locate the tower at the jammer's RESOLVED
+      // path point (update() overwrites e.x/e.y from pointAt(dist) every tick — the aura x/y gotcha).
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      const dp = pointAt(60);
+      const jamRun = (frozen, towerType) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        enemies.push({ kind:'jammer', hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#f2e34a',
+          armor:0, gap:0.8, dist:60, x:dp.x, y:dp.y, px:dp.x, py:dp.y, slow:0, slowF:0.6,
+          frozen: frozen ? 999 : 0, poison:null, flash:0 });
+        towers.push({ type:towerType, x:dp.x+20, y:dp.y, range:120, dmg:1, rate:1, cd:0, level:1,
+          baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, empT:0 });
+        let sawOffline = false;
+        for (let i = 0; i < 360; i++) { update(1/60); if (towers[0] && towers[0].empT > 0) sawOffline = true; }
+        return sawOffline;
+      };
+      const jammerEmps = jamRun(false, 'gun');
+      const frozenNoEmp = !jamRun(true, 'gun');
+      const buffImmune = !jamRun(false, 'buff');
+
+      // (c) out-of-range: a tower far from the jammer is never disabled (105px local reach).
+      enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      enemies.push({ kind:'jammer', hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#f2e34a',
+        armor:0, gap:0.8, dist:60, x:dp.x, y:dp.y, px:dp.x, py:dp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 });
+      towers.push({ type:'gun', x:dp.x+400, y:dp.y, range:120, dmg:1, rate:1, cd:0, level:1,
+        baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0, empT:0 });
+      let farOffline = false;
+      for (let i = 0; i < 360; i++) { update(1/60); if (towers[0] && towers[0].empT > 0) farOffline = true; }
+      const outOfRangeSafe = !farOffline;
+      enemies.length = 0; towers.length = 0;
+
+      // (d) preview/render plumbing: composition + glyph + colour + HP mult all know it, and the
+      // threat number stays in sync with the real buildWave() total at w16.
+      const compHasJammer = waveComposition(16).some(c => c.kind === 'jammer');
+      const glyph = enemyGlyph({ kind:'jammer', frozen:0 });
+      const frozenGlyph = enemyGlyph({ kind:'jammer', frozen:1 });   // frozen overrides to ❄
+      const hasColor = !!PREVIEW_COLOR.jammer;
+      const hpMult = KIND_HP_MULT.jammer;
+      const threatOk = Math.abs(waveThreat(16) - buildWave(16).reduce((s,e)=>s+e.maxHp,0)) < 0.01;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (e) integration: a real wave-16+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 18 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w15, w16, hpOk, jammerEmps, frozenNoEmp, buffImmune, outOfRangeSafe, compHasJammer,
+               glyph, frozenGlyph, hasColor, hpMult, threatOk, run };
+    });
+    check('no jammers before wave 16', r.w15 === false);
+    check('jammers spawn from wave 16', r.w16 >= 1, 'count=' + r.w16);
+    check('jammer HP is template×1.15', r.hpOk);
+    check('jammer knocks the nearest tower offline (empT > 0)', r.jammerEmps);
+    check('a frozen jammer does NOT emp (freeze pauses it)', r.frozenNoEmp);
+    check('a buff/support tower is immune to the jammer', r.buffImmune);
+    check('a tower beyond 105px is never disabled (local reach)', r.outOfRangeSafe);
+    check('waveComposition includes jammer at wave 16', r.compHasJammer);
+    check('enemyGlyph returns ⚡ for jammer', r.glyph === '⚡', 'glyph=' + r.glyph);
+    check('a frozen jammer still shows the ❄ glyph (cosmetic)', r.frozenGlyph === '❄');
+    check('PREVIEW_COLOR has a jammer colour', r.hasColor);
+    check('KIND_HP_MULT.jammer is 1.15 (matches buildWave)', r.hpMult === 1.15, 'mult=' + r.hpMult);
+    check('waveThreat stays in sync with buildWave at w16 (jammer counted)', r.threatOk);
+    check('wave-16+ run with jammers reaches w>=18 alive', r.run.wave >= 18 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during jammer tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

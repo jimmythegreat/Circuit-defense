@@ -187,6 +187,35 @@ function update(dt) {
         if (Math.hypot(o.x-e.x, o.y-e.y) < 75) o.warded = 0.25;
       }
     }
+    // Jammer enemy (v1.91.0): the REGULAR-enemy cousin of the Disruptor boss / Static Storm mod.
+    // Every ~3s it knocks the NEAREST firing tower within 105px offline (sets t.empT) as it
+    // advances, so a small coverage blackout rolls down the path with it — pressuring tower
+    // UPTIME/coverage on a fresh axis (not the invariant-capped HP curve), in ALL modes. Reuses the
+    // Static Storm `empT` infra: the firing-skip, per-frame decay, and render dim/⚡ ring are all
+    // general (not mod-gated), so this pulse is the only new code. Bounded: one tower per pulse, a
+    // SHORT 1.6s disable, buff towers immune (always), and the tower self-recovers (empT decays
+    // unconditionally) even if the jammer dies mid-disable. Freeze pauses it (gated frozen<=0), like
+    // the heal/warden auras. The 105px reach keeps it a LOCAL threat (space your towers / focus the
+    // jammer to counter it). Run-only lazy timer — enemies are never saved, so no migration.
+    if (e.kind === 'jammer' && e.frozen <= 0) {
+      e.jamCd = (e.jamCd == null ? 2 : e.jamCd) - dt;
+      if (e.jamCd <= 0) {
+        e.jamCd = 3;
+        let best = null, bd = 105*105;
+        for (const t of towers) {
+          if (t.type === 'buff' || t.empT > 0) continue;
+          const d2 = (t.x-e.x)*(t.x-e.x) + (t.y-e.y)*(t.y-e.y);
+          if (d2 < bd) { bd = d2; best = t; }
+        }
+        if (best) {
+          best.empT = 1.6;
+          addExplosion(best.x, best.y, '#7df9ff', 10, 120);
+          addExplosion(e.x, e.y, '#7df9ff', 5, 80);
+          SFX.zap();
+          shake = Math.max(shake, 4);
+        }
+      }
+    }
     // Regeneration wave mod (mayhem, v1.33.0): every tagged enemy self-heals 2%/s of its
     // max HP while alive — pressures under-investment in DPS without adding raw HP (re: the
     // recurring "too easy" feedback). Tagged at spawn in buildWave (run-only, never saved),
@@ -914,7 +943,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ⬢ bastion · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ⬢ bastion · ⚡ jammer · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

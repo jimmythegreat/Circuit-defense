@@ -211,6 +211,19 @@ function buildWave(w) {
     // the two dedicated explosive towers). Run-only (enemies are never persisted) — no save
     // migration. Appended last, so it's the final regular-kind override on a slot collision.
     if (w >= 14 && i % 14 === 13) e = { kind:'bastion', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*2.2), color:'#7a86c8', armor:0, gap:0.85, aoeResist:true };
+    // Jammer (v1.91.0): a tower-DISABLING regular enemy from wave 16+ in ALL modes. While alive
+    // (and not frozen) it periodically knocks the nearest firing tower offline (sets empT, ticked
+    // in update()), so a small coverage blackout rolls down the path with it — the REGULAR-enemy
+    // cousin of the Disruptor boss / Static Storm wave-mod (just as the Molten is the regular-enemy
+    // cousin of Heatwave/Juggernaut CC-immunity). It brings tower-UPTIME/coverage pressure —
+    // previously only on the w20+ Disruptor boss and the Mayhem-only Static Storm — to a regular
+    // enemy in Classic & Campaign too (the modes the owner flagged "too easy"), off the
+    // invariant-capped HP curve. Bounded: modest HP (×1.15), near-normal speed, one tower per
+    // pulse, a brief self-recovering disable, buff towers immune, freeze pauses it — so it can't
+    // make a run easier; kill it fast (or space/redundant your towers) to stop the blackouts.
+    // Appended last → the final regular-kind override on a slot collision. Run-only (enemies are
+    // never persisted) — no save migration.
+    if (w >= 16 && i % 15 === 14) e = { kind:'jammer', hp:t.hp*1.15, spd:t.speed*0.95, r:12, bounty:Math.ceil(t.bounty*1.9), color:'#f2e34a', armor:0, gap:0.8 };
     // Warden Surge (Mayhem): convert a fraction of would-be basic enemies into warden
     // escorts so the wave is densely shielded — pressures TARGET PRIORITY (pop the
     // wardens to un-shield the cluster), not raw HP. Only norms convert, so it never
@@ -301,10 +314,11 @@ function waveComposition(w) {
     if (w >= 15 && i % 11 === 10) k = 'warden';
     if (w >= 17 && i % 12 === 11) k = 'breacher';
     if (w >= 12 && i % 13 === 6) k = 'molten';
-    if (w >= 14 && i % 14 === 13) k = 'bastion';  // LAST, mirrors buildWave (final override)
+    if (w >= 14 && i % 14 === 13) k = 'bastion';
+    if (w >= 16 && i % 15 === 14) k = 'jammer';   // LAST, mirrors buildWave (final override)
     tally[k] = (tally[k] || 0) + 1;
   }
-  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher','molten','bastion'];
+  const order = ['norm','fast','tank','heal','shield','split','phantom','warden','breacher','molten','bastion','jammer'];
   const out = order.filter(k => tally[k]).map(k => ({ kind: k, count: tally[k] }));
   if (w % 5 === 0 && w > 0) out.push({ kind: 'boss', count: 1 });
   return out;
@@ -316,7 +330,7 @@ function waveComposition(w) {
 // difficulty and campaign level automatically. The per-kind HP multipliers + the boss multiplier
 // MIRROR buildWave() — KEEP IN SYNC if those change. Like waveComposition, this is the pre-mod
 // base (Mayhem wave-mods like swarm/titans aren't rolled yet), so it's a planning estimate.
-const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0, molten:1.35, bastion:1.6 };
+const KIND_HP_MULT = { norm:1, fast:0.55, tank:3.2, heal:1.4, shield:1.8, split:1.6, phantom:0.9, warden:1.3, breacher:2.0, molten:1.35, bastion:1.6, jammer:1.15 };
 function waveThreat(w) {
   const t = enemyTemplate(w);
   let total = 0;
