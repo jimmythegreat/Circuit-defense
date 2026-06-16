@@ -38,4 +38,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run test suite
         working-directory: tests
-        run: npm test
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+      - name: Surface test failures
+        if: failure()
+        working-directory: tests
+        run: |
+          echo "### Test failures" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^[[:space:]]*✗" test-output.txt >> "$GITHUB_STEP_SUMMARY" || true
+          grep -E "^[[:space:]]*✗" test-output.txt | while IFS= read -r line; do
+            echo "::error::${line#"${line%%[![:space:]]*}"}"
+          done
