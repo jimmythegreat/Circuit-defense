@@ -416,9 +416,16 @@ _None currently known._ (Add any here as they're found — these are top priorit
       secures kills (feeds the combo meter + the 💀 Reaper execute) so stragglers don't limp past.
       First targeting-axis extension since Support (v1.49.0). Raises no stat (pure target priority,
       not power creep); fully data-driven so shop/cycle/save auto-include it; save-safe (`loadRun`'s
-      `MODES.includes()` guard validates old/unknown values to 'first'). Test [80]. **Follow-ups
-      (optional):** a per-tower *default mode* preference, and a "lowest-HP-that-survives-the-shot"
-      smart-finisher variant that avoids overkill.
+      `MODES.includes()` guard validates old/unknown values to 'first'). Test [80]. ✅ **default-mode
+      preference shipped v1.89.0** — a 🎯 **New-tower target** picker in ⚙ Settings (`defaultTargetMode`
+      device pref / `cd_defaultmode` in cd-core.js; `setDefaultMode()` + a data-driven Settings row in
+      cd-update.js; seeded at the placement site in cd-game.js, validated against `MODES`). New towers
+      inherit the chosen mode instead of always starting on 'first' — no more re-cycling every placement.
+      Per-tower mode still round-trips in saves (device pref only, no schema change); unknown values fall
+      back to 'first' at both setter and placement. Same run fixed a latent `renderSettings()` onclick-quoting
+      bug (string option args were `JSON.stringify`'d → double quotes broke the attribute; now single-quoted).
+      Test [97]. **Follow-up (optional):** a "lowest-HP-that-survives-the-shot" smart-finisher variant that
+      avoids overkill.
 - [~] **Start-menu revamp** (owner FEEDBACK, `[low priority]`: "main interface is getting clunky …
       buttons on the bottom row are huge compared to everything else … revamp the whole starting
       menu"). **First slice shipped v1.39.1:** the single flex row of ten equally-large 17px buttons

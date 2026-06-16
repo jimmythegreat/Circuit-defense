@@ -880,12 +880,14 @@ function setShake(on) { shakeEnabled = !!on; try { localStorage.setItem('cd_shak
 function setParticles(d) { particleDensity = +d; try { localStorage.setItem('cd_particles', String(+d)); } catch(e) {} renderSettings(); }
 function setColorblind(on) { colorblindAid = !!on; try { localStorage.setItem('cd_colorblind', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setGridSnap(on) { gridSnap = !!on; try { localStorage.setItem('cd_gridsnap', on ? '1' : '0'); } catch(e) {} renderSettings(); }
+function setDefaultMode(m) { defaultTargetMode = MODES.includes(m) ? m : 'first'; try { localStorage.setItem('cd_defaultmode', defaultTargetMode); } catch(e) {} renderSettings(); }
 function renderSettings() {
   const rows = [
     { name: '📳 Screen shake', fn: 'setShake', cur: shakeEnabled, opts: [['On', true], ['Off', false]] },
     { name: '✨ Particle effects', fn: 'setParticles', cur: particleDensity, opts: [['Full', 1], ['Reduced', 0.5], ['Off', 0]] },
     { name: '♿ Colorblind aid', fn: 'setColorblind', cur: colorblindAid, opts: [['On', true], ['Off', false]] },
     { name: '▦ Grid snap', fn: 'setGridSnap', cur: gridSnap, opts: [['On', true], ['Off', false]] },
+    { name: '🎯 New-tower target', fn: 'setDefaultMode', cur: defaultTargetMode, opts: MODES.map(m => [MODE_ICON[m], m]) },
   ];
   let html = '<div class="setList">';
   // Volume slider (0..100). oninput scales the live gain + updates the % label without
@@ -901,7 +903,10 @@ function renderSettings() {
     html += `<div class="setRow"><span class="setName">${r.name}</span><span class="setOpts">`;
     for (const [lbl, val] of r.opts) {
       const active = r.cur === val ? ' active' : '';
-      html += `<button class="setBtn${active}" onclick="${r.fn}(${JSON.stringify(val)})">${lbl}</button>`;
+      // string args (e.g. targeting-mode keys) get single quotes so they don't terminate
+      // the double-quoted onclick attribute; booleans/numbers stay bare via JSON.stringify.
+      const arg = typeof val === 'string' ? `'${val}'` : JSON.stringify(val);
+      html += `<button class="setBtn${active}" onclick="${r.fn}(${arg})">${lbl}</button>`;
     }
     html += '</span></div>';
   }

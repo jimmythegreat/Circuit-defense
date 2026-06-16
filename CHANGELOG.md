@@ -3,6 +3,18 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.89.0 — 2026-06-16 — 🎯 Default targeting mode — new towers inherit your chosen priority
+
+**Type:** Quality-of-life (UX). Minor bump.
+
+**What & why:** Every tower you place starts on the ⏩ **First** targeting priority, so anyone who prefers a different priority (focus the **Strong**est, the **Last**/furthest-along, the **Close**st, the **Weak**est finisher, or **Support** aura-poppers) has had to click each new tower and cycle its mode by hand **after every single placement** — tedious when you're building a board of 10+ towers. Now ⚙ **Settings** has a **🎯 New-tower target** picker: choose any of the six targeting modes and **every tower you place from then on inherits it automatically**. The choice is saved on this device (`cd_defaultmode`), so it sticks across runs and reloads. You can still cycle any individual tower's mode whenever you like — this only changes the *starting* default. (Explicit ROADMAP follow-up under the Weak-targeting item: "a per-tower default mode preference.")
+
+**Bounded / save-safe:** purely a convenience — it doesn't touch tower stats, gold, chips, balance, or the save schema. The **per-tower `mode` already round-trips** through `saveRun`/`loadRun`, so loading an existing run is unchanged; the default only seeds *fresh* placements. An unrecognized/old persisted value safely falls back to **First** at both the setter and the placement site (validated against `MODES`).
+
+**Implementation:** a `defaultTargetMode` device pref in `cd-core.js` (read raw from `cd_defaultmode`, default `'first'` — `MODES` isn't defined yet at that point, so it's validated at use); the placement site in `cd-game.js` seeds `mode: MODES.includes(defaultTargetMode) ? defaultTargetMode : 'first'`; `setDefaultMode(m)` + a data-driven Settings row (`opts: MODES.map(m => [MODE_ICON[m], m])`) in `cd-update.js`; `resetAllData()` (cd-state.js) restores it to `'first'`. **Also fixed a latent bug** in `renderSettings()`: the shared onclick builder used `JSON.stringify(val)`, which double-quotes **string** args and would have terminated the double-quoted `onclick` attribute — now string args are single-quoted (`'weak'`), booleans/numbers stay bare (no existing row passed a string, so no behaviour change there). One CSS tweak: `.setOpts` gains `flex-wrap: wrap; justify-content: flex-end` so the six mode buttons wrap cleanly to the right.
+
+**Tests:** new group `[97]` (global + setter exist; with no default a new tower starts on First; `setDefaultMode` persists to `cd_defaultmode`; a newly-placed tower inherits the chosen default; setter **and** placement validate an unknown value back to First; every `MODES` value is a valid default; Settings renders the picker row; a saved tower keeps its own mode — no save-schema change; `resetAllData` restores First; zero console errors). Full suite **1045/0 green**.
+
 ## v1.88.0 — 2026-06-16 — ↻ Revenant — 11th boss archetype (reboots once on death)
 
 **Type:** Content (new boss archetype). Minor bump.

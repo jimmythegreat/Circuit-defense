@@ -119,7 +119,7 @@
   .setList { display: flex; flex-direction: column; gap: 12px; margin: 16px auto; min-width: 320px; }
   .setRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .setName { color: #e3e6eb; font-size: 15px; }
-  .setOpts { display: flex; gap: 6px; }
+  .setOpts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
   .setBtn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 6px;
             padding: 6px 14px; font-size: 14px; cursor: pointer; font-family: inherit; }
   .setBtn:hover { background: #30363d; color: #e3e6eb; }

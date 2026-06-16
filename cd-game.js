@@ -659,7 +659,10 @@ function boardPress(x, y) {
     type: selectedShop, x: p.x, y: p.y,
     range: def.range, dmg: def.dmg, rate: def.rate,
     cd: 0, level: 1, baseCost: def.cost, invested: cost, angle: 0,
-    mode: 'first', spec: null, dealt: 0, kills: 0, buffPower: 0.25, flash: 0
+    // New towers inherit the Settings default targeting mode (v1.89.0); validate against
+    // MODES so an unknown/old persisted value falls back to 'first'. (Buff towers ignore mode.)
+    mode: MODES.includes(defaultTargetMode) ? defaultTargetMode : 'first',
+    spec: null, dealt: 0, kills: 0, buffPower: 0.25, flash: 0
   });
   addExplosion(p.x, p.y, def.color, 8, 60);
   SFX.place();

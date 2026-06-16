@@ -6475,6 +6475,96 @@ async function main() {
     await page.close();
   }
 
+  // [97] Default targeting mode — new towers inherit a chosen Settings default (v1.89.0)
+  console.log('\n[97] Default targeting mode (new-tower default)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      try { localStorage.removeItem('cd_defaultmode'); } catch(e) {}
+      beginGame();
+      gold = 1e9; towers.length = 0; selectedTower = null; selectedShop = null;
+
+      const hasGlobal = typeof defaultTargetMode === 'string';
+      const settingFn = typeof setDefaultMode === 'function';
+
+      const rect = cv.getBoundingClientRect();
+      const tap = (x, y) => cv.dispatchEvent(new PointerEvent('pointerdown', {
+        clientX: rect.left + x * rect.width / W,
+        clientY: rect.top + y * rect.height / H, button: 0, bubbles: true,
+      }));
+      // a placeable point on the board
+      let pX = -1, pY = -1;
+      for (let yy = 70; yy < H - 70 && pX < 0; yy += 13)
+        for (let xx = 70; xx < W - 70; xx += 13) {
+          const sp = placeCoord(xx, yy);
+          if (canPlace(sp.x, sp.y)) { pX = xx; pY = yy; break; }
+        }
+
+      // Baseline: with no default set, a new tower still starts on 'first'.
+      defaultTargetMode = 'first';
+      towers.length = 0; selectedShop = 'gun';
+      tap(pX, pY);
+      const defaultsFirst = towers.length > 0 && towers[towers.length - 1].mode === 'first';
+
+      // Set the default to 'strong' → it persists, and the NEXT placed tower inherits it.
+      setDefaultMode('strong');
+      const persisted = localStorage.getItem('cd_defaultmode') === 'strong' && defaultTargetMode === 'strong';
+      towers.length = 0; selectedShop = 'gun';
+      tap(pX, pY);
+      const inheritsStrong = towers.length > 0 && towers[towers.length - 1].mode === 'strong';
+
+      // An unknown/old persisted value falls back to 'first' at the setter AND the placement site.
+      setDefaultMode('bogus');
+      const setterValidates = defaultTargetMode === 'first';
+      defaultTargetMode = 'bogus';            // simulate a stale value bypassing the setter
+      towers.length = 0; selectedShop = 'gun';
+      tap(pX, pY);
+      const placeValidates = towers.length > 0 && towers[towers.length - 1].mode === 'first';
+
+      // Every MODES value is a valid default (data-driven, like the in-game cycle button).
+      let allModesValid = true;
+      for (const m of MODES) { setDefaultMode(m); if (defaultTargetMode !== m) { allModesValid = false; break; } }
+
+      // Settings panel renders the picker row (one button per mode).
+      setDefaultMode('weak');
+      renderSettings();
+      const body = document.getElementById('settingsBody').innerHTML;
+      const rowShown = /New-tower target/.test(body) && body.indexOf("setDefaultMode('weak')") >= 0;
+
+      // Per-tower mode still round-trips in saves (no save-schema change): the default only
+      // affects fresh placement, a loaded tower keeps its own saved mode.
+      defaultTargetMode = 'first';
+      towers.length = 0; selectedShop = 'gun'; tap(pX, pY);
+      towers[towers.length - 1].mode = 'last';
+      saveRun();
+      const reloaded = loadRun();
+      const savedModeKept = reloaded === true && towers.some(t => t.mode === 'last');
+
+      // resetAllData() restores the default to 'first'.
+      setDefaultMode('support');
+      resetAllData(); resetAllData();        // two clicks within 3s to commit
+      const resetOk = defaultTargetMode === 'first';
+
+      try { localStorage.removeItem('cd_defaultmode'); localStorage.removeItem('cd_save'); } catch(e) {}
+      backToMenu();
+      return { hasGlobal, settingFn, defaultsFirst, persisted, inheritsStrong,
+               setterValidates, placeValidates, allModesValid, rowShown, savedModeKept, resetOk };
+    });
+    check('defaultTargetMode global + setDefaultMode setter exist', r.hasGlobal && r.settingFn);
+    check('with no default set, a new tower starts on First', r.defaultsFirst);
+    check('setDefaultMode persists to cd_defaultmode', r.persisted);
+    check('a newly placed tower inherits the chosen default (Strong)', r.inheritsStrong);
+    check('setter validates an unknown value back to First', r.setterValidates);
+    check('placement validates a stale unknown default back to First', r.placeValidates);
+    check('every targeting MODE is a valid default', r.allModesValid);
+    check('Settings renders the New-tower target picker row', r.rowShown);
+    check('a saved tower keeps its own mode (no save-schema change)', r.savedModeKept);
+    check('resetAllData restores the default to First', r.resetOk);
+    check('no console errors during default-targeting test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
