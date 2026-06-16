@@ -3,6 +3,20 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v1.89.1 — 2026-06-16 — 🩺 Health check — all green (1045/0, docs coherent, no drift)
+
+**Type:** Health check (maintenance, no new feature). Patch bump. This is the periodic 6th-run check (5 feature entries since the v1.84.1 health check: v1.85.0–v1.89.0).
+
+**1. Refactor audit:** All seven `cd-*.js` files are comfortably under the ~1500-line soft cap — cd-update.js 1202, cd-render.js 854, cd-game.js 794, cd-core.js 512, cd-defs.js 447, cd-maps.js 298, cd-state.js 198. A whole-symbol cross-file sweep (incl. `tower-defense.html` string `onclick=` handlers) found **no dead code** and **no risky duplication** (the two near-duplicate CC-clear lines and the `genMayhem/CampaignPath` aliases are intentional and left as-is). No cleanup needed this run.
+
+**2. Docs coherence:** Verified CLAUDE.md feature counts against the code — all accurate: 11 boss archetypes (`BOSS_ARCHETYPES`), 17 achievements (`ACHIEVEMENTS`), 9 towers, 6 targeting modes (`MODES`), 4 abilities (`ABILITIES`), 22 talents (`TALENTS`), 18 Mayhem wave-mods (`WAVE_MODS`). `GAME_VERSION`, `sw.js` `CACHE`, and the CHANGELOG/CHANGELOG_ENTRIES top entry are all consistent at v1.89.x. **Fixed one drift:** ROADMAP's "Split the test harness file" item still cited `~6,176 lines (92 groups, 986 assertions)` — actual is **6,581 lines, 97 groups `[1]`–`[97]`, 1045 assertions**; updated. Vetoed-by-owner section intact (still none recorded).
+
+**3. Table-stakes audit:** The checklist remains **complete** — favicon/meta/OG, PWA install + offline, touch/pointer, gamepad, keyboard a11y (menus + draft), colorblind aid, reduced-motion, volume slider, high-DPI scaling, responsive/mobile, 44px tap targets. Only optional polish follow-ups remain (PNG icon set for stricter Lighthouse audits, remappable gamepad buttons, per-theme ground textures), already logged in ROADMAP. No new gaps found.
+
+**4. Integrity spot-checks:** Full suite **1045/0 green**, zero console errors. `file://` playability intact — no `type="module"` in the markup, and the SW registration stays http/https-guarded. Old-save migration verified by inspection: `loadMeta()` defaults `talents`/`achievements`/`stats`/`bestCombo`; `loadRun()` guards `gameTime` (typeof), validates `mapTheme` and per-tower `mode` (`MODES.includes` → 'first'), and merges `perkState` over `freshPerkState()` so any newer perk field defaults cleanly.
+
+**Net change:** version bumps (GAME_VERSION, sw.js CACHE, CHANGELOG_ENTRIES, What's New) + one stale ROADMAP metric corrected. No code, gameplay, balance, economy, or save changes. Resets the health-check counter.
+
 ## v1.89.0 — 2026-06-16 — 🎯 Default targeting mode — new towers inherit your chosen priority
 
 **Type:** Quality-of-life (UX). Minor bump.
