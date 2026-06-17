@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.7.0 — 2026-06-17 — 🟣 Warper — the 13th boss archetype (yanks nearby allies forward)
+
+**Type:** New content (boss archetype). Minor bump. The 13th archetype, first appearing at wave 80 (deep endless); rotation now `.length` 13 and wraps at w85.
+
+The 🟣 **Warper** manipulates its *allies'* path position — the offensive inverse of the player's 🌀 Shockwave (which shoves enemies back). In the gated tick block a `warpCd` (~5s) fires a rift that adds `o.dist += 30` to every non-boss enemy within 130px, lurching the cluster toward the exit — a fresh axis (coverage/leak pressure), not the invariant-capped HP curve. Bounded/"too easy"-safe: no extra HP or speed, a small periodic local pull, and freeze pauses it. Indigo aura ring + `WARPER` boss-bar badge; fires `SFX.shock()` + an indigo burst. All fields run-only (enemies never persisted) → save-safe. Test group [119] (+ rotation pins in [45]/[96]/[114] updated for the 12→13 cycle); suite green (1269/0).
+
 ## v2.6.0 — 2026-06-17 — 🧱 Aegis — new meta talent (+1 Barrier charge per rank)
 
 **Type:** New content (meta talent). Minor bump. The 24th talent and the first meta upgrade to the 🛡️ Barrier ability.

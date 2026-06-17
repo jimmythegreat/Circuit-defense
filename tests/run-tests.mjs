@@ -2494,14 +2494,14 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 12 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, then wraps (w80 → regen).
+      // Rotation by boss number: (w/5 - 4) % 13 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, then wraps (w85 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
-                    && bt(75) === 'conduit' && bt(80) === 'regen';
+                    && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6467,7 +6467,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 12);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 13);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7730,10 +7730,11 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 12th archetype: appears at w75 (after revenant at w70), wraps at w80 → regen.
+      // 12th archetype: appears at w75 (after revenant at w70). Warper (13th) follows at w80, so
+      // the rotation now wraps at w85 → regen.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(75) === 'conduit';
-      const wrapsAt80 = bt(80) === 'regen';
+      const wrapsAt80 = bt(80) === 'warper' && bt(85) === 'regen';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -7794,8 +7795,8 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 12);
-    check('rotation wraps after conduit (w80 → regen)', r.wrapsAt80);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 13);
+    check('warper follows conduit (w80), rotation wraps at w85 → regen', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
     check('escort shield caps at 5 (7 near → guard 5)', r.guardCaps5);
@@ -8075,6 +8076,77 @@ async function main() {
     check('rank 2 => barrierMax 5 and cast banks 5', r.max2 === 5 && r.cast2, JSON.stringify(r));
     check('loadMeta migrates a pre-Aegis save (key defaults 0)', r.migratedOk, JSON.stringify(r));
     check('no console errors during Aegis test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [119] Warper boss archetype — the 13th: every ~5s yanks nearby allies 30px forward along the
+  // path (offensive inverse of Shockwave); adds no HP/speed; freeze pauses it (v2.7.0)
+  console.log('\n[119] Warper boss (forward-pull archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 13th archetype: appears at w80 (after conduit at w75), wraps at w85 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(80) === 'warper';
+      const wrapsAt85 = bt(85) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const farP = pointAt(600);
+      // boss spd 0 so its own dist is fixed; explicit x/y so the frame-1 distance check is exact
+      // (update() sets x/y per-enemy mid-loop — aura-test gotcha).
+      const mkBoss = () => ({ kind:'boss', bossType:'warper', hp:5000, maxHp:5000, spd:0, r:24,
+        bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+      const mkAdd = (atFar) => ({ kind:'norm', hp:200, maxHp:200, spd:0, r:11, bounty:2, color:'#3fb950',
+        armor:0, gap:0.8, dist: atFar ? 600 : 60, x: atFar ? farP.x : sp.x, y: atFar ? farP.y : sp.y,
+        px: atFar ? farP.x : sp.x, py: atFar ? farP.y : sp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 });
+
+      // (A) a primed pulse yanks a NEAR ally +30px forward; a FAR ally is untouched.
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      const boss = mkBoss(); boss.warpCd = 0.001; enemies.push(boss);
+      const near = mkAdd(false), far = mkAdd(true);
+      enemies.push(near, far);
+      update(1/60);
+      const nearPulled = Math.abs(near.dist - 90) < 1e-6;   // 60 + 30 (spd 0)
+      const farUntouched = Math.abs(far.dist - 600) < 1e-6;
+      const bossUnchanged = boss.dist === 60 && boss.spd === 0 && boss.hp === 5000;  // no HP/speed added
+
+      // (B) not yet primed: a fresh warper doesn't pull on the first frame (warpCd ~4s).
+      enemies.length = 0;
+      const boss2 = mkBoss(); enemies.push(boss2);
+      const a2 = mkAdd(false); enemies.push(a2);
+      update(1/60);
+      const noEarlyPull = Math.abs(a2.dist - 60) < 1e-6;
+
+      // (C) a FROZEN warper doesn't pull even when primed (freeze counters it).
+      enemies.length = 0;
+      const fb = mkBoss(); fb.frozen = 5; fb.warpCd = 0.001; enemies.push(fb);
+      const a3 = mkAdd(false); enemies.push(a3);
+      update(1/60);
+      const frozenNoPull = Math.abs(a3.dist - 60) < 1e-6;
+
+      // (D) badge names the archetype.
+      const badge = bossMechanicBadge(fb);
+      const badgeOk = !!badge && badge.label === 'WARPER';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
+               noEarlyPull, frozenNoPull, badgeOk };
+    });
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 13);
+    check('rotation wraps after warper (w85 → regen)', r.wrapsAt85);
+    check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
+    check('a far ally (out of range) is untouched', r.farUntouched);
+    check('the warper adds no HP or speed of its own', r.bossUnchanged);
+    check('a fresh warper does not pull on frame 1 (warpCd ~4s)', r.noEarlyPull);
+    check('a frozen warper does not pull (freeze counters it)', r.frozenNoPull);
+    check('boss-bar badge reads WARPER', r.badgeOk);
+    check('no console errors during Warper test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

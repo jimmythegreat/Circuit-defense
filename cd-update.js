@@ -271,6 +271,8 @@ function update(dt) {
     //                CC pressure axis; freeze/frost can't lock it down, so it needs raw DPS
     //   siphon     : drains the player's GOLD every ~3.5s while alive (floored at 0) — a fresh
     //                ECONOMIC pressure axis (no other archetype touches gold); kill it fast or it bleeds you
+    //   warper     : every ~5s yanks nearby allies 30px FORWARD along the path (the offensive
+    //                inverse of the player's Shockwave) — pressures coverage/leak, adds no HP/speed
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
     // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
@@ -395,6 +397,30 @@ function update(dt) {
         if (e.linkCd <= 0) {
           e.linkCd = 2.5;
           if (guard > 0) { addExplosion(e.x, e.y, '#5ef2c8', 7, 95); SFX.bossSkill(); }
+        }
+      } else if (e.bossType === 'warper') {
+        // Warper (v2.7.0, the 13th archetype — a fresh axis: it manipulates its ALLIES' path
+        // POSITION, the offensive inverse of the player's Shockwave ability). Every ~5s it tears
+        // a rift that YANKS every nearby non-boss enemy 30px FORWARD along the path (dist += 30),
+        // so the cluster travelling with it lurches toward the exit — pressuring COVERAGE/leak,
+        // not the invariant-capped HP curve. Distinct from the enrager (continuous speed buff)
+        // and the teleporter (self-only blink): this is a discrete forward shove of OTHERS.
+        // Bounded / "too easy"-safe: it adds NO HP or speed, the pull is small (30px) and periodic
+        // (every 5s), only reaches nearby allies (130px), and freeze pauses it (gated block) — so
+        // it can only add pressure, never make a run easier. Run-only lazy timer, never persisted.
+        e.warpCd = (e.warpCd == null ? 4 : e.warpCd) - dt;
+        if (e.warpCd <= 0) {
+          e.warpCd = 5;
+          let pulled = 0;
+          for (const o of enemies) {
+            if (o === e || o.dead || o.kind === 'boss') continue;
+            if (Math.hypot(o.x - e.x, o.y - e.y) < 130) { o.dist += 30; pulled++; }
+          }
+          if (pulled > 0) {
+            addExplosion(e.x, e.y, '#7c6cff', 12, 130);
+            SFX.shock();
+            shake = Math.max(shake, 5);
+          }
         }
       }
     }
