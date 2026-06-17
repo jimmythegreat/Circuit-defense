@@ -8032,6 +8032,52 @@ async function main() {
     await page.close();
   }
 
+  // [118] Aegis meta talent — +1 banked Barrier charge per rank (3 base → 5), defensive,
+  // save-safe via loadMeta migration (v2.6.0)
+  console.log('\n[118] Aegis Barrier-charge talent');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = TALENTS.aegis;
+      const inTree = !!def && def.sect === 'CORE' && def.max === 2;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+
+      // rank 0 -> base 3 charges
+      meta.talents = {};
+      const base0 = barrierMax();
+      abilityCd.barrier = 0; triggerAbility('barrier');
+      const cast0 = barrierCharges === 3;
+
+      // rank 2 -> 5 charges, reflected by barrierMax() AND the actual cast
+      meta.talents.aegis = 2;
+      const max2 = barrierMax();
+      barrierCharges = 0; abilityCd.barrier = 0; triggerAbility('barrier');
+      const cast2 = barrierCharges === 5;
+
+      // loadMeta migrates an old save that predates the talent (key defaults to 0)
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 30, talents: { funding: 3 } }));
+      loadMeta();
+      const migratedOk = meta.talents.aegis === 0 && meta.talents.funding === 3 && meta.chips === 30;
+
+      // cleanup
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+      loadMeta();
+      localStorage.removeItem('cd_meta'); localStorage.removeItem('cd_save');
+      barrierCharges = 0; enemies.length = 0;
+      backToMenu();
+      return { inTree, base0, cast0, max2, cast2, migratedOk };
+    });
+    check('Aegis is a CORE talent (max 2)', r.inTree);
+    check('rank 0 => barrierMax 3 and cast banks 3', r.base0 === 3 && r.cast0, JSON.stringify(r));
+    check('rank 2 => barrierMax 5 and cast banks 5', r.max2 === 5 && r.cast2, JSON.stringify(r));
+    check('loadMeta migrates a pre-Aegis save (key defaults 0)', r.migratedOk, JSON.stringify(r));
+    check('no console errors during Aegis test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

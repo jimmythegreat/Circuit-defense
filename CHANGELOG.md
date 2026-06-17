@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.6.0 — 2026-06-17 — 🧱 Aegis — new meta talent (+1 Barrier charge per rank)
+
+**Type:** New content (meta talent). Minor bump. The 24th talent and the first meta upgrade to the 🛡️ Barrier ability.
+
+`aegis` (CORE, max 2, `cost 14 + r*12`) adds +1 banked Barrier charge per rank, so a cast banks `BARRIER_CHARGES + tRank('aegis')` (3 → up to 5) via the new `barrierMax()` helper (used for both the count and the floater text). Surge/Capacitor already cut ability cooldowns, so charges is Barrier's distinct lever. Purely defensive — Barrier vaporizes leaks for zero lives and pays no bounty, so it can't power-creep the "too easy" feedback; it just deepens the panic-wall vs leak-pressure content. Save-safe: `loadMeta`'s `Object.keys(TALENTS)` loop auto-migrates the new key to 0 for old saves. Test group [118]; suite green (1260/0).
+
 ## v2.5.1 — 2026-06-17 — 🩺 Health check — all green (1255/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 feature entries since the last health check v2.0.1: v2.0.2, v2.1.0, v2.2.0, v2.3.0, v2.4.0, v2.5.0 — past the 5-run trigger.)

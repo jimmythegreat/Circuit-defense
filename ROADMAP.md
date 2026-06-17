@@ -30,10 +30,10 @@ _None currently known._ (Add any here as found — top priority.)
       per-campaign-tier *fixed* archetypes (vs the wave-number cycle); a Breacher variant that costs
       lives only if it *survives* a tower's range.
 - [ ] **Perk/ability follow-ups** — (legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
-      render DONE v2.5.0 [117], now also reused on Meteor impact); a per-tower ability; a meta talent version
-      of Capacitor (ability-cooldown — note: ⚡ Surge talent already does −6%/rank ability cd, so this would
-      overlap); a Barrier-upgrade talent (more charges / shorter cd); a hidden unlock condition for a secret
-      legendary.
+      render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
+      [118]); a per-tower ability; a meta talent version of Capacitor (ability-cooldown — note: ⚡ Surge talent
+      already does −6%/rank ability cd, so this would overlap); a Barrier *cooldown*-shortening talent (the
+      other Barrier lever, distinct from Aegis's charges); a hidden unlock condition for a secret legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
       ×1.6 double-speed variant of `frenzy`. (Pool is 20 mods; most axes covered.)
 - [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
@@ -114,7 +114,8 @@ _None currently known._ (Add any here as found — top priority.)
 ### Difficulty / progression / meta
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 [109] (progressive late HP, capped, Normal/Campaign exempt).
-- 23 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + Farsight range v1.92.0 [100]);
+- 24 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + Farsight range v1.92.0 [100]
+  + Aegis Barrier-charges v2.6.0 [118]);
   cost rework v1.38.0 [55]. 18 achievements (+ Nightmare Walker v2.0.0); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115]); rares Targeting Array/Ambush/Capacitor/Surge Protector.
