@@ -422,6 +422,25 @@ function update(dt) {
             shake = Math.max(shake, 5);
           }
         }
+      } else if (e.bossType === 'fortifier') {
+        // Fortifier (v2.10.0, the 14th archetype — a fresh axis: it HARDENS over time, ramping its
+        // own armor the longer it stays alive, so deep bosses become a DPS RACE: drop it fast or it
+        // turns into a brick. Reuses the existing `e.armor` flat-subtraction in damage() (no new
+        // damage() code), so — like the boss-armor lever the owner already tuned — it barely touches
+        // high-damage builds (Sniper/Cannon) and is fully ignored by the anti-armor towers
+        // (Mortar/AP-gun ignore armor, Poison corrodes it). Distinct from the bulwark (a periodic %
+        // soak that hurts ALL builds equally): this is a steadily-growing FLAT armor that
+        // asymmetrically checks low-per-hit DPS. The ramp is IN PLACE (increment `e.armor`, capped
+        // at an absolute `fortifyCap` = starting armor + FORTIFY_CAP) rather than recomputed from a
+        // base each frame — so Poison's −3 armor corrosion (in hitEnemy) PERSISTS and the boss
+        // slowly re-hardens toward the cap, keeping the anti-armor counter meaningful (a brick that
+        // re-sets). Bounded / "too easy"-safe: it adds NO HP or speed, the ramp CAPS, and freeze
+        // pauses it (gated block, so a frozen fortifier stops hardening). Run-only fields (`fortifyCap`/
+        // `fortifyCd` lazily snapshot/init), never persisted (enemies aren't saved).
+        if (e.fortifyCap == null) e.fortifyCap = (e.armor || 0) + FORTIFY_CAP;
+        if ((e.armor || 0) < e.fortifyCap) e.armor = Math.min(e.fortifyCap, (e.armor || 0) + FORTIFY_RATE * dt);
+        e.fortifyCd = (e.fortifyCd == null ? 2.5 : e.fortifyCd) - dt;
+        if (e.fortifyCd <= 0) { e.fortifyCd = 2.5; addExplosion(e.x, e.y, '#cd7f32', 8, 95); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -660,6 +679,10 @@ function fireRail(t, target, dmg) {
 // with the charge so the spin-up reads visually. The charge cap/step live here as the levers.
 const BEAM_CHARGE_CAP = 2.2;     // max damage multiplier from a fully spun-up beam
 const BEAM_CHARGE_STEP = 0.12;   // charge gained per shot held on the same target (~10 shots to cap)
+// Fortifier boss archetype (v2.10.0) levers: it ramps its own armor by FORTIFY_RATE/s up to a
+// FORTIFY_CAP bonus over its starting armor, so it hardens the longer it survives (a DPS race).
+const FORTIFY_RATE = 0.5;        // armor gained per second alive
+const FORTIFY_CAP = 40;          // max bonus armor over the boss's starting armor (~80s to cap)
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];

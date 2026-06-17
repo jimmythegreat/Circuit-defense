@@ -2494,14 +2494,16 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 13 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, then wraps (w85 → regen).
+      // Rotation by boss number: (w/5 - 4) % 14 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier, then
+      // wraps (w85 → fortifier, w90 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
-                    && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'regen';
+                    && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
+                    && bt(90) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6467,7 +6469,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 13);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 14);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7730,11 +7732,11 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 12th archetype: appears at w75 (after revenant at w70). Warper (13th) follows at w80, so
-      // the rotation now wraps at w85 → regen.
+      // 12th archetype: appears at w75 (after revenant at w70). Warper (13th) follows at w80 and
+      // fortifier (14th) at w85, so the rotation now wraps at w90 → regen.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(75) === 'conduit';
-      const wrapsAt80 = bt(80) === 'warper' && bt(85) === 'regen';
+      const wrapsAt80 = bt(80) === 'warper' && bt(85) === 'fortifier';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -7795,8 +7797,8 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 13);
-    check('warper follows conduit (w80), rotation wraps at w85 → regen', r.wrapsAt80);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 14);
+    check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
     check('escort shield caps at 5 (7 near → guard 5)', r.guardCaps5);
@@ -8088,10 +8090,11 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 13th archetype: appears at w80 (after conduit at w75), wraps at w85 → regen.
+      // 13th archetype: appears at w80 (after conduit at w75); fortifier (14th) follows at w85,
+      // wrapping at w90 → regen.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(80) === 'warper';
-      const wrapsAt85 = bt(85) === 'regen';
+      const wrapsAt85 = bt(85) === 'fortifier' && bt(90) === 'regen';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -8138,8 +8141,8 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 13);
-    check('rotation wraps after warper (w85 → regen)', r.wrapsAt85);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 14);
+    check('fortifier follows warper (w85), rotation wraps at w90 → regen', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
     check('the warper adds no HP or speed of its own', r.bossUnchanged);
@@ -8332,6 +8335,81 @@ async function main() {
     check('Laser charge is NEVER serialized (save-safe)', r.savedNoCharge);
     check('placed Laser save/resume round-trips (charge re-ramps from ×1)', r.roundTrips);
     check('no console errors during Laser test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [122] Fortifier boss archetype — the 14th: ramps its own armor while alive (a DPS race),
+  // capped, freeze pauses it, adds no HP/speed; reuses the existing damage() armor path (v2.10.0)
+  console.log('\n[122] Fortifier boss (armor-ramp archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 14th archetype: appears at w85 (after warper at w80), rotation wraps at w90 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(85) === 'fortifier';
+      const wrapsAt90 = bt(90) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const mkBoss = () => ({ kind:'boss', bossType:'fortifier', hp:5000, maxHp:5000, spd:0, r:24,
+        bounty:100, color:'#f85149', armor:10, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+
+      // (A) it ramps armor while alive: snapshot an absolute cap (starting armor 10 + FORTIFY_CAP 40
+      // = 50), then grows by FORTIFY_RATE/s.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const boss = mkBoss(); enemies.push(boss);
+      update(1); // 1 second
+      const capSnapped = boss.fortifyCap === 50;
+      const ramped = boss.armor > 10 && Math.abs(boss.armor - 10.5) < 0.05; // +0.5/s
+      const noHpOrSpeed = boss.hp === 5000 && boss.spd === 0; // adds neither
+
+      // (B) the ramp CAPS — drive a long time, armor never exceeds the absolute cap (50).
+      for (let i = 0; i < 120; i++) update(1); // 120 more seconds
+      const capped = Math.abs(boss.armor - 50) < 1e-6;
+
+      // (C) a FROZEN fortifier stops hardening (gated block; freeze pauses it).
+      enemies.length = 0;
+      const fb = mkBoss(); fb.frozen = 5; fb.fortifyCap = 50; fb.armor = 15; enemies.push(fb);
+      update(1);
+      const frozenHolds = Math.abs(fb.armor - 15) < 1e-6; // unchanged while frozen
+
+      // (D) the ramped armor flows through damage() (flat subtraction) — a hardened boss takes less.
+      enemies.length = 0;
+      const hb = mkBoss(); hb.fortifyCap = 50; hb.armor = 50; enemies.push(hb);
+      const before = hb.hp; damage(hb, 200, null); const dealt = before - hb.hp;
+      const armorBlunts = Math.abs(dealt - 150) < 1e-6; // 200 - 50 armor
+
+      // (E) Poison's −3 armor corrosion PERSISTS (in-place ramp): knock a capped fortifier down to
+      // 47, one tick only re-adds +0.5 → 47.5 (still below the cap), so corrosion stays meaningful.
+      enemies.length = 0;
+      const cb = mkBoss(); cb.fortifyCap = 50; cb.armor = 47; enemies.push(cb); // post-corrosion
+      update(1);
+      const corrosionPersists = Math.abs(cb.armor - 47.5) < 1e-6;
+
+      // (F) badge names the archetype.
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'fortifier' });
+      const badgeOk = !!badge && badge.label === 'FORTIFYING';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
+               capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
+    });
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 14);
+    check('rotation wraps after fortifier (w90 → regen)', r.wrapsAt90);
+    check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
+    check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
+    check('fortifier adds no HP or speed of its own', r.noHpOrSpeed);
+    check('the armor ramp caps at the absolute cap (50)', r.capped);
+    check('a frozen fortifier stops hardening (freeze pauses it)', r.frozenHolds);
+    check('ramped armor blunts incoming damage via damage() (200−50=150)', r.armorBlunts);
+    check('Poison armor-corrosion persists; the boss re-hardens in place (47 → 47.5)', r.corrosionPersists);
+    check('boss-bar badge reads FORTIFYING', r.badgeOk);
+    check('no console errors during Fortifier test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

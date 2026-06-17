@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.10.0 — 2026-06-17 — 🟫 Fortifier — the 14th boss archetype (hardens its armor over time)
+
+**Type:** New content (ROADMAP "a 14th boss archetype"). Minor bump. First appears at wave 85 (deep endless); rotation now `.length` 14 and wraps at w90 → regen.
+
+The 🟫 **Fortifier** ramps its own armor while alive (`+0.5`/s, capped at `+40` over its starting armor), so deep bosses become a **DPS race** — drop it fast or it turns into a brick. It reuses the existing flat-armor subtraction in `damage()` (no new damage-path code), so like the documented boss-armor lever it barely touches high-damage builds (Sniper/Cannon) and is fully ignored by the anti-armor towers (Mortar/AP ignore armor), but meaningfully punishes the cheap high-rate/low-damage gun-spam build flagged "too easy". The ramp is **in place** (vs recomputing from a base each frame), so **Poison's −3 armor corrosion persists** — it knocks the armor down and the boss slowly re-hardens, keeping Poison's anti-armor counter meaningful. Distinct from the bulwark (a periodic % soak that hurts all builds equally): this is steadily-growing FLAT armor that asymmetrically checks low-per-hit DPS. **Bounded / "too easy"-safe:** no extra HP or speed, the ramp caps, and freeze pauses it (gated block). Bronze aura ring + `FORTIFYING` boss-bar badge; periodic clank (`SFX.bossSkill()` + bronze burst). All fields run-only (`fortifyCap`/`fortifyCd`, enemies never persisted) → save-safe. New test group [122] (+ rotation pins in [45]/[114]/[119] updated for the 13→14 cycle); suite green (1307/0). `sw.js` cache → `v2.10.0` (test [49]).
+
 ## v2.9.0 — 2026-06-17 — 🔆 Laser — the 10th tower (a beam that ramps damage on a held target)
 
 **Type:** New content (ROADMAP "new tower" / tower variety). Minor bump. The first attack tower since the Railgun; tower count 9 → 10.
