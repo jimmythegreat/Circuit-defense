@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.12.0 — 2026-06-17 — 🌑 Nightmare ~2× harder (owner feedback)
+
+**Type:** Balance (owner-requested). Minor bump. Affects ONLY the 🌑 Nightmare tier — Easy/Normal/Hard/Campaign/Daily are byte-identical.
+
+Owner FEEDBACK: "Nightmare should be about twice as hard." Hardened the tier across every lever, calibrated by a measured difficulty index (total wave HP ÷ total run income over waves 1–30): `hp 1.7→2.5`, `bounty 0.85→0.68`, `gold 90→75`, `lives 8→7`, plus a steeper/higher quick-mode late-scale (`enemyTemplate`: slope `.02→.03`, cap `+40%→+80%`, threshold w10 kept → +30% w20, +60% w30, cap ≈w37). Sim (classic, no talents): Nightmare index **152 → 310** = **×2.04 the old Nightmare** (and ×3.17 a Hard run). chipMult stays at the top 2.2× (still the best payout, now better-earned). Owner-requested, so the ≤25%/number swing rule is waived this run (per the FEEDBACK-overrides-guardrails rule); all numbers are documented here and in the `DIFFS.nightmare` comment. Fully save-safe — no schema/key change, records load unchanged; the Daily still rolls only normal/hard so it never lands on Nightmare. Test [109] updated (exact stats + new late-scale factors + a difficulty-index ratio guard >2.5×). Suite green.
+
 ## v2.11.0 — 2026-06-17 — 🔆 Laser beam visibly grows with charge (owner feedback)
 
 **Type:** Game-feel polish (render-only). Minor bump.

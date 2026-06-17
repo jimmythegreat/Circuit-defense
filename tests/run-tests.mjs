@@ -7409,13 +7409,14 @@ async function main() {
       const d = DIFFS.nightmare;
       return {
         exists: !!d,
-        stats: !!d && d.hp === 1.7 && d.lives === 8 && d.chipMult === 2.2,
+        // v2.12.0 "Nightmare ~2× harder" pass: hp 1.7→2.5, lives 8→7, gold 90→75, bounty 0.85→0.68.
+        stats: !!d && d.hp === 2.5 && d.lives === 7 && d.gold === 75 && d.bounty === 0.68 && d.chipMult === 2.2,
         harderThanHard: !!d && d.hp > DIFFS.hard.hp && d.lives < DIFFS.hard.lives,
         topChip: !!d && d.chipMult === Math.max(...Object.values(DIFFS).map(x => x.chipMult)),
       };
     });
     check('Nightmare difficulty entry exists', nm.exists);
-    check('Nightmare stats (hp 1.7 / lives 8 / chip 2.2×)', nm.stats);
+    check('Nightmare stats (hp 2.5 / lives 7 / gold 75 / bounty 0.68 / chip 2.2×)', nm.stats);
     check('Nightmare is harder than Hard (more HP, fewer lives)', nm.harderThanHard);
     check('Nightmare pays the top chip multiplier', nm.topChip);
 
@@ -7430,19 +7431,39 @@ async function main() {
       const hardW30 = enemyTemplate(30).hp / base(30, DIFFS.hard.hp);   // 1 + min(.25,(30-15)*.015)=1.225
       const hardCap = enemyTemplate(60).hp / base(60, DIFFS.hard.hp);   // capped at 1.25
       diffKey = 'nightmare';
-      const nightW30 = enemyTemplate(30).hp / base(30, DIFFS.nightmare.hp); // 1 + min(.40,(30-10)*.02)=1.40
+      const nightW30 = enemyTemplate(30).hp / base(30, DIFFS.nightmare.hp); // 1 + min(.80,(30-10)*.03)=1.60
+      const nightCap = enemyTemplate(60).hp / base(60, DIFFS.nightmare.hp); // capped at 1.80
       // Campaign is deliberately exempt (gated to gameMode==='quick'); campLevel 1 → campScale 1.
       gameMode = 'campaign'; diffKey = 'hard';
       const campaignExempt = Math.abs(enemyTemplate(30).hp - base(30, DIFFS.hard.hp)) < 1e-6;
       gameMode = 'quick'; diffKey = 'normal';
-      return { normalNoScale, hardBelow, hardW30, hardCap, nightW30, campaignExempt };
+      return { normalNoScale, hardBelow, hardW30, hardCap, nightW30, nightCap, campaignExempt };
     });
     check('Normal HP is unchanged by late-scale (test-[16] invariant safe)', ls.normalNoScale);
     check('Hard late-scale is inert below the wave threshold (w10)', ls.hardBelow);
     check('Hard ramps to +22.5% at w30', Math.abs(ls.hardW30 - 1.225) < 1e-6, 'r=' + ls.hardW30);
     check('Hard late-scale caps at +25%', Math.abs(ls.hardCap - 1.25) < 1e-6, 'r=' + ls.hardCap);
-    check('Nightmare ramps harder (+40% at w30)', Math.abs(ls.nightW30 - 1.40) < 1e-6, 'r=' + ls.nightW30);
+    check('Nightmare ramps harder (+60% at w30)', Math.abs(ls.nightW30 - 1.60) < 1e-6, 'r=' + ls.nightW30);
+    check('Nightmare late-scale caps at +80%', Math.abs(ls.nightCap - 1.80) < 1e-6, 'r=' + ls.nightCap);
     check('Campaign is exempt from the quick late-scale', ls.campaignExempt);
+
+    // --- v2.12.0 "~2× harder" intent: difficulty index (total wave HP / total run income) ---
+    // Locks the design goal so a future run can't silently soften Nightmare back toward Hard.
+    const idx = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; campLevel = 1;
+      const indexOf = (dk) => {
+        diffKey = dk;
+        let totHP = 0, totBounty = 0;
+        for (let w = 1; w <= 30; w++) for (const e of buildWave(w)) { totHP += e.maxHp || e.hp; totBounty += e.bounty || 0; }
+        return totHP / (totBounty + DIFFS[dk].gold);
+      };
+      const nmI = indexOf('nightmare'), hdI = indexOf('hard');
+      diffKey = 'normal';
+      return { ratio: nmI / hdI, nmI };
+    });
+    // Nightmare was ~1.55× Hard's index pre-v2.12.0; the ~2× pass lifts it to ≈2.9×.
+    check('Nightmare difficulty index is now ≈2.9× Hard (~2× harder pass)', idx.ratio > 2.5,
+      'ratio=' + idx.ratio.toFixed(2));
 
     // --- Nightmare win grants 🌑 Nightmare Walker + counts as a Hard win ---
     const ach = await page.evaluate(() => {

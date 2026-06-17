@@ -165,9 +165,10 @@ function enemyTemplate(w) {
   // ramps from a wave threshold and CAPS, so it stays inside the per-run swing guardrail and
   // makes each LATER wave a bigger jump (exactly the "scale more as waves progress" ask):
   //   • hard:      +1.5%/wave from w15, cap +25% (reached ≈w32) → +7.5% w20, +22.5% w30.
-  //   • nightmare: +2%/wave from w10, cap +40% (reached w30) — the new tier ramps harder.
+  //   • nightmare: +3%/wave from w10, cap +80% (reached ≈w37) — steepened v2.12.0 (was +2%/cap+40%)
+  //     as part of the owner "Nightmare should be about twice as hard" pass: +30% w20, +60% w30.
   const lateScale = gameMode === 'quick'
-    ? (diffKey === 'nightmare' ? 1 + Math.min(0.40, Math.max(0, w - 10) * 0.02)
+    ? (diffKey === 'nightmare' ? 1 + Math.min(0.80, Math.max(0, w - 10) * 0.03)
      : diffKey === 'hard'      ? 1 + Math.min(0.25, Math.max(0, w - 15) * 0.015)
      : 1)
     : 1;

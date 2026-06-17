@@ -10,9 +10,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-Nightmare should be about twice as hard.
+_(empty)_
 
 ## DONE
+
+- **2026-06-17 · v2.12.0** — "Nightmare should be about twice as hard" → Hardened the 🌑 Nightmare tier across every lever, calibrated by a measured difficulty index (total wave HP ÷ total run income): hp 1.7→2.5, bounty 0.85→0.68, gold 90→75, lives 8→7, plus a steeper/higher quick-mode late-scale (slope .02→.03, cap +40%→+80%). Sim: index 152→310 = ×2.04 the old Nightmare (×3.17 a Hard run). Top chip payout (2.2×) kept; only Nightmare changed (Easy/Normal/Hard/Campaign/Daily untouched), save-safe. Test [109].
 
 - **2026-06-17 · v2.11.0** — "Laser beam's beam should get bigger the longer it holds a target" → The 🔆 Laser's tracer now visibly grows as its charge spins up — width ~2.4→7.4px + a brighter glow + an outer bloom halo that fades in only as the charge climbs (thin precise line at ×1, thick halo'd shaft at the ×2.2 cap). Render-only: the damage ramp is unchanged, the Railgun's shared tracer renders byte-identically, and nothing is saved. Test [121].
 
