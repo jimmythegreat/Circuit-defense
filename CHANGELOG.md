@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.4.0 — 2026-06-17 — ⚑ Herald — haste-aura enemy (Enrager's regular-enemy cousin)
+
+**Type:** New content (ROADMAP "Boss/enemy follow-ups"; new enemy kind). Minor bump.
+
+A new enemy kind, the ⚑ **Herald** (from wave 18, all modes). It projects a **haste aura** that speeds nearby allies — the regular-enemy cousin of the Enrager boss, and a fresh 3rd aura axis (after the heal regen aura and the warden damage-shield aura). It pressures **target priority** off the invariant-capped HP curve: pop the Herald and the cluster slows back to base speed. Reuses the existing `e.hasted`/`hasteMul=1.35` infrastructure (Enrager already sets `e.hasted`), so the only new logic is the aura tick (mirrors the warden aura) + render/glyph/preview entries. **Bounded / "too easy"-safe:** haste capped at +35% and binary (no stacking with the Enrager); the Herald is slow (×0.9) and only moderately tanky (×1.25 HP); frost slow still multiplies in and freeze pauses the aura — so it can only add pressure, never make a run easier. Slots into `waveComposition`/`KIND_HP_MULT` (drift-guarded by test [40]) so the preview + ⚔ threat number count it. Run-only — enemies are never persisted → save-safe; no economy/balance change. New test group **[116]**; suite green. `sw.js` cache → `v2.4.0` (test [49]). Enemy kinds: 13 → 14.
+
 ## v2.3.0 — 2026-06-16 — 🦅 Eagle Eye — legendary +40% range perk
 
 **Type:** New content (ROADMAP "a *legendary* +40% range perk"). Minor bump.

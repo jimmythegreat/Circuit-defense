@@ -7879,6 +7879,100 @@ async function main() {
     await page.close();
   }
 
+  // [116] Herald enemy — haste-aura support enemy from wave 18+ (v2.4.0)
+  console.log('\n[116] Herald enemy (haste aura)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+      // (a) wave gating: none before w18, present from w18; HP ≈ template×1.25
+      const w17 = buildWave(17).some(e => e.kind === 'herald');
+      const w18list = buildWave(18).filter(e => e.kind === 'herald');
+      const w18 = w18list.length;
+      const t18 = enemyTemplate(18);
+      const hpOk = w18list[0] ? Math.abs(w18list[0].maxHp - t18.hp * 1.25) < 0.01 : false;
+
+      // (b) haste-aura behaviour: a herald tags a nearby enemy (sets hasted > 0); freeze pauses
+      // it; another herald is NOT hasted (excluded). Co-locate at the herald's RESOLVED path point
+      // (update() overwrites e.x/e.y from pointAt(dist) every tick — the aura x/y gotcha).
+      const dp = pointAt(60);
+      const mkEnemy = (kind, dist, frozen) => {
+        const p = pointAt(dist);
+        return { kind, hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#ff79c6', armor:0, gap:0.8,
+          dist, x:p.x, y:p.y, px:p.x, py:p.y, slow:0, slowF:0.6, frozen: frozen ? 999 : 0,
+          poison:null, flash:0, hasted:0 };
+      };
+      const auraRun = (heraldFrozen, victimKind, victimDist) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        const herald = mkEnemy('herald', 60, heraldFrozen);
+        const victim = mkEnemy(victimKind, victimDist, false);
+        enemies.push(herald, victim);
+        let sawHaste = false;
+        for (let i = 0; i < 60; i++) { update(1/60); if (victim.hasted > 0) sawHaste = true; }
+        return sawHaste;
+      };
+      const hastesNearby   = auraRun(false, 'norm', 60);    // a nearby norm gets hasted
+      const frozenNoHaste  = !auraRun(true,  'norm', 60);   // a frozen herald hastes nobody
+      const heraldExcluded = !auraRun(false, 'herald', 60); // another herald is never hasted
+      const outOfRangeSafe = !auraRun(false, 'norm', 600);  // beyond 90px → no haste
+
+      // (c) the haste actually SPEEDS movement: a victim near a herald advances faster than alone.
+      const moveRun = (withHerald) => {
+        enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        const victim = mkEnemy('norm', 60, false); victim.spd = 10;
+        enemies.push(victim);
+        if (withHerald) enemies.push(mkEnemy('herald', 60, false));
+        for (let i = 0; i < 20; i++) update(1/60);
+        return victim.dist;
+      };
+      const distAlone   = moveRun(false);
+      const distHasted  = moveRun(true);
+      const hasteSpeeds = distHasted > distAlone + 1e-6;
+      enemies.length = 0; towers.length = 0;
+
+      // (d) preview/render plumbing: composition + glyph + colour + HP mult all know it, and the
+      // threat number stays in sync with the real buildWave() total at w18.
+      const compHasHerald = waveComposition(18).some(c => c.kind === 'herald');
+      const glyph = enemyGlyph({ kind:'herald', frozen:0 });
+      const frozenGlyph = enemyGlyph({ kind:'herald', frozen:1 });   // frozen overrides to ❄
+      const hasColor = !!PREVIEW_COLOR.herald;
+      const hpMult = KIND_HP_MULT.herald;
+      const threatOk = Math.abs(waveThreat(18) - buildWave(18).reduce((s,e)=>s+e.maxHp,0)) < 0.01;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      // (e) integration: a real wave-18+ run with god towers still clears cleanly
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 999999; lives = 99999;
+      __cdGodTowers(10);
+      const run = __cdDrive({ maxWave: 20 });
+      backToMenu();
+      localStorage.removeItem('cd_save');
+
+      return { w17, w18, hpOk, hastesNearby, frozenNoHaste, heraldExcluded, outOfRangeSafe,
+               hasteSpeeds, compHasHerald, glyph, frozenGlyph, hasColor, hpMult, threatOk, run };
+    });
+    check('no heralds before wave 18', r.w17 === false);
+    check('heralds spawn from wave 18', r.w18 >= 1, 'count=' + r.w18);
+    check('herald HP is template×1.25', r.hpOk);
+    check('a herald hastes a nearby enemy (hasted > 0)', r.hastesNearby);
+    check('a frozen herald hastes nobody (freeze pauses it)', r.frozenNoHaste);
+    check('a herald does NOT haste another herald (always killable)', r.heraldExcluded);
+    check('an enemy beyond 90px is never hasted (local reach)', r.outOfRangeSafe);
+    check('haste actually speeds the victim up vs alone', r.hasteSpeeds);
+    check('waveComposition includes herald at wave 18', r.compHasHerald);
+    check('enemyGlyph returns ⚑ for herald', r.glyph === '⚑', 'glyph=' + r.glyph);
+    check('a frozen herald still shows the ❄ glyph (cosmetic)', r.frozenGlyph === '❄');
+    check('PREVIEW_COLOR has a herald colour', r.hasColor);
+    check('KIND_HP_MULT.herald is 1.25 (matches buildWave)', r.hpMult === 1.25, 'mult=' + r.hpMult);
+    check('waveThreat stays in sync with buildWave at w18 (herald counted)', r.threatOk);
+    check('wave-18+ run with heralds reaches w>=20 alive', r.run.wave >= 20 && !r.run.gameOver, JSON.stringify(r.run));
+    check('no console errors during herald tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

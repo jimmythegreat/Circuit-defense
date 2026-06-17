@@ -202,6 +202,22 @@ function update(dt) {
         if (Math.hypot(o.x-e.x, o.y-e.y) < 75) o.warded = 0.25;
       }
     }
+    // Herald support enemy (v2.4.0): the REGULAR-enemy cousin of the Enrager boss — projects a
+    // HASTE aura that speeds nearby allies, reusing the existing e.hasted/hasteMul infrastructure
+    // (the Enrager boss already sets e.hasted, and the movement line reads hasteMul = 1.35 while
+    // hasted). Refresh a short `hasted` timer on every nearby non-herald enemy each frame; it decays
+    // once a target leaves the aura or the herald dies, so popping the herald slows the whole cluster
+    // back to base speed — a focus-fire / target-priority decision (like the Warden's shield aura)
+    // that raises pressure off the invariant-capped HP curve, in ALL modes. Other heralds EXCLUDED
+    // so a herald is always at base speed, and frozen heralds pause (freeze counters it, like the
+    // heal/warden auras; frost slow also still multiplies into hasteMul). Bounded — the haste is
+    // capped at +35% and binary (no stacking) — so it can't make a run easier. Run-only — never saved.
+    if (e.kind === 'herald' && e.frozen <= 0) {
+      for (const o of enemies) {
+        if (o === e || o.dead || o.kind === 'herald') continue;
+        if (Math.hypot(o.x-e.x, o.y-e.y) < 90) o.hasted = 0.25;
+      }
+    }
     // Jammer enemy (v1.91.0): the REGULAR-enemy cousin of the Disruptor boss / Static Storm mod.
     // Every ~3s it knocks the NEAREST firing tower within 105px offline (sets t.empT) as it
     // advances, so a small coverage blackout rolls down the path with it — pressuring tower
@@ -1009,7 +1025,7 @@ function renderSettings() {
     html += '</span></div>';
   }
   html += '</div>';
-  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ⬢ bastion · ⚡ jammer · ☠ boss.</p>`;
+  if (colorblindAid) html += `<p style="color:#8b949e;font-size:12px;margin:0">Enemy symbols: » fast · ◆ tank · + heal · 🛡 shield · ✂ split · 👻 phantom · ◈ warden · ‼ breacher · 🔥 molten · ⬢ bastion · ⚡ jammer · ⚑ herald · ☠ boss.</p>`;
   if (reduceMotion()) html += `<p style="color:#8b949e;font-size:12px;margin:0">Your OS "reduce motion" setting is on — shake &amp; particles are already minimised.</p>`;
   document.getElementById('settingsBody').innerHTML = html;
 }

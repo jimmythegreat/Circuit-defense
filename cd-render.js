@@ -18,6 +18,7 @@ function enemyGlyph(e) {
     case 'molten': return '🔥';
     case 'bastion': return '⬢';
     case 'jammer': return '⚡';
+    case 'herald': return '⚑';
     case 'fast': return colorblindAid ? '»' : '';
     case 'tank': return colorblindAid ? '◆' : '';
     default: return '';
@@ -27,7 +28,7 @@ function enemyGlyph(e) {
 // KEEP IN SYNC with the kind colours in buildWave() (cd-game.js).
 const PREVIEW_COLOR = {
   norm:'#3fb950', fast:'#d2a8ff', tank:'#f0883e', heal:'#56d364',
-  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', molten:'#e8482e', bastion:'#7a86c8', jammer:'#f2e34a', boss:'#f85149',
+  shield:'#8b949e', split:'#e3b341', phantom:'#39d0d8', warden:'#58a6ff', breacher:'#d4566b', molten:'#e8482e', bastion:'#7a86c8', jammer:'#f2e34a', herald:'#ff79c6', boss:'#f85149',
 };
 // Per-glyph font so existing kinds render byte-identically (only fast/tank are new).
 const GLYPH_FONT = {
@@ -35,7 +36,7 @@ const GLYPH_FONT = {
   '🛡': '10px sans-serif', '✂': 'bold 11px sans-serif', '👻': '11px sans-serif',
   '»': 'bold 13px sans-serif', '◆': 'bold 12px sans-serif', '◈': 'bold 13px sans-serif',
   '‼': 'bold 12px sans-serif', '🔥': '10px sans-serif', '⬢': 'bold 13px sans-serif',
-  '⚡': '11px sans-serif',
+  '⚡': '11px sans-serif', '⚑': 'bold 13px sans-serif',
 };
 // Lobbed-shell arc (v1.79.0): a Mortar shell rises then falls along a parabola for
 // real artillery feel, instead of homing flat like the Cannon's bomb. RENDER-ONLY —
@@ -480,6 +481,16 @@ function draw() {
       ctx.beginPath();
       ctx.arc(e.x, e.y, 75, 0, Math.PI*2);
       ctx.strokeStyle = 'rgba(88,166,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // Herald support enemy (v2.4.0): a soft magenta aura disc shows its haste radius (mirrors the
+    // warden disc). Pop the herald and the disc — and the speed boost — vanish. The hasted-enemy
+    // orange cue ring below already marks the sped-up allies, so no extra cue is needed here.
+    if (e.kind === 'herald') {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 90, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,121,198,0.14)';
       ctx.lineWidth = 1;
       ctx.stroke();
     }

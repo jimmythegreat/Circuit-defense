@@ -98,9 +98,9 @@ _None currently known._ (Add any here as found — top priority.)
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
 
 ### Enemies / bosses / waves
-- 12 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
-  warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0). Concurrent waves
-  (up to 3) v1.12.0 [20].
+- 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
+  warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
+  haste-aura, Enrager's regular-enemy cousin). Concurrent waves (up to 3) v1.12.0 [20].
 - 12 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
   siphon→hydra→revenant→conduit) v1.25.0–v2.2.0 [45]/[53]/[90]/[96]/[114]; boss-bar mechanic badge v1.36.0 [53].
 - 20 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/

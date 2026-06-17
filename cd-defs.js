@@ -137,7 +137,7 @@ const TYPE_KEYS = Object.keys(TOWER_TYPES);
 const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support'];
 const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
-const SUPPORT_KINDS = { heal: true, warden: true };
+const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
 // Specializations: unlocked free at max level, one choice
 const SPECS = {
