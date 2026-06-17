@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.15.1 — 2026-06-17 — 🩺 Health check — all green (1339/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 feature entries since the last health check v2.10.1: v2.11.0, v2.12.0, v2.13.0, v2.14.0, v2.15.0 — at the 5-run trigger.)
+
+Suite green (**1339/0**, 126 groups, zero console errors, exit 0). Refactor audit: all 7 game files under the ~1500-line cap; the largest, **cd-update.js, is now 1448** (+50 since v2.10.1, only ~52 lines headroom) — escalated in ROADMAP to **top tech priority**: the next content run that adds tick logic here likely crosses the cap, so the domain split should land in the next run or two. No dead code / stray logging / TODOs (the TODO matches are prose inside old health-check What's-New bodies). Integrity: `file://` double-click play intact (7 classic scripts in order, no ES modules, no build step, SW guarded to http/https); old-format save migration verified (talent back-fill + additive defaults, exercised by test [5] + the minimal-save guard). Docs coherence: every headline count matches code (10 towers, 5 abilities, 25 talents, 18 achievements, 20 wave mods, 15 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties, 6 quick maps). Versions consistent (GAME_VERSION = sw.js cache = v2.15.1, test [49]). Refreshed the two stale ROADMAP size notes (cd-update.js 1398→1448; harness 8430→8697 lines / 123→126 groups / 1307→1339 assertions). Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.15.0 — 2026-06-17 — 🌅 Phoenix — legendary perk that cheats death once
 
 **Type:** New content (legendary run perk). Minor bump.

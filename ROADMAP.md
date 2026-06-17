@@ -82,14 +82,16 @@ _None currently known._ (Add any here as found — top priority.)
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
 
 ### Tech / tooling
-- [ ] **Watch `cd-update.js` size** — at **1398 lines** (health check v2.10.1), the largest game file and
-      closest to the ~1500 cap, growing ~15–20 lines/run (new enemies/perks/bosses land their tick logic here).
-      No split needed yet (~100 lines headroom); when it crosses ~1500, split it by domain (e.g. enemy-AI tick
-      vs combat/`damage()` vs end-game/`computeScore`) as its own zero-behaviour-change run. Other files have room
-      (cd-render 960, cd-game 903). **Getting close — plan the split in the next run or two.**
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~8,430 lines (123 groups, ~1307
+- [~] **Watch `cd-update.js` size** — at **1448 lines** (health check v2.15.1), the largest game file and
+      closest to the ~1500 cap, growing ~10–15 lines/run (new enemies/perks/bosses land their tick logic here).
+      Only **~52 lines of headroom** — the NEXT content run that adds tick logic here likely crosses ~1500, so the
+      split should be the next 1–2 runs' priority. Split it by domain (e.g. enemy-AI tick vs combat/`damage()` vs
+      end-game/`computeScore`) as its own zero-behaviour-change run (tests green before === green after, no balance
+      edits smuggled in; update CLAUDE.md's file map + the harness in the same run). Other files have room
+      (cd-render 984, cd-game 909). **⚠ Plan the split NOW — the next feature run may be forced to do it first.**
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~8,697 lines (126 groups, ~1339
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
-      `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~30s. Worth doing before it doubles.
+      `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,
       mayhem path-shift on resume. (Campaign next-level flow now covered by [109].)
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
