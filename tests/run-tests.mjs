@@ -6126,8 +6126,8 @@ async function main() {
     const r = await page.evaluate(() => {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.railhit5 && /Railgun/.test(ACH_BY_ID.railhit5.desc);
-      // stale-label fix: Full Arsenal now reads "9 tower types"
-      const arsenalOk = /9 tower types/.test(ACH_BY_ID.arsenal.desc);
+      // stale-label fix: Full Arsenal now reads "10 tower types" (Laser added v2.9.0)
+      const arsenalOk = /10 tower types/.test(ACH_BY_ID.arsenal.desc);
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
@@ -6162,7 +6162,7 @@ async function main() {
       return { badgeOk, arsenalOk, startsZero, tracked, grantedOnLoss, notUnder5 };
     });
     check('Sharpshooter badge defined (railhit5, Railgun desc)', r.badgeOk);
-    check('Full Arsenal desc updated to "9 tower types"', r.arsenalOk);
+    check('Full Arsenal desc updated to "10 tower types"', r.arsenalOk);
     check('railBestHit resets to 0 on a new run', r.startsZero);
     check('fireRail tracks the peak single-beam rake (6 in a line)', r.tracked === 6, `tracked=${r.tracked}`);
     check('railBestHit>=5 grants Sharpshooter (win or loss)', r.grantedOnLoss);
@@ -8213,6 +8213,125 @@ async function main() {
     check('the perk does not change splash on a non-bastion', r.normUnaffected);
     check('apply() sets perkState.aoePen', r.applySets);
     check('no console errors during Shaped Charges test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [121] Laser tower — the 10th: a sustained beam that RAMPS damage on a held target (v2.9.0)
+  console.log('\n[121] Laser tower (ramp-up beam)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // definitions present & wired
+      const def = TOWER_TYPES.laser;
+      const defOk = !!def && def.proj === 'beam' && def.range > 0 && def.dmg > 0;
+      const specsOk = Array.isArray(SPECS.laser) && SPECS.laser.length === 2
+        && SPECS.laser.some(s => s.id === 'focus') && SPECS.laser.some(s => s.id === 'rapidcoil');
+      const masteryOk = !!TALENTS.mastery_laser && TALENTS.mastery_laser.sect === 'TOWER MASTERY';
+      const inShopKeys = TYPE_KEYS.includes('laser') && TYPE_KEYS.length === 10;
+      const sfxOk = typeof SFX.laser === 'function';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const shopHasLaser = !!document.querySelector('#shop') &&
+        Array.prototype.some.call(document.querySelectorAll('.towerBtn'), b => /Laser/.test(b.textContent));
+
+      // specs: Focusing Array = +35% dmg (effDmg); Pulse Drive = faster fire (effRate ×1.4 → lower interval)
+      const lt0 = { type:'laser', x:100, y:300, level:1, spec:null, dmg:100, rate:0.45, range:175,
+                    dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      const dBase = effDmg(lt0), rBase = effRate(lt0);
+      lt0.spec = 'focus';     const focusOk = Math.abs(effDmg(lt0) - dBase * 1.35) < 1e-6;
+      lt0.spec = 'rapidcoil'; const coilOk  = effRate(lt0) < rBase - 1e-6;   // faster (shorter interval)
+      lt0.spec = null;
+
+      // hotkey '0' selects the 10th tower (keys 1-9 → towers 1-9, '0' → 10th)
+      gold = 500; selectedShop = null;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '0' }));
+      const hotkeyOk = selectedShop === 'laser';
+      selectedShop = null;
+
+      // fireBeam: deals damage to the single target, draws a straight tracer, respects armor.
+      towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
+      const lz = { type:'laser', x:100, y:300, level:1, spec:null, dmg:40, rate:0.45, range:175,
+                   dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      const tgt = { x:150, y:300, r:12, hp:500, maxHp:500, armor:0, dead:false, flash:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:0 };
+      enemies.push(tgt);
+      fireBeam(lz, tgt, 60);
+      const dealtDmg = tgt.hp < 500;
+      const beamDrawn = beams.some(b => b.straight === true);
+      enemies.length = 0;
+      let drawOk = beams.some(b => b.straight === true);
+      try { draw(); } catch (e) { drawOk = false; }
+
+      // respects armor (a coherent beam, not an armor-ignorer)
+      enemies.length = 0;
+      const armored = { x:150, y:300, r:12, hp:1000, maxHp:1000, armor:50, dead:false, flash:0,
+                        kind:'shield', blinkInvuln:0, bounty:1, dist:0 };
+      enemies.push(armored);
+      fireBeam(lz, armored, 100);
+      const respectsArmor = (1000 - armored.hp) < 100;
+
+      // RAMP: drive the real update() fire loop on a single held target → charge climbs to ×2.2 cap.
+      towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
+      autoStartTimer = -1; waveActive = false; paused = false;
+      const pt = pointAt(pathLen * 0.4);
+      const laser = { type:'laser', x:pt.x, y:pt.y, level:1, spec:null, dmg:20, rate:0.45, range:175,
+                      dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      towers.push(laser);
+      const mkE = (hp) => ({ kind:'norm', hp, maxHp:hp, spd:0, r:12, bounty:1, color:'#fff', armor:0,
+        gap:0, dist:pathLen*0.4, x:pt.x, y:pt.y, slow:0, slowF:0.6, frozen:0, hasted:0, warded:0,
+        adrenaline:false, ccImmune:false, poison:null, flash:0, px:0, py:0, dead:false, blinkInvuln:0 });
+      const A = mkE(1e7); enemies.push(A);
+      for (let i = 0; i < 420; i++) update(1/60);          // ~7s → well past the ~11 shots to cap
+      const tookDmg = A.hp < A.maxHp;
+      const chargeCapped = Math.abs((laser.charge || 1) - 2.2) < 1e-9;   // ramps to the ×2.2 cap
+      const heldTarget = laser.beamTarget === A;
+
+      // RESET: switch targets → charge snaps back to ×1 (deliberately poor at swarms)
+      enemies.length = 0;
+      const B = mkE(1e7); enemies.push(B);
+      let switched = false;
+      for (let i = 0; i < 120; i++) { update(1/60); if (B.hp < B.maxHp) { switched = true; break; } }
+      const resetOnSwitch = switched && laser.beamTarget === B && Math.abs((laser.charge || 1) - 1) < 1e-9;
+
+      // save/resume: laser round-trips; charge is NEVER serialized (resumes re-ramping from ×1)
+      towers.length = 0; enemies.length = 0; beams.length = 0;
+      towers.push({ type:'laser', x:250, y:250, level:3, spec:'focus', mode:'strong',
+        invested:300, dealt:42, kills:2, range:def.range*Math.pow(1.08,2), dmg:def.dmg*Math.pow(1.45,2),
+        rate:def.rate*Math.pow(0.88,2), cd:0, baseCost:def.cost, angle:0, buffPower:0.25, flash:0, charge:2.2 });
+      wave = 2; lives = 20; gold = 100; waveActive = false;
+      saveRun();
+      const savedNoCharge = !/\"charge\"/.test(localStorage.getItem('cd_save') || '');
+      towers.length = 0;
+      const loaded = loadRun();
+      const lrt = towers.find(t => t.type === 'laser');
+      const roundTrips = loaded === true && !!lrt && lrt.level === 3 && lrt.spec === 'focus' && lrt.charge === undefined;
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { defOk, specsOk, masteryOk, inShopKeys, sfxOk, shopHasLaser, focusOk, coilOk, hotkeyOk,
+               dealtDmg, beamDrawn, drawOk, respectsArmor, tookDmg, chargeCapped, heldTarget,
+               resetOnSwitch, savedNoCharge, roundTrips };
+    });
+    check('Laser definition wired (proj=beam/range/dmg)', r.defOk);
+    check('Laser has 2 specs (Focusing Array + Pulse Drive)', r.specsOk);
+    check('Laser Mastery talent exists', r.masteryOk);
+    check('Laser is in the shop keys and there are now 10 towers', r.inShopKeys);
+    check('SFX.laser beam sound exists', r.sfxOk);
+    check('Laser button rendered in the shop', r.shopHasLaser);
+    check('Focusing Array spec = +35% damage', r.focusOk);
+    check('Pulse Drive spec speeds up fire rate', r.coilOk);
+    check("hotkey '0' selects the 10th tower (Laser)", r.hotkeyOk);
+    check('fireBeam deals damage to the target', r.dealtDmg);
+    check('Laser draws a straight tracer beam', r.beamDrawn);
+    check('draw() renders the laser beam branch without throwing', r.drawOk);
+    check('Laser respects armor (not an armor-ignorer)', r.respectsArmor);
+    check('Laser ramps damage on a held target up to the ×2.2 cap', r.tookDmg && r.chargeCapped && r.heldTarget,
+      `charge=${r.chargeCapped} held=${r.heldTarget}`);
+    check('Laser charge resets to ×1 when the target switches', r.resetOnSwitch);
+    check('Laser charge is NEVER serialized (save-safe)', r.savedNoCharge);
+    check('placed Laser save/resume round-trips (charge re-ramps from ×1)', r.roundTrips);
+    check('no console errors during Laser test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

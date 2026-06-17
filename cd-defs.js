@@ -49,6 +49,7 @@ const TALENTS = {
   mastery_poison: { sect:'TOWER MASTERY', name:'Poison Mastery', icon:'☣️', max:5, cost: r => 8 + r*8, desc: r => `Poison +${6*r}% dmg, +${2*r}% range` },
   mastery_mortar: { sect:'TOWER MASTERY', name:'Mortar Mastery', icon:'🎇', max:5, cost: r => 8 + r*8, desc: r => `Mortars +${6*r}% dmg, +${2*r}% range` },
   mastery_rail:   { sect:'TOWER MASTERY', name:'Railgun Mastery',icon:'🛤️', max:5, cost: r => 8 + r*8, desc: r => `Railguns +${6*r}% dmg, +${2*r}% range` },
+  mastery_laser:  { sect:'TOWER MASTERY', name:'Laser Mastery',  icon:'🔆', max:5, cost: r => 8 + r*8, desc: r => `Lasers +${6*r}% dmg, +${2*r}% range` },
   mastery_buff:   { sect:'TOWER MASTERY', name:'Booster Mastery',icon:'📡', max:5, cost: r => 8 + r*8, desc: r => `Boosters +${3*r}% aura, +${2*r}% range` },
 };
 let meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
@@ -140,6 +141,7 @@ const TOWER_TYPES = {
   mortar: { name:'Mortar', icon:'🎇', cost:175, range:225, dmg:28,  rate:2.0,  color:'#b0894f', proj:'mortar', desc:'Long-range AoE · ignores armor', tip:'Lobs an explosive shell that detonates in an area and IGNORES enemy armor entirely — a back-line siege piece against shielded/armored packs and bosses. Slow to reload, so it favours single heavy shots over sustained DPS.' },
   rail:   { name:'Railgun', icon:'🛤️', cost:160, range:200, dmg:36,  rate:1.7,  color:'#33e0d0', proj:'rail',   desc:'Piercing beam · hits all in a line', tip:'Fires an INSTANT piercing beam straight out to its range that damages EVERY enemy whose body the line crosses — devastating when foes are lined up along a path run, mediocre against spread-out targets. Respects armor and is slow to recharge, so it rewards positioning: aim it down a long straight stretch.' },
   buff:   { name:'Booster',icon:'📡', cost:100, range:45,  dmg:0,   rate:1,    color:'#f0883e', proj:'none',   desc:'+25% dmg aura (no stacking)' },
+  laser:  { name:'Laser',  icon:'🔆', cost:165, range:175, dmg:6,   rate:0.45, color:'#ff5db1', proj:'beam',   desc:'Beam ramps on a held target', tip:'Fires a continuous beam that RAMPS UP its damage the longer it stays locked on the SAME target (up to ×2.2) — a sustained boss/tank melter. The charge resets to ×1 the instant the target dies or it switches, so it is deliberately POOR against swarms (the inverse of an area tower). Respects armor.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
 const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support'];
@@ -158,6 +160,7 @@ const SPECS = {
   mortar: [ {id:'demo',    name:'Demolisher',   desc:'+35% damage'},             {id:'saturate', name:'Saturation',   desc:'+55% blast radius'} ],
   rail:   [ {id:'railpen', name:'Penetrator',   desc:'+20% damage'},             {id:'railwide', name:'Overcharged Coil', desc:'Wider beam — hits a broader line'} ],
   buff:   [ {id:'network', name:'Network',      desc:'Aura range +50% & power +10%'}, {id:'overclock',name:'Overclock',    desc:'Aura power +20%'} ],
+  laser:  [ {id:'focus',   name:'Focusing Array',desc:'+35% damage'},             {id:'rapidcoil',name:'Pulse Drive',  desc:'Fire rate ×1.4 (ramps faster)'} ],
 };
 function specOf(t) {
   if (!t.spec) return null;

@@ -537,7 +537,7 @@ function renderShop() {
     const btn = document.createElement('div');
     btn.className = 'towerBtn' + (selectedShop===key ? ' selected' : '') + (gold < cost ? ' cant' : '');
     btn.title = `${t.name} — ${t.tip || t.desc} · range ${Math.round(t.range)}`;  // hover tooltip
-    btn.innerHTML = `<span class="key">${i+1}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
+    btn.innerHTML = `<span class="key">${i < 9 ? i+1 : '0'}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
     btn.onclick = () => {
       if (gold < cost) return;
       selectedShop = selectedShop === key ? null : key;
@@ -676,6 +676,7 @@ function effDmg(t) {
   if (t.spec === 'mega') d *= 1.15;
   if (t.spec === 'demo') d *= 1.35;
   if (t.spec === 'railpen') d *= 1.20;   // v2.0.0: was 1.35 — Penetrator out-DPS'd the Sniper at L5 (owner FEEDBACK)
+  if (t.spec === 'focus') d *= 1.35;     // Laser Focusing Array
   if (modIs('surge')) d *= 1.3;
   // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
@@ -688,6 +689,7 @@ function effDmg(t) {
 function effRate(t) {
   let r = t.rate * perkState.rateMult;
   if (t.spec === 'minigun') r *= 0.55;
+  if (t.spec === 'rapidcoil') r *= 0.714;  // Laser Pulse Drive: fire rate ×1.4 (also ramps charge faster)
   if (modIs('brownout')) r *= 1.25;  // mayhem debuff: +25% reload = slower fire
   // Hair Trigger legendary (v1.68.0): +55% fire rate (shorter reload; paired with −25% dmg in effDmg).
   if (perkState.hairTrigger) r /= 1.55;
@@ -805,7 +807,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');
   if (e.key === 'r' || e.key === 'R') triggerAbility('shock');
   if (e.key === 't' || e.key === 'T') triggerAbility('barrier');
-  const idx = parseInt(e.key) - 1;
+  const idx = e.key === '0' ? 9 : parseInt(e.key) - 1;   // keys 1-9 → towers 1-9; '0' → 10th tower
   if (idx >= 0 && idx < TYPE_KEYS.length) {
     const key = TYPE_KEYS[idx];
     if (gold >= costOf(key)) {

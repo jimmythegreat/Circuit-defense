@@ -20,9 +20,11 @@ _None currently known._ (Add any here as found — top priority.)
       lift: needs multi-path enemy distribution + targeting/`distToPath` over >1 path. Its own run.
       (All SIX static `THEMES` palettes are now claimed as map identities — a 7th *named* map needs a
       brand-new palette; but Crossroads could reuse one or get a 7th.)
+- [x] **New tower (the 🔆 Laser)** — DONE v2.9.0 [121], a ramp-up beam (the 10th tower). The
+      "charge up the longer it fires" mechanic now exists as a TOWER (was sketched as a Railgun spec idea).
 - [ ] **Arc/chain tower** — chain-lightning that *bounces* between nearby enemies (a swarm counter,
-      distinct from Tesla's fixed-target chain). The last open "new tower" idea after Mortar/Railgun.
-- [ ] **Tower spec follow-ups** — a Railgun spec that *charges up* (ramps dmg the longer it fires);
+      distinct from Tesla's fixed-target chain AND the Laser's single-target ramp). The remaining "new tower" idea.
+- [ ] **Tower spec follow-ups** — (a *charge-up* mechanic now exists via the 🔆 Laser tower v2.9.0);
       ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
       version is still open if wanted); a predictive lead-shot spec to counter blinkers
       (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun (Minigun vs AP) for a
@@ -96,8 +98,10 @@ _None currently known._ (Add any here as found — top priority.)
 ## Shipped (condensed — do NOT re-implement; check CLAUDE.md for detail)
 
 ### Towers / specs / targeting
-- 9 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91]); a new
-  tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar lobbed-arc render v1.79.0 [87].
+- 10 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91] + Laser
+  v2.9.0 [121]); a new tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar
+  lobbed-arc render v1.79.0 [87]. Laser = a ramp-up beam (×1→×2.2 on a held target, resets on switch) —
+  sustained boss/tank DPS, poor at swarms; specs Focusing Array/Pulse Drive; hotkey `0`; mastery_laser.
 - 6 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66]); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].

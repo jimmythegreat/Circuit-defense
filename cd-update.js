@@ -490,10 +490,22 @@ function update(dt) {
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and
     // NOT in effDmg, so the upgrade panel doesn't churn every kill.
     dmg *= comboDmgMult();
+    // Laser (v2.9.0): the beam RAMPS UP while held on the SAME target (sustained boss/tank
+    // DPS) and resets to ×1 the instant the target changes or dies — so it's deliberately
+    // poor at swarms (the inverse of an area tower). `charge`/`beamTarget` are run-only and
+    // never serialized (saveRun only stores type/x/y/level/mode/spec/invested/dealt/kills),
+    // so a resumed laser simply re-ramps from ×1 → save-safe.
+    if (def.proj === 'beam') {
+      if (t.beamTarget === target) t.charge = Math.min(BEAM_CHARGE_CAP, (t.charge || 1) + BEAM_CHARGE_STEP);
+      else { t.beamTarget = target; t.charge = 1; }
+      dmg *= t.charge;
+    }
     if (def.proj === 'chain') {
       fireChain(t, target, dmg);
     } else if (def.proj === 'rail') {
       fireRail(t, target, dmg);
+    } else if (def.proj === 'beam') {
+      fireBeam(t, target, dmg);
     } else {
       // Mortar shells are LOBBED (v1.79.0): they get a render-only parabolic arc. The
       // launch point (px/py) is recorded as x0/y0 so the arc helper can compute flight
@@ -639,6 +651,23 @@ function fireRail(t, target, dmg) {
   beams.push({ x1: mx, y1: my, x2: t.x + ux*range, y2: t.y + uy*range,
     life: 0.16, color: def.color, straight: true, w: t.spec === 'railwide' ? 5 : 3.5 });
   shake = Math.max(shake, 1.5);
+}
+
+// Laser (v2.9.0): a sustained single-target BEAM that resolves instantly (like fireChain/
+// fireRail — no travelling projectile). The caller has already ramped `dmg` by the tower's
+// `t.charge` (1×→2.2×, built up by holding the same target). It respects armor (a coherent
+// beam, NOT a boss-melter past its ramp) and draws a straight tracer that thickens/brightens
+// with the charge so the spin-up reads visually. The charge cap/step live here as the levers.
+const BEAM_CHARGE_CAP = 2.2;     // max damage multiplier from a fully spun-up beam
+const BEAM_CHARGE_STEP = 0.12;   // charge gained per shot held on the same target (~10 shots to cap)
+function fireBeam(t, target, dmg) {
+  SFX.laser();
+  const def = TOWER_TYPES[t.type];
+  damage(target, dmg, t);
+  const ux = Math.cos(t.angle), uy = Math.sin(t.angle);
+  const mx = t.x + ux*14, my = t.y + uy*14;
+  beams.push({ x1: mx, y1: my, x2: target.x, y2: target.y,
+    life: 0.1, color: def.color, straight: true, w: 1.6 + 1.6 * (t.charge || 1) });
 }
 
 function hitEnemy(p) {
@@ -877,7 +906,7 @@ const ACHIEVEMENTS = [
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
-  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 9 tower types on the board' },
+  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 10 tower types on the board' },
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
   { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
   { id:'nightmare_win', icon:'🌑', name:'Nightmare Walker', desc:'Win a game on Nightmare difficulty' },

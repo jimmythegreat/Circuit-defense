@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.9.0 — 2026-06-17 — 🔆 Laser — the 10th tower (a beam that ramps damage on a held target)
+
+**Type:** New content (ROADMAP "new tower" / tower variety). Minor bump. The first attack tower since the Railgun; tower count 9 → 10.
+
+The 🔆 **Laser** (hotkey `0`, `proj:'beam'`, cost 165, range 175, dmg 6, rate 0.45) fires an instant single-target beam that **RAMPS UP** its damage while held on the same target — `t.charge` climbs `+0.12`/shot from ×1 to a **×2.2 cap** (~11 shots / ~5s) — then **resets to ×1** the instant the target dies or it switches. So it's a sustained boss/tank melter that's deliberately **poor at swarms** (the inverse of an area tower) — a genuine non-dominated choice, not power creep: it respects armor, and at full ramp its DPS sits around the Sniper's, well under the armor-ignoring Mortar or an Executioner Sniper vs bosses. Specs: **Focusing Array** (+35% dmg) / **Pulse Drive** (fire rate ×1.4 → faster ramp); plus a 🔆 **Laser Mastery** meta talent (talents 24 → 25). The charge logic is one block in the fire loop; rendering reuses the existing straight-beam (`b.straight`) path, thickening with charge. **Save-safe:** `charge`/`beamTarget` are run-only and never serialized (saveRun only stores type/x/y/level/mode/spec/invested/dealt/kills), so a resumed Laser just re-ramps from ×1; `loadMeta` auto-migrates the new mastery talent to rank 0. Hotkey handler now maps `'0'` → the 10th tower; the 🧰 Full Arsenal achievement desc updated 9 → 10 tower types. New test group **[121]**; suite green. `sw.js` cache → `v2.9.0` (test [49]).
+
 ## v2.8.0 — 2026-06-17 — 💣 Shaped Charges — rare perk that pierces Bastion blast-shells
 
 **Type:** New content (ROADMAP "a spec/perk that adds explosion-penetration vs ⬢ Bastion blast-shells"). Minor bump.
