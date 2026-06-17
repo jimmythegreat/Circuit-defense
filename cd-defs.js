@@ -345,7 +345,7 @@ const PERKS = [
   { id:'ambush',  rarity:'rare', icon:'🏹', name:'Ambush',           desc:'+30% damage to enemies above 80% HP', apply:s=>s.ambush = true },
   // Capacitor (v1.86.0): the perk pool's first ALL-ABILITY cooldown reducer — every active
   // ability (Meteor/Time Freeze/Gold Rush/Shockwave) recharges 25% faster. A fresh axis no
-  // perk touched (Singularity is meteor-ONLY; the 🌟 Overdrive talent's metaCdMult is a meta
+  // perk touched (Singularity is meteor-ONLY; the ⚡ Surge talent's metaCdMult is a meta
   // unlock, not a draft pick), it makes the underused ability bar a real build pillar — more
   // freeze/shock uptime for a defensive line, more meteor/rush for an aggressive one. Bounded
   // & "too easy"-safe: a single −25% on cooldowns of 30–60s, and the abilities are mostly

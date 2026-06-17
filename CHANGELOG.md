@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.5.1 — 2026-06-17 — 🩺 Health check — all green (1255/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 feature entries since the last health check v2.0.1: v2.0.2, v2.1.0, v2.2.0, v2.3.0, v2.4.0, v2.5.0 — past the 5-run trigger.)
+
+Suite green (**1255/0**, 117 groups, zero console errors). Refactor audit: all 7 game files under the ~1500-line cap (largest cd-update.js at 1318 — added a ROADMAP "watch" note since it's the closest and grows each run). Integrity: `file://` double-click play intact (classic scripts, no ES modules, no build step, SW guarded to http/https); old-format save migration verified (group [3], green). Docs coherence: every headline count matches code (9 towers, 5 abilities, 23 talents, 18 achievements, 20 wave mods, 12 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties, 6 quick maps). Fixed a CLAUDE.md/ROADMAP drift — `metaCdMult()` reads the ⚡ **Surge** talent, not 🌟 Overdrive — and refreshed the stale test-harness-size note (now ~8,050 lines / 117 groups / 1255 assertions). Table-stakes checklist still complete. `sw.js` cache → `v2.5.1` (test [49]). No gameplay/balance/economy/save changes.
+
 ## v2.5.0 — 2026-06-17 — 🌀 Shock-ring effect — expanding pulse on Shockwave & Meteor
 
 **Type:** Game-feel polish (ROADMAP "expanding-shockwave ring render"). Minor bump.

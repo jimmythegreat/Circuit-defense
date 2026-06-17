@@ -31,7 +31,7 @@ _None currently known._ (Add any here as found — top priority.)
       lives only if it *survives* a tower's range.
 - [ ] **Perk/ability follow-ups** — (legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact); a per-tower ability; a meta talent version
-      of Capacitor (ability-cooldown — note: 🌟 Surge talent already does −6%/rank ability cd, so this would
+      of Capacitor (ability-cooldown — note: ⚡ Surge talent already does −6%/rank ability cd, so this would
       overlap); a Barrier-upgrade talent (more charges / shorter cd); a hidden unlock condition for a secret
       legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
@@ -78,7 +78,12 @@ _None currently known._ (Add any here as found — top priority.)
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
 
 ### Tech / tooling
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~7,500 lines (109 groups, 1179
+- [ ] **Watch `cd-update.js` size** — at **1318 lines** (health check v2.5.1), the largest game file and
+      closest to the ~1500 cap, growing ~20–40 lines/run (new enemies/perks/bosses land their tick logic here).
+      No split needed yet (~180 lines headroom); when it crosses ~1500, split it by domain (e.g. enemy-AI tick
+      vs combat/`damage()` vs end-game/`computeScore`) as its own zero-behaviour-change run. Other files have room
+      (cd-render 958, cd-game 901).
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~8,050 lines (117 groups, 1255
       assertions)**, by far the largest file in the repo, growing ~50 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~30s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,
