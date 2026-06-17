@@ -23,9 +23,10 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Arc/chain tower** — chain-lightning that *bounces* between nearby enemies (a swarm counter,
       distinct from Tesla's fixed-target chain). The last open "new tower" idea after Mortar/Railgun.
 - [ ] **Tower spec follow-ups** — a Railgun spec that *charges up* (ramps dmg the longer it fires);
-      a spec/perk that adds explosion-penetration vs ⬢ Bastion blast-shells; a predictive lead-shot
-      spec to counter blinkers (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun
-      (Minigun vs AP) for a strictly-dominated option (quick take: both look like healthy axes).
+      ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
+      version is still open if wanted); a predictive lead-shot spec to counter blinkers
+      (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun (Minigun vs AP) for a
+      strictly-dominated option (quick take: both look like healthy axes).
 - [ ] **Boss/enemy follow-ups** — a 14th boss archetype (13th = 🟣 Warper forward-pull, shipped v2.7.0
       [119]); per-campaign-tier *fixed* archetypes (vs the wave-number cycle); a Breacher variant that
       costs lives only if it *survives* a tower's range.
@@ -118,8 +119,9 @@ _None currently known._ (Add any here as found — top priority.)
   + Aegis Barrier-charges v2.6.0 [118]);
   cost rework v1.38.0 [55]. 18 achievements (+ Nightmare Walker v2.0.0); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
-  Killing Spree/Eagle Eye(+40% range, v2.3.0 [115]); rares Targeting Array/Ambush/Capacitor/Surge Protector.
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115].
+  Killing Spree/Eagle Eye(+40% range, v2.3.0 [115]); rares Targeting Array/Ambush/Capacitor/Surge Protector/
+  Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120]).
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 6 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].

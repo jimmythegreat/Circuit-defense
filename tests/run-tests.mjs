@@ -8150,6 +8150,72 @@ async function main() {
     await page.close();
   }
 
+  // [120] Shaped Charges rare perk — explosive towers pierce the Bastion blast-shell (v2.8.0)
+  console.log('\n[120] Shaped Charges perk (Bastion pierce)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame();
+
+      // (a) the perk exists, is RARE, and freshPerkState defaults aoePen false (save-safe).
+      const def = PERKS.find(p => p.id === 'shaped');
+      const isRare = !!def && def.rarity === 'rare';
+      const defaultsFalse = freshPerkState().aoePen === false;
+
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const pt = pointAt(pathLen * 0.4);
+      const mk = (kind, extra = {}) => ({ kind, hp:1000, maxHp:1000, spd:1, r:12, bounty:1,
+        color:'#fff', armor:0, gap:0, dist:pathLen*0.4, x:pt.x, y:pt.y, slow:0, slowF:0.6,
+        frozen:0, poison:null, flash:0, px:0, py:0, ...extra });
+
+      // (b) WITHOUT the perk: a Bastion still takes HALF the Cannon bomb / Mortar shell splash.
+      perkState.aoePen = false;
+      let b = mk('bastion', { aoeResist:true }); enemies.length = 0; enemies.push(b);
+      hitEnemy({ kind:'bomb', target:{ x:pt.x, y:pt.y }, dmg:100, src:null, ignoreArmor:false });
+      const offBombHalf = Math.abs((1000 - b.hp) - 50) < 0.01;
+      b = mk('bastion', { aoeResist:true }); enemies.length = 0; enemies.push(b);
+      hitEnemy({ kind:'mortar', target:{ x:pt.x, y:pt.y }, dmg:100, color:'#fff', src:null, ignoreArmor:true });
+      const offMortHalf = Math.abs((1000 - b.hp) - 50) < 0.01;
+
+      // (c) WITH the perk: a Bastion takes FULL splash from both explosive towers.
+      perkState.aoePen = true;
+      b = mk('bastion', { aoeResist:true }); enemies.length = 0; enemies.push(b);
+      hitEnemy({ kind:'bomb', target:{ x:pt.x, y:pt.y }, dmg:100, src:null, ignoreArmor:false });
+      const onBombFull = Math.abs((1000 - b.hp) - 100) < 0.01;
+      b = mk('bastion', { aoeResist:true }); enemies.length = 0; enemies.push(b);
+      hitEnemy({ kind:'mortar', target:{ x:pt.x, y:pt.y }, dmg:100, color:'#fff', src:null, ignoreArmor:true });
+      const onMortFull = Math.abs((1000 - b.hp) - 100) < 0.01;
+
+      // (d) the perk does NOT change a non-Bastion: a norm always takes full splash either way.
+      const n = mk('norm'); enemies.length = 0; enemies.push(n);
+      hitEnemy({ kind:'bomb', target:{ x:pt.x, y:pt.y }, dmg:100, src:null, ignoreArmor:false });
+      const normUnaffected = Math.abs((1000 - n.hp) - 100) < 0.01;
+      enemies.length = 0;
+
+      // (e) apply() flips the flag; legendary-only resolveWildcard never rolls this rare.
+      const ps = freshPerkState();
+      def.apply(ps);
+      const applySets = ps.aoePen === true;
+
+      backToMenu();
+      localStorage.removeItem('cd_save');
+      return { isRare, defaultsFalse, offBombHalf, offMortHalf, onBombFull, onMortFull,
+               normUnaffected, applySets };
+    });
+    check('Shaped Charges exists and is a rare perk', r.isRare);
+    check('freshPerkState defaults aoePen=false (save-safe)', r.defaultsFalse);
+    check('without the perk a bastion still takes half Cannon bomb splash', r.offBombHalf);
+    check('without the perk a bastion still takes half Mortar shell splash', r.offMortHalf);
+    check('with the perk a bastion takes FULL Cannon bomb splash', r.onBombFull);
+    check('with the perk a bastion takes FULL Mortar shell splash', r.onMortFull);
+    check('the perk does not change splash on a non-bastion', r.normUnaffected);
+    check('apply() sets perkState.aoePen', r.applySets);
+    check('no console errors during Shaped Charges test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

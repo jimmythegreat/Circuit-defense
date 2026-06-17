@@ -374,6 +374,19 @@ const PERKS = [
   // run easier, it just answers a specific pressure (squarely the recurring "too easy" feedback's
   // counter-pressure design). `empResist` lives in perkState (save-safe default 1).
   { id:'surgeprot',rarity:'rare', icon:'🔌', name:'Surge Protector',  desc:'Towers shrug off jamming 3× faster', apply:s=>s.empResist *= 3 },
+  // Shaped Charges (v2.8.0): the perk pool's counter to the ⬢ Bastion's blast-shell. The Bastion
+  // (v1.90.0, regular enemy w14+ AND the Bastion Surge mayhem mod) carries aoeResist:true, which
+  // halves the damage it takes from the two EXPLOSIVE splash towers (the Cannon bomb + the Mortar
+  // shell). This perk pierces that shell, so explosive towers deal those enemies FULL splash again.
+  // A fresh COUNTER-CONTENT axis (the sibling of Surge Protector vs jammers) and a meaningful
+  // situational pick — it does nothing in a run with no Bastion content. Wired as one extra term at
+  // the two splash sites in hitEnemy() (`e.aoeResist && !perkState.aoePen`); single-target fire,
+  // tesla chain and the Overkill detonation were never resisted, so they're untouched. Deliberately
+  // "too easy"-safe: it removes a specific resistance rather than adding raw DPS/range/economy (a
+  // bombardment build still pays full price vs every other enemy), so it can't make a run easier —
+  // it just keeps the AoE strategy viable against the content built to check it. `aoePen` lives in
+  // perkState (save-safe default false); a RARE, so the legendary-only resolveWildcard() skips it.
+  { id:'shaped',  rarity:'rare', icon:'💣', name:'Shaped Charges',   desc:'Explosive towers pierce ⬢ Bastion blast-shells', apply:s=>s.aoePen = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -447,7 +460,7 @@ function freshPerkState() {
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
-    ambush:false, abilityCdMult:1, empResist:1 };
+    ambush:false, abilityCdMult:1, empResist:1, aoePen:false };
 }
 function ascendTowers() {
   for (const t of towers) {

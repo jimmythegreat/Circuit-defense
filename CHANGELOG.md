@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.8.0 — 2026-06-17 — 💣 Shaped Charges — rare perk that pierces Bastion blast-shells
+
+**Type:** New content (ROADMAP "a spec/perk that adds explosion-penetration vs ⬢ Bastion blast-shells"). Minor bump.
+
+A new ◆ rare run perk, 💣 **Shaped Charges** (`aoePen`): explosive towers (Cannon bomb + Mortar shell) pierce the ⬢ Bastion's `aoeResist` blast-shell and deal it **full splash** again (the shell normally halves their damage). A fresh **counter-content** axis — the sibling of 🔌 Surge Protector (vs jamming) — that keeps the AoE/splash strategy viable against the enemy built to check it (and the Bastion Surge mod). Wired as one extra term (`&& !perkState.aoePen`) at the two splash sites in `hitEnemy()`; single-target fire, Tesla chain and the Overkill detonation were never resisted, so they're untouched. **"Too easy"-safe:** it removes a specific resistance, adding no raw DPS/range/economy, so it can't make a run easier. A rare → the legendary-only `resolveWildcard()` skips it. Save-safe: `aoePen` lives in perkState (default false, round-trips via `loadRun`'s `Object.assign`). New test group **[120]**; suite green (1278/0). `sw.js` cache → `v2.8.0` (test [49]).
+
 ## v2.7.0 — 2026-06-17 — 🟣 Warper — the 13th boss archetype (yanks nearby allies forward)
 
 **Type:** New content (boss archetype). Minor bump. The 13th archetype, first appearing at wave 80 (deep endless); rotation now `.length` 13 and wraps at w85.

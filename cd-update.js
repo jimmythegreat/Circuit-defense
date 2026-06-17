@@ -656,8 +656,9 @@ function hitEnemy(p) {
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
       // Bastion (v1.90.0) resists explosive splash: the blast-shell takes half damage from
-      // the Cannon bomb (and the Mortar shell below) so a pure-bombardment build can't melt it.
-      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist ? 0.5 : 1), p.src, false, p.ignoreArmor);
+      // the Cannon bomb (and the Mortar shell below) so a pure-bombardment build can't melt it —
+      // unless Shaped Charges (v2.8.0, perkState.aoePen) is held, which pierces the shell.
+      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist && !perkState.aoePen ? 0.5 : 1), p.src, false, p.ignoreArmor);
     }
   } else if (p.kind === 'mortar') {
     // Lobbed siege shell: an armor-ignoring blast (p.ignoreArmor is forced true at
@@ -670,8 +671,9 @@ function hitEnemy(p) {
     addExplosion(p.target.x, p.target.y, '#ffd866', 8, 90);
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
-      // Bastion (v1.90.0) resists explosive splash: half damage from the Mortar shell too.
-      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist ? 0.5 : 1), p.src, false, true);
+      // Bastion (v1.90.0) resists explosive splash: half damage from the Mortar shell too —
+      // unless Shaped Charges (v2.8.0, perkState.aoePen) is held, which pierces the shell.
+      if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist && !perkState.aoePen ? 0.5 : 1), p.src, false, true);
     }
   } else if (p.kind === 'poison') {
     let dur = perkState.poisonDur;
