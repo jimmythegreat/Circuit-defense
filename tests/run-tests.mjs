@@ -2494,16 +2494,16 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 14 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier, then
-      // wraps (w85 → fortifier, w90 → regen).
+      // Rotation by boss number: (w/5 - 4) % 15 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier,
+      // warlord, then wraps (w85 → fortifier, w90 → warlord, w95 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
-                    && bt(90) === 'regen';
+                    && bt(90) === 'warlord' && bt(95) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6469,7 +6469,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 14);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 15);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7818,7 +7818,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 14);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 15);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8112,10 +8112,10 @@ async function main() {
       beginGame();
 
       // 13th archetype: appears at w80 (after conduit at w75); fortifier (14th) follows at w85,
-      // wrapping at w90 → regen.
+      // warlord (15th) at w90, wrapping at w95 → regen.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(80) === 'warper';
-      const wrapsAt85 = bt(85) === 'fortifier' && bt(90) === 'regen';
+      const wrapsAt85 = bt(85) === 'fortifier' && bt(90) === 'warlord';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -8162,8 +8162,8 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 14);
-    check('fortifier follows warper (w85), rotation wraps at w90 → regen', r.wrapsAt85);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 15);
+    check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
     check('the warper adds no HP or speed of its own', r.bossUnchanged);
@@ -8381,10 +8381,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 14th archetype: appears at w85 (after warper at w80), rotation wraps at w90 → regen.
+      // 14th archetype: appears at w85 (after warper at w80); warlord (15th) follows at w90.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(85) === 'fortifier';
-      const wrapsAt90 = bt(90) === 'regen';
+      const wrapsAt90 = bt(90) === 'warlord';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -8433,8 +8433,8 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 14);
-    check('rotation wraps after fortifier (w90 → regen)', r.wrapsAt90);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 15);
+    check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
     check('fortifier adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8521,6 +8521,91 @@ async function main() {
     check("resolveWildcard can roll Veteran's Edge", r.wildcardCanRoll);
     check('save/reload round-trips the veteranBonus flag', r.loaded === true && r.restored);
     check("no console errors during Veteran's Edge test", consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [124] Warlord boss archetype — the 15th: the FIRST GLOBAL aura. While alive it rallies the
+  // whole wave with WARLORD_ARMOR flat bonus armor (kill the keystone / freeze it to strip it),
+  // adds no HP/speed, and the rally flows through the existing damage() armor path (v2.14.0).
+  console.log('\n[124] Warlord boss (global armor-rally archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 15th archetype: appears at w90 (after fortifier at w85), rotation wraps at w95 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(90) === 'warlord';
+      const wrapsAt95 = bt(95) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const mkBoss = () => ({ kind:'boss', bossType:'warlord', hp:5000, maxHp:5000, spd:0, r:24,
+        bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0, rallied:0 });
+      const mkNorm = (over = {}) => Object.assign({ kind:'norm', hp:10000, maxHp:10000, spd:0, r:11,
+        bounty:5, color:'#3fb950', armor:0, gap:0.8, dist:30, x:200, y:200, px:200, py:200,
+        slow:0, slowF:0.6, frozen:0, poison:null, flash:0, rallied:0 }, over);
+
+      // (A)+(F) GLOBAL rally: a living Warlord refreshes `rallied` on every non-boss enemy,
+      //         regardless of distance — even one far across the board.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const boss = mkBoss();
+      // update() recomputes x/y from `dist`, so place them far apart ON THE PATH — a 75px warden-style
+      // aura could never reach both; only a global (no-range) rally hardens both.
+      const near = mkNorm({ dist: 70 });    // just behind the warlord (dist 60)
+      const far  = mkNorm({ dist: 600 });   // far down the path
+      enemies.push(boss, near, far);
+      for (let i = 0; i < 12; i++) update(1/60); // tick like real frames (refresh > per-frame decay)
+      const apart = Math.hypot(near.x - far.x, near.y - far.y) > 200; // genuinely separated
+      const ralliesGlobally = apart && near.rallied > 0 && far.rallied > 0;
+      const noHpOrSpeed = boss.hp === 5000 && boss.spd === 0; // adds neither to itself
+
+      // (B) the rally adds WARLORD_ARMOR flat armor via damage()'s existing flat-subtraction path:
+      //     a rallied enemy takes exactly WARLORD_ARMOR (10) less from a clean hit than an un-rallied one.
+      enemies.length = 0;
+      const a = mkNorm({ rallied: 1 }); const la = a.hp; damage(a, 200, null); const lossR = la - a.hp;
+      const b = mkNorm({ rallied: 0 }); const lb = b.hp; damage(b, 200, null); const lossU = lb - b.hp;
+      const armorAdds = Math.abs((lossU - lossR) - WARLORD_ARMOR) < 1e-6;
+
+      // (C) anti-armor towers ignore the rally (Mortar/AP pass ignoreArmor) — full damage.
+      const c = mkNorm({ rallied: 1 }); const lc = c.hp; damage(c, 200, null, false, true); const lossPen = lc - c.hp;
+      const piercesRally = Math.abs(lossPen - 200) < 1e-6;
+
+      // (D) the rally LAPSES the instant the Warlord is gone (no refresher → `rallied` decays to 0).
+      enemies.length = 0;
+      const orphan = mkNorm({ rallied: 0.25 });
+      enemies.push(orphan); // no warlord present
+      for (let i = 0; i < 30; i++) update(1/60); // ~0.5s, > the 0.25 timer
+      const lapsesWithoutWarlord = orphan.rallied === 0;
+
+      // (E) a FROZEN Warlord stops rallying (gated block; freeze pauses it) — the wave un-hardens.
+      enemies.length = 0;
+      const fb = mkBoss(); fb.frozen = 5; const fn = mkNorm({ x: sp.x + 20, y: sp.y });
+      enemies.push(fb, fn);
+      for (let i = 0; i < 12; i++) update(1/60);
+      const frozenStopsRally = fn.rallied === 0;
+
+      // (G) badge names the archetype.
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'warlord' });
+      const badgeOk = !!badge && badge.label === 'RALLYING';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
+               piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
+    });
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 15);
+    check('rotation wraps after warlord (w95 → regen)', r.wrapsAt95);
+    check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
+    check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
+    check('the rally adds WARLORD_ARMOR flat armor via damage() (10 less per hit)', r.armorAdds);
+    check('anti-armor (ignoreArmor) towers pierce the rally — full damage', r.piercesRally);
+    check('the rally lapses the instant the Warlord is gone', r.lapsesWithoutWarlord);
+    check('a frozen Warlord stops rallying (freeze counters it)', r.frozenStopsRally);
+    check('boss-bar badge reads RALLYING', r.badgeOk);
+    check('no console errors during Warlord test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

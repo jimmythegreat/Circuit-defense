@@ -182,13 +182,13 @@ function enemyTemplate(w) {
 }
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
 // disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
-// conduit v2.2.0, warper v2.7.0, fortifier v2.10.0). Indexed by boss number from wave 20 on, so
-// deep bosses cycle regen → summoner → bulwark → enrager → teleporter → berserker → disruptor →
-// juggernaut → siphon → hydra → revenant → conduit → warper → fortifier (w80 → warper, w85 →
-// fortifier, w90 wraps to regen). The cycle length reads BOSS_ARCHETYPES.length below, so a new
-// archetype only needs adding here plus its handlers. KEEP IN SYNC with the update()/render() and
-// damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier'];
+// conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0). Indexed by boss number from
+// wave 20 on, so deep bosses cycle regen → summoner → bulwark → enrager → teleporter → berserker →
+// disruptor → juggernaut → siphon → hydra → revenant → conduit → warper → fortifier → warlord (w85
+// → fortifier, w90 → warlord, w95 wraps to regen). The cycle length reads BOSS_ARCHETYPES.length
+// below, so a new archetype only needs adding here plus its handlers. KEEP IN SYNC with the
+// update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord'];
 function buildWave(w) {
   const q = [];
   let count = 8 + Math.floor(w*1.7);

@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.14.0 — 2026-06-17 — 🟡 Warlord — the 15th boss archetype (rallies the whole wave)
+
+**Type:** New content (boss archetype). Minor bump.
+
+A 15th boss archetype, the 🟡 **Warlord** (deep/endless, w90+) — the **first GLOBAL aura** in the game. While alive it rallies the **entire wave**, granting every other enemy `WARLORD_ARMOR` (10) flat bonus armor regardless of distance (every prior aura is range-gated). So it's a pure "kill the keystone" target-priority puzzle: drop the Warlord and the whole field's armor evaporates at once. Flat armor checks the cheap high-rate-low-dmg gun build (the recurring "too easy" offender) while being ignored by Mortar/AP and corroded by Poison. **"Too easy"-safe**: adds no HP/speed, freeze pauses the rally (the buff lapses instantly). Reuses the existing `damage()` flat-armor path + a decaying `rallied` tag (no new damage-path code); run-only, never persisted → save-safe. Test group [124]; suite green.
+
 ## v2.13.0 — 2026-06-17 — 🎖️ Veteran's Edge legendary perk (veterancy gets teeth)
 
 **Type:** New content (run perk). Minor bump.

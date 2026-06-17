@@ -87,6 +87,7 @@ function update(dt) {
     e.frozen = Math.max(0, (e.frozen || 0) - dt);
     e.hasted = Math.max(0, (e.hasted || 0) - dt);   // enrager haste aura (v1.34.0), decays when out of range
     e.warded = Math.max(0, (e.warded || 0) - dt);   // warden damage-shield aura (v1.35.0), decays out of range / when the warden dies
+    e.rallied = Math.max(0, (e.rallied || 0) - dt);  // warlord boss global armor rally (v2.14.0), decays the instant the warlord dies/freezes
     // juggernaut boss (v1.56.0): IMMUNE TO CROWD CONTROL — shrug off freeze + frost slow every
     // frame (before slowMul is computed below) so the Freeze ability and Frost towers can't lock it
     // down. A fresh pressure axis — none of the other archetypes touch CC — that also answers the
@@ -273,6 +274,9 @@ function update(dt) {
     //                ECONOMIC pressure axis (no other archetype touches gold); kill it fast or it bleeds you
     //   warper     : every ~5s yanks nearby allies 30px FORWARD along the path (the offensive
     //                inverse of the player's Shockwave) — pressures coverage/leak, adds no HP/speed
+    //   fortifier  : ramps its OWN armor over time (a DPS race), capped, freeze pauses it
+    //   warlord    : the first GLOBAL aura — grants flat bonus armor to the WHOLE wave while alive
+    //                (kill the keystone to strip it); checks the cheap high-rate-low-dmg build, no HP/speed
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
     // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
@@ -441,6 +445,26 @@ function update(dt) {
         if ((e.armor || 0) < e.fortifyCap) e.armor = Math.min(e.fortifyCap, (e.armor || 0) + FORTIFY_RATE * dt);
         e.fortifyCd = (e.fortifyCd == null ? 2.5 : e.fortifyCd) - dt;
         if (e.fortifyCd <= 0) { e.fortifyCd = 2.5; addExplosion(e.x, e.y, '#cd7f32', 8, 95); SFX.bossSkill(); }
+      } else if (e.bossType === 'warlord') {
+        // Warlord (v2.14.0, the 15th archetype — a fresh axis: the FIRST GLOBAL aura. Every other
+        // aura (warden/herald/enrager/conduit) is range-gated; the Warlord rallies the ENTIRE wave
+        // regardless of distance, so it's a pure "kill the keystone" puzzle — drop the Warlord and
+        // the whole field's bonus armor vanishes at once). Each frame it refreshes a short `rallied`
+        // timer on every living non-boss enemy (no range check); a rallied enemy gains WARLORD_ARMOR
+        // flat armor in damage() (the existing flat-subtraction path — no new damage() code). The
+        // timer decays the instant the Warlord dies or freezes (so the buff lapses within a frame),
+        // making target-priority AND freeze clean counters. Distinct from the Fortifier (which ramps
+        // its OWN armor) — this hardens the OTHERS. Bounded / "too easy"-safe: flat armor barely
+        // touches high-per-hit towers (Sniper/Cannon) and is ignored/corroded by Mortar/AP/Poison —
+        // it specifically checks the dominant cheap high-rate-low-dmg build, the documented "too
+        // easy" offender — and it adds NO HP or speed. A periodic pulse fires the SFX + a burst so
+        // the rally reads at a glance. Run-only fields (`rallied`/`rallyCd`), never persisted.
+        for (const o of enemies) {
+          if (o === e || o.dead || o.kind === 'boss') continue;
+          o.rallied = 0.25;
+        }
+        e.rallyCd = (e.rallyCd == null ? 2.5 : e.rallyCd) - dt;
+        if (e.rallyCd <= 0) { e.rallyCd = 2.5; addExplosion(e.x, e.y, '#f0c83c', 9, 110); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -683,6 +707,9 @@ const BEAM_CHARGE_STEP = 0.12;   // charge gained per shot held on the same targ
 // FORTIFY_CAP bonus over its starting armor, so it hardens the longer it survives (a DPS race).
 const FORTIFY_RATE = 0.5;        // armor gained per second alive
 const FORTIFY_CAP = 40;          // max bonus armor over the boss's starting armor (~80s to cap)
+// Warlord boss archetype (v2.14.0) lever: while alive it grants this much flat bonus armor to every
+// living non-boss enemy (a global rally). Flat armor, so it asymmetrically checks low-per-hit DPS.
+const WARLORD_ARMOR = 10;        // flat bonus armor on every rallied enemy
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];
@@ -762,7 +789,11 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
   if (e.warded > 0) dmg *= 0.6;   // warden aura (v1.35.0): protected enemies take 40% less damage
   if (e.conduitGuard > 0) dmg *= (1 - 0.14 * e.conduitGuard);  // conduit boss (v2.2.0): each nearby escort shields it −14% (cap −70% at 5)
-  const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) - 2 * tRank('piercing'));
+  // warlord boss (v2.14.0): a rallied enemy carries WARLORD_ARMOR flat bonus armor while the
+  // Warlord lives — added into the existing flat-subtraction path, so Mortar/AP-gun (ignoreArmor)
+  // skip it and high-per-hit towers barely feel it, but it blunts the cheap high-rate-low-dmg build.
+  const rally = e.rallied > 0 ? WARLORD_ARMOR : 0;
+  const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) + rally - 2 * tRank('piercing'));
   const actual = Math.max(0.5, dmg - armor * (dmg > 2 ? 1 : 0.05));
   const applied = Math.min(e.hp, actual);
   e.hp -= actual;
