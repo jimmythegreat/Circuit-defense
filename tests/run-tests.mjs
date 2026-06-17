@@ -710,7 +710,7 @@ async function main() {
     const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
     // The ordered JS domain files (load order is dependency order — do not reorder).
     const JS_FILES = ['cd-core.js', 'cd-maps.js', 'cd-defs.js', 'cd-state.js',
-                      'cd-game.js', 'cd-update.js', 'cd-render.js'];
+                      'cd-game.js', 'cd-update.js', 'cd-endgame.js', 'cd-render.js'];
     check('tower-defense.css file exists', existsSync(resolve(ROOT, 'tower-defense.css')));
     check('old monolithic tower-defense.js is gone', !existsSync(resolve(ROOT, 'tower-defense.js')));
     for (const f of JS_FILES) {
@@ -747,6 +747,12 @@ async function main() {
     const jsRan = await page.evaluate(() => typeof beginGame === 'function' &&
       typeof draw === 'function' && typeof SFX === 'object' && typeof TOWER_TYPES === 'object');
     check('all domain scripts executed & share global scope', jsRan);
+    // cd-endgame.js (split off cd-update.js v2.15.2) executed — its end-of-run + meta-UI
+    // globals are present. Guards against a future re-inline or a dropped/misordered tag.
+    const endgameRan = await page.evaluate(() => typeof computeScore === 'function' &&
+      typeof endGame === 'function' && typeof grantAchievements === 'function' &&
+      typeof renderEndScreen === 'function' && Array.isArray(ACHIEVEMENTS));
+    check('cd-endgame.js executed (end-of-run + meta-UI globals present)', endgameRan);
     check('no console errors with split files', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }

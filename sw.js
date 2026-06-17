@@ -8,14 +8,14 @@
 // installed PWA) loads instantly from cache; network responses for same-origin GETs are
 // folded back into the cache so newly-deployed files become available offline next time.
 // Bump CACHE on each release so the activate step evicts the previous version.
-const CACHE = 'circuit-defense-v2.15.1';
+const CACHE = 'circuit-defense-v2.15.2';
 const ASSETS = [
   './',
   'index.html',
   'tower-defense.html',
   'tower-defense.css',
   'cd-core.js', 'cd-maps.js', 'cd-defs.js', 'cd-state.js',
-  'cd-game.js', 'cd-update.js', 'cd-render.js',
+  'cd-game.js', 'cd-update.js', 'cd-endgame.js', 'cd-render.js',
   'manifest.webmanifest',
   'icon.svg'
 ];

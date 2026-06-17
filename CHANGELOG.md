@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.15.2 — 2026-06-17 — 🧹 Split cd-endgame.js out of cd-update.js (zero-behavior refactor)
+
+**Type:** Refactor (its own run, zero behavior change). Patch bump. No gameplay/balance/economy/save change.
+
+`cd-update.js` had reached **1448 lines** (~52 from the ~1500 cap, flagged top tech priority in the v2.15.1 health check). Moved its end-of-run + meta-UI half — `ACHIEVEMENTS`/`grantAchievements`, daily streak, records (`recordBest`/`recordScores`), the Settings panel, scoring (`computeScore`/`scoreGrade`/`scoreBreakdownHtml`/`renderEndScreen`), and `endGame`/`winGame`/`nextLevel`/`quitRun`/`continueEndless` — **verbatim** into a new **`cd-endgame.js`** (491 lines), loaded after cd-update.js and before cd-render.js. cd-update.js dropped to **963** (now just the per-frame `update()` sim + combat: `pickTarget`/`fire*`/`hitEnemy`/`damage`). The new file is a classic `<script src>` (NOT a module), added to the HTML load order, the `sw.js` precache, and the harness `JS_FILES`; CLAUDE.md's file map went seven→eight. Verbatim move (no logic/balance/symbol edits, confirmed byte-identical by the diff-review subagent); suite **1339 → 1342** green (+3 from the new file's existence/use-strict/executed coverage). `file://` double-click play intact (test [12] loads over file://). All 8 game files now have comfortable headroom (largest: cd-render 984). `sw.js` cache → `v2.15.2` (test [49]).
+
 ## v2.15.1 — 2026-06-17 — 🩺 Health check — all green (1339/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 feature entries since the last health check v2.10.1: v2.11.0, v2.12.0, v2.13.0, v2.14.0, v2.15.0 — at the 5-run trigger.)

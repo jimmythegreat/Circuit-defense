@@ -82,14 +82,13 @@ _None currently known._ (Add any here as found — top priority.)
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
 
 ### Tech / tooling
-- [~] **Watch `cd-update.js` size** — at **1448 lines** (health check v2.15.1), the largest game file and
-      closest to the ~1500 cap, growing ~10–15 lines/run (new enemies/perks/bosses land their tick logic here).
-      Only **~52 lines of headroom** — the NEXT content run that adds tick logic here likely crosses ~1500, so the
-      split should be the next 1–2 runs' priority. Split it by domain (e.g. enemy-AI tick vs combat/`damage()` vs
-      end-game/`computeScore`) as its own zero-behaviour-change run (tests green before === green after, no balance
-      edits smuggled in; update CLAUDE.md's file map + the harness in the same run). Other files have room
-      (cd-render 984, cd-game 909). **⚠ Plan the split NOW — the next feature run may be forced to do it first.**
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~8,697 lines (126 groups, ~1339
+- [x] **Split `cd-update.js`** — DONE v2.15.2. The end-of-run + meta-UI half (achievements/records/settings/
+      scoring/end-screen + endGame/winGame/nextLevel/quitRun/continueEndless) moved verbatim into a new
+      **`cd-endgame.js`** (491 lines), loaded after cd-update.js, before cd-render.js. cd-update.js dropped
+      **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
+      behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
+      in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~8,703 lines (126 groups, ~1342
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,
