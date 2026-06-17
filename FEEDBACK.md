@@ -10,11 +10,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-_(empty — drop new requests here, one per line)_
-
-
+Nightmare should be about twice as hard.
 
 ## DONE
+
+- **2026-06-17 · v2.11.0** — "Laser beam's beam should get bigger the longer it holds a target" → The 🔆 Laser's tracer now visibly grows as its charge spins up — width ~2.4→7.4px + a brighter glow + an outer bloom halo that fades in only as the charge climbs (thin precise line at ×1, thick halo'd shaft at the ×2.2 cap). Render-only: the damage ramp is unchanged, the Railgun's shared tracer renders byte-identically, and nothing is saved. Test [121].
 
 - **2026-06-16 · v2.1.0** — "[high] The main interface is getting clunky; the bottom-row buttons are huge; revamp the whole starting menu" → **COMPLETE** after nine slices. The full revamp landed: a desktop two-column **dashboard** — run-setup card on the left, a right **rail** stacking play actions (PLAY/Resume/Daily) over a vertical utility panel — so the menu fits the board with ▶ PLAY on-screen (it had grown so tall PLAY sat below the fold). Earlier slices: button hierarchy v1.39.1, PLAY sheen v1.41.0, config card v1.42.0, hero header v1.45.0, ambient backdrop v1.69.0, hover polish v1.94.0, grouped toolbar v2.0.0, accent tiles v2.0.2. CSS-only, save-safe; phones keep their stacked scrollable menu. Test [113].
 

@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.11.0 — 2026-06-17 — 🔆 Laser beam visibly grows with charge (owner feedback)
+
+**Type:** Game-feel polish (render-only). Minor bump.
+
+Owner FEEDBACK: "Laser beam's beam should get bigger the longer it holds a target." The Laser's damage already ramped on a held target (×1→×2.2); now the *tracer* reads that spin-up — `fireBeam` scales the pushed beam's width (~2.4→7.4px), glow (shadowBlur 10→29) and an outer `bloom` halo (0→7px, absent at ×1) by `(charge-1)`. The shared `b.straight` render branch in `draw()` gains a guarded bloom pass + `b.glow || 14` / existing `b.w || 3.5` fallbacks, so the **Railgun tracer (sets neither field) renders byte-identically**. Purely cosmetic — the charge accrual and `damage()` call are untouched (no balance/economy change); beams are run-only (never serialized → save-safe). Suite green (**1308/0**); test [121] gains a beam-grows assertion.
+
 ## v2.10.1 — 2026-06-17 — 🩺 Health check — all green (1307/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 feature entries since the last health check v2.5.1: v2.6.0, v2.7.0, v2.8.0, v2.9.0, v2.10.0 — at the 5-run trigger.)

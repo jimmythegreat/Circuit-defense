@@ -8274,6 +8274,18 @@ async function main() {
       fireBeam(lz, armored, 100);
       const respectsArmor = (1000 - armored.hp) < 100;
 
+      // BEAM GROWS WITH CHARGE (owner feedback): a fully spun-up beam draws a visibly wider
+      // tracer + an outer bloom that's absent at ×1. Fire at ×1 vs the ×2.2 cap and compare.
+      enemies.length = 0;
+      const gtgt = { x:150, y:300, r:12, hp:1e7, maxHp:1e7, armor:0, dead:false, flash:0,
+                     kind:'norm', blinkInvuln:0, bounty:1, dist:0 };
+      enemies.push(gtgt);
+      beams.length = 0; lz.charge = 1;  fireBeam(lz, gtgt, 1); const wLow  = beams[beams.length-1].w;
+      const bloomLow = beams[beams.length-1].bloom;
+      beams.length = 0; lz.charge = 2.2; fireBeam(lz, gtgt, 1); const wHigh = beams[beams.length-1].w;
+      const bloomHigh = beams[beams.length-1].bloom;
+      const beamGrows = wHigh > wLow * 1.5 && bloomLow === 0 && bloomHigh > 0;
+
       // RAMP: drive the real update() fire loop on a single held target → charge climbs to ×2.2 cap.
       towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
       autoStartTimer = -1; waveActive = false; paused = false;
@@ -8313,7 +8325,7 @@ async function main() {
       localStorage.removeItem('cd_save');
       backToMenu();
       return { defOk, specsOk, masteryOk, inShopKeys, sfxOk, shopHasLaser, focusOk, coilOk, hotkeyOk,
-               dealtDmg, beamDrawn, drawOk, respectsArmor, tookDmg, chargeCapped, heldTarget,
+               dealtDmg, beamDrawn, drawOk, respectsArmor, beamGrows, tookDmg, chargeCapped, heldTarget,
                resetOnSwitch, savedNoCharge, roundTrips };
     });
     check('Laser definition wired (proj=beam/range/dmg)', r.defOk);
@@ -8329,6 +8341,7 @@ async function main() {
     check('Laser draws a straight tracer beam', r.beamDrawn);
     check('draw() renders the laser beam branch without throwing', r.drawOk);
     check('Laser respects armor (not an armor-ignorer)', r.respectsArmor);
+    check('Laser beam visibly grows (wider + blooms) as charge builds', r.beamGrows);
     check('Laser ramps damage on a held target up to the ×2.2 cap', r.tookDmg && r.chargeCapped && r.heldTarget,
       `charge=${r.chargeCapped} held=${r.heldTarget}`);
     check('Laser charge resets to ×1 when the target switches', r.resetOnSwitch);

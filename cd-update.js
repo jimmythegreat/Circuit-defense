@@ -689,8 +689,13 @@ function fireBeam(t, target, dmg) {
   damage(target, dmg, t);
   const ux = Math.cos(t.angle), uy = Math.sin(t.angle);
   const mx = t.x + ux*14, my = t.y + uy*14;
+  // The tracer visibly GROWS as the beam spins up on a held target (owner feedback): it starts
+  // a thin precise line at ×1 and swells into a thick, brighter, halo'd beam at the ×2.2 cap —
+  // width ~2.4→7.4px, glow 10→29, plus an outer bloom that fades in only as the charge climbs.
+  const ramp = (t.charge || 1) - 1;   // 0 at ×1 → 1.2 at the ×2.2 cap
   beams.push({ x1: mx, y1: my, x2: target.x, y2: target.y,
-    life: 0.1, color: def.color, straight: true, w: 1.6 + 1.6 * (t.charge || 1) });
+    life: 0.1, color: def.color, straight: true,
+    w: 2.4 + 4.2 * ramp, glow: 10 + 16 * ramp, bloom: 7 * ramp });
 }
 
 function hitEnemy(p) {

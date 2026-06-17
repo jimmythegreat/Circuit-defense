@@ -694,11 +694,24 @@ function draw() {
     // Railgun tracers (b.straight) draw a clean thick line with a bright white core;
     // tesla/chain beams jag through a wobbled midpoint for a lightning look.
     if (b.straight) {
-      ctx.globalAlpha = Math.min(1, b.life * 7);
+      const baseA = Math.min(1, b.life * 7);
+      // A charged Laser beam carries an outer `bloom` halo + a wider `glow` that grow with the
+      // charge so the spin-up reads at a glance; railgun tracers set neither (b.bloom undefined,
+      // b.glow falls back to 14), so they render byte-identically to before.
+      if (b.bloom) {
+        ctx.globalAlpha = baseA * 0.22;
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = (b.w || 3.5) + b.bloom;
+        ctx.beginPath();
+        ctx.moveTo(b.x1, b.y1);
+        ctx.lineTo(b.x2, b.y2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = baseA;
       ctx.strokeStyle = b.color;
       ctx.lineWidth = b.w || 3.5;
       ctx.shadowColor = b.color;
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = b.glow || 14;
       ctx.beginPath();
       ctx.moveTo(b.x1, b.y1);
       ctx.lineTo(b.x2, b.y2);
