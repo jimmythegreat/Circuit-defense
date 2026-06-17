@@ -685,6 +685,11 @@ function effDmg(t) {
   if (perkState.glassCannon) d *= 1.5;
   // Hair Trigger legendary (v1.68.0): −25% damage per shot (paired with +55% fire rate in effRate).
   if (perkState.hairTrigger) d *= 0.75;
+  // Veteran's Edge legendary (v2.13.0): +5% damage per veteran rank this tower has earned (max +20%
+  // at Legend). Keyed to towerRankTier(t.kills), which upgradeKey() hashes — so it only churns the
+  // panel on a promotion, not every kill (safe to live in effDmg, unlike combo/ambush). Conditional &
+  // capped → below Diamond Core (+30% flat); rewards a small core of long-lived, elite towers.
+  if (perkState.veteranBonus) d *= 1 + 0.05 * towerRankTier(t.kills);
   return d;
 }
 function effRate(t) {

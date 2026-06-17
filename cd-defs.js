@@ -455,6 +455,19 @@ const PERKS = [
   // legendary-only resolveWildcard() rolls it automatically; upgradeKey() already hashes effRange so the
   // upgrade panel live-updates the moment it lands.
   { id:'eagleeye', rarity:'legendary',icon:'🦅', name:'Eagle Eye',          desc:'All towers +40% range', apply:s=>s.rangeMult *= 1.4 },
+  // Veteran's Edge (v2.13.0): the FIRST perk to give the cosmetic tower-veterancy system (v1.100.0 —
+  // kill-milestone ranks Rookie→Veteran→Elite→Ace→Legend) mechanical weight. Each tower deals +5%
+  // damage per veteran tier it has earned, so a battle-hardened front-liner (Legend = 200 kills) hits
+  // +20%, while a freshly-placed tower gets +0%. A fresh BUILD axis — it rewards keeping a few elite
+  // towers alive and well-positioned (a "veteran core" playstyle) rather than churning the board.
+  // Deliberately "too easy"-safe: it's back-loaded and CONDITIONAL (worth nothing until your towers
+  // rack up kills) and CAPPED at +20% — strictly below the unconditional Diamond Core (+30% flat),
+  // which is the better early pick — so it's a meaningful draft choice, not power creep. Wired in
+  // effDmg via towerRankTier(t.kills); upgradeKey() already hashes that tier (not raw kills), so the
+  // panel only churns on a promotion, never every kill. `veteranBonus` lives in perkState (save-safe
+  // default false; t.kills already persists, so resumed towers keep their earned bonus). The
+  // legendary-only resolveWildcard() rolls it automatically.
+  { id:'veteran', rarity:'legendary',icon:'🎖️', name:"Veteran's Edge",     desc:'+5% damage per tower veteran rank (max +20%)', apply:s=>s.veteranBonus = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -463,7 +476,7 @@ function freshPerkState() {
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
-    ambush:false, abilityCdMult:1, empResist:1, aoePen:false };
+    ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false };
 }
 function ascendTowers() {
   for (const t of towers) {

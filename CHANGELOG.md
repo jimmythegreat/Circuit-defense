@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.13.0 — 2026-06-17 — 🎖️ Veteran's Edge legendary perk (veterancy gets teeth)
+
+**Type:** New content (run perk). Minor bump.
+
+A new ★ LEGENDARY draft perk, 🎖️ **Veteran's Edge** — the first perk to give the cosmetic tower-veterancy system (v1.100.0, kill-rank pips Rookie→Veteran→Elite→Ace→Legend) mechanical weight. Each tower deals **+5% damage per veteran tier** it has earned, capped **+20%** at Legend (200 kills); a fresh tower gets +0%. A new build axis — reward a "veteran core" of long-lived, well-placed elite towers rather than churning the board. Deliberately **"too easy"-safe**: conditional + back-loaded + capped, strictly below the unconditional Diamond Core (+30% flat, the better early pick), so it's a meaningful choice, not power creep. Wired in `effDmg` via `towerRankTier(t.kills)`, which `upgradeKey()` already hashes (panel churns only on a promotion, not every kill). `veteranBonus` lives in `perkState` (save-safe default false; `t.kills` already persists, so a resumed run keeps the bonus); the legendary-only `resolveWildcard()` rolls it. cd-update.js untouched. Test group [123]; suite green.
+
 ## v2.12.0 — 2026-06-17 — 🌑 Nightmare ~2× harder (owner feedback)
 
 **Type:** Balance (owner-requested). Minor bump. Affects ONLY the 🌑 Nightmare tier — Easy/Normal/Hard/Campaign/Daily are byte-identical.

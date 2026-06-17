@@ -8447,6 +8447,83 @@ async function main() {
     await page.close();
   }
 
+  // [123] Veteran's Edge legendary perk — +5% damage per tower veteran rank (max +20%), wired in
+  // effDmg via towerRankTier; conditional/back-loaded/capped (below Diamond Core), save-safe (v2.13.0)
+  console.log("\n[123] Veteran's Edge perk (veterancy damage)");
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // (a) the perk exists, is legendary, and freshPerkState defaults veteranBonus false (save-safe).
+      const def = PERKS.find(p => p.id === 'veteran');
+      const inPool = !!def && def.rarity === 'legendary';
+      const defaultsFalse = freshPerkState().veteranBonus === false;
+
+      // (b) WITHOUT the perk, a tower's kills never change its damage.
+      perkState.veteranBonus = false;
+      gun.kills = 0;   const offRookie = effDmg(gun);
+      gun.kills = 250; const offLegend = effDmg(gun);
+      const killsInertWhenOff = Math.abs(offRookie - offLegend) < 1e-9;
+
+      // (c) apply() sets the flag, then damage scales +5% per veteran TIER (0/15/40/90/200 kills →
+      //     tiers 0..4 → ×1.00/1.05/1.10/1.15/1.20). Compare against the off-perk baseline.
+      perkState.veteranBonus = false; gun.kills = 0; const base = effDmg(gun);
+      def.apply(perkState);
+      const mul = k => { gun.kills = k; return effDmg(gun) / base; };
+      const rookie = Math.abs(mul(0)   - 1.00) < 1e-9;   // tier 0
+      const vet    = Math.abs(mul(15)  - 1.05) < 1e-9;   // tier 1 (Veteran)
+      const elite  = Math.abs(mul(40)  - 1.10) < 1e-9;   // tier 2 (Elite)
+      const ace    = Math.abs(mul(90)  - 1.15) < 1e-9;   // tier 3 (Ace)
+      const legend = Math.abs(mul(200) - 1.20) < 1e-9;   // tier 4 (Legend)
+      const capped = Math.abs(mul(99999) - 1.20) < 1e-9; // no further growth past Legend
+      const scalesByTier = rookie && vet && elite && ace && legend && capped;
+
+      // (d) it's below the unconditional Diamond Core (+30% flat) even at max — not power creep.
+      const belowDiamond = (mul(200) - 1) < 0.30;
+
+      // (e) upgradeKey() hashes towerRankTier (churns on PROMOTION ONLY, not every kill): crossing
+      //     14→15 (Rookie→Veteran) changes the key; 15→39 (both Veteran, same tier+dmg) does NOT.
+      gun.kills = 14; const k14 = upgradeKey(gun);
+      gun.kills = 15; const k15 = upgradeKey(gun);   // crossed into Veteran → key changes
+      gun.kills = 39; const k39 = upgradeKey(gun);   // still Veteran → key unchanged (no churn)
+      const keyChurnsOnPromotion = k14 !== k15 && k15 === k39;
+
+      // (f) resolveWildcard can roll it (un-taken legendary eligible).
+      let wildcardCanRoll = false;
+      runPerks.length = 0;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'veteran') wildcardCanRoll = true;
+      }
+
+      // (g) save/reload round-trips the flag (lives in perkState → persisted whole).
+      perkState.veteranBonus = true;
+      saveRun();
+      perkState.veteranBonus = false; // clobber
+      const loaded = loadRun();
+      const restored = perkState.veteranBonus === true;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, defaultsFalse, killsInertWhenOff, scalesByTier, belowDiamond,
+               keyChurnsOnPromotion, wildcardCanRoll, loaded, restored };
+    });
+    check("Veteran's Edge is a legendary perk in the pool", r.inPool);
+    check('freshPerkState defaults veteranBonus=false (save-safe)', r.defaultsFalse);
+    check('tower kills are inert on damage when the perk is NOT held', r.killsInertWhenOff);
+    check('damage scales +5% per veteran tier, capped +20% at Legend', r.scalesByTier);
+    check("Veteran's Edge max is below Diamond Core's +30% (not power creep)", r.belowDiamond);
+    check('upgradeKey reflects a veteran promotion', r.keyChurnsOnPromotion);
+    check("resolveWildcard can roll Veteran's Edge", r.wildcardCanRoll);
+    check('save/reload round-trips the veteranBonus flag', r.loaded === true && r.restored);
+    check("no console errors during Veteran's Edge test", consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
