@@ -415,6 +415,18 @@ const PERKS = [
   // (mirrors Reaper), and before the projectile branch so it covers tesla chain & poison too.
   // `comboPower` lives in perkState (save-safe default false); the Wildcard perk can roll it.
   { id:'spree',   rarity:'legendary',icon:'🔥', name:'Killing Spree',     desc:'+1% damage per combo while your streak is hot (max +25%)', apply:s=>s.comboPower = true },
+  // Eagle Eye (v2.3.0): the LEGENDARY capstone of the range/coverage progression axis, completing
+  // the tier above the 🔭 Targeting Array rare perk (+20%) and the 🔭 Farsight meta talent (+10% at
+  // max). +40% firing range to all towers — it reuses the SAME `rangeMult` field (so no new perkState
+  // field; maximally save-safe) and is applied in effRange ONLY, never effBuffRange (booster auras), the
+  // same firing-range boundary Targeting Array / Glass Cannon respect. Range is the game's gentlest
+  // power lever (per CLAUDE.md it helps you HIT, not hit harder), so it's "too easy"-safe; and it's a
+  // genuine BUILD axis, not a flat Diamond-Core dupe — it enables a sparse, wide-coverage layout (fewer
+  // towers reaching more of the path) and directly counters the coverage-pressure content (breachers'
+  // 3-life leaks, fog, cloak). Stacks multiplicatively with Targeting Array (→ ×1.68), bounded. The
+  // legendary-only resolveWildcard() rolls it automatically; upgradeKey() already hashes effRange so the
+  // upgrade panel live-updates the moment it lands.
+  { id:'eagleeye', rarity:'legendary',icon:'🦅', name:'Eagle Eye',          desc:'All towers +40% range', apply:s=>s.rangeMult *= 1.4 },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;

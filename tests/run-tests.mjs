@@ -7807,6 +7807,78 @@ async function main() {
     await page.close();
   }
 
+  // [115] Eagle Eye legendary perk — +40% firing range, booster aura untouched (v2.3.0)
+  console.log('\n[115] Eagle Eye range legendary');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const gun = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0 };
+      towers.push(gun);
+
+      // perk exists in the pool and is legendary
+      const def = PERKS.find(p => p.id === 'eagleeye');
+      const inPool = !!def && def.rarity === 'legendary';
+
+      // baseline (perk not held) -> apply -> +40% firing range
+      perkState.rangeMult = 1;
+      const rBase = effRange(gun);
+      def.apply(perkState);
+      const rPerk = effRange(gun);
+
+      // damage is NOT affected (range-only, "too easy"-safe)
+      perkState.rangeMult = 1;
+      const dBase = effDmg(gun);
+      def.apply(perkState);
+      const dPerk = effDmg(gun);
+
+      // stacks multiplicatively with Targeting Array (×1.4 × ×1.2 = ×1.68)
+      perkState.rangeMult = 1;
+      PERKS.find(p => p.id === 'optics').apply(perkState);   // ×1.2
+      def.apply(perkState);                                  // ×1.4
+      const rStacked = effRange(gun);
+      const rStackBase = gun.range * metaRangeMult();
+      const stacksOk = Math.abs(rStacked - rStackBase * 1.68) < 1e-6;
+
+      // booster aura range (effBuffRange) is NOT affected by the perk
+      perkState.rangeMult = 1.4;
+      const booster = { type:'buff', x:400, y:300, level:1, spec:null, range:45, buffPower:0.25 };
+      towers.push(booster);
+      const buffRange = effBuffRange(booster);
+      const buffExpected = booster.range; // mastery_buff rank 0 => ×1, rangeMult must not apply
+
+      // resolveWildcard can roll Eagle Eye (un-taken legendary eligible)
+      let wildcardCanRoll = false;
+      runPerks.length = 0;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'eagleeye') wildcardCanRoll = true;
+      }
+
+      // save/restore round-trips the multiplier (reuses rangeMult — save-safe)
+      perkState.rangeMult = 1.4;
+      saveRun();
+      perkState.rangeMult = 1; // clobber
+      const loaded = loadRun();
+      const restored = Math.abs(perkState.rangeMult - 1.4) < 1e-9;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, rBase, rPerk, dBase, dPerk, stacksOk, buffRange, buffExpected,
+               wildcardCanRoll, loaded, restored };
+    });
+    check('Eagle Eye is a legendary perk in the pool', r.inPool);
+    check('Eagle Eye gives +40% firing range', Math.abs(r.rPerk - r.rBase * 1.4) < 1e-6, `base=${r.rBase} perk=${r.rPerk}`);
+    check('Eagle Eye leaves tower damage untouched (range-only)', Math.abs(r.dPerk - r.dBase) < 1e-6, `base=${r.dBase} perk=${r.dPerk}`);
+    check('Eagle Eye stacks with Targeting Array (×1.68 range)', r.stacksOk);
+    check('Eagle Eye leaves booster aura range untouched', Math.abs(r.buffRange - r.buffExpected) < 1e-6, `buff=${r.buffRange}`);
+    check('resolveWildcard can roll Eagle Eye', r.wildcardCanRoll);
+    check('save/reload round-trips the range multiplier', r.loaded === true && r.restored, JSON.stringify(r));
+    check('no console errors during Eagle Eye test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

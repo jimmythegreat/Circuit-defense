@@ -29,10 +29,11 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Boss/enemy follow-ups** — a 13th boss archetype (12th = Conduit, shipped v2.2.0 [114]);
       per-campaign-tier *fixed* archetypes (vs the wave-number cycle); a Breacher variant that costs
       lives only if it *survives* a tower's range.
-- [ ] **Perk/ability follow-ups** — a *legendary* +40% range perk (rare Targeting Array + meta Farsight
-      done); a per-tower ability; a meta talent version of Capacitor (ability-cooldown); a Barrier-upgrade
-      talent (more charges / shorter cd); an expanding-shockwave ring render for the Shockwave ability;
-      a hidden unlock condition for a secret legendary.
+- [ ] **Perk/ability follow-ups** — (legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]); a per-tower
+      ability; a meta talent version of Capacitor (ability-cooldown — note: 🌟 Surge talent already does
+      −6%/rank ability cd, so this would overlap); a Barrier-upgrade talent (more charges / shorter cd);
+      an expanding-shockwave ring render for the Shockwave ability; a hidden unlock condition for a secret
+      legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
       ×1.6 double-speed variant of `frenzy`. (Pool is 20 mods; most axes covered.)
 - [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
@@ -111,7 +112,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 23 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + Farsight range v1.92.0 [100]);
   cost rework v1.38.0 [55]. 18 achievements (+ Nightmare Walker v2.0.0); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
-  Killing Spree; rares Targeting Array/Ambush/Capacitor/Surge Protector. [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104].
+  Killing Spree/Eagle Eye(+40% range, v2.3.0 [115]); rares Targeting Array/Ambush/Capacitor/Surge Protector.
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 6 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].

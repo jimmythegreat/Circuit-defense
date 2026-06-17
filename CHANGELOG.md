@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.3.0 — 2026-06-16 — 🦅 Eagle Eye — legendary +40% range perk
+
+**Type:** New content (ROADMAP "a *legendary* +40% range perk"). Minor bump.
+
+A new ★ legendary run perk, 🦅 **Eagle Eye** (+40% firing range to all towers), completing the range/coverage progression axis above the 🔭 Targeting Array rare (+20%) and 🔭 Farsight talent (+10% at max). It enables a sparse wide-coverage build (fewer towers reaching more of the path) and counters coverage-pressure content (Breachers' 3-life leaks, Fog, Cloaking Field). Wired as one line via the **existing `rangeMult` field** (no new perkState field → maximally save-safe); applied in `effRange` only, never booster auras (`effBuffRange`) — the same firing-range boundary Targeting Array/Glass Cannon respect. **"Too easy"-safe:** range helps you hit, not hit harder (per CLAUDE.md's gentlest-lever rationale), and it's a real build axis, not a flat Diamond-Core dupe. Stacks ×1.68 with Targeting Array (bounded); `resolveWildcard()` rolls it; `upgradeKey()` already hashes `effRange` so the panel live-updates. New test group **[115]**; suite green. `sw.js` cache → `v2.3.0` (test [49]).
+
 ## v2.2.0 — 2026-06-16 — 🟢 Conduit — the 12th boss archetype (escort-shielded)
 
 **Type:** New content (ROADMAP "a 12th boss archetype"). Minor bump.
