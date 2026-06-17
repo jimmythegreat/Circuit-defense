@@ -1,6 +1,9 @@
 'use strict';
 // ================= State =================
 let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters, beams, pendingSpawns;
+// Expanding shock-ring effects (v2.5.0): purely cosmetic outward pulses emitted on Shockwave
+// cast / Meteor impact. Run-only, never saved; gated by particle-density + reduced-motion at source.
+let rings = [];
 let livesLostThisRun = false;
 // Pacifist tracking (v1.29.0): true once any ability (meteor/freeze/rush) is cast this run.
 // Run-only, never saved; forced true on resume (loadRun) so a resumed run can't earn Pacifist.
@@ -68,7 +71,7 @@ function resetState() {
   gold = d.gold + 25 * tRank('funding');
   lives = d.lives + 2 * tRank('fortitude');
   wave = 0; kills = 0; gameTime = 0;
-  towers = []; enemies = []; projectiles = []; particles = []; floaters = []; beams = []; pendingSpawns = [];
+  towers = []; enemies = []; projectiles = []; particles = []; floaters = []; beams = []; rings = []; pendingSpawns = [];
   waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;
   selectedShop = null; selectedTower = null; gameOver = false; victory = false;
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;

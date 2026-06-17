@@ -7973,6 +7973,65 @@ async function main() {
     await page.close();
   }
 
+  // [117] Shock-ring effect — expanding cosmetic pulse on Shockwave / Meteor (v2.5.0)
+  console.log('\n[117] Shock-ring effect (Shockwave / Meteor juice)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // (a) Shockwave emits rings when particles are on. resetState zeroed `rings`.
+      particleDensity = 1;
+      const startEmpty = rings.length === 0;
+      abilityCd.shock = 0;
+      triggerAbility('shock');
+      const shockRings = rings.length;                       // two rings pushed
+      const shapeOk = rings[0] && rings[0].maxR > 0 && rings[0].life > 0 &&
+                      rings[0].maxLife === rings[0].life;     // life seeds maxLife for the fade
+
+      // (b) Meteor emits a ring at its impact point
+      rings.length = 0; abilityCd.meteor = 0;
+      castMeteor(300, 200);
+      const meteorRings = rings.length;
+      const meteorAt = rings[0] && Math.abs(rings[0].x - 300) < 1e-6 && Math.abs(rings[0].y - 200) < 1e-6;
+
+      // (c) Particle effects = Off suppresses rings entirely (same gate as the burst)
+      rings.length = 0; particleDensity = 0; abilityCd.shock = 0;
+      triggerAbility('shock');
+      const ringsWhenOff = rings.length;
+
+      // (d) rings decay and clear via update() within their lifetime
+      particleDensity = 1; rings.length = 0; abilityCd.shock = 0;
+      triggerAbility('shock');
+      const beforeDecay = rings.length;
+      for (let i = 0; i < 120; i++) update(1/60);            // 2s > max ring life (0.55s)
+      const afterDecay = rings.length;
+
+      // (e) save round-trip ignores rings (run-only, never serialized)
+      rings.length = 0; abilityCd.shock = 0; triggerAbility('shock');
+      saveRun();
+      const saved = JSON.parse(localStorage.getItem('cd_save'));
+      const notSaved = saved && saved.rings === undefined;
+
+      rings.length = 0; enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { startEmpty, shockRings, shapeOk, meteorRings, meteorAt, ringsWhenOff,
+               beforeDecay, afterDecay, notSaved };
+    });
+    check('rings start empty after resetState', r.startEmpty);
+    check('Shockwave pushes expanding rings', r.shockRings >= 2, 'count=' + r.shockRings);
+    check('a ring has a valid radius/life shape', r.shapeOk);
+    check('Meteor pushes an impact ring', r.meteorRings >= 1, 'count=' + r.meteorRings);
+    check('the Meteor ring is centred on the impact point', r.meteorAt);
+    check('Particle effects = Off suppresses rings', r.ringsWhenOff === 0, 'count=' + r.ringsWhenOff);
+    check('rings exist immediately after a cast', r.beforeDecay >= 2);
+    check('rings decay and clear via update()', r.afterDecay === 0, 'left=' + r.afterDecay);
+    check('rings are not serialized into the save', r.notSaved);
+    check('no console errors during shock-ring tests', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

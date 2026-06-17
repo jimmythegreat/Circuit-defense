@@ -264,6 +264,8 @@ function triggerAbility(k) {
     addFloater(W/2, H/2, '🌀 SHOCKWAVE', '#b392ff', 26);
     addExplosion(W/2, H/2, '#b392ff', 30, 240);
     addExplosion(W/2, H/2, '#7d5cff', 18, 150);
+    addRing(W/2, H/2, '#b392ff', 320, {life: 0.55, w: 6});   // outward kinetic pulse
+    addRing(W/2, H/2, '#c9b8ff', 210, {life: 0.4,  w: 3});
     shake = Math.max(shake, 14);
     SFX.shock();
   }
@@ -292,6 +294,7 @@ function castMeteor(x, y) {
   SFX.meteor();
   addExplosion(x, y, '#ff7b42', 40, 260);
   addExplosion(x, y, '#ffd866', 24, 160);
+  addRing(x, y, '#ff7b42', 150, {life: 0.45, w: 5});   // impact shock ring
   for (const e of enemies) {
     if (e.x === undefined || e.dead) continue;
     if (Math.hypot(e.x - x, e.y - y) < 95) damage(e, dmg, null);

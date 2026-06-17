@@ -517,6 +517,15 @@ function addExplosion(x, y, color, n=10, spd=120) {
     particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: 0.4+Math.random()*0.3, color});
   }
 }
+// Expanding shock-ring (v2.5.0): a single outward pulse that grows to `maxR` then fades.
+// Cosmetic only (never saved). Gated like the particle burst — Particle effects = Off
+// suppresses it, and reduced-motion drops it entirely (a ring is pure motion; the particle
+// cue still fires). Pushed by Shockwave/Meteor for chunkier feedback.
+function addRing(x, y, color, maxR, opts) {
+  if (particleDensity <= 0 || reduceMotion()) return;
+  const life = (opts && opts.life) || 0.5;
+  rings.push({x, y, color, maxR, life, maxLife: life, w: (opts && opts.w) || 4});
+}
 
 // ================= Shop =================
 function renderShop() {

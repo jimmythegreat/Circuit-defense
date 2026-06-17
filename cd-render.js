@@ -772,6 +772,23 @@ function draw() {
   }
   ctx.globalAlpha = 1;
 
+  // expanding shock rings — radius eases out (sqrt) for a fast initial burst, alpha & width
+  // fade over the ring's life. Cosmetic; emission is gated by particle-density/reduced-motion.
+  for (const rg of rings) {
+    const frac = 1 - rg.life / rg.maxLife;          // 0 → 1 over lifetime
+    const r = rg.maxR * Math.sqrt(Math.max(0, frac));
+    ctx.globalAlpha = Math.max(0, rg.life / rg.maxLife) * 0.7;
+    ctx.strokeStyle = rg.color;
+    ctx.lineWidth = Math.max(0.5, rg.w * (1 - frac));
+    ctx.shadowColor = rg.color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(rg.x, rg.y, r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
   // floaters
   for (const f of floaters) {
     ctx.globalAlpha = Math.min(1, f.life);

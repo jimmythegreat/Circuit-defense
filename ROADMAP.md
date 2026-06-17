@@ -29,10 +29,10 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Boss/enemy follow-ups** — a 13th boss archetype (12th = Conduit, shipped v2.2.0 [114]);
       per-campaign-tier *fixed* archetypes (vs the wave-number cycle); a Breacher variant that costs
       lives only if it *survives* a tower's range.
-- [ ] **Perk/ability follow-ups** — (legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]); a per-tower
-      ability; a meta talent version of Capacitor (ability-cooldown — note: 🌟 Surge talent already does
-      −6%/rank ability cd, so this would overlap); a Barrier-upgrade talent (more charges / shorter cd);
-      an expanding-shockwave ring render for the Shockwave ability; a hidden unlock condition for a secret
+- [ ] **Perk/ability follow-ups** — (legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
+      render DONE v2.5.0 [117], now also reused on Meteor impact); a per-tower ability; a meta talent version
+      of Capacitor (ability-cooldown — note: 🌟 Surge talent already does −6%/rank ability cd, so this would
+      overlap); a Barrier-upgrade talent (more charges / shorter cd); a hidden unlock condition for a secret
       legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
       ×1.6 double-speed variant of `frenzy`. (Pool is 20 mods; most axes covered.)

@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.5.0 — 2026-06-17 — 🌀 Shock-ring effect — expanding pulse on Shockwave & Meteor
+
+**Type:** Game-feel polish (ROADMAP "expanding-shockwave ring render"). Minor bump.
+
+A reusable expanding-ring effect (`rings` run-only array + `addRing()` helper) now ripples outward when you cast **🌀 Shockwave** (a double ring from board centre) or **💥 Meteor** (a ring at the impact point), layered over the existing particle burst + screen-shake for chunkier feedback. Radius eases out (sqrt) for a fast initial burst; alpha + line-width fade over the ring's life. **Purely cosmetic** — no damage/economy/balance/save change. Gated exactly like the particle burst: **Particle effects = Off** (or OS reduced-motion) suppresses rings entirely at the emission site (`addRing` early-returns). Rings decay in `update()` beside particles, render after particles / before floaters, and are never serialized. New test group **[117]**; suite green. `sw.js` cache → `v2.5.0` (test [49]).
+
 ## v2.4.0 — 2026-06-17 — ⚑ Herald — haste-aura enemy (Enrager's regular-enemy cousin)
 
 **Type:** New content (ROADMAP "Boss/enemy follow-ups"; new enemy kind). Minor bump.

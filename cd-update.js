@@ -510,6 +510,8 @@ function update(dt) {
     pt.vx *= 0.92; pt.vy *= 0.92;
   }
   particles = particles.filter(p => p.life > 0);
+  for (const rg of rings) rg.life -= dt;
+  rings = rings.filter(rg => rg.life > 0);
   for (const f of floaters) { f.life -= dt; f.y -= 28*dt; }
   floaters = floaters.filter(f => f.life > 0);
 
