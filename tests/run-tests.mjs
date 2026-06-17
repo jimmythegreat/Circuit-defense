@@ -2500,16 +2500,16 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 15 → regen, summoner, bulwark, enrager, teleporter,
+      // Rotation by boss number: (w/5 - 4) % 16 → regen, summoner, bulwark, enrager, teleporter,
       // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier,
-      // warlord, then wraps (w85 → fortifier, w90 → warlord, w95 → regen).
+      // warlord, suppressor, then wraps (w90 → warlord, w95 → suppressor, w100 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
-                    && bt(90) === 'warlord' && bt(95) === 'regen';
+                    && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6475,7 +6475,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 15);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 16);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7824,7 +7824,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 15);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 16);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8118,7 +8118,7 @@ async function main() {
       beginGame();
 
       // 13th archetype: appears at w80 (after conduit at w75); fortifier (14th) follows at w85,
-      // warlord (15th) at w90, wrapping at w95 → regen.
+      // warlord (15th) at w90, suppressor (16th) at w95, wrapping at w100 → regen.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(80) === 'warper';
       const wrapsAt85 = bt(85) === 'fortifier' && bt(90) === 'warlord';
@@ -8168,7 +8168,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 15);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 16);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8439,7 +8439,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 15);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 16);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8540,10 +8540,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 15th archetype: appears at w90 (after fortifier at w85), rotation wraps at w95 → regen.
+      // 15th archetype: appears at w90 (after fortifier at w85); suppressor (16th) follows at w95.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(90) === 'warlord';
-      const wrapsAt95 = bt(95) === 'regen';
+      const wrapsAt95 = bt(95) === 'suppressor';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -8602,8 +8602,8 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 15);
-    check('rotation wraps after warlord (w95 → regen)', r.wrapsAt95);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 16);
+    check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
     check('the rally adds WARLORD_ARMOR flat armor via damage() (10 less per hit)', r.armorAdds);
@@ -8684,6 +8684,95 @@ async function main() {
     check('it fires ONCE per run — a second fatal leak ends the run', r.onlyOnce);
     check('phoenixUsed round-trips on resume (no re-trigger)', r.usedPersists);
     check('no console errors during Phoenix test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [126] Suppressor boss archetype — the 16th: a continuous fire-rate DAMPENING aura (the soft,
+  // multi-tower counterpart to the Disruptor's hard single-tower EMP). While alive it tags every
+  // non-buff tower within SUPPRESS_RANGE with `suppressed`, which effRate reads as +25% reload
+  // (×1.25 — the same factor as the brownout wave-mod); buff towers are immune, the tag lapses the
+  // instant the boss leaves range or dies, and a frozen suppressor can't suppress (v2.16.0).
+  console.log('\n[126] Suppressor boss (fire-rate dampening archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 16th archetype: appears at w95 (after warlord at w90), rotation wraps at w100 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(95) === 'suppressor';
+      const wrapsAt100 = bt(100) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const mkBoss = (over = {}) => Object.assign({ kind:'boss', bossType:'suppressor', hp:5000, maxHp:5000,
+        spd:0, r:24, bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 }, over);
+      const mkTower = (over = {}) => Object.assign({ type:'gun', x:sp.x, y:sp.y, rate:TOWER_TYPES.gun.rate,
+        spec:null, level:1, kills:0, cd:0, flash:0, rankFlash:0, empT:0, suppressed:0, angle:0,
+        invested:0, dealt:0, mode:'first' }, over);
+
+      // (B)+(D)+(I) the aura tags every NON-buff tower within range each frame, but never a buff
+      //   tower and never one out of range.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const near = mkTower();                              // on top of the boss → in range
+      const far  = mkTower({ x: sp.x + 400, y: sp.y });    // 400px away → out of range
+      const buff = mkTower({ type:'buff', x: sp.x, y: sp.y }); // in range but a buff tower → immune
+      towers.push(near, far, buff);
+      enemies.push(mkBoss());
+      for (let i = 0; i < 10; i++) update(1/60);
+      const tagsNear = near.suppressed > 0;
+      const skipsFar = !(far.suppressed > 0);
+      const buffImmune = !(buff.suppressed > 0);
+
+      // (C) a suppressed tower's effRate is exactly +25% reload (×1.25) vs an identical clean one.
+      const a = mkTower({ suppressed: 0.3 }); const b = mkTower({ suppressed: 0 });
+      const throttle = Math.abs(effRate(a) / effRate(b) - 1.25) < 1e-6;
+      const rangeLever = typeof SUPPRESS_RANGE === 'number' && SUPPRESS_RANGE > 0;
+
+      // (G) adds no HP/speed of its own (no towers present, so nothing shoots it).
+      enemies.length = 0; towers.length = 0;
+      const boss = mkBoss();
+      enemies.push(boss);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = boss.hp === 5000 && boss.spd === 0;
+
+      // (E) the tag LAPSES once the suppressor is gone (no refresher → decays to 0).
+      enemies.length = 0; towers.length = 0;
+      const orphan = mkTower({ suppressed: 0.3 });
+      towers.push(orphan); // no suppressor present
+      for (let i = 0; i < 40; i++) update(1/60); // ~0.66s, > the 0.3 timer
+      const lapsesWithoutBoss = orphan.suppressed === 0;
+
+      // (F) a FROZEN suppressor stops suppressing (gated block; freeze counters it).
+      enemies.length = 0; towers.length = 0;
+      const fb = mkBoss({ frozen: 5 }); const ft = mkTower();
+      towers.push(ft); enemies.push(fb);
+      for (let i = 0; i < 10; i++) update(1/60);
+      const frozenStops = ft.suppressed === 0;
+
+      // (H) badge names the archetype.
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'suppressor' });
+      const badgeOk = !!badge && badge.label === 'SUPPRESSING';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
+               rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
+    });
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 16);
+    check('rotation wraps after suppressor (w100 → regen)', r.wrapsAt100);
+    check('a living suppressor tags nearby non-buff towers', r.tagsNear);
+    check('out-of-range towers are not suppressed', r.skipsFar);
+    check('buff/support towers are immune to suppression', r.buffImmune);
+    check('a suppressed tower reloads +25% slower (effRate ×1.25)', r.throttle);
+    check('SUPPRESS_RANGE lever exists', r.rangeLever);
+    check('suppressor adds no HP or speed of its own', r.noHpOrSpeed);
+    check('suppression lapses the instant the suppressor is gone', r.lapsesWithoutBoss);
+    check('a frozen suppressor stops suppressing (freeze counters it)', r.frozenStops);
+    check('boss-bar badge reads SUPPRESSING', r.badgeOk);
+    check('no console errors during Suppressor test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

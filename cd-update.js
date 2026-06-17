@@ -277,6 +277,8 @@ function update(dt) {
     //   fortifier  : ramps its OWN armor over time (a DPS race), capped, freeze pauses it
     //   warlord    : the first GLOBAL aura — grants flat bonus armor to the WHOLE wave while alive
     //                (kill the keystone to strip it); checks the cheap high-rate-low-dmg build, no HP/speed
+    //   suppressor : a continuous fire-rate DAMPENING aura — every nearby tower reloads +25% slower
+    //                (a "localized brownout"; soft multi-tower counterpart to the disruptor's hard EMP)
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
     // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
@@ -465,6 +467,24 @@ function update(dt) {
         }
         e.rallyCd = (e.rallyCd == null ? 2.5 : e.rallyCd) - dt;
         if (e.rallyCd <= 0) { e.rallyCd = 2.5; addExplosion(e.x, e.y, '#f0c83c', 9, 110); SFX.bossSkill(); }
+      } else if (e.bossType === 'suppressor') {
+        // Suppressor (v2.16.0, the 16th archetype — a fresh axis: a continuous fire-rate DAMPENING
+        // aura, the SOFT multi-tower counterpart to the Disruptor's HARD single-tower EMP). Each frame
+        // it refreshes a short `suppressed` timer on every non-buff tower within SUPPRESS_RANGE; a
+        // suppressed tower reloads +25% slower (effRate reads `t.suppressed`, reusing the exact
+        // `brownout` wave-mod factor — a "localized brownout"). So unlike the Disruptor (one tower
+        // fully offline every ~4s, a roaming gap), this softly throttles EVERY tower the boss passes
+        // at once — pressuring tower CLUSTERING/positioning near the path. Bounded / "too easy"-safe:
+        // it adds NO HP or speed, the throttle is a modest −20% DPS (×0.8) not a shutdown, buff towers
+        // are immune (deal no damage), the tag decays the instant the boss leaves range or dies, and
+        // freeze pauses the aura (gated block) so freeze counters it. A periodic pulse fires the SFX +
+        // a burst so the field reads at a glance. Run-only `suppressed`/`suppressCd`, never persisted.
+        for (const t of towers) {
+          if (t.type === 'buff') continue;
+          if (Math.hypot(t.x - e.x, t.y - e.y) < SUPPRESS_RANGE) t.suppressed = 0.3;
+        }
+        e.suppressCd = (e.suppressCd == null ? 2.5 : e.suppressCd) - dt;
+        if (e.suppressCd <= 0) { e.suppressCd = 2.5; addExplosion(e.x, e.y, '#6f8faf', 9, SUPPRESS_RANGE); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -518,6 +538,7 @@ function update(dt) {
     t.flash = Math.max(0, t.flash - dt);
     if (t.rankFlash > 0) t.rankFlash = Math.max(0, t.rankFlash - dt * 1.4);   // veterancy promotion pulse (cosmetic, v1.100.0)
     if (t.empT > 0) t.empT = Math.max(0, t.empT - dt * perkState.empResist);   // tick down offline timer (all tower types); Surge Protector perk (empResist) recovers faster
+    if (t.suppressed > 0) t.suppressed = Math.max(0, t.suppressed - dt);   // Suppressor boss aura: decays once out of range (effRate reads it, +25% reload while >0)
     if (t.type === 'buff') continue;
     t.cd -= dt;
     if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire
@@ -724,6 +745,9 @@ const FORTIFY_CAP = 40;          // max bonus armor over the boss's starting arm
 // Warlord boss archetype (v2.14.0) lever: while alive it grants this much flat bonus armor to every
 // living non-boss enemy (a global rally). Flat armor, so it asymmetrically checks low-per-hit DPS.
 const WARLORD_ARMOR = 10;        // flat bonus armor on every rallied enemy
+// Suppressor boss archetype (v2.16.0) lever: the radius of its fire-rate dampening aura. A non-buff
+// tower within it reloads +25% slower (effRate's `t.suppressed` factor — a localized `brownout`).
+const SUPPRESS_RANGE = 130;      // px reach of the suppression aura (matches the warper/conduit aura reach)
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];

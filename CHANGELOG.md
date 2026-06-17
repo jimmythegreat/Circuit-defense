@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.16.0 — 2026-06-17 — 🩶 Suppressor — 16th boss archetype (fire-rate dampening aura)
+
+**Type:** New content (boss archetype). Minor bump. Save-safe (boss mechanics are run-only, never persisted); no economy/schema change.
+
+A 16th deep-endless boss archetype (first at **w95**), serving the recurring "too easy" feedback off the invariant-capped HP axis. The **Suppressor** projects a continuous fire-rate **dampening aura**: each frame it tags every non-buff tower within `SUPPRESS_RANGE` (130px) with a decaying `t.suppressed=0.3`, and `effRate()` reads it as **+25% reload** (×1.25 — the *exact* `brownout` wave-mod factor, a "localized brownout"). So unlike the **Disruptor** (one tower fully offline every ~4s — a roaming gap), the Suppressor *softly throttles every tower it passes at once*, pressuring tower **clustering/positioning** near the path. **Bounded / "too easy"-safe:** adds no HP/speed, it's a −20% DPS slow not a shutdown, buff/support towers are immune, the tag lapses the instant the boss leaves range or dies, and a **frozen** Suppressor can't suppress. Rendered with a slate aura ring + a `SUPPRESSING` boss-bar badge + a faint slate ring on each throttled tower. `BOSS_ARCHETYPES` 15→16 (cycle wrap now w100→regen). Suite **1342 → 1354** green; new test group **[126]**. `sw.js` cache → `v2.16.0`.
+
 ## v2.15.2 — 2026-06-17 — 🧹 Split cd-endgame.js out of cd-update.js (zero-behavior refactor)
 
 **Type:** Refactor (its own run, zero behavior change). Patch bump. No gameplay/balance/economy/save change.
