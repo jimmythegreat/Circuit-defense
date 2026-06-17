@@ -180,13 +180,14 @@ function enemyTemplate(w) {
   return { hp: hpBase, speed: 55 + Math.min(50, w*1.6), bounty: Math.max(2, Math.round((3 + w*0.6) * d.bounty)) };
 }
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
-// disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0). Indexed by boss number from wave 20 on,
-// so deep bosses cycle regen → summoner → bulwark → enrager → teleporter → berserker → disruptor →
-// juggernaut → siphon (w55 → juggernaut, w60 → siphon, w65 wraps to regen). The cycle length reads
+// disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
+// conduit v2.2.0). Indexed by boss number from wave 20 on, so deep bosses cycle regen → summoner →
+// bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon → hydra → revenant →
+// conduit (w70 → revenant, w75 → conduit, w80 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP
 // IN SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the
 // wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit'];
 function buildWave(w) {
   const q = [];
   let count = 8 + Math.floor(w*1.7);

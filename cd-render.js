@@ -71,6 +71,7 @@ function bossMechanicBadge(e) {
     case 'siphon':   return { label: 'SIPHON', c: '227,179,65' };
     case 'hydra':    return { label: 'HYDRA', c: '154,230,92' };
     case 'revenant': return { label: e.revived ? 'REVIVED' : 'REVENANT', c: '227,79,208' };
+    case 'conduit':  return { label: e.conduitGuard > 0 ? 'SHIELDED' : 'CONDUIT', c: '94,242,200' };
     default:         return null;
   }
 }
@@ -588,7 +589,21 @@ function draw() {
     // brighter+thicker as it rages (scaling with missing HP), so the damage-soak window / rage
     // level is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : e.bossType === 'conduit' ? '94,242,200' : '121,192,255';
+      // Conduit boss (v2.2.0): draw a glowing tether to each nearby escort that's shielding it,
+      // so the "clear the adds to break the link" read is visible at a glance (brighter with more
+      // links). Recomputes neighbours in render — bounded (one boss), and uses last-frame x/y like
+      // the enrager aura. Drawn under the aura ring; freeze drops the guard so the tethers vanish.
+      if (e.bossType === 'conduit' && e.conduitGuard > 0) {
+        ctx.strokeStyle = `rgba(94,242,200,${0.22 + 0.09 * Math.min(4, e.conduitGuard)})`;
+        ctx.lineWidth = 1.5;
+        for (const o of enemies) {
+          if (o === e || o.dead || o.kind === 'boss') continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < 130) {
+            ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(o.x, o.y); ctx.stroke();
+          }
+        }
+      }
       const rage = e.bossType === 'berserker' ? Math.max(0, 1 - e.hp / e.maxHp) : 0;
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r + (e.shieldOn ? 9 : 6) + rage*4, 0, Math.PI*2);

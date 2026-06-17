@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.2.0 — 2026-06-16 — 🟢 Conduit — the 12th boss archetype (escort-shielded)
+
+**Type:** New content (ROADMAP "a 12th boss archetype"). Minor bump.
+
+A new deep-game boss archetype, the 🟢 **Conduit** (appears w75+). It fights on a fresh axis no other boss touches: it's **shielded by its escorts** — the inverse of the ◈ Warden enemy (whose aura protects the cluster; here the cluster protects the boss). Each frame it counts nearby non-boss enemies within 130px (`conduitGuard`, capped at 5) and takes **−14% damage per linked escort** (cap −70%), applied as one line in `damage()`. So hammering its HP bar barely works — you must **clear the adds first** to break the link (a target-priority puzzle, not an HP spike). **Freezing it also drops the shield** (an unconditional CC-clear line zeroes the guard while frozen, so the gated tick can't leave a stale shield up). Render draws glowing mint tethers to each linked escort + a mint aura ring/badge. **Bounded / "too easy"-safe:** adds no HP or speed, the escorts are ones you'd kill anyway, and a frozen Conduit takes full damage — it can only ask you to prioritise, never make a run easier. All archetype fields are run-only/never persisted → save-safe; no economy/balance change. New test group **[114]** (+ badge coverage in [53], rotation update in [96]); suite green. `sw.js` cache → `v2.2.0` (test [49]).
+
 ## v2.1.0 — 2026-06-16 — 🧭 Start-menu dashboard layout (menu-revamp slice 9 — the "full revamp")
 
 **Type:** UX layout (FEEDBACK [high] menu revamp, the remaining "full revamp" piece). Minor bump.

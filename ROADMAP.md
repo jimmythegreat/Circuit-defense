@@ -26,8 +26,9 @@ _None currently known._ (Add any here as found — top priority.)
       a spec/perk that adds explosion-penetration vs ⬢ Bastion blast-shells; a predictive lead-shot
       spec to counter blinkers (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun
       (Minigun vs AP) for a strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 12th boss archetype; per-campaign-tier *fixed* archetypes (vs the
-      wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
+- [ ] **Boss/enemy follow-ups** — a 13th boss archetype (12th = Conduit, shipped v2.2.0 [114]);
+      per-campaign-tier *fixed* archetypes (vs the wave-number cycle); a Breacher variant that costs
+      lives only if it *survives* a tower's range.
 - [ ] **Perk/ability follow-ups** — a *legendary* +40% range perk (rare Targeting Array + meta Farsight
       done); a per-tower ability; a meta talent version of Capacitor (ability-cooldown); a Barrier-upgrade
       talent (more charges / shorter cd); an expanding-shockwave ring render for the Shockwave ability;
@@ -99,8 +100,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 12 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0). Concurrent waves
   (up to 3) v1.12.0 [20].
-- 11 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant) v1.25.0–v1.88.0 [45]/[53]/[90]/[96]; boss-bar mechanic badge v1.36.0 [53].
+- 12 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit) v1.25.0–v2.2.0 [45]/[53]/[90]/[96]/[114]; boss-bar mechanic badge v1.36.0 [53].
 - 20 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
   adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/meteors) [46]+ many.
 

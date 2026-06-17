@@ -95,6 +95,11 @@ function update(dt) {
     // 0.45× boss speed keeps it bounded/beatable, and it has no other mechanic (its whole gimmick
     // is being unstoppable). Run-only field — enemies are never persisted.
     if (e.kind === 'boss' && e.bossType === 'juggernaut') { e.frozen = 0; e.slow = 0; }
+    // Conduit boss (v2.2.0): a frozen conduit drops its escort shield — clear the guard
+    // unconditionally so the gated tick (which is skipped while frozen) can't leave a stale
+    // shield up. Makes freeze a clean counter (freeze it → it takes full damage), consistent
+    // with freeze pausing every archetype mechanic. Run-only field, never persisted.
+    if (e.kind === 'boss' && e.bossType === 'conduit' && e.frozen > 0) e.conduitGuard = 0;
     // Heatwave wave mod (mayhem, v1.66.0): every tagged enemy + boss is IMMUNE TO CROWD CONTROL —
     // shrug off freeze + frost slow every frame (before slowMul, mirroring the juggernaut line
     // above), so the Freeze ability and Frost towers can't lock the wave down. A fresh axis: none
@@ -354,6 +359,26 @@ function update(dt) {
             shake = Math.max(shake, 5);
             updateHud();
           }
+        }
+      } else if (e.bossType === 'conduit') {
+        // Conduit (v2.2.0, the 12th archetype — a fresh axis: escorts shield the BOSS, the
+        // inverse of the Warden, whose aura shields the cluster). Each frame, count the nearby
+        // non-boss enemies linked to it; that count (capped at 5) is its damage shield, applied
+        // in damage() as −14% per escort (cap −70%). So emptying its bar means CLEARING THE ADDS
+        // first — a target-priority decision, not a raw HP spike. Bounded / "too easy"-safe: the
+        // escorts are ones you'd kill anyway, the reduction caps, and a frozen conduit drops the
+        // shield (the unconditional line above). Adds NO HP or speed. A periodic pulse fires the
+        // SFX + a burst so the link is readable. Run-only fields, never persisted.
+        let guard = 0;
+        for (const o of enemies) {
+          if (o === e || o.dead || o.kind === 'boss') continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < 130) { guard++; if (guard >= 5) break; }
+        }
+        e.conduitGuard = guard;
+        e.linkCd = (e.linkCd == null ? 2.5 : e.linkCd) - dt;
+        if (e.linkCd <= 0) {
+          e.linkCd = 2.5;
+          if (guard > 0) { addExplosion(e.x, e.y, '#5ef2c8', 7, 95); SFX.bossSkill(); }
         }
       }
     }
@@ -633,6 +658,7 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
   if (e.warded > 0) dmg *= 0.6;   // warden aura (v1.35.0): protected enemies take 40% less damage
+  if (e.conduitGuard > 0) dmg *= (1 - 0.14 * e.conduitGuard);  // conduit boss (v2.2.0): each nearby escort shields it −14% (cap −70% at 5)
   const armor = ignoreArmor ? 0 : Math.max(0, (e.armor || 0) - 2 * tRank('piercing'));
   const actual = Math.max(0.5, dmg - armor * (dmg > 2 ? 1 : 0.05));
   const applied = Math.min(e.hp, actual);

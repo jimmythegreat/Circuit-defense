@@ -2494,14 +2494,14 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 11 → regen, summoner, bulwark, enrager, teleporter,
-      // berserker, disruptor, juggernaut, siphon, hydra, revenant, then wraps (w75 → regen again).
+      // Rotation by boss number: (w/5 - 4) % 12 → regen, summoner, bulwark, enrager, teleporter,
+      // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, then wraps (w80 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
-                    && bt(75) === 'regen';
+                    && bt(75) === 'conduit' && bt(80) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -3353,6 +3353,8 @@ async function main() {
         siphon: bossMechanicBadge(mk({ bossType:'siphon' })),
         revenant: bossMechanicBadge(mk({ bossType:'revenant' })),
         revenantUsed: bossMechanicBadge(mk({ bossType:'revenant', revived:true })),
+        conduit: bossMechanicBadge(mk({ bossType:'conduit' })),
+        conduitShielded: bossMechanicBadge(mk({ bossType:'conduit', conduitGuard:3 })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3374,6 +3376,8 @@ async function main() {
     check('siphon badge labelled SIPHON (gold)', r.siphon && r.siphon.label === 'SIPHON' && r.siphon.c === '227,179,65', JSON.stringify(r.siphon));
     check('revenant badge labelled REVENANT (magenta)', r.revenant && r.revenant.label === 'REVENANT' && r.revenant.c === '227,79,208', JSON.stringify(r.revenant));
     check('revenant badge flips to REVIVED once its second life is used', r.revenantUsed && r.revenantUsed.label === 'REVIVED', JSON.stringify(r.revenantUsed));
+    check('conduit badge labelled CONDUIT (mint)', r.conduit && r.conduit.label === 'CONDUIT' && r.conduit.c === '94,242,200', JSON.stringify(r.conduit));
+    check('conduit badge flips to SHIELDED while escorts are linked', r.conduitShielded && r.conduitShielded.label === 'SHIELDED', JSON.stringify(r.conduitShielded));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6413,10 +6417,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // it's the 11th archetype, in the rotation at w70 (then wraps at w75 → regen).
+      // it's the 11th archetype, in the rotation at w70 (conduit is now the 12th at w75).
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(70) === 'revenant';
-      const wrapsAt75 = bt(75) === 'regen';
+      const wrapsAt75 = bt(75) === 'conduit';
 
       const sp = pointAt(60);
       enemies.length = 0; projectiles.length = 0; pendingSpawns.length = 0; towers.length = 0;
@@ -6463,8 +6467,8 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 11);
-    check('rotation wraps after revenant (w75 → regen)', r.wrapsAt75);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 12);
+    check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
     check('revenant latches `revived` (one-time)', r.latched);
@@ -7714,6 +7718,92 @@ async function main() {
     check('phone: utility toolbar is still the last child', m.lastChildUtil);
     check('phone: no horizontal overflow with the dashboard layout', m.noOverflow);
     check('no console errors during dashboard layout test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [114] Conduit boss archetype — the 12th: shielded by nearby escorts, takes −14% damage
+  // per linked add (cap −70% at 5); clear the adds (or freeze it) to break the link (v2.2.0)
+  console.log('\n[114] Conduit boss (escort-shield archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 12th archetype: appears at w75 (after revenant at w70), wraps at w80 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(75) === 'conduit';
+      const wrapsAt80 = bt(80) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const farP = pointAt(600);
+      const mkBoss = () => ({ kind:'boss', bossType:'conduit', hp:5000, maxHp:5000, spd:0, r:24,
+        bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 });
+      // escorts must carry explicit x/y — update() sets x/y per-enemy mid-loop, so the conduit's
+      // frame-1 distance check reads their pre-update coords (aura-test gotcha).
+      const mkAdd = (atFar) => ({ kind:'norm', hp:200, maxHp:200, spd:0, r:11, bounty:2, color:'#3fb950',
+        armor:0, gap:0.8, dist: atFar ? 600 : 60, x: atFar ? farP.x : sp.x, y: atFar ? farP.y : sp.y,
+        px: atFar ? farP.x : sp.x, py: atFar ? farP.y : sp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 });
+
+      // (A) damage() math in isolation — reduction = 1 − 0.14·guard.
+      const dropFor = (guard) => {
+        enemies.length = 0; projectiles.length = 0; towers.length = 0;
+        const b = mkBoss(); b.conduitGuard = guard; enemies.push(b);
+        const before = b.hp; damage(b, 1000, null); return before - b.hp;
+      };
+      const dropG0 = dropFor(0);   // 1000
+      const dropG3 = dropFor(3);   // 580
+      const dropG5 = dropFor(5);   // 300
+      const mathOk = Math.abs(dropG0 - 1000) < 1e-6 && Math.abs(dropG3 - 580) < 1e-6 && Math.abs(dropG5 - 300) < 1e-6;
+
+      // (B) update() tick computes guard from nearby alive escorts (3 near + 1 far → guard 3).
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      const boss = mkBoss(); enemies.push(boss);
+      enemies.push(mkAdd(false), mkAdd(false), mkAdd(false), mkAdd(true));
+      update(1/60);
+      const guardCounts3 = boss.conduitGuard === 3;
+
+      // (C) cap at 5 — 7 near escorts → guard caps at 5.
+      enemies.length = 0; pendingSpawns.length = 0;
+      const boss2 = mkBoss(); enemies.push(boss2);
+      for (let i = 0; i < 7; i++) enemies.push(mkAdd(false));
+      update(1/60);
+      const guardCaps5 = boss2.conduitGuard === 5;
+
+      // (D) clear the adds → next tick the shield drops to 0 → full damage again.
+      enemies.length = 0; enemies.push(boss2);   // keep only the boss
+      update(1/60);
+      const guardClears = boss2.conduitGuard === 0;
+
+      // (E) a frozen conduit drops its shield even with escorts present (freeze counters it).
+      enemies.length = 0; pendingSpawns.length = 0;
+      const fb = mkBoss(); fb.frozen = 5; fb.conduitGuard = 4; enemies.push(fb);
+      for (let i = 0; i < 5; i++) enemies.push(mkAdd(false));
+      update(1/60);
+      const frozenDropsShield = fb.conduitGuard === 0;
+      const fbBefore = fb.hp; damage(fb, 1000, null);
+      const frozenTakesFull = Math.abs((fbBefore - fb.hp) - 1000) < 1e-6;
+
+      // (F) reduction never exceeds −70% (guard is capped at 5).
+      const cappedReduction = dropG5 >= 300 - 1e-6;
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
+               guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
+    });
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 12);
+    check('rotation wraps after conduit (w80 → regen)', r.wrapsAt80);
+    check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
+    check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
+    check('escort shield caps at 5 (7 near → guard 5)', r.guardCaps5);
+    check('clearing the escorts drops the shield to 0', r.guardClears);
+    check('a frozen conduit drops its shield (freeze counters it)', r.frozenDropsShield);
+    check('a frozen conduit then takes full damage', r.frozenTakesFull);
+    check('damage reduction never exceeds −70% (guard capped)', r.cappedReduction);
+    check('no console errors during Conduit test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
