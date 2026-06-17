@@ -133,6 +133,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 6 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].
 - Daily Challenge (date-seeded) v1.28.0 [47] + streak v1.31.0 [50] + preview v1.47.0; combo meter v1.7.0 [71].
+- **♾️ Endless mode** v2.17.0 [127] (FEEDBACK): menu tile (quick-mode + `endless` flag, NOT a 3rd gameMode);
+  banks the wave-30 win once then continues with no victory wall; resumable; additive save field (old saves → false).
 
 ### Scoring / records / save
 - End-of-run score+grade + restyled overlay v1.16.0 [31]; speed bonus v1.78.0; breakdown v1.62.0 [73].

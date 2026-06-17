@@ -7493,7 +7493,7 @@ async function main() {
       gameMode = 'quick'; campLevel = 1;
       renderStartScreen();
       const modeBtns = document.getElementById('modeRow').children;
-      modeBtns[1].click();   // the Campaign mode button
+      modeBtns[2].click();   // the Campaign mode button (Quick / Endless / Campaign)
       const modeSwitchSelectsNext = campLevel === 4;
       // (b) finishing level 4 and returning to the menu auto-advances to 5
       localStorage.setItem('cd_campaign', '4');
@@ -8773,6 +8773,93 @@ async function main() {
     check('a frozen suppressor stops suppressing (freeze counters it)', r.frozenStops);
     check('boss-bar badge reads SUPPRESSING', r.badgeOk);
     check('no console errors during Suppressor test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [127] Endless mode — menu-selectable Quick variant that never stops at wave 30 (v2.17.0)
+  console.log('\n[127] Endless mode (menu-selectable, banks wave-30 win then continues)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const mkTower = (x, y) => ({ type:'gun', x, y, range:120, dmg:10, rate:0.5, cd:0, level:1,
+        baseCost:60, invested:60, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 });
+
+      // (A) the menu offers a 3rd mode tile and selecting it sets endless (still gameMode==='quick').
+      endless = false; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      backToMenu(); renderStartScreen();
+      const threeTiles = document.getElementById('modeRow').children.length === 3;
+      document.getElementById('modeRow').children[1].click();   // ♾️ Endless tile
+      const tileSelectsEndless = endless === true && gameMode === 'quick';
+      // clicking Quick clears it; clicking Campaign clears it too.
+      document.getElementById('modeRow').children[0].click();   // Quick Play
+      const quickClearsEndless = endless === false;
+      document.getElementById('modeRow').children[2].click();   // Campaign
+      const campClearsEndless = endless === false && gameMode === 'campaign';
+
+      // (B) an Endless run that reaches the victory wave BANKS the win but KEEPS PLAYING.
+      localStorage.removeItem('cd_save');
+      endless = true; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 99999; towers.push(mkTower(200, 200));
+      meta.chips = 0;
+      wave = 30; lastSettledWave = 29; waveActive = true;
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      endWave();   // crosses victoryWave() (30): banks the win, then settles normally
+      const banked = meta.chips > 0;
+      const continues = victory === true && gameOver === false;
+      const bonusPaid = gold > 99999;                 // fall-through settled the wave-clear bonus
+      const stillResumable = !!localStorage.getItem('cd_save');  // endless run is NOT cleared
+
+      // …and it keeps going past 30 without ever ending (victory already set → no re-fire).
+      wave = 35; lastSettledWave = 34; waveActive = true;
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      endWave();
+      const continuesPast30 = gameOver === false && victory === true;
+
+      // (C) a NON-endless Quick run at wave 30 still ENDS (contrast).
+      localStorage.removeItem('cd_save');
+      endless = false; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy';
+      beginGame(); gold = 99999; towers.push(mkTower(200, 200));
+      wave = 30; lastSettledWave = 29; waveActive = true;
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      endWave();
+      const quickStillEnds = gameOver === true && victory === true;
+
+      // (D) the endless flag round-trips through save/resume.
+      localStorage.removeItem('cd_save');
+      endless = true; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); gold = 500; towers.push(mkTower(220, 220));
+      wave = 12; lastSettledWave = 12; waveActive = false; saveRun();
+      const savedEndless = (JSON.parse(localStorage.getItem('cd_save')).endless === true);
+      endless = false; loadRun();
+      const resumedEndless = endless === true;
+
+      // (E) an OLD save with no `endless` field loads as a normal (non-endless) run.
+      localStorage.setItem('cd_save', JSON.stringify({ mapKey:'classic', diffKey:'easy',
+        gameMode:'quick', campLevel:1, gold:100, lives:10, kills:0, wave:5, towers:[] }));
+      endless = true; loadRun();
+      const oldSaveNotEndless = endless === false;
+
+      endless = false; localStorage.removeItem('cd_save'); localStorage.removeItem('cd_campaign');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { threeTiles, tileSelectsEndless, quickClearsEndless, campClearsEndless,
+        banked, continues, bonusPaid, stillResumable, continuesPast30, quickStillEnds,
+        savedEndless, resumedEndless, oldSaveNotEndless };
+    });
+    check('menu shows 3 mode tiles (Quick / Endless / Campaign)', r.threeTiles);
+    check('the Endless tile sets endless=true (still gameMode quick)', r.tileSelectsEndless);
+    check('selecting Quick clears endless', r.quickClearsEndless);
+    check('selecting Campaign clears endless', r.campClearsEndless);
+    check('endless run banks the wave-30 win (chips awarded)', r.banked);
+    check('endless run keeps playing past victory (victory set, not gameOver)', r.continues);
+    check('endless wave-30 clear still pays the wave-clear bonus', r.bonusPaid);
+    check('endless run stays resumable (save not cleared at the milestone)', r.stillResumable);
+    check('endless run continues past wave 30 without ending', r.continuesPast30);
+    check('a non-endless Quick run at wave 30 still ends (contrast)', r.quickStillEnds);
+    check('endless flag is serialized to cd_save', r.savedEndless);
+    check('endless flag round-trips through resume', r.resumedEndless);
+    check('old save without the endless field loads as non-endless', r.oldSaveNotEndless);
+    check('no console errors during Endless mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

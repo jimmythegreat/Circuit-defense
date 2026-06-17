@@ -39,24 +39,34 @@ function renderStartScreen() {
   // mode selector
   const modeRow = document.getElementById('modeRow');
   modeRow.innerHTML = '';
+  // Endless (v2.17.0, owner FEEDBACK): a menu-selectable variant of Quick Play that never stops at
+  // wave 30 — it banks the win and keeps going. It's gameMode==='quick' + the `endless` flag (NOT a
+  // 3rd gameMode), so it shares the map row and all quick-mode scaling; selection keys off `endless`.
   const modes = [
-    { id:'quick', name:'Quick Play', desc:'Pick a map, survive 30 waves' },
+    { id:'quick', name:'Quick Play', desc:'Pick a map, survive 30 waves', endless:false },
+    { id:'endless', name:'♾️ Endless', desc:'Same maps — survive as long as you can', endless:true },
     { id:'campaign', name:'🏔️ Campaign', desc:`${campaignDone()}/${CAMPAIGN_LEVELS} levels cleared` },
   ];
   for (const m of modes) {
     const b = document.createElement('button');
-    b.className = 'optBtn' + (gameMode === m.id ? ' sel' : '');
+    const sel = m.id === 'campaign' ? gameMode === 'campaign'
+                                    : (gameMode === 'quick' && !!endless === !!m.endless);
+    b.className = 'optBtn' + (sel ? ' sel' : '');
     b.innerHTML = `${m.name}<small>${m.desc}</small>`;
     // v2.0.0 (owner FEEDBACK): clicking into Campaign jumps the selection to the next
     // un-cleared level (the one you'd actually play) instead of leaving it on whatever
     // was last selected. campaignDone()+1, clamped to the final level.
-    b.onclick = () => { gameMode = m.id; if (m.id === 'campaign') campLevel = Math.min(CAMPAIGN_LEVELS, campaignDone() + 1); renderStartScreen(); };
+    b.onclick = () => {
+      if (m.id === 'campaign') { gameMode = 'campaign'; endless = false; campLevel = Math.min(CAMPAIGN_LEVELS, campaignDone() + 1); }
+      else { gameMode = 'quick'; endless = !!m.endless; }
+      renderStartScreen();
+    };
     modeRow.appendChild(b);
   }
   const mapRow = document.getElementById('mapRow');
   mapRow.innerHTML = '';
   if (gameMode === 'quick') {
-    document.getElementById('mapLabel').textContent = 'MAP';
+    document.getElementById('mapLabel').textContent = endless ? 'MAP — ♾️ Endless: no wave cap, runs until you fall' : 'MAP';
     for (const k of Object.keys(MAPS)) {
       const b = document.createElement('button');
       b.className = 'optBtn' + (mapKey===k ? ' sel' : '');
@@ -109,6 +119,7 @@ function beginGame() {
 // not resumable (saveRun bails on `daily`), so the player's existing saved run survives untouched.
 function beginDaily() {
   daily = true;
+  endless = false;       // a daily is a fixed one-off, never endless
   gameMode = 'quick';
   mapKey = 'mayhem';
   setupDaily();          // sets dailyDateKey/dailySeed, diffKey, MAPS.mayhem.pts, dailyMods
@@ -439,7 +450,10 @@ function endWave() {
   waveMod = null;
   const from = lastSettledWave + 1, to = wave;
   lastSettledWave = wave;
-  if (wave >= victoryWave() && !victory) { winGame(); return; }
+  // Victory crossing. Normally this ENDS the run (winGame shows the overlay + returns). In Endless
+  // mode winGame instead banks the win once and keeps `gameOver` false, so we fall through to settle
+  // the wave-clear bonus/draft and auto-start the next wave — the run continues with no victory wall.
+  if (wave >= victoryWave() && !victory) { winGame(); if (!endless) return; }
   let totalBonus = 0, drafts = 0;
   const interestCap = 30 + 10 * tRank('banking');
   for (let w = from; w <= to; w++) {

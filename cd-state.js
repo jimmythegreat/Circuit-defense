@@ -93,7 +93,7 @@ function resetState() {
   document.getElementById('startBtn').textContent = '▶ Start Wave 1';
   document.getElementById('pauseBtn').textContent = '⏸ Pause';
   document.getElementById('diffLabel').textContent =
-    (daily ? `🗓 Daily ${dailyDateKey}` : gameMode === 'campaign' ? `Campaign ${campLevel}/${CAMPAIGN_LEVELS}` : MAPS[mapKey].name) + ` · ${d.name}`;
+    (daily ? `🗓 Daily ${dailyDateKey}` : gameMode === 'campaign' ? `Campaign ${campLevel}/${CAMPAIGN_LEVELS}` : (endless ? '♾️ ' : '') + MAPS[mapKey].name) + ` · ${d.name}`;
   hideUpgrade();
   renderAbilityBar();
   updateHud();
@@ -104,7 +104,7 @@ function saveRun() {
   if (daily) return;  // daily runs are one-off & not resumable; never overwrite the player's normal cd_save
   try {
     localStorage.setItem('cd_save', JSON.stringify({
-      mapKey, diffKey, gameMode, campLevel, mapTheme,
+      mapKey, diffKey, gameMode, campLevel, mapTheme, endless,
       gold: Math.floor(gold), lives, kills, gameTime,
       // resume from the last fully-settled wave: quitting mid-wave (or mid-rush with
       // several waves in flight) replays the unsettled wave(s), never double-paying
@@ -140,7 +140,7 @@ function resetAllData() {
   meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
   loadMeta();
   speed = 1; best = 0; muted = false; shakeEnabled = true; particleDensity = 1;
-  defaultTargetMode = 'first';
+  defaultTargetMode = 'first'; endless = false;
   masterVol = 0.7; if (_masterGain) _masterGain.gain.value = 0.7;
   if (btn) { btn.textContent = '🗑 Reset All'; btn.classList.remove('danger'); }
   document.getElementById('speedBtn').textContent = '⏩ 1x';
@@ -157,6 +157,7 @@ function loadRun() {
   daily = false;  // resuming is always a normal saved run (daily is never persisted)
   mapKey = s.mapKey; diffKey = s.diffKey;
   gameMode = s.gameMode === 'campaign' ? 'campaign' : 'quick';
+  endless = !!s.endless && gameMode === 'quick';  // old saves lack the field → false; endless is quick-only
   campLevel = Math.max(1, Math.min(CAMPAIGN_LEVELS, s.campLevel || 1));
   started = true;
   document.getElementById('startScreen').style.display = 'none';

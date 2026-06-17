@@ -23,6 +23,13 @@ const MAPS = {
 };
 let mapKey = 'classic';
 let gameMode = 'quick';   // 'quick' | 'campaign'
+// Endless mode (v2.17.0, owner FEEDBACK "I keep adding features to endless but can't select it
+// on the menu"): a menu-selectable run config (NOT a 3rd gameMode — it stays gameMode==='quick'
+// so every quick-mode branch/scaling is unchanged). When set, a Quick run banks its wave-30 win
+// ONCE then keeps going seamlessly (no victory wall) — the run only stops on defeat. Selected on
+// the start screen; persisted in cd_save so a resumed endless run keeps auto-continuing. Like
+// gameMode/mapKey it's a config global, NOT reset by resetState(); old saves default it false.
+let endless = false;
 let campLevel = 1;
 const CAMPAIGN_LEVELS = 40;
 let waypoints, segs, pathLen;

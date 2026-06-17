@@ -10,9 +10,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-_(empty)_
+The menu screen now has a scroll bar. It should use the entire game size minute the whats new panel.
 
 ## DONE
+
+- **2026-06-17 · v2.17.0** — "You keep adding features to endless mode but I don't see a way to select that on the menu" → Added a ♾️ **Endless** tile to the start menu beside Quick Play and Campaign. It's a quick-mode variant (`endless` config flag, not a 3rd gameMode) that banks the wave-30 win once then keeps playing with no victory wall — the run only stops on defeat. Fully resumable + save-safe (additive `endless` save field, old saves default false). Previously endless was only reachable via the post-win "Continue Endless ∞" button. Test [127].
 
 - **2026-06-17 · v2.12.0** — "Nightmare should be about twice as hard" → Hardened the 🌑 Nightmare tier across every lever, calibrated by a measured difficulty index (total wave HP ÷ total run income): hp 1.7→2.5, bounty 0.85→0.68, gold 90→75, lives 8→7, plus a steeper/higher quick-mode late-scale (slope .02→.03, cap +40%→+80%). Sim: index 152→310 = ×2.04 the old Nightmare (×3.17 a Hard run). Top chip payout (2.2×) kept; only Nightmare changed (Easy/Normal/Hard/Campaign/Daily untouched), save-safe. Test [109].
 

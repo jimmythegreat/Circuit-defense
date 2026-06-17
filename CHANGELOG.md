@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.17.0 — 2026-06-17 — ♾️ Endless mode is now selectable from the start menu
+
+**Type:** Feature (owner FEEDBACK). Minor bump. Save-safe (additive `endless` save field; old saves default false); no economy/balance change.
+
+Owner FEEDBACK: "You keep adding features to endless but I don't see a way to select that on the menu." Endless was previously only reachable by winning a Quick run and pressing **Continue Endless ∞**. Now a **♾️ Endless** tile sits on the start menu beside Quick Play and Campaign. It's **not a 3rd `gameMode`** — it stays `gameMode==='quick'` with a new `endless` config flag (so every quick-mode scaling/branch is unchanged), and selection keys off the flag. When set, reaching the victory wave (30) calls `winGame()`'s new **endless branch**: it banks the win exactly once (chips/achievements/best-wave) and celebrates with a floater, but keeps `gameOver` false and shows **no overlay** — `endWave()` then falls through to settle the wave-clear bonus and auto-start the next wave, so the run flows on seamlessly until defeat. Identical reward semantics to the existing Continue-Endless path (no double-economy change). Persisted in `cd_save` (`endless`, restored quick-only; old saves default false → load as normal runs) and resumable. Suite **1354 → 1368** green; new test group **[127]**. `sw.js` cache → `v2.17.0`.
+
 ## v2.16.0 — 2026-06-17 — 🩶 Suppressor — 16th boss archetype (fire-rate dampening aura)
 
 **Type:** New content (boss archetype). Minor bump. Save-safe (boss mechanics are run-only, never persisted); no economy/schema change.

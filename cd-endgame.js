@@ -429,6 +429,25 @@ function endGame() {
 }
 function winGame() {
   victory = true;
+  // Endless mode (v2.17.0): bank the wave-victoryWave() win ONCE, then KEEP PLAYING — no victory
+  // wall, no gameOver, no overlay. The reward path (chips/achievement/best) is identical to a Quick
+  // win; we just skip the end screen and celebrate with a floater so the run flows on. The `!victory`
+  // guard in endWave ensures this fires exactly once at the crossing. Deliberately does NOT clearRun()
+  // (the run continues + stays resumable); endWave's saveRun() persists the ongoing endless run.
+  if (endless) {
+    const earned = chipsForRun();
+    meta.chips += earned;
+    saveMeta();
+    const newAch = grantAchievements(true);
+    recordBest();
+    SFX.win();
+    shake = Math.max(shake, 12);
+    addFloater(W/2, 80, `♾️ WAVE ${wave} CLEARED — ENDLESS!`, '#ffd866', 22);
+    addFloater(W/2, 108, `🪙 +${earned} chips · keep going`, '#7ee787', 15);
+    if (newAch.length) addFloater(W/2, 132, `🏅 +${newAch.length} achievement${newAch.length>1?'s':''}!`, '#d2a8ff', 15);
+    updateHud();
+    return;
+  }
   gameOver = true;
   if (!daily) clearRun();  // finishing a level/run must reset Resume — else the cleared
                            // level stays resumable forever (you could re-win it on repeat).
