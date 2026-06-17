@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.10.1 — 2026-06-17 — 🩺 Health check — all green (1307/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 feature entries since the last health check v2.5.1: v2.6.0, v2.7.0, v2.8.0, v2.9.0, v2.10.0 — at the 5-run trigger.)
+
+Suite green (**1307/0**, 123 groups, zero console errors). Refactor audit: all 7 game files under the ~1500-line cap; the largest, cd-update.js, is now **1398** (+80 since v2.5.1, ~100 lines headroom) — flagged in ROADMAP to split next run or two. No dead code / stray logging. Integrity: `file://` double-click play intact (7 classic scripts in order, no ES modules, no build step, SW guarded to http/https); old-format save migration verified (talent back-fill + additive defaults). Docs coherence: every headline count matches code (10 towers, 5 abilities, 25 talents, 18 achievements, 20 wave mods, 14 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties, 6 quick maps). Versions consistent (GAME_VERSION = sw.js cache = v2.10.1, test [49]). Refreshed the two stale ROADMAP size notes (cd-update.js 1318→1398; harness 8050→8430 lines / 117→123 groups / 1255→1307 assertions). Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.10.0 — 2026-06-17 — 🟫 Fortifier — the 14th boss archetype (hardens its armor over time)
 
 **Type:** New content (ROADMAP "a 14th boss archetype"). Minor bump. First appears at wave 85 (deep endless); rotation now `.length` 14 and wraps at w90 → regen.
