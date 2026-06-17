@@ -488,7 +488,21 @@ function update(dt) {
         shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
         addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
         SFX.life();
-        if (lives <= 0) { lives = 0; endGame(); }
+        if (lives <= 0) {
+          if (perkState.phoenix && !perkState.phoenixUsed) {
+            // 🌅 Phoenix (v2.15.0): cheat death once — revive and hurl the whole field back to the
+            // path start (a full lap of breathing room). Pure knockback + lives: no kills, no bounty.
+            perkState.phoenixUsed = true;
+            lives = PHOENIX_LIVES;
+            for (const o of enemies) { if (!o.dead) o.dist = 0; }
+            const px = waypoints[waypoints.length-1][0], py = waypoints[waypoints.length-1][1];
+            addExplosion(px, py, '#ff8a34', 60, 320);
+            addRing(W/2, H/2, '#ffb84d', 520, { life: 0.9, w: 7 });
+            addFloater(W/2, 150, '🌅 PHOENIX RISES', '#ffb84d', 30);
+            SFX.phoenix();
+            shake = Math.max(shake, 18);
+          } else { lives = 0; endGame(); }
+        }
         updateHud();
       }
     }

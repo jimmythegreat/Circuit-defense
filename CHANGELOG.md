@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.15.0 — 2026-06-17 — 🌅 Phoenix — legendary perk that cheats death once
+
+**Type:** New content (legendary run perk). Minor bump.
+
+A new ★ legendary, 🌅 **Phoenix** — the game's **first player-revival mechanic**. When a leak would drop you to 0 lives, you instead cheat death **once per run**: revive at `PHOENIX_LIVES` (12) and the surge hurls the **whole field back to the path start** (`o.dist = 0` for every live enemy), buying a full lap to rebuild. Latches via `perkState.phoenixUsed` so it fires exactly once. **"Too easy"-safe** (the Last Stand rationale): it only triggers when you're already losing, so a winning run never reaches 0 lives and Phoenix does nothing — it can only soften a loss. Pure knockback + lives: **no kills, no bounty**, zero economy impact. Implemented at the single leak site in `cd-update.js`; both flags live in `perkState` (defaults false → save-safe; a saved "already used" run can't re-trigger on resume). `resolveWildcard()` rolls it automatically. Test group [125]; suite green.
+
 ## v2.14.0 — 2026-06-17 — 🟡 Warlord — the 15th boss archetype (rallies the whole wave)
 
 **Type:** New content (boss archetype). Minor bump.

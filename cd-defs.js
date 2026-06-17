@@ -200,6 +200,7 @@ const ABILITIES = {
 };
 const BARRIER_CHARGES = 3;   // leak-blocks granted per Barrier cast (v1.93.0)
 const BARRIER_DURATION = 20;  // seconds unused barrier charges last before fading (v1.100.1)
+const PHOENIX_LIVES = 12;     // lives restored when 🌅 Phoenix cheats death once per run (v2.15.0)
 let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
 let armedAbility = null;
 
@@ -468,6 +469,18 @@ const PERKS = [
   // default false; t.kills already persists, so resumed towers keep their earned bonus). The
   // legendary-only resolveWildcard() rolls it automatically.
   { id:'veteran', rarity:'legendary',icon:'🎖️', name:"Veteran's Edge",     desc:'+5% damage per tower veteran rank (max +20%)', apply:s=>s.veteranBonus = true },
+  // Phoenix (v2.15.0): the FIRST player-revival mechanic — a once-per-run death-cheat. When a leak
+  // would drop you to 0 lives, instead of game-over you revive at PHOENIX_LIVES (12) and the surge
+  // hurls the WHOLE field back to the path start (every enemy's progress resets to 0), buying a full
+  // lap of breathing room. Latches via perkState.phoenixUsed so it fires EXACTLY once per run.
+  // Deliberately "too easy"-safe (the Last Stand rationale): it only ever triggers when you're already
+  // losing, so a run you'd win never hits 0 lives and Phoenix does nothing — it can only soften a loss,
+  // never make a winning run easier. Pays NO bounty / kills nothing (pure knockback + lives), so zero
+  // economy impact. Both fields live in perkState (persisted whole; defaults false → save-safe; if you
+  // save AFTER using it, phoenixUsed=true round-trips so it can't re-trigger on resume). The
+  // legendary-only resolveWildcard() rolls it automatically. Implemented at the single leak site in
+  // cd-update.js. Test group [125].
+  { id:'phoenix', rarity:'legendary',icon:'🌅', name:'Phoenix',            desc:'Cheat death once: revive at 12 lives & hurl the field back to the start', apply:s=>s.phoenix = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -476,7 +489,8 @@ function freshPerkState() {
     critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
-    ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false };
+    ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
+    phoenix:false, phoenixUsed:false };
 }
 function ascendTowers() {
   for (const t of towers) {

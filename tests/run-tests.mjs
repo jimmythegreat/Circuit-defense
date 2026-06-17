@@ -8609,6 +8609,78 @@ async function main() {
     await page.close();
   }
 
+  // [125] Phoenix legendary perk — the first player-revival mechanic. A fatal leak (lives→0) with
+  // Phoenix held instead REVIVES once at PHOENIX_LIVES and hurls the live field back to dist 0; the
+  // latch (phoenixUsed) makes it fire exactly once per run; pure knockback (no kills/bounty) (v2.15.0).
+  console.log('\n[125] Phoenix perk (once-per-run death-cheat)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // (a) the perk exists, is legendary, and freshPerkState defaults both flags false (save-safe).
+      const perk = PERKS.find(p => p.id === 'phoenix');
+      const isLegendary = !!perk && perk.rarity === 'legendary';
+      const def = freshPerkState();
+      const defaultsFalse = def.phoenix === false && def.phoenixUsed === false;
+      perk.apply(def);
+      const applySets = def.phoenix === true;
+
+      // a norm enemy parked just past the exit → leaks on the next tick (spd 0, so it can't move away).
+      const mkLeaker = (over = {}) => Object.assign({ kind:'norm', hp:100, maxHp:100, spd:0, r:11,
+        bounty:5, color:'#3fb950', armor:0, gap:0.8, dist: pathLen + 5, x:0, y:0, px:0, py:0,
+        slow:0, slowF:0.6, frozen:0, poison:null, flash:0 }, over);
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+
+      // (b) WITHOUT Phoenix: a fatal leak ends the run (the unmodified loss path).
+      beginGame();
+      perkState.phoenix = false; perkState.phoenixUsed = false;
+      lives = 1; gameOver = false; victory = false;
+      enemies.length = 0; enemies.push(mkLeaker());
+      update(1/60);
+      const diesWithoutPhoenix = gameOver === true && lives <= 0;
+
+      // (c) WITH Phoenix: the same fatal leak REVIVES — not game over, lives restored to PHOENIX_LIVES,
+      //     latch set, and a live mid-field enemy is hurled back to the path start (dist 0).
+      beginGame();
+      perkState.phoenix = true; perkState.phoenixUsed = false;
+      lives = 1; gameOver = false; victory = false;
+      enemies.length = 0;
+      const midfield = mkLeaker({ dist: Math.floor(pathLen * 0.5) }); // live, mid-path
+      enemies.push(mkLeaker(), midfield);
+      update(1/60);
+      const revived = !gameOver && lives === PHOENIX_LIVES;
+      const latched = perkState.phoenixUsed === true;
+      const fieldReset = midfield.dist === 0;
+
+      // (d) the latch makes it ONCE-per-run: a second fatal leak now ends the run.
+      lives = 1; gameOver = false;
+      enemies.length = 0; enemies.push(mkLeaker());
+      update(1/60);
+      const onlyOnce = gameOver === true && lives <= 0;
+
+      // (e) save-safe: phoenixUsed round-trips via Object.assign(freshPerkState(), saved) — a saved
+      //     "already used" run cannot re-trigger on resume.
+      const restored = Object.assign(freshPerkState(), { phoenix: true, phoenixUsed: true });
+      const usedPersists = restored.phoenix === true && restored.phoenixUsed === true;
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { isLegendary, defaultsFalse, applySets, diesWithoutPhoenix, revived, latched,
+               fieldReset, onlyOnce, usedPersists };
+    });
+    check('phoenix perk exists and is legendary', r.isLegendary);
+    check('freshPerkState defaults phoenix/phoenixUsed false (save-safe)', r.defaultsFalse);
+    check('apply() sets perkState.phoenix', r.applySets);
+    check('without Phoenix, a fatal leak ends the run', r.diesWithoutPhoenix);
+    check('with Phoenix, a fatal leak revives at PHOENIX_LIVES (no game over)', r.revived);
+    check('the revive latches phoenixUsed', r.latched);
+    check('the revive hurls the live field back to the path start (dist 0)', r.fieldReset);
+    check('it fires ONCE per run — a second fatal leak ends the run', r.onlyOnce);
+    check('phoenixUsed round-trips on resume (no re-trigger)', r.usedPersists);
+    check('no console errors during Phoenix test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
