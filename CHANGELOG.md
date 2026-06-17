@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.1.0 — 2026-06-16 — 🧭 Start-menu dashboard layout (menu-revamp slice 9 — the "full revamp")
+
+**Type:** UX layout (FEEDBACK [high] menu revamp, the remaining "full revamp" piece). Minor bump.
+
+The menu was a tall single vertical stack — with 7 maps × 4 difficulties the run-setup card alone is ~415px, so hero + config + play + utility totalled ~733px and **overflowed the 900×560 board: ▶ PLAY sat below the fold**, the core "clunky" complaint. The start screen is now a **two-column dashboard** (desktop): the config card on the **left**, and a right **rail** stacking the play actions (PLAY/Resume/Daily) over the utility toolbar (now a vertical bordered panel) — so it fits on screen with PLAY front-and-centre. Pure CSS grid via `template-areas`, so the four children keep DOM order (hero first, util last) and every structure/a11y test ([58]/[60]/[63]/[112]) is untouched; `play` sits in the row above `util` so [58]'s play-above-util invariant holds. Desktop-only (`min-width:921px`); the ≤920px block keeps its own fixed/scroll mobile flow unchanged. CSS-only, save/economy/gameplay-neutral. Suite green (1209/0); new test [113]. (An uncommitted working-tree "contain the menu in the board" CSS edit — `#startScreen { overflow-y:auto; safe center }` + tighter hero/play spacing — was already present and is folded into this release; its `overflow-y:auto` provides the graceful scroll fallback for the intrinsically-tall campaign-mode 40-level grid.)
+
 ## v2.0.2 — 2026-06-16 — 🎨 Start-menu accent tiles (menu-revamp slice 8)
 
 **Type:** UX polish (FEEDBACK [high] menu revamp, next slice). Patch bump.

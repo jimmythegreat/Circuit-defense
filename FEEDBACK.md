@@ -10,12 +10,13 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[high priority] The main interface is getting clunky now. The buttons on the bottom row are huge compared to everything else. I think its time we revamp the whole starting menu.
-  - _Progress (not done): eight incremental slices shipped (v1.39.1 button hierarchy, v1.41.0 PLAY sheen, v1.42.0 config card, v1.45.0 hero header, v1.69.0 ambient backdrop, v1.94.0 hover polish, v2.0.0 grouped utility toolbar, v2.0.2 per-button accent tiles). The fuller revamp — a left-rail / panel layout for the utility toolbar (rather than a horizontal bar) — is still open. Left PENDING as-written per owner pref until the full revamp lands._
+_(empty — drop new requests here, one per line)_
 
 
 
 ## DONE
+
+- **2026-06-16 · v2.1.0** — "[high] The main interface is getting clunky; the bottom-row buttons are huge; revamp the whole starting menu" → **COMPLETE** after nine slices. The full revamp landed: a desktop two-column **dashboard** — run-setup card on the left, a right **rail** stacking play actions (PLAY/Resume/Daily) over a vertical utility panel — so the menu fits the board with ▶ PLAY on-screen (it had grown so tall PLAY sat below the fold). Earlier slices: button hierarchy v1.39.1, PLAY sheen v1.41.0, config card v1.42.0, hero header v1.45.0, ambient backdrop v1.69.0, hover polish v1.94.0, grouped toolbar v2.0.0, accent tiles v2.0.2. CSS-only, save-safe; phones keep their stacked scrollable menu. Test [113].
 
 - **2026-06-16 · v2.0.0** — "[highest] push out a big change, bump to v2, do as many as possible, include a special change not in feedback/roadmap" → **Major release bundling 5 items + a headline.** ★ Special headline (not listed): 🌑 **Nightmare difficulty** — a 4th tier above Hard (hp 1.7 / 8 lives / 90 gold / top 2.2× chips) with a steeper quick-mode late-scale, a 🌑 Nightmare Walker achievement (roster 17→18), data-driven & save-safe (Daily never rolls it). Also: progressive late-game hardness on Hard/Nightmare (quick only); Railgun Penetrator +35%→+20%; Breacher leak-cost 2→3; campaign auto-level-select; grouped-toolbar menu slice. Test [109]; suite 1179/0 green. See CHANGELOG v2.0.0.
 - **2026-06-16 · v2.0.0** — "[medium] Railgun does too much at L5 with Penetrator — more than snipers" → Penetrator spec damage `+35% → +20%` (effDmg `railpen` 1.35→1.20), so the piercing Railgun is a positioning side-grade again, not a Sniper-beater. Test [109]/[91].

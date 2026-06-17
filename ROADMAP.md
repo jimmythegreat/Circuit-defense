@@ -62,10 +62,10 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Late-campaign audit (L30–40)** — confirm hard-but-beatable with a maxed meta.
 
 ### Game feel / polish
-- [~] **Start-menu revamp (FEEDBACK [high], still PENDING)** — eight slices shipped (see Shipped); the
-      per-block accent-matched glows landed v2.0.2 [112]. **Remaining "full revamp":** move the utility
-      toolbar to a **left rail / panel** layout (vs the current horizontal bar). Owner keeps the FEEDBACK
-      item open until the fuller revamp lands.
+- [x] **Start-menu revamp (FEEDBACK [high])** — DONE v2.1.0 [113]. The "full revamp" landed: a desktop
+      two-column dashboard (config card left + a right rail stacking play actions over a vertical utility
+      panel) so the menu fits the board with ▶ PLAY on-screen (it was below the fold). Nine slices total
+      (button hierarchy v1.39.1 → accent tiles v2.0.2 → dashboard v2.1.0). FEEDBACK item moved to DONE.
 - [ ] **What's New flush polish** — the panel butts against `#gameCol`'s right edge, ~21px wider than
       the canvas (driven by `.hint` margins) → minor cosmetic gap. Could constrain column width to canvas.
 - [ ] **Small polish follow-ups** — slide-in animation on overlay buttons + a quick-restart hotkey (R);
@@ -132,9 +132,9 @@ default-mode). _New table-stakes can be added here as the bar rises._
 ### Tech / tooling (done)
 - Domain-split into 7 `cd-*.js` classic scripts v1.8.1/v1.8.2 [12] (NEVER ES modules). GitHub Actions CI v1.71.1
   (headless Playwright on push/PR; independent of Pages deploy; no build step).
-- Menu-revamp slices: button hierarchy v1.39.1 [58] · PLAY sheen v1.41.0 [59] · config card v1.42.0 [60] ·
-  hero header v1.45.0 [63] · ambient backdrop v1.69.0 [79] · hover polish v1.94.0 [102] · grouped toolbar v2.0.0 ·
-  **accent tiles v2.0.2 [112]**.
+- Menu-revamp slices (COMPLETE, FEEDBACK closed v2.1.0): button hierarchy v1.39.1 [58] · PLAY sheen v1.41.0 [59] ·
+  config card v1.42.0 [60] · hero header v1.45.0 [63] · ambient backdrop v1.69.0 [79] · hover polish v1.94.0 [102] ·
+  grouped toolbar v2.0.0 · accent tiles v2.0.2 [112] · **dashboard layout v2.1.0 [113]**.
 
 ## Vetoed by owner — do not re-add
 

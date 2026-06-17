@@ -7660,6 +7660,63 @@ async function main() {
     await page.close();
   }
 
+  // [113] Start-menu dashboard layout — desktop two-column grid (config card left, a
+  // right rail stacking play actions over the utility panel) so the menu fits the board
+  // with ▶ PLAY on-screen (v2.1.0, menu-revamp slice 9 / the "full revamp"). Asserts the
+  // structural dashboard properties (font-metric-independent — strict no-overflow is NOT
+  // asserted, since on different fonts the config card can wrap one extra row and the menu
+  // gracefully scrolls): desktop uses CSS grid with a VERTICAL util rail and play above
+  // util; the DOM-order invariants (hero first, util last) survive; phones stay non-grid
+  // with the util toolbar as a horizontal row (their own fixed/scroll layout, untouched).
+  console.log('\n[113] Start-menu dashboard layout (menu-revamp slice 9)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const ss = document.getElementById('startScreen');
+      const play = document.querySelector('.startPlay');
+      const util = document.querySelector('.startUtil');
+      return {
+        grid: getComputedStyle(ss).display === 'grid',
+        utilColumn: getComputedStyle(util).flexDirection === 'column',
+        playAboveUtil: Math.round(play.getBoundingClientRect().top) < Math.round(util.getBoundingClientRect().top),
+        firstChildHero: document.querySelector('#startScreen > div:first-child').classList.contains('startHero'),
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+        // the rail stays inside the board horizontally
+        utilFits: Math.round(util.getBoundingClientRect().right) <= Math.round(document.getElementById('game').getBoundingClientRect().right) + 1,
+        ids: ['resumeBtn','dailyBtn','resetBtn','chipsBtn','achBtn'].every(id => document.getElementById(id)),
+        talentOpener: !!document.querySelector('#startScreen [onclick="openTalents()"]'),
+      };
+    });
+    // Phone viewport — desktop grid must NOT apply; util stays a horizontal row in the
+    // mobile flow, last child invariant holds, no horizontal overflow.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const m = await page.evaluate(() => {
+      const ss = document.getElementById('startScreen');
+      const util = document.querySelector('.startUtil');
+      return {
+        notGrid: getComputedStyle(ss).display !== 'grid',
+        utilRow: getComputedStyle(util).flexDirection === 'row',
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+        noOverflow: document.documentElement.scrollWidth <= window.innerWidth + 1,
+      };
+    });
+    check('desktop start menu uses a CSS grid dashboard layout', d.grid);
+    check('utility toolbar is a vertical rail on desktop', d.utilColumn);
+    check('play actions sit above the utility rail (test [58] invariant)', d.playAboveUtil);
+    check('hero is still the first child of #startScreen', d.firstChildHero);
+    check('utility toolbar is still #startScreen last child (test [58] invariant)', d.lastChildUtil);
+    check('utility rail fits inside the board horizontally', d.utilFits);
+    check('load-bearing button ids survived the dashboard layout', d.ids);
+    check('Talents opener (onclick) preserved for a11y lookup', d.talentOpener);
+    check('phone: start menu does NOT use the desktop grid', m.notGrid);
+    check('phone: utility toolbar stays a horizontal row', m.utilRow);
+    check('phone: utility toolbar is still the last child', m.lastChildUtil);
+    check('phone: no horizontal overflow with the dashboard layout', m.noOverflow);
+    check('no console errors during dashboard layout test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
