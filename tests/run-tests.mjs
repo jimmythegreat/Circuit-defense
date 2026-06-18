@@ -2500,16 +2500,17 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 16 → regen, summoner, bulwark, enrager, teleporter,
+      // Rotation by boss number: (w/5 - 4) % 17 → regen, summoner, bulwark, enrager, teleporter,
       // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier,
-      // warlord, suppressor, then wraps (w90 → warlord, w95 → suppressor, w100 → regen).
+      // warlord, suppressor, absorber, then wraps (w95 → suppressor, w100 → absorber, w105 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
                     && bt(50) === 'disruptor' && bt(55) === 'juggernaut'
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
-                    && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'regen';
+                    && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
+                    && bt(105) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -3363,6 +3364,7 @@ async function main() {
         revenantUsed: bossMechanicBadge(mk({ bossType:'revenant', revived:true })),
         conduit: bossMechanicBadge(mk({ bossType:'conduit' })),
         conduitShielded: bossMechanicBadge(mk({ bossType:'conduit', conduitGuard:3 })),
+        absorber: bossMechanicBadge(mk({ bossType:'absorber' })),
         nullBoss: bossMechanicBadge(null),
         unknown: bossMechanicBadge(mk({ bossType:'mystery' })),
       };
@@ -3386,6 +3388,7 @@ async function main() {
     check('revenant badge flips to REVIVED once its second life is used', r.revenantUsed && r.revenantUsed.label === 'REVIVED', JSON.stringify(r.revenantUsed));
     check('conduit badge labelled CONDUIT (mint)', r.conduit && r.conduit.label === 'CONDUIT' && r.conduit.c === '94,242,200', JSON.stringify(r.conduit));
     check('conduit badge flips to SHIELDED while escorts are linked', r.conduitShielded && r.conduitShielded.label === 'SHIELDED', JSON.stringify(r.conduitShielded));
+    check('absorber badge labelled ABSORBING (teal)', r.absorber && r.absorber.label === 'ABSORBING' && r.absorber.c === '45,212,191', JSON.stringify(r.absorber));
     check('no console errors during boss-badge tests', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6475,7 +6478,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 16);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 17);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7824,7 +7827,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 16);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 17);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8168,7 +8171,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 16);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 17);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8439,7 +8442,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 16);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 17);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8602,7 +8605,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 16);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 17);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8699,10 +8702,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 16th archetype: appears at w95 (after warlord at w90), rotation wraps at w100 → regen.
+      // 16th archetype: appears at w95 (after warlord at w90); w100 is the 17th (absorber, v2.27.0).
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(95) === 'suppressor';
-      const wrapsAt100 = bt(100) === 'regen';
+      const wrapsAt100 = bt(100) === 'absorber';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -8761,8 +8764,8 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 16);
-    check('rotation wraps after suppressor (w100 → regen)', r.wrapsAt100);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 17);
+    check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
     check('buff/support towers are immune to suppression', r.buffImmune);
@@ -9560,6 +9563,86 @@ async function main() {
     check('.startUtil is still #startScreen last child (test [58] invariant)', menu.lastChildUtil);
 
     check('no console errors during Bestiary panel test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [137] Absorber boss archetype — the 17th: a per-hit damage CAP. A single hit can take off at
+  // most maxHp × ABSORB_CAP, so a huge Sniper/Cannon/crit blow is wasted while a rapid stream of
+  // small hits isn't — the counter to the high-per-hit burst build (the inverse of the Fortifier).
+  // Bounded: a cap not immunity (sustained DPS still kills it; no extra HP/speed), and FREEZE lifts
+  // the cap so a Frost build cracks it open. (v2.27.0)
+  console.log('\n[137] Absorber boss (per-hit damage-cap archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 17th archetype: first appears at w100 (after suppressor at w95), then the cycle wraps at w105.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(100) === 'absorber';
+      const wrapsAt105 = bt(105) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+      const capLever = typeof ABSORB_CAP === 'number' && ABSORB_CAP > 0 && ABSORB_CAP < 1;
+
+      const mkBoss = (over = {}) => Object.assign({ kind:'boss', bossType:'absorber', hp:2000, maxHp:2000,
+        spd:0, r:24, bounty:100, color:'#f85149', armor:0, gap:1.5, dist:5, x:W/2, y:H/2, px:W/2, py:H/2,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 }, over);
+      const cap = 2000 * ABSORB_CAP;
+
+      // (A) a single HUGE hit is capped to maxHp × ABSORB_CAP (armor 0 → actual === capped dmg).
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      let e = mkBoss(); enemies.push(e);
+      damage(e, 999999, null);
+      const bigHitCapped = Math.abs((2000 - e.hp) - cap) < 1e-6;
+
+      // (B) a SMALL hit below the cap is unaffected (the rapid-stream case).
+      enemies.length = 0; e = mkBoss(); enemies.push(e);
+      const small = cap * 0.3;
+      damage(e, small, null);
+      const smallHitFull = Math.abs((2000 - e.hp) - small) < 1e-6;
+
+      // (C) FREEZE lifts the cap — a frozen absorber takes the full big hit (Frost counters it).
+      enemies.length = 0; e = mkBoss({ frozen: 5 }); enemies.push(e);
+      damage(e, 800, null);
+      const freezeLiftsCap = Math.abs((2000 - e.hp) - 800) < 1e-6;
+
+      // (D) CONTROL: a non-absorber boss is NOT capped (full damage), proving specificity.
+      enemies.length = 0; const v = mkBoss({ bossType: undefined }); enemies.push(v);
+      damage(v, 800, null);
+      const controlUncapped = Math.abs((2000 - v.hp) - 800) < 1e-6;
+
+      // (E) BOUNDED: sustained fire still kills it (each hit capped, but enough hits drop it).
+      enemies.length = 0; e = mkBoss(); enemies.push(e);
+      for (let i = 0; i < 25 && e.hp > 0; i++) damage(e, 999999, null);
+      const sustainedKills = e.hp <= 0;
+
+      // (F) adds no HP/speed of its own across update() ticks (no towers → nothing shoots it).
+      enemies.length = 0; towers.length = 0;
+      const boss = mkBoss(); enemies.push(boss);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = boss.hp === 2000 && boss.spd === 0;
+
+      // (G) badge names the archetype.
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'absorber' });
+      const badgeOk = !!badge && badge.label === 'ABSORBING';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
+               freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
+    });
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 17);
+    check('rotation wraps after absorber (w105 → regen)', r.wrapsAt105);
+    check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
+    check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
+    check('a small hit below the cap deals full damage', r.smallHitFull);
+    check('freezing the absorber lifts the cap (Frost counters it)', r.freezeLiftsCap);
+    check('non-absorber boss is NOT capped (specificity control)', r.controlUncapped);
+    check('sustained fire still kills it (cap, not immunity)', r.sustainedKills);
+    check('absorber adds no HP or speed of its own', r.noHpOrSpeed);
+    check('boss-bar badge reads ABSORBING', r.badgeOk);
+    check('no console errors during Absorber test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.27.0 — 2026-06-18 — ◎ Absorber — 17th boss archetype (per-hit damage cap)
+
+**Type:** New content (boss archetype). Minor bump. Behaviour off the invariant-capped HP axis; no economy/save impact.
+
+Added the **17th boss archetype**, ◎ **Absorber**, to the wave-20+ cycle (first appears at **wave 100**, deep Endless). It caps the damage any single hit can deal it to `maxHp × 5%` (`ABSORB_CAP`), so a huge Sniper/Cannon/crit blow is wasted while a rapid stream of small hits is unaffected — the precise counter to the high-per-hit burst/crit build (the recurring "too easy" offender, strengthened by Critical Mass v2.20.0), and the inverse of the Fortifier (flat armor checks *low* per-hit DPS). **Bounded / "too easy"-safe:** a cap not immunity (sustained DPS still kills it; adds no HP/speed), and **freeze lifts the cap** so a Frost build cracks it open. Implemented as one freeze-gated line in `damage()` + a periodic absorb pulse for game-feel; boss bar shows `ABSORBING` + a teal aura ring; added to the Bestiary. Run-only — no save migration. Suite green. Test group `[137]`.
+
 ## v2.26.0 — 2026-06-18 — 📖 Bestiary — an in-game enemy & boss reference
 
 **Type:** Table-stakes UX / new panel. Minor bump. Render/UI-only — no economy/balance/save impact.

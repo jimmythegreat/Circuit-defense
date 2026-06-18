@@ -31,9 +31,10 @@ _None currently known._ (Add any here as found — top priority.)
       version is still open if wanted); a predictive lead-shot spec to counter blinkers
       (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun (Minigun vs AP) for a
       strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 17th boss archetype (16th = 🩶 Suppressor fire-rate dampening aura,
-      shipped v2.16.0 [126]; 15th = 🟡 Warlord global armor-rally v2.14.0 [124]); per-campaign-tier *fixed*
-      archetypes (vs the wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
+- [ ] **Boss/enemy follow-ups** — an 18th boss archetype (17th = ◎ Absorber per-hit damage CAP, shipped
+      v2.27.0 [137], first at w100 — checks the high-per-hit burst/crit build, freeze-counterable; 16th =
+      🩶 Suppressor fire-rate dampening aura v2.16.0 [126]); per-campaign-tier *fixed* archetypes (vs the
+      wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -125,8 +126,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (up to 3) v1.12.0 [20].
-- 16 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor) v1.25.0–v2.16.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]; boss-bar mechanic badge v1.36.0 [53].
+- 17 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber) v1.25.0–v2.27.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap).
 - 20 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
   adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/meteors) [46]+ many.
 

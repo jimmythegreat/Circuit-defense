@@ -485,6 +485,13 @@ function update(dt) {
         }
         e.suppressCd = (e.suppressCd == null ? 2.5 : e.suppressCd) - dt;
         if (e.suppressCd <= 0) { e.suppressCd = 2.5; addExplosion(e.x, e.y, '#6f8faf', 9, SUPPRESS_RANGE); SFX.bossSkill(); }
+      } else if (e.bossType === 'absorber') {
+        // Absorber (v2.27.0, the 17th archetype): the per-hit damage CAP itself lives in damage()
+        // (a passive, freeze-liftable ceiling — see ABSORB_CAP). This gated block only adds a periodic
+        // "absorb" pulse for game-feel; like every other archetype's tick it's paused while frozen,
+        // which doubles as the cue that freeze has dropped the cap. Run-only `absorbCd`, never persisted.
+        e.absorbCd = (e.absorbCd == null ? 2.5 : e.absorbCd) - dt;
+        if (e.absorbCd <= 0) { e.absorbCd = 2.5; addExplosion(e.x, e.y, '#2dd4bf', 10, 40); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -752,6 +759,11 @@ const WARLORD_ARMOR = 10;        // flat bonus armor on every rallied enemy
 // Suppressor boss archetype (v2.16.0) lever: the radius of its fire-rate dampening aura. A non-buff
 // tower within it reloads +25% slower (effRate's `t.suppressed` factor — a localized `brownout`).
 const SUPPRESS_RANGE = 130;      // px reach of the suppression aura (matches the warper/conduit aura reach)
+// Absorber boss archetype (v2.27.0, the 17th) lever: the most damage a SINGLE blow can take off it,
+// as a fraction of its max HP. A huge Sniper/Cannon/crit hit is wasted past this ceiling, while a
+// rapid stream of small hits is unaffected — the precise counter to the high-per-hit burst/crit
+// build. Bounded: a cap not immunity (sustained DPS still kills it), and FREEZE lifts it (counter).
+const ABSORB_CAP = 0.05;         // single-hit damage ceiling = maxHp × this (≥20 hits to kill)
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];
@@ -855,6 +867,13 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
   if (e.warded > 0) dmg *= 0.6;   // warden aura (v1.35.0): protected enemies take 40% less damage
   if (e.conduitGuard > 0) dmg *= (1 - 0.14 * e.conduitGuard);  // conduit boss (v2.2.0): each nearby escort shields it −14% (cap −70% at 5)
+  // Absorber boss (v2.27.0, the 17th archetype — a fresh per-hit-CAP axis: it can only absorb so much
+  // from one blow, so a single huge Sniper/Cannon/crit hit is wasted while a rapid stream of small
+  // hits isn't). The precise counter to the high-per-hit burst/crit build (the recurring "too easy"
+  // offender, strengthened by Critical Mass v2.20.0) — the inverse of the Fortifier (flat armor checks
+  // LOW per-hit DPS). Bounded / "too easy"-safe: a cap not immunity (sustained DPS still kills it; adds
+  // no HP/speed), and FREEZE COUNTERS IT (the cap lifts while frozen, so a Frost build cracks it open).
+  if (e.bossType === 'absorber' && e.frozen <= 0) dmg = Math.min(dmg, e.maxHp * ABSORB_CAP);
   // warlord boss (v2.14.0): a rallied enemy carries WARLORD_ARMOR flat bonus armor while the
   // Warlord lives — added into the existing flat-subtraction path, so Mortar/AP-gun (ignoreArmor)
   // skip it and high-per-hit towers barely feel it, but it blunts the cheap high-rate-low-dmg build.
