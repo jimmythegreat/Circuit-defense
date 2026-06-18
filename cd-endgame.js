@@ -162,6 +162,69 @@ function applyRecordFlourish(rec) {
 function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; focusPanel('bestPanel'); }
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
 
+// ----- Bestiary / Codex panel (v2.26.0): an in-game reference for every enemy kind and
+// every boss archetype — what its glyph/colour means and how its mechanic works. The game
+// has 14 enemy kinds + 16 boss powers with no in-game explanation, so players faced glyphs
+// (⬢ ‼ ◈ 🔥 ⚡ ⚑ …) and coloured auras with no idea what they did. Render/UI-only — no
+// save/economy/balance impact. Data-driven COMPLETENESS is drift-guarded by test [136]:
+// every PREVIEW_COLOR enemy kind and every BOSS_ARCHETYPES entry must appear here, so a
+// future enemy/boss can't ship without a codex line. Enemy disc colour is read live from
+// PREVIEW_COLOR (cd-render.js, loads later — fine, this is a function-time lookup); boss
+// disc colours mirror the bossMechanicBadge() aura hues.
+const CODEX_ENEMIES = [
+  { kind: 'norm',     glyph: '',   name: 'Drone',     wave: 'Wave 1',  desc: 'The baseline threat — no special tricks.' },
+  { kind: 'fast',     glyph: '»',  name: 'Sprinter',  wave: 'Wave 3',  desc: 'Much faster than a drone, but fragile.' },
+  { kind: 'tank',     glyph: '◆',  name: 'Tank',      wave: 'Wave 5',  desc: 'Slow and beefy — soaks a lot of damage.' },
+  { kind: 'heal',     glyph: '+',  name: 'Medic',     wave: 'Wave 7',  desc: 'Heals nearby enemies with an aura. Pop it first to stop the regen.' },
+  { kind: 'shield',   glyph: '🛡', name: 'Shielded',  wave: 'Wave 9',  desc: 'Carries flat armor that blunts low-damage hits. Counter with piercing, AP/Mortar or Poison.' },
+  { kind: 'split',    glyph: '✂',  name: 'Splitter',  wave: 'Wave 11', desc: 'Bursts into smaller enemies when killed.' },
+  { kind: 'molten',   glyph: '🔥', name: 'Molten',    wave: 'Wave 12', desc: 'Immune to freeze & slow — plows through crowd control at full speed.' },
+  { kind: 'phantom',  glyph: '👻', name: 'Phantom',   wave: 'Wave 13', desc: 'Blinks forward and turns briefly intangible — slow single-target towers waste shots on it.' },
+  { kind: 'bastion',  glyph: '⬢',  name: 'Bastion',   wave: 'Wave 14', desc: 'Takes 50% less from explosive splash (Cannon/Mortar). Bring single-target DPS.' },
+  { kind: 'warden',   glyph: '◈',  name: 'Warden',    wave: 'Wave 15', desc: 'Shields nearby enemies (−40% damage). Kill it to un-shield the pack.' },
+  { kind: 'jammer',   glyph: '⚡',  name: 'Jammer',    wave: 'Wave 16', desc: 'Periodically knocks a nearby tower offline — threatens your coverage.' },
+  { kind: 'breacher', glyph: '‼',  name: 'Breacher',  wave: 'Wave 17', desc: 'Slow and tanky — but costs you 3 lives if it leaks. Never let one through.' },
+  { kind: 'herald',   glyph: '⚑',  name: 'Herald',    wave: 'Wave 18', desc: 'Hastes nearby enemies (+35% speed). Pop it to slow the pack.' },
+  { kind: 'boss',     glyph: '☠',  name: 'Overlord',  wave: 'Every 5th wave', desc: 'A massive boss worth 5 lives if it leaks. From wave 20+ it also carries one of the powers below.' },
+];
+// Boss archetypes (cycle from wave 20+). `type` MUST match a BOSS_ARCHETYPES entry; colour
+// mirrors the bossMechanicBadge() aura hue. Drift-guarded by test [136].
+const CODEX_BOSSES = [
+  { type: 'regen',      glyph: '♻',  color: '#56d364', label: 'Regenerating', wave: 'Wave 20', desc: 'Continuously heals itself — burst it down fast.' },
+  { type: 'summoner',   glyph: '👥', color: '#ff9492', label: 'Summoner',     wave: 'Wave 25', desc: 'Spawns weak adds while alive (capped total).' },
+  { type: 'bulwark',    glyph: '🛡', color: '#79c0ff', label: 'Bulwark',      wave: 'Wave 30', desc: 'Cycles a damage-soak shield (−60%) every few seconds.' },
+  { type: 'enrager',    glyph: '💢', color: '#ffb454', label: 'Enrager',      wave: 'Wave 35', desc: 'Hastes nearby enemies (+35% speed).' },
+  { type: 'teleporter', glyph: '✦',  color: '#bc8cff', label: 'Teleporter',   wave: 'Wave 40', desc: 'Blinks forward and turns briefly intangible.' },
+  { type: 'berserker',  glyph: '🔥', color: '#ff6a6a', label: 'Berserker',    wave: 'Wave 45', desc: 'Speeds up as it loses HP (up to +60%).' },
+  { type: 'disruptor',  glyph: '⚡',  color: '#7df9ff', label: 'Disruptor',    wave: 'Wave 50', desc: 'EMP-pulses a nearby tower offline every few seconds.' },
+  { type: 'juggernaut', glyph: '⛔', color: '#c0c8d6', label: 'Juggernaut',   wave: 'Wave 55', desc: 'Immune to freeze & slow.' },
+  { type: 'siphon',     glyph: '💰', color: '#e3b341', label: 'Siphon',       wave: 'Wave 60', desc: 'Drains your gold while alive — kill it fast.' },
+  { type: 'hydra',      glyph: '🐉', color: '#9ae65c', label: 'Hydra',        wave: 'Wave 65', desc: 'Splits into two sub-units when killed.' },
+  { type: 'revenant',   glyph: '↻',  color: '#e34fd0', label: 'Revenant',     wave: 'Wave 70', desc: 'Revives once at 35% HP the first time it dies.' },
+  { type: 'conduit',    glyph: '🔗', color: '#5ef2c8', label: 'Conduit',      wave: 'Wave 75', desc: 'Shielded by nearby escorts (−14% each, up to −70%). Clear the adds first.' },
+  { type: 'warper',     glyph: '🌀', color: '#7c6cff', label: 'Warper',       wave: 'Wave 80', desc: 'Yanks nearby allies forward along the path.' },
+  { type: 'fortifier',  glyph: '🧱', color: '#cd7f32', label: 'Fortifier',    wave: 'Wave 85', desc: 'Hardens its armor over time — drop it fast or corrode with Poison.' },
+  { type: 'warlord',    glyph: '⚔',  color: '#f0c83c', label: 'Warlord',      wave: 'Wave 90', desc: 'Grants +10 flat armor to the WHOLE wave. Kill the keystone.' },
+  { type: 'suppressor', glyph: '🔇', color: '#6f8faf', label: 'Suppressor',   wave: 'Wave 95', desc: 'Dampens the fire rate of every nearby tower.' },
+];
+function openCodex() { renderCodex(); document.getElementById('codexPanel').style.display = 'flex'; focusPanel('codexPanel'); }
+function closeCodex() { document.getElementById('codexPanel').style.display = 'none'; renderStartScreen(); }
+function renderCodex() {
+  const row = (color, glyph, name, tag, desc) =>
+    `<div class="cdxRow"><span class="cdxDisc" style="background:${color}">${glyph || ''}</span>`
+    + `<div class="cdxText"><b>${name}</b>${tag ? `<span class="cdxTag">${tag}</span>` : ''}`
+    + `<small>${desc}</small></div></div>`;
+  let html = '<h4 class="bestSub">👾 Enemies</h4><div class="cdxList">';
+  for (const e of CODEX_ENEMIES) html += row((typeof PREVIEW_COLOR !== 'undefined' && PREVIEW_COLOR[e.kind]) || '#3fb950', e.glyph, e.name, e.wave, e.desc);
+  html += '</div>';
+  html += '<h4 class="bestSub">☠ Boss powers</h4>'
+    + '<p class="cdxNote">From wave 20, every boss also carries one of these mechanics, cycling deeper as you go.</p>'
+    + '<div class="cdxList">';
+  for (const b of CODEX_BOSSES) html += row(b.color, b.glyph, b.label, b.wave, b.desc);
+  html += '</div>';
+  document.getElementById('codexBody').innerHTML = html;
+}
+
 // ----- Settings panel (performance / accessibility prefs, persisted on device) -----
 function openSettings() { const p = document.getElementById('settingsPanel'); if (!p) return; renderSettings(); p.style.display = 'flex'; focusPanel('settingsPanel'); }
 function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; renderStartScreen(); }

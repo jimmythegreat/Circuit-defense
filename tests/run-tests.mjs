@@ -7683,7 +7683,7 @@ async function main() {
         ids: ['chipsBtn','achBtn','resetBtn','wnBtn'].every(id => document.getElementById(id)),
       };
     });
-    check('all six util buttons carry an --acc accent property', d.allHaveAcc && d.count === 6, `count=${d.count}`);
+    check('all seven util buttons carry an --acc accent property', d.allHaveAcc && d.count === 7, `count=${d.count}`);
     check('util tiles use a uniform dark base, not the old solid purple fill', d.notOldPurple);
     check('util tiles show a left accent rail (≥3px)', d.leftBorder);
     check('util accent rail is coloured to its --acc (Talents purple)', d.leftIsAccent);
@@ -9482,6 +9482,84 @@ async function main() {
     check('Vortex save/resume round-trips', rec.restored, JSON.stringify(rec));
 
     check('no console errors during Vortex map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [136] Bestiary / Codex panel — in-game enemy & boss reference (v2.26.0)
+  console.log('\n[136] Bestiary / Codex panel (v2.26.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Panel + button + functions + a11y/aria wiring exist.
+    const defs = await page.evaluate(() => ({
+      panel: !!document.getElementById('codexPanel'),
+      body: !!document.getElementById('codexBody'),
+      openFn: typeof openCodex === 'function' && typeof closeCodex === 'function' && typeof renderCodex === 'function',
+      ariaOk: document.getElementById('codexPanel').getAttribute('role') === 'dialog'
+        && document.getElementById('codexPanel').getAttribute('aria-modal') === 'true',
+      inA11y: A11Y_PANELS.some(p => p.id === 'codexPanel'),
+      hasData: Array.isArray(CODEX_ENEMIES) && Array.isArray(CODEX_BOSSES),
+    }));
+    check('codex panel + body exist', defs.panel && defs.body);
+    check('openCodex/closeCodex/renderCodex functions exist', defs.openFn);
+    check('codex panel is a tagged dialog (role/aria-modal)', defs.ariaOk);
+    check('codexPanel is registered in A11Y_PANELS (Esc/Tab support)', defs.inA11y);
+    check('CODEX_ENEMIES / CODEX_BOSSES data tables exist', defs.hasData);
+
+    // COMPLETENESS drift-guard: every PREVIEW_COLOR enemy kind has a codex entry, and
+    // every BOSS_ARCHETYPES archetype has a codex entry whose type is a real archetype.
+    const complete = await page.evaluate(() => {
+      const enemyKinds = CODEX_ENEMIES.map(e => e.kind);
+      const everyEnemyCovered = Object.keys(PREVIEW_COLOR).every(k => enemyKinds.includes(k));
+      const noDupEnemies = new Set(enemyKinds).size === enemyKinds.length;
+      const bossTypes = CODEX_BOSSES.map(b => b.type);
+      const everyBossCovered = BOSS_ARCHETYPES.every(t => bossTypes.includes(t));
+      const allBossTypesReal = bossTypes.every(t => BOSS_ARCHETYPES.includes(t));
+      const noDupBosses = new Set(bossTypes).size === bossTypes.length;
+      // every row carries a name + a non-empty description
+      const enemiesWellFormed = CODEX_ENEMIES.every(e => e.name && e.desc && e.wave);
+      const bossesWellFormed = CODEX_BOSSES.every(b => b.label && b.desc && b.wave && /^#/.test(b.color));
+      return { everyEnemyCovered, noDupEnemies, everyBossCovered, allBossTypesReal, noDupBosses,
+               enemiesWellFormed, bossesWellFormed, nEnemies: enemyKinds.length, nBosses: bossTypes.length };
+    });
+    check('codex covers EVERY enemy kind in PREVIEW_COLOR', complete.everyEnemyCovered, JSON.stringify(complete));
+    check('codex covers EVERY boss archetype in BOSS_ARCHETYPES', complete.everyBossCovered, JSON.stringify(complete));
+    check('codex boss types are all real archetypes (no typos)', complete.allBossTypesReal);
+    check('no duplicate enemy/boss codex rows', complete.noDupEnemies && complete.noDupBosses);
+    check('every codex row is well-formed (name/desc/wave/colour)', complete.enemiesWellFormed && complete.bossesWellFormed);
+
+    // open/close + render produces rows for a known enemy and a known boss power.
+    const render = await page.evaluate(() => {
+      openCodex();
+      const open = document.getElementById('codexPanel').style.display === 'flex';
+      const html = document.getElementById('codexBody').innerHTML;
+      const rowCount = document.querySelectorAll('#codexPanel .cdxRow').length;
+      const showsEnemy = /Breacher/.test(html) && /Warden/.test(html);
+      const showsBoss = /Hydra/.test(html) && /Suppressor/.test(html);
+      const sectioned = (document.querySelectorAll('#codexPanel .bestSub').length >= 2);
+      closeCodex();
+      const closed = document.getElementById('codexPanel').style.display === 'none';
+      return { open, rowCount, showsEnemy, showsBoss, sectioned, closed };
+    });
+    check('openCodex shows the panel', render.open);
+    check('codex renders a row per enemy + boss (≥ 30)', render.rowCount >= (complete.nEnemies + complete.nBosses), 'rows=' + render.rowCount);
+    check('codex lists known enemies (Breacher/Warden)', render.showsEnemy);
+    check('codex lists known boss powers (Hydra/Suppressor)', render.showsBoss);
+    check('codex has Enemies + Boss-powers sections', render.sectioned);
+    check('closeCodex hides the panel', render.closed);
+
+    // Start-menu wiring: Bestiary button present, and the .startUtil-last-child
+    // invariant (test [58]) still holds after adding the button.
+    const menu = await page.evaluate(() => {
+      renderStartScreen();
+      const hasBtn = !!document.querySelector('.startUtil [onclick="openCodex()"]');
+      const lastChildUtil = document.querySelector('#startScreen > div:last-child').classList.contains('startUtil');
+      return { hasBtn, lastChildUtil };
+    });
+    check('Bestiary button rendered in the start-menu toolbar', menu.hasBtn);
+    check('.startUtil is still #startScreen last child (test [58] invariant)', menu.lastChildUtil);
+
+    check('no console errors during Bestiary panel test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

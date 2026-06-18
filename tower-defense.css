@@ -108,14 +108,14 @@
     outline: 2px solid #58a6ff; outline-offset: 2px; border-radius: 6px;
   }
   @keyframes dangerPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(218,54,51,.5); } 50% { box-shadow: 0 0 0 6px rgba(218,54,51,0); } }
-  #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #settingsPanel {
+  #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #codexPanel, #settingsPanel {
     position: absolute; inset: 0;
     background: rgba(13,17,23,.93);
     flex-direction: column; align-items: center; justify-content: center;
     text-align: center; z-index: 10; border-radius: 8px;
   }
-  #overlay, #draftModal, #talentPanel, #achPanel, #bestPanel, #settingsPanel { display: none; }
-  #talentPanel, #achPanel, #bestPanel, #settingsPanel { z-index: 20; }
+  #overlay, #draftModal, #talentPanel, #achPanel, #bestPanel, #codexPanel, #settingsPanel { display: none; }
+  #talentPanel, #achPanel, #bestPanel, #codexPanel, #settingsPanel { z-index: 20; }
   .setList { display: flex; flex-direction: column; gap: 12px; margin: 16px auto; min-width: 320px; }
   .setRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .setName { color: #e3e6eb; font-size: 15px; }
@@ -142,6 +142,18 @@
   .bestSub { color: #8b949e; font-size: 13px; font-weight: bold; letter-spacing: .04em; text-transform: uppercase; margin: 14px 0 0; }
   .bestStats { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; color: #8b949e; margin: 8px 0 4px; font-size: 14px; }
   .bestStats b { color: #e3e6eb; }
+  /* Bestiary / Codex panel (v2.26.0): a scrollable reference list of every enemy kind &
+     boss power. Each row is a colour disc + glyph, name, first-appearance tag, and a
+     one-line how-to-beat-it note. Render-only; no save/economy impact. */
+  #codexBody { max-width: 660px; max-height: 56vh; overflow-y: auto; margin: 8px 0; padding: 2px 6px; text-align: left; }
+  #codexPanel .cdxNote { color: #8b949e; font-size: 12px; margin: 3px 0 0; text-align: left; }
+  .cdxList { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; }
+  .cdxRow { display: flex; align-items: flex-start; gap: 11px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 7px 11px; }
+  .cdxDisc { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; color: #0d1117; font-weight: bold; }
+  .cdxText { display: flex; flex-direction: column; gap: 1px; }
+  .cdxText b { color: #e6edf3; font-size: 14px; }
+  .cdxTag { color: #8b949e; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .cdxText small { color: #b5bdc7; font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
   /* appRow = the whole game (gameCol) + the What's New side panel, side by side.
      The panel floats beside the ENTIRE game, so opening it never shifts only the canvas. */
   #appRow { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; width: 100%; }
@@ -543,7 +555,7 @@
     /* Modal overlays cover the whole viewport (not the scaled canvas) and
        scroll vertically, so all their content is reachable on a phone.
        Only position/scroll change here — JS still toggles display. */
-    #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #settingsPanel {
+    #overlay, #startScreen, #draftModal, #talentPanel, #achPanel, #bestPanel, #codexPanel, #settingsPanel {
       position: fixed; inset: 0;
       justify-content: flex-start;
       overflow-y: auto;
@@ -551,6 +563,9 @@
       border-radius: 0;
       -webkit-overflow-scrolling: touch;
     }
+    /* On a phone the whole panel already scrolls, so let the codex list grow naturally
+       instead of nesting its own scroller inside the fixed full-screen overlay. */
+    #codexBody { max-height: none; max-width: 100%; overflow: visible; }
     /* Action-button rows (start screen, game-over) wrap instead of running off-screen. */
     #startScreen > div, #overlay > div { flex-wrap: wrap; justify-content: center; }
     /* Neutralise the inline 17px / 11px-36px sizing on the start-screen buttons so

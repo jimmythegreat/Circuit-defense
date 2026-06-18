@@ -83,6 +83,14 @@
       <button class="ctl blue" onclick="closeBests()">Done</button>
     </div>
   </div>
+  <div id="codexPanel" role="dialog" aria-modal="true" aria-label="Bestiary">
+    <h2 style="color:#f0883e; text-shadow:0 0 16px rgba(240,136,62,.4)">📖 BESTIARY</h2>
+    <p style="color:#8b949e; margin:2px 0 0">Every enemy &amp; boss power you'll face — and how to beat it</p>
+    <div id="codexBody"></div>
+    <div style="display:flex; gap:10px;">
+      <button class="ctl blue" onclick="closeCodex()">Done</button>
+    </div>
+  </div>
   <div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Settings">
     <h2 style="color:#8b949e">⚙ SETTINGS</h2>
     <p style="color:#8b949e; margin:2px 0 0">Performance &amp; accessibility · saved on this device</p>
@@ -133,6 +141,7 @@
     <button class="ctl" style="--acc:#a371f7;" onclick="openTalents()">🧬 Talents (<span id="chipsBtn">0</span>🪙)</button>
     <button class="ctl" style="--acc:#e3b341;" onclick="openAchievements()">🏅 Achievements (<span id="achBtn">0/0</span>)</button>
     <button class="ctl" style="--acc:#58a6ff;" onclick="openBests()">🏆 Records</button>
+    <button class="ctl" style="--acc:#f0883e;" onclick="openCodex()">📖 Bestiary</button>
     <button class="ctl gray" id="wnBtn" style="--acc:#3fb950;" onclick="toggleWhatsNew()">✨ What's New</button>
     <button class="ctl gray" style="--acc:#8b949e;" onclick="toggleSettings()">⚙ Settings</button>
     <button class="ctl gray" id="resetBtn" style="--acc:#f85149;" title="Erase ALL saved data — chips, talents, achievements, records, and your current run — and start completely fresh." onclick="resetAllData()">🗑 Reset All</button>

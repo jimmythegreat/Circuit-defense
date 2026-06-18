@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.26.0 — 2026-06-18 — 📖 Bestiary — an in-game enemy & boss reference
+
+**Type:** Table-stakes UX / new panel. Minor bump. Render/UI-only — no economy/balance/save impact.
+
+The game has 14 enemy kinds + 16 boss archetypes but no in-game explanation, so players faced glyphs (⬢ ‼ ◈ 🔥 ⚡ ⚑ …) and coloured auras with no idea what they did. Added a **📖 Bestiary** panel (start-menu toolbar, beside Records) listing every enemy and every wave-20+ boss power with its colour disc + glyph, first-appearance wave, and a one-line how-to-beat-it tip (pop Medic/Warden/Herald first, bring single-target DPS vs Bastion, never leak a Breacher, etc.). Data lives in two tables (`CODEX_ENEMIES`/`CODEX_BOSSES` in cd-endgame.js); enemy disc colours read live from `PREVIEW_COLOR`, boss colours mirror the `bossMechanicBadge()` aura hues. Wired into `A11Y_PANELS` (Esc/Tab + focus trap), tagged `role="dialog"`, mobile full-screen-scroll selector, and `.startUtil` stays `#startScreen`'s last child (test [58] invariant preserved). New test group **[136]** asserts the panel/button/functions, a **completeness drift-guard** (every `PREVIEW_COLOR` kind + every `BOSS_ARCHETYPES` entry has a codex row — a new enemy/boss can't ship without a line), and open/close/render. Suite **1461 → ~1480** green. `sw.js` cache → `v2.26.0`.
+
 ## v2.25.0 — 2026-06-18 — 🌀 Vortex — the 7th quick-play map (inward-spiral kill-funnel)
 
 **Type:** New content (map + theme). Minor bump. Additive/save-safe; no economy/balance change to existing systems.
