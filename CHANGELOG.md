@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.19.0 — 2026-06-17 — 🏵️ Living Legend achievement + lifetime tower-kills stat
+
+**Type:** New content (achievement + progression stat). Minor bump. Recognition-only — no economy/gameplay/balance impact; save-safe (additive `meta.stats.towerKills`, old saves default 0).
+
+Deepens the tower-veterancy system (cosmetic kill-rank pips v1.100.0; Veteran's Edge perk v2.13.0) on the progression axis instead of piling on more combat content (the game is saturated: 10 towers/16 boss archetypes/14 enemy kinds). A 19th achievement, 🏵️ **Living Legend** — promote any single tower to the top **Legend** rank (200 kills). It's a **feat, not a win condition** (no `won` gate, like Sharpshooter): granted in any mode, win or lose, so a long Endless run is the natural place to chase it — and it pairs with Veteran's Edge, which rewards those same high-rank towers. Implemented in `grantAchievements` via `towers.some(t => towerRankTier(t.kills) === 4)` reading the final board. Also added a lifetime **`meta.stats.towerKills`** counter (summed from each run's final-board tower kills) surfaced as a `💀 Tower kills` row in the Records panel. `meta.stats.towerKills` migrates additively in `loadMeta` (default 0). Test group **[129]** (badge defined, roster 18→19, migration, grant on Legend win-or-loss, accumulation, below-Legend withheld, Records row); group [48] roster assertion bumped 18→19. Suite **1381 → 1390** green. `sw.js` cache → `v2.19.0`.
+
 ## v2.18.0 — 2026-06-17 — Start menu spans the full game column (no scrollbar)
 
 **Type:** UX fix (owner FEEDBACK). Minor bump. CSS/markup + one JS line; save/economy/balance-neutral; phone layout unchanged.

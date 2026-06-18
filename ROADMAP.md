@@ -78,7 +78,8 @@ _None currently known._ (Add any here as found — top priority.)
       hide the faint between-wave `Next:` preview while the upgrade panel is open; highlight the beaten
       Records cell when next opened; a per-kind hover tooltip + DPS-relative read on the wave-threat number;
       visible grid lines (not just dots) + a "snap" tick sound; combo-tier shape/label + high-contrast mode;
-      lifetime cross-run "tower kills" meta stat/badge + rank-tinted barrel colour (veterancy follow-up);
+      rank-tinted barrel colour (veterancy follow-up — the lifetime "tower kills" meta stat + the 🏵️ Living
+      Legend badge for reaching Legend rank both shipped v2.19.0 [129]; the visual barrel-tint is the remainder);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
 
 ### Tech / tooling
@@ -123,7 +124,8 @@ _None currently known._ (Add any here as found — top priority.)
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 [109] (progressive late HP, capped, Normal/Campaign exempt).
 - 24 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + Farsight range v1.92.0 [100]
   + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 18 achievements (+ Nightmare Walker v2.0.0); roster data-driven [48]/[92].
+  cost rework v1.38.0 [55]. 19 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  reach a tower's top Legend veterancy rank; lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting

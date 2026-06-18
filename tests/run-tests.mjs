@@ -3037,7 +3037,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 18 badges', r.total === 18, `total=${r.total}`);
+    check('achievement roster grew to 19 badges', r.total === 19, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -8937,6 +8937,64 @@ async function main() {
     check('phone: no horizontal overflow after the move', m.noHorizOverflow);
     check('phone: util toolbar is still the last child (test [58] invariant)', m.lastChildUtil);
     check('no console errors during full-height menu test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [129] Living Legend achievement + lifetime tower-kills stat (v2.19.0)
+  console.log('\n[129] Living Legend achievement + lifetime tower-kills stat');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // badge defined & wired
+      const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
+      // roster grew by one (18 → 19)
+      const rosterOk = ACHIEVEMENTS.length === 19;
+      // a fresh meta carries the migrated lifetime tower-kills stat
+      loadMeta();
+      const migrated = typeof meta.stats.towerKills === 'number';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // a finished run with a Legend-rank tower (>=200 kills) grants legend_tower, win OR loss
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0, towerKills: 0 };
+      towers.length = 0;
+      towers.push({ type: 'gun', dealt: 5000, kills: 210 });   // Legend (tier 4)
+      towers.push({ type: 'frost', dealt: 100, kills: 30 });   // Veteran
+      const grantedOnLoss = grantAchievements(false).map(a => a.id).includes('legend_tower');
+      // lifetime tower-kills accumulated the run total (210 + 30)
+      const kAfter1 = meta.stats.towerKills;
+      // a second run accumulates on top
+      towers.length = 0; towers.push({ type: 'gun', dealt: 50, kills: 12 });
+      grantAchievements(false);
+      const kAfter2 = meta.stats.towerKills;
+
+      // a run whose best tower is below Legend (Ace, 199 kills) does NOT grant it
+      meta.achievements = {}; meta.stats = { dmg: 0, runs: 0, bestCombo: 0, towerKills: 0 };
+      towers.length = 0; towers.push({ type: 'gun', dealt: 100, kills: 199 });
+      grantAchievements(true);
+      const notUnder200 = !meta.achievements.legend_tower;
+
+      // Records panel renders the lifetime tower-kills row
+      meta.stats.towerKills = 12345;
+      openBests();
+      const recordsShowsKills = /Tower kills/.test(document.getElementById('bestBody').innerHTML);
+      closeBests();
+
+      localStorage.removeItem('cd_save');
+      meta = { chips: 0, talents: {} }; loadMeta();
+      backToMenu();
+      return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
+    });
+    check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
+    check('achievement roster grew to 19', r.rosterOk);
+    check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
+    check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
+    check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
+    check('lifetime tower-kills keeps accumulating (240+12=252)', r.kAfter2 === 252, `kAfter2=${r.kAfter2}`);
+    check('a below-Legend tower (199 kills) does NOT grant Living Legend', r.notUnder200);
+    check('Records panel shows the lifetime tower-kills row', r.recordsShowsKills);
+    check('no console errors during Living Legend test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

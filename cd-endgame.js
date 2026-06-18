@@ -26,13 +26,16 @@ const ACHIEVEMENTS = [
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
   { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
   { id:'nightmare_win', icon:'🌑', name:'Nightmare Walker', desc:'Win a game on Nightmare difficulty' },
+  { id:'legend_tower',  icon:'🏵️', name:'Living Legend',     desc:'Promote a tower to Legend rank (200 kills)' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
 // Tally a finished run and grant any newly-earned achievements. Returns the new ones.
 function grantAchievements(won) {
   const runDmg = towers.reduce((s, t) => s + (t.dealt || 0), 0);
+  const runKills = towers.reduce((s, t) => s + (t.kills || 0), 0);
   meta.stats.dmg += runDmg;
+  meta.stats.towerKills = (meta.stats.towerKills || 0) + runKills;
   meta.stats.runs += 1;
   if (comboBest > (meta.stats.bestCombo || 0)) meta.stats.bestCombo = comboBest;
   const newly = [];
@@ -48,6 +51,9 @@ function grantAchievements(won) {
   if (meta.stats.runs >= 25) give('veteran');
   if (comboBest >= 30) give('combo30');
   if (railBestHit >= 5) give('railhit5');
+  // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
+  // the top veterancy rank (200 kills on one tower) is most natural in a long endless run, win or lose.
+  if (towers.some(t => towerRankTier(t.kills) === 4)) give('legend_tower');
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
@@ -242,6 +248,7 @@ function renderBests() {
   html += '</tbody></table>';
   const dmg = (meta.stats && meta.stats.dmg) || 0, runs = (meta.stats && meta.stats.runs) || 0;
   const bestCombo = (meta.stats && meta.stats.bestCombo) || 0;
+  const towerKills = (meta.stats && meta.stats.towerKills) || 0;
   const bestScore = +(localStorage.getItem('cd_bestscore') || 0);
   const dailyToday = +(localStorage.getItem('cd_daily_' + dailyDateString()) || 0);
   const dStreak = currentDailyStreak();
@@ -251,6 +258,7 @@ function renderBests() {
     + `<span>🔥 Daily streak: <b>${dStreak ? dStreak + ' day' + (dStreak === 1 ? '' : 's') : '—'}</b></span>`
     + `<span>🎖 Campaign: <b>L${campaignDone()}</b> cleared</span>`
     + `<span>⚔ Lifetime dmg: <b>${fmtNum(dmg)}</b></span>`
+    + `<span>💀 Tower kills: <b>${fmtNum(towerKills)}</b></span>`
     + `<span>🔥 Best combo: <b>${bestCombo ? bestCombo + '×' : '—'}</b></span>`
     + `<span>🎮 Runs: <b>${runs}</b></span>`
     + `<span>🪙 Chips: <b>${meta.chips}</b></span></div>`;

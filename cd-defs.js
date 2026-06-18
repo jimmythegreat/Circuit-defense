@@ -70,6 +70,7 @@ function loadMeta() {
   if (typeof meta.stats.dmg !== 'number') meta.stats.dmg = 0;
   if (typeof meta.stats.runs !== 'number') meta.stats.runs = 0;
   if (typeof meta.stats.bestCombo !== 'number') meta.stats.bestCombo = 0;
+  if (typeof meta.stats.towerKills !== 'number') meta.stats.towerKills = 0; // lifetime tower kills (v2.19.0)
 }
 const maxTowerLevel = () => 5 + tRank('overdrive');
 function saveMeta() { localStorage.setItem('cd_meta', JSON.stringify(meta)); }
