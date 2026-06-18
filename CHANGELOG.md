@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.22.0 — 2026-06-18 — ⭐ Records spotlight — your latest personal best is highlighted
+
+**Type:** Game-feel/UX polish (Records panel). Minor bump. Save-safe (two additive `cd_lastbest_*` keys); no economy/gameplay/balance impact.
+
+The Records panel now spotlights the cell whose per-map best you most recently set: a gold tint + glow + a ★ marker, so opening Records shows at a glance which record you just beat (an addictive-loop feedback touch). Wave bests and score bests are tracked independently — `recordBest()` stamps `cd_lastbest_wave` and `recordScores()` stamps `cd_lastbest_score` (both `"<map>_<diff>"`, quick-mode + non-daily only, mirroring the per-map key gating; first-ever records stamp too). `renderBests()` adds a `.justbeat` class + ★ to the matching cell in each grid, only when that cell has a value. Both keys are additive (old saves show no highlight until your next PB) and swept by `resetAllData()`'s `cd_`-prefix clear. New test group **[132]** (stamp on wave/score, newer cell takes over, campaign/daily never stamp, both grids highlight, ★ marker, empty/absent → no highlight). Suite **1411 → 1421** green. `sw.js` cache → `v2.22.0`.
+
 ## v2.21.0 — 2026-06-18 — 🎖️ Rank-tinted tower barrels (veterancy visual)
 
 **Type:** Graphics/UX polish (render-only). Minor bump. No gameplay/balance/economy/save impact.

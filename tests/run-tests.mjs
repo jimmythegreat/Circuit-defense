@@ -9135,6 +9135,82 @@ async function main() {
     await page.close();
   }
 
+  // [132] Records "latest personal best" spotlight (v2.22.0)
+  console.log('\n[132] Records — latest-PB spotlight');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      ['cd_lastbest_wave', 'cd_lastbest_score',
+       'cd_best_classic_normal', 'cd_best_spiral_hard',
+       'cd_bestscore_classic_normal', 'cd_bestscore_spiral_hard', 'cd_save']
+        .forEach(k => localStorage.removeItem(k));
+
+      // recordBest() stamps the latest beaten WAVE cell (quick, non-daily, first-ever too).
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; daily = false; wave = 11; best = 0;
+      recordBest();
+      const stampedWave = localStorage.getItem('cd_lastbest_wave') === 'classic_normal';
+
+      // recordScores() stamps the latest beaten SCORE cell independently.
+      recordScores(2500);
+      const stampedScore = localStorage.getItem('cd_lastbest_score') === 'classic_normal';
+
+      // A second, different cell takes over the stamp.
+      mapKey = 'spiral'; diffKey = 'hard'; wave = 7; best = 0;
+      recordBest();
+      const movedWave = localStorage.getItem('cd_lastbest_wave') === 'spiral_hard';
+
+      // daily / campaign never stamp (mirrors the per-map key gating).
+      localStorage.setItem('cd_lastbest_wave', 'classic_normal');
+      gameMode = 'campaign'; mapKey = 'classic'; diffKey = 'normal'; wave = 99; best = 0;
+      recordBest();
+      const campNoStamp = localStorage.getItem('cd_lastbest_wave') === 'classic_normal';
+      gameMode = 'quick'; daily = true; wave = 99; best = 0;
+      recordBest();
+      const dailyNoStamp = localStorage.getItem('cd_lastbest_wave') === 'classic_normal';
+      daily = false;
+
+      // renderBests() highlights exactly the stamped cells (★ marker + .justbeat class),
+      // and only when that cell actually has a value.
+      localStorage.setItem('cd_best_classic_normal', '11');
+      localStorage.setItem('cd_bestscore_classic_normal', '2500');
+      localStorage.setItem('cd_lastbest_wave', 'classic_normal');
+      localStorage.setItem('cd_lastbest_score', 'classic_normal');
+      renderBests();
+      const body = document.getElementById('bestBody').innerHTML;
+      const justbeatCount = (body.match(/class="justbeat"/g) || []).length;   // one per grid
+      const hasStar = body.includes('★ 11') && body.includes('★ ' + fmtNum(2500));
+
+      // A stamp pointing at an empty cell must NOT highlight anything.
+      localStorage.setItem('cd_lastbest_wave', 'serpent_easy');
+      localStorage.setItem('cd_lastbest_score', 'serpent_easy');
+      renderBests();
+      const emptyNoHl = !document.getElementById('bestBody').innerHTML.includes('class="justbeat"');
+
+      // No stamp at all → no highlight (old saves without the keys).
+      localStorage.removeItem('cd_lastbest_wave'); localStorage.removeItem('cd_lastbest_score');
+      renderBests();
+      const absentNoHl = !document.getElementById('bestBody').innerHTML.includes('class="justbeat"');
+
+      ['cd_lastbest_wave', 'cd_lastbest_score',
+       'cd_best_classic_normal', 'cd_best_spiral_hard',
+       'cd_bestscore_classic_normal', 'cd_bestscore_spiral_hard']
+        .forEach(k => localStorage.removeItem(k));
+      return { stampedWave, stampedScore, movedWave, campNoStamp, dailyNoStamp,
+               justbeatCount, hasStar, emptyNoHl, absentNoHl };
+    });
+    check('recordBest() stamps the latest beaten wave cell', r.stampedWave);
+    check('recordScores() stamps the latest beaten score cell', r.stampedScore);
+    check('a newer beaten cell takes over the wave stamp', r.movedWave);
+    check('campaign never stamps a latest-PB cell', r.campNoStamp);
+    check('daily never stamps a latest-PB cell', r.dailyNoStamp);
+    check('renderBests highlights the stamped cell in both grids', r.justbeatCount === 2, String(r.justbeatCount));
+    check('highlighted cells carry a ★ marker', r.hasStar);
+    check('a stamp on an empty cell highlights nothing', r.emptyNoHl);
+    check('no stamp (old save) highlights nothing', r.absentNoHl);
+    check('no console errors during latest-PB spotlight test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

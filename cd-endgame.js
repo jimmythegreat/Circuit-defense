@@ -138,6 +138,8 @@ function recordBest() {
     const prev = +(localStorage.getItem(k) || 0);
     if (wave > prev) {
       localStorage.setItem(k, wave);
+      // Remember this cell so the Records panel can spotlight your latest PB (v2.22.0).
+      try { localStorage.setItem('cd_lastbest_wave', mapKey + '_' + diffKey); } catch(e) {}
       if (prev > 0) rec = { prev, now: wave };
     }
   }
@@ -212,6 +214,9 @@ function renderSettings() {
 }
 function renderBests() {
   const diffs = Object.keys(DIFFS), maps = Object.keys(MAPS);
+  // The map×diff cell whose per-map best you most recently set — spotlighted gold (v2.22.0).
+  const lastWave = localStorage.getItem('cd_lastbest_wave') || '';
+  const lastScore = localStorage.getItem('cd_lastbest_score') || '';
   // ----- Highest wave per map × difficulty -----
   let html = '<h4 class="bestSub">🌊 Best waves</h4>';
   html += '<table class="bestTbl"><thead><tr><th>Map</th>';
@@ -221,7 +226,8 @@ function renderBests() {
     html += `<tr><td class="mname">${MAPS[m].name}</td>`;
     for (const d of diffs) {
       const v = +(localStorage.getItem('cd_best_' + m + '_' + d) || 0);
-      html += `<td>${v ? v : '<span class="dash">—</span>'}</td>`;
+      const hl = v && (m + '_' + d) === lastWave;
+      html += `<td${hl ? ' class="justbeat"' : ''}>${v ? (hl ? '★ ' : '') + v : '<span class="dash">—</span>'}</td>`;
     }
     html += '</tr>';
   }
@@ -241,7 +247,8 @@ function renderBests() {
     html += `<tr><td class="mname">${MAPS[m].name}</td>`;
     for (const d of diffs) {
       const v = +(localStorage.getItem('cd_bestscore_' + m + '_' + d) || 0);
-      html += `<td>${v ? fmtNum(v) : '<span class="dash">—</span>'}</td>`;
+      const hl = v && (m + '_' + d) === lastScore;
+      html += `<td${hl ? ' class="justbeat"' : ''}>${v ? (hl ? '★ ' : '') + fmtNum(v) : '<span class="dash">—</span>'}</td>`;
     }
     html += '</tr>';
   }
@@ -348,7 +355,8 @@ function recordScores(score) {
   if (isAllTimeBest) { try { localStorage.setItem('cd_bestscore', score); } catch(e) {} }
   if (!daily && gameMode === 'quick') {
     const k = 'cd_bestscore_' + mapKey + '_' + diffKey;
-    if (score > +(localStorage.getItem(k) || 0)) { try { localStorage.setItem(k, score); } catch(e) {} }
+    // Also remember this cell so the Records panel spotlights your latest score PB (v2.22.0).
+    if (score > +(localStorage.getItem(k) || 0)) { try { localStorage.setItem(k, score); localStorage.setItem('cd_lastbest_score', mapKey + '_' + diffKey); } catch(e) {} }
   }
   return { prevAllTime, isAllTimeBest };
 }
