@@ -9376,6 +9376,115 @@ async function main() {
     await page.close();
   }
 
+  console.log('\n[135] Vortex map (inward-spiral kill-funnel + Neon theme)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    // Map definition: present, named, well-formed axis-aligned path enters off-left, exits off-right.
+    const def = await page.evaluate(() => {
+      const m = MAPS.vortex;
+      const pts = m && m.pts;
+      let axisAligned = !!pts && pts.length >= 4;
+      if (pts) for (let i = 0; i < pts.length - 1; i++) {
+        const sameX = pts[i][0] === pts[i + 1][0], sameY = pts[i][1] === pts[i + 1][1];
+        if (sameX === sameY) { axisAligned = false; break; }   // both same (zero-len) or neither (diagonal)
+      }
+      const inBounds = !!pts && pts.every(([x, y]) => x >= -40 && x <= 940 && y >= 0 && y <= 560);
+      return {
+        exists: !!m, named: !!m && typeof m.name === 'string' && m.name.length > 0,
+        hasPath: Array.isArray(pts), axisAligned, inBounds,
+        entersLeft: !!pts && pts[0][0] === -30, exitsRight: !!pts && pts[pts.length - 1][0] === 930,
+        notLast: Object.keys(MAPS).indexOf('vortex') < Object.keys(MAPS).indexOf('mayhem'),
+      };
+    });
+    check('Vortex map exists and is named', def.exists && def.named);
+    check('Vortex has an axis-aligned path (no diagonals/zero-length segs)', def.axisAligned);
+    check('Vortex path stays within the board', def.inBounds);
+    check('Vortex path enters off-left (-30) and exits off-right (930)', def.entersLeft && def.exitsRight);
+    check('Vortex sits before Mayhem in the map order', def.notLast);
+
+    // Theme: Neon palette exists and is the map's fixed identity.
+    const theme = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'vortex'; diffKey = 'normal';
+      const fixed = MAP_THEME.vortex;
+      const hasPalette = !!THEMES.neon && typeof THEMES.neon.glow === 'string';
+      const inCampaignPool = CAMPAIGN_THEMES.includes('neon');
+      const picks = pickMapTheme();              // quick-mode vortex -> fixed neon
+      beginGame();
+      const resolved = mapTheme;                 // resetState() set it via pickMapTheme()
+      const pal = mapPalette();                  // concrete palette for the frame
+      const ok = pal && pal.glow === THEMES.neon.glow;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fixed, hasPalette, inCampaignPool, picks, resolved, ok };
+    });
+    check('Neon theme palette exists', theme.hasPalette);
+    check('Vortex maps to the Neon theme', theme.fixed === 'neon' && theme.picks === 'neon');
+    check('Neon is available to the campaign palette pool', theme.inCampaignPool);
+    check('a Vortex run resolves to the Neon palette', theme.resolved === 'neon' && theme.ok);
+
+    // The map appears as a selectable button on the start screen.
+    const btn = await page.evaluate(() => {
+      renderStartScreen();
+      return /Vortex/.test(document.getElementById('mapRow').innerHTML);
+    });
+    check('Vortex appears in the start-screen map selector', btn);
+
+    // The path genuinely crosses itself (the spiral/funnel identity): the inner vertical
+    // descent at x=490 and the inner horizontal run at y=380 intersect at (490,380).
+    const crosses = await page.evaluate(() => {
+      const pts = MAPS.vortex.pts;
+      const onSeg = (a, b, px, py) => {
+        if (a[0] === b[0]) return a[0] === px && py >= Math.min(a[1], b[1]) && py <= Math.max(a[1], b[1]);
+        return a[1] === py && px >= Math.min(a[0], b[0]) && px <= Math.max(a[0], b[0]);
+      };
+      let hits = 0;
+      for (let i = 0; i < pts.length - 1; i++) if (onSeg(pts[i], pts[i + 1], 490, 380)) hits++;
+      return hits;
+    });
+    check('Vortex path crosses itself at the inner funnel (490,380)', crosses >= 2, 'hits=' + crosses);
+
+    // A real run drives to completion on the new path (pathing/spawning work, no hang).
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'vortex'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const pathOk = pathLen > 1000 && Array.isArray(waypoints) && waypoints === MAPS.vortex.pts;
+      __cdGodTowers(8);
+      __cdDrive({ maxWave: 6 });
+      const out = { reached: wave >= 5, wave, pathOk };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Vortex buildPath wires the static path', drove.pathOk, JSON.stringify(drove));
+    check('a Vortex run drives clean to wave 5+', drove.reached, JSON.stringify(drove));
+
+    // Records: a finished quick run logs a per-map best under cd_best_vortex_<diff>,
+    // and the map validates on save/resume (loadRun accepts MAPS[mapKey]).
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_vortex_hard');
+      gameMode = 'quick'; mapKey = 'vortex'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_vortex_hard') || 0);
+
+      // save/resume round-trip on the static map
+      gameMode = 'quick'; mapKey = 'vortex'; diffKey = 'normal';
+      beginGame(); wave = 3;
+      saveRun();
+      const loaded = loadRun();
+      const restored = loaded === true && mapKey === 'vortex';
+
+      ['cd_best_vortex_hard', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { mapBest, restored };
+    });
+    check('Vortex records a per-map best (hard = 9)', rec.mapBest === 9, JSON.stringify(rec));
+    check('Vortex save/resume round-trips', rec.restored, JSON.stringify(rec));
+
+    check('no console errors during Vortex map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

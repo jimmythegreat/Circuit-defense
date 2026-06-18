@@ -18,8 +18,10 @@ _None currently known._ (Add any here as found — top priority.)
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger
       lift: needs multi-path enemy distribution + targeting/`distToPath` over >1 path. Its own run.
-      (All SIX static `THEMES` palettes are now claimed as map identities — a 7th *named* map needs a
-      brand-new palette; but Crossroads could reuse one or get a 7th.)
+      (All SEVEN static `THEMES` palettes are now claimed as map identities — an 8th *named* map needs a
+      brand-new palette; but Crossroads could reuse one or get an 8th.)
+- [x] **New single-path map (the 🌀 Vortex)** — DONE v2.25.0 [135], a rectangular inward-spiral kill-funnel
+      with a new Neon (hot-magenta) palette (7th map / 7th theme).
 - [x] **New tower (the 🔆 Laser)** — DONE v2.9.0 [121], a ramp-up beam (the 10th tower). The
       "charge up the longer it fires" mechanic now exists as a TOWER (was sketched as a Railgun spec idea).
 - [ ] **Arc/chain tower** — chain-lightning that *bounces* between nearby enemies (a swarm counter,
@@ -138,7 +140,8 @@ _None currently known._ (Add any here as found — top priority.)
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
-- 6 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]);
+- 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
+  + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].
 - Daily Challenge (date-seeded) v1.28.0 [47] + streak v1.31.0 [50] + preview v1.47.0; combo meter v1.7.0 [71].
 - **♾️ Endless mode** v2.17.0 [127] (FEEDBACK): menu tile (quick-mode + `endless` flag, NOT a 3rd gameMode);

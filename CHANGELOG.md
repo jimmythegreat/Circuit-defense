@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.25.0 — 2026-06-18 — 🌀 Vortex — the 7th quick-play map (inward-spiral kill-funnel)
+
+**Type:** New content (map + theme). Minor bump. Additive/save-safe; no economy/balance change to existing systems.
+
+A new quick-play map, **🌀 Vortex** (`vortex`, themed the new **Neon** hot-magenta palette): a tight rectangular inward spiral that funnels the crowd toward a dense centre before breaking out to the exit, and the path crosses itself (at the inner funnel ~490,380) for crossfire pockets — distinct from Spiral's loose zigzag and Nexus's perpendicular convergence. Adds a 7th `THEMES` palette (**neon**), claimed as Vortex's fixed `MAP_THEME` identity and added to the `CAMPAIGN_THEMES` random pool. Fully additive: it appears in the map selector with its own Records column, and every map/theme enumeration already iterates `Object.keys(MAPS)`. Save-safe (`loadRun` validates `MAPS[mapKey]`; `vortex`/`neon` don't collide with diff keys). New test group **[135]** (axis-aligned path, in-bounds, self-crossing, theme identity, selector button, real run to wave 5+, per-map best + save/resume round-trip). Suite **1445 → 1461** green. `sw.js` cache → `v2.25.0`. (Quick maps: 6 → 7; static themes: 6 → 7.)
+
 ## v2.24.1 — 2026-06-18 — 🩺 Health check — all green (1445/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.19.1: v2.20.0, v2.21.0, v2.22.0, v2.23.0, v2.24.0 — at the 5-run trigger.)

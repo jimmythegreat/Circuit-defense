@@ -19,6 +19,9 @@ const MAPS = {
   nexus: { name:'Nexus', desc:'Central crossfire convergence', pts: [
     [-30,90],[450,90],[450,470],[200,470],[200,280],[700,280],[700,150],[330,150],[330,390],[560,390],[560,210],[930,210]
   ]},
+  vortex: { name:'Vortex', desc:'Inward-spiral kill-funnel', pts: [
+    [-30,80],[820,80],[820,470],[90,470],[90,180],[690,180],[690,380],[240,380],[240,280],[490,280],[490,430],[930,430]
+  ]},
   mayhem: { name:'🌀 Mayhem', desc:'Path shifts every 5 waves · chaos modifiers', pts: null },
 };
 let mapKey = 'classic';
@@ -294,10 +297,11 @@ const THEMES = {
   violet:  { name:'Violet',  bgIn:'#140a20', bgOut:'#08040f', star:'#d2a8ff', grid:'rgba(170,120,255,0.05)', pDark:'#070310', pMid:'#261c38', pLite:'#352a4a', glow:'rgba(170,120,255,0.4)', dash:'rgba(200,160,255,0.25)' },
   ice:     { name:'Ice',     bgIn:'#0a1620', bgOut:'#04090f', star:'#aef0ff', grid:'rgba(120,210,255,0.05)', pDark:'#03070a', pMid:'#173040', pLite:'#1f4458', glow:'rgba(120,210,255,0.4)', dash:'rgba(170,230,255,0.25)' },
   crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
+  neon:    { name:'Neon',    bgIn:'#1a0a18', bgOut:'#0b040a', star:'#ffb3ec', grid:'rgba(255,90,210,0.05)', pDark:'#0a0308', pMid:'#321630', pLite:'#481f44', glow:'rgba(255,90,210,0.4)',  dash:'rgba(255,140,230,0.25)' },
 };
 // Fixed identity per named quick-map; campaign draws from the tame set below.
-const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet' };
-const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson'];
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet', vortex:'neon' };
+const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson', 'neon'];
 let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
 function pickMapTheme() {
   if (gameMode === 'campaign') return CAMPAIGN_THEMES[Math.floor(Math.random() * CAMPAIGN_THEMES.length)];
