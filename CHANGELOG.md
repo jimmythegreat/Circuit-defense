@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.24.1 — 2026-06-18 — 🩺 Health check — all green (1445/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.19.1: v2.20.0, v2.21.0, v2.22.0, v2.23.0, v2.24.0 — at the 5-run trigger.)
+
+Suite green (**1445/0**, ~134 groups, zero console errors, exit 0). **Refactor audit:** all 8 game files under the ~1500-line cap — largest cd-render.js **1028**, cd-update.js **1015** (both crossed 1000 this cycle but keep ~470 lines of headroom), cd-game.js 931. No dead code / stray logging / TODOs (the TODO matches are prose inside old health-check What's-New bodies). The dev-only **test harness is now 9,392 lines / ~134 groups / 1445 assertions** — still by far the biggest file and the top split candidate in ROADMAP (not bound by the game-file cap). **Integrity:** `file://` double-click play intact (8 classic scripts in dependency order, no ES modules, SW guarded to http/https, no build step); old-format save migration verified (talent back-fill + additive `meta.stats`/`achievements`/`endless`/`gameTime`/`mapTheme`/perkState defaults). **Docs coherence:** every headline count matches code (11 towers, 5 abilities, 26 talents, 19 achievements, 20 wave mods, 16 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties, 6 quick maps + mayhem). Versions consistent (GAME_VERSION = sw.js cache = v2.24.1, test [49]). Fixed two stale ROADMAP notes: the harness-size line (9,014→9,392 lines / 129→~134 groups / 1390→1445 assertions) and the talent count (25→26 — `mastery_pulsar` v2.23.0 was missing from the inventory line). Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.24.0 — 2026-06-18 — ▦ Grid placement readability — visible lines + snap tick
 
 **Type:** Game-feel/UX polish (render + audio). Minor bump. No gameplay/balance/economy/save impact.

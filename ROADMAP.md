@@ -92,7 +92,7 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~9,014 lines (129 groups, ~1390
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~9,392 lines (~134 groups, 1445
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,
@@ -127,8 +127,8 @@ _None currently known._ (Add any here as found — top priority.)
 ### Difficulty / progression / meta
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 [109] (progressive late HP, capped, Normal/Campaign exempt).
-- 25 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
-  + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
+- 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
+  + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
   cost rework v1.38.0 [55]. 19 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
