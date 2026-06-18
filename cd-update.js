@@ -555,7 +555,9 @@ function update(dt) {
     const critCh = perkState.critChance + 0.02 * tRank('critlab') + (t.spec === 'deadeye' ? 0.2 : 0);
     if (critCh > 0 && Math.random() < critCh) {
       crit = true;
-      dmg *= t.spec === 'deadeye' ? 4 : 2.5;
+      // Critical Mass legendary (v2.20.0): perkState.critMult (default 1) amplifies the per-crit
+      // multiplier — the first perk on the crit-DAMAGE axis (Crit Systems/Crit Lab only add chance).
+      dmg *= (t.spec === 'deadeye' ? 4 : 2.5) * perkState.critMult;
     }
     if (t.spec === 'executor' && (target.kind === 'tank' || target.kind === 'boss')) dmg *= 1.9;
     if (perkState.bossDmg > 1 && (target.kind === 'tank' || target.kind === 'boss')) dmg *= perkState.bossDmg;

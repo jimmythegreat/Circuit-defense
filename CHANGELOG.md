@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.20.0 — 2026-06-17 — 🎯 Critical Mass — legendary perk on the crit-damage axis
+
+**Type:** New content (legendary perk). Minor bump.
+
+Added 🎯 **Critical Mass**, the first perk to amplify crit *damage* (the multiplier) rather than just crit *chance* — `apply` does `critChance += 0.10` AND `critMult *= 1.5`, so a normal crit goes ×2.5→×3.75 and a Deadeye sniper's ×4→×6. A build-defining synergy legendary (stacks with the 🔬 Crit Lab talent, 🍀 Crit Systems perk, Deadeye spec); without crit-chance investment the ×1.5 rarely fires, so it's conditional/probabilistic and stays "too easy"-safe (well below the unconditional Diamond Core +30% on a generic board). Wired as one term in the fire-loop crit branch (`dmg *= (deadeye?4:2.5) * perkState.critMult`) — not effDmg, so the panel doesn't churn. `critMult` lives in perkState (save-safe default 1; old saves load via the existing `Object.assign(freshPerkState(), s.perkState)` merge); the legendary-only `resolveWildcard()` rolls it. No new localStorage key / economy / save-schema impact. Test group [130]; suite green.
+
 ## v2.19.1 — 2026-06-17 — 🩺 Health check — all green (1390/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.15.1: v2.15.2, v2.16.0, v2.17.0, v2.18.0, v2.19.0 — at the 5-run trigger.)

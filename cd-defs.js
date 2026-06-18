@@ -482,12 +482,25 @@ const PERKS = [
   // legendary-only resolveWildcard() rolls it automatically. Implemented at the single leak site in
   // cd-update.js. Test group [125].
   { id:'phoenix', rarity:'legendary',icon:'🌅', name:'Phoenix',            desc:'Cheat death once: revive at 12 lives & hurl the field back to the start', apply:s=>s.phoenix = true },
+  // Critical Mass (v2.20.0): the FIRST perk to amplify crit DAMAGE (the multiplier), a fresh axis —
+  // the 🍀 Crit Systems rare perk and the 🔬 Crit Lab talent only raise crit CHANCE, and the per-crit
+  // multiplier was fixed (×2.5, or ×4 on a Deadeye sniper). Critical Mass adds +10% crit chance AND
+  // makes every crit hit ×1.5 HARDER (a normal crit → ×3.75, a Deadeye crit → ×6). A build-defining
+  // SYNERGY legendary, not a flat board buff: without crit-chance investment (Crit Lab / Crit Systems /
+  // Deadeye) the ×1.5 fires rarely, so it rewards a dedicated crit build and stays "too easy"-safe — its
+  // value is conditional + probabilistic (like Killing Spree's combo gating), well below the
+  // unconditional Diamond Core (+30%) on a generic board. Chunky game-feel: bigger gold CRIT! numbers +
+  // the crit SFX land harder. Applied in the FIRE path's crit branch (not effDmg, so the upgrade panel
+  // doesn't churn). `critMult` lives in perkState (save-safe default 1; round-trips via loadRun's
+  // Object.assign(freshPerkState(), s.perkState) — old saves default 1). The legendary-only
+  // resolveWildcard() rolls it automatically. Test group [130].
+  { id:'critmass', rarity:'legendary',icon:'🎯', name:'Critical Mass',     desc:'+10% crit chance; crits hit ×1.5 harder', apply:s=>{ s.critChance += 0.10; s.critMult *= 1.5; } },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
 function freshPerkState() {
   return { typeDmg:{}, rateMult:1, bountyAdd:0, slowBonus:0, splashMult:1, chainExtra:0, poisonDur:3,
-    critChance:0, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
+    critChance:0, critMult:1, costMult:1, dmgMult:1, slowGlobal:1, waveBonusMult:1, sellBonus:0, midas:0,
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,

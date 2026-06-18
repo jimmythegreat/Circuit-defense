@@ -8998,6 +8998,93 @@ async function main() {
     await page.close();
   }
 
+  // [130] Critical Mass legendary perk — the FIRST perk on the crit-DAMAGE axis: +10% crit chance AND
+  // every crit hits ×1.5 harder (perkState.critMult). Wired in the fire-loop crit branch (not effDmg);
+  // save-safe via perkState (default critMult=1); the legendary-only resolveWildcard rolls it. (v2.20.0)
+  console.log('\n[130] Critical Mass perk (crit-damage amplifier)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // (a) perk exists, legendary, freshPerkState defaults critMult=1 (save-safe).
+      const def = PERKS.find(p => p.id === 'critmass');
+      const inPool = !!def && def.rarity === 'legendary';
+      const defaultsOne = freshPerkState().critMult === 1;
+
+      // (b) apply() bumps crit CHANCE +0.10 AND crit MULTIPLIER ×1.5.
+      const ps = freshPerkState();
+      const chBefore = ps.critChance, mBefore = ps.critMult;
+      def.apply(ps);
+      const applyOk = Math.abs(ps.critChance - (chBefore + 0.10)) < 1e-9 &&
+                      Math.abs(ps.critMult - mBefore * 1.5) < 1e-9;
+
+      // (c) the crit branch in the fire loop actually multiplies per-crit damage by critMult. Drive a
+      //     point-blank gun shot and measure the single hit's damage. Force/deny a crit by stubbing
+      //     Math.random (critChance 0.5 → 0<0.5 crits, 0.999<0.5 doesn't). Base-agnostic: compare a
+      //     crit hit against the SAME-build non-crit hit, so we never assume effDmg(gun)==10.
+      const origRandom = Math.random;
+      const measure = (critMult, forceCrit) => {
+        Math.random = () => (forceCrit ? 0 : 0.999);
+        enemies.length = 0; projectiles.length = 0; towers.length = 0;
+        perkState = freshPerkState();
+        perkState.critChance = 0.5; perkState.critMult = critMult;
+        // NOTE: update() recomputes each enemy's x/y from its `dist` along the path every frame, so
+        // we can't hardcode the enemy's position — let it settle one tick, then place the tower ON it.
+        const e = { kind:'norm', x:0, y:0, dist:40, spd:0, r:10, hp:1e7, maxHp:1e7,
+                    armor:0, frozen:0, slow:0, dead:false };
+        enemies.push(e);
+        update(1/60);                       // enemy x/y now = pointAt(40); no tower yet → 0 damage
+        const gun = { type:'gun', x:e.x, y:e.y, level:1, spec:null, dmg:10, range:140,
+                      rate:0.05, cd:0, dealt:0, kills:0, flash:0, angle:0 };
+        towers.push(gun);
+        const before = e.hp;
+        for (let i = 0; i < 30 && e.hp === before; i++) update(1/60);  // one point-blank shot lands
+        return before - e.hp;
+      };
+      const dmgNoCrit = measure(1, false);    // no crit → base damage
+      const dmg1      = measure(1, true);      // crit, critMult 1   → base ×2.5
+      const dmg15     = measure(1.5, true);    // crit, critMult 1.5 → base ×3.75
+      const dmgNonCritAmp = measure(1.5, false); // critMult must NOT touch a non-crit hit
+      Math.random = origRandom;
+      const baseCritOk   = dmgNoCrit > 0 && Math.abs(dmg1 - dmgNoCrit * 2.5) < 1e-4;
+      const ampCritOk    = Math.abs(dmg15 - dmgNoCrit * 2.5 * 1.5) < 1e-4;
+      const ratioOk      = Math.abs(dmg15 / dmg1 - 1.5) < 1e-6;
+      const nonCritInert = Math.abs(dmgNonCritAmp - dmgNoCrit) < 1e-4;
+
+      // (d) resolveWildcard can roll it (un-taken legendary eligible).
+      perkState = freshPerkState(); runPerks.length = 0;
+      let wildcardCanRoll = false;
+      for (let i = 0; i < 400 && !wildcardCanRoll; i++) {
+        if (resolveWildcard().id === 'critmass') wildcardCanRoll = true;
+      }
+
+      // (e) save/reload round-trips critMult (lives in perkState → persisted whole; old saves default 1).
+      perkState = freshPerkState(); perkState.critMult = 1.5;
+      saveRun();
+      perkState.critMult = 1; // clobber
+      const loaded = loadRun();
+      const restored = Math.abs(perkState.critMult - 1.5) < 1e-9;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, defaultsOne, applyOk, dmgNoCrit, dmg1, dmg15, baseCritOk, ampCritOk,
+               ratioOk, nonCritInert, wildcardCanRoll, loaded, restored };
+    });
+    check('Critical Mass is a legendary perk in the pool', r.inPool);
+    check('freshPerkState defaults critMult=1 (save-safe)', r.defaultsOne);
+    check('apply() adds +10% crit chance and ×1.5 crit multiplier', r.applyOk);
+    check('a crit hit deals base ×2.5 with critMult=1', r.baseCritOk, `noCrit=${r.dmgNoCrit} crit=${r.dmg1}`);
+    check('Critical Mass amplifies a crit to ×3.75 (base ×2.5 ×1.5)', r.ampCritOk, `dmg15=${r.dmg15}`);
+    check('crit damage scales exactly ×1.5 with the perk', r.ratioOk, `ratio=${r.dmg15 / r.dmg1}`);
+    check('critMult does NOT change a non-crit hit', r.nonCritInert, `nonCritAmp vs base`);
+    check('resolveWildcard can roll Critical Mass', r.wildcardCanRoll);
+    check('save/reload round-trips critMult', r.loaded === true && r.restored);
+    check('no console errors during Critical Mass test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
