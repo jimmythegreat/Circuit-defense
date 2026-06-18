@@ -91,34 +91,6 @@
       <button class="ctl blue" onclick="closeSettings()">Done</button>
     </div>
   </div>
-  <div id="startScreen">
-    <div class="startHero">
-      <h2>⚡ CIRCUIT DEFENSE</h2>
-      <div id="verTag" onclick="openWhatsNew()">version</div>
-      <p>Survive 30 waves. Build. Upgrade. Don't let them through.</p>
-    </div>
-    <div class="startOpts">
-      <div class="optLabel">MODE</div>
-      <div class="optRow" id="modeRow"></div>
-      <div class="optLabel" id="mapLabel">MAP</div>
-      <div class="optRow" id="mapRow"></div>
-      <div class="optLabel">DIFFICULTY</div>
-      <div class="optRow" id="diffRow"></div>
-    </div>
-    <div class="startPlay">
-      <button class="ctl play" onclick="beginGame()">▶ PLAY</button>
-      <button class="ctl blue" id="resumeBtn" style="display:none;" onclick="loadRun()">⏯ Resume Run</button>
-      <button class="ctl" id="dailyBtn" style="background:#1b7f5c;" onclick="beginDaily()">🗓 Daily Challenge</button>
-    </div>
-    <div class="startUtil">
-      <button class="ctl" style="--acc:#a371f7;" onclick="openTalents()">🧬 Talents (<span id="chipsBtn">0</span>🪙)</button>
-      <button class="ctl" style="--acc:#e3b341;" onclick="openAchievements()">🏅 Achievements (<span id="achBtn">0/0</span>)</button>
-      <button class="ctl" style="--acc:#58a6ff;" onclick="openBests()">🏆 Records</button>
-      <button class="ctl gray" id="wnBtn" style="--acc:#3fb950;" onclick="toggleWhatsNew()">✨ What's New</button>
-      <button class="ctl gray" style="--acc:#8b949e;" onclick="toggleSettings()">⚙ Settings</button>
-      <button class="ctl gray" id="resetBtn" style="--acc:#f85149;" title="Erase ALL saved data — chips, talents, achievements, records, and your current run — and start completely fresh." onclick="resetAllData()">🗑 Reset All</button>
-    </div>
-  </div>
 </div>
 </div>
 <div id="rotateHint">↻ Rotate your phone sideways for a bigger board</div>
@@ -132,6 +104,40 @@
   <button class="ctl gray" id="quitBtn" onclick="quitRun()">🚪 Quit</button>
 </div>
 <div class="hint">Hotkeys: <b>1–9</b> towers · <b>Q/W/E/R</b> abilities · <b>Space</b> wave · <b>P</b> pause · <b>M</b> mute · <b>Esc</b> cancel. 🎮 Gamepad: stick/D-pad move · <b>A</b> place/select · <b>B</b> cancel · <b>X</b> cycle tower · <b>LB/RB/LT/RT</b> abilities · <b>Start</b> wave. Max-level towers unlock a specialization. Every 5 waves: pick a run perk. Survive waves to earn 🪙 chips for permanent talents.</div>
+<!-- Start menu overlays the ENTIRE game column (v2.18.0) — moved out of #gameWrap (which is
+     only the 900×560 canvas) to be #gameCol's last child, so it covers the full game height
+     (title→hint) minus the What's New side panel. This gives the dashboard room to breathe:
+     campaign's tall 40-level grid no longer overflows the canvas box into a scrollbar.
+     #gameCol is position:relative so this anchors to it; concentric with the canvas, so the
+     centered dashboard still fits horizontally. Mobile keeps its own position:fixed layout. -->
+<div id="startScreen">
+  <div class="startHero">
+    <h2>⚡ CIRCUIT DEFENSE</h2>
+    <div id="verTag" onclick="openWhatsNew()">version</div>
+    <p>Survive 30 waves. Build. Upgrade. Don't let them through.</p>
+  </div>
+  <div class="startOpts">
+    <div class="optLabel">MODE</div>
+    <div class="optRow" id="modeRow"></div>
+    <div class="optLabel" id="mapLabel">MAP</div>
+    <div class="optRow" id="mapRow"></div>
+    <div class="optLabel">DIFFICULTY</div>
+    <div class="optRow" id="diffRow"></div>
+  </div>
+  <div class="startPlay">
+    <button class="ctl play" onclick="beginGame()">▶ PLAY</button>
+    <button class="ctl blue" id="resumeBtn" style="display:none;" onclick="loadRun()">⏯ Resume Run</button>
+    <button class="ctl" id="dailyBtn" style="background:#1b7f5c;" onclick="beginDaily()">🗓 Daily Challenge</button>
+  </div>
+  <div class="startUtil">
+    <button class="ctl" style="--acc:#a371f7;" onclick="openTalents()">🧬 Talents (<span id="chipsBtn">0</span>🪙)</button>
+    <button class="ctl" style="--acc:#e3b341;" onclick="openAchievements()">🏅 Achievements (<span id="achBtn">0/0</span>)</button>
+    <button class="ctl" style="--acc:#58a6ff;" onclick="openBests()">🏆 Records</button>
+    <button class="ctl gray" id="wnBtn" style="--acc:#3fb950;" onclick="toggleWhatsNew()">✨ What's New</button>
+    <button class="ctl gray" style="--acc:#8b949e;" onclick="toggleSettings()">⚙ Settings</button>
+    <button class="ctl gray" id="resetBtn" style="--acc:#f85149;" title="Erase ALL saved data — chips, talents, achievements, records, and your current run — and start completely fresh." onclick="resetAllData()">🗑 Reset All</button>
+  </div>
+</div>
 </div><!-- /gameCol -->
 <aside id="whatsnew">
   <div id="wnHead">

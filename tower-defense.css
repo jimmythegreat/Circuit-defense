@@ -142,18 +142,17 @@
   /* appRow = the whole game (gameCol) + the What's New side panel, side by side.
      The panel floats beside the ENTIRE game, so opening it never shifts only the canvas. */
   #appRow { display: flex; gap: 0; align-items: flex-start; justify-content: center; flex-wrap: wrap; max-width: 100vw; width: 100%; }
-  #gameCol { display: flex; flex-direction: column; align-items: center; }
+  #gameCol { display: flex; flex-direction: column; align-items: center; position: relative; }
   #stage { display: flex; justify-content: center; max-width: 100vw; }
   #startScreen { display: flex; }
-  /* Contain the start menu inside the board (v2.1.0, companion to the dashboard layout
-     below) — the config card grew with every added map/difficulty (now 7 map buttons ×
-     4 difficulties) until the vertically-centred menu was taller than the 900×560 board
-     and bled OUTSIDE it, painting the hero over the title/HUD and the utility row over
-     the shop/controls. `safe center` keeps it centred when it fits but top-aligns +
-     scrolls (instead of clipping/bleeding) when it doesn't — the graceful fallback for
-     campaign's intrinsically-tall 40-level grid, which still scrolls even with the
-     dashboard grid. Robust to future map/difficulty additions. Desktop-applicable; the
-     ≤920px block already owns its own fixed/scroll layout. */
+  /* Start menu sizing (v2.18.0, owner FEEDBACK "the menu has a scroll bar — it should use
+     the entire game size minus the What's New panel"). The menu used to be #gameWrap's
+     child, so it was clipped to the 900×560 canvas box and campaign's tall 40-level grid
+     overflowed into a scrollbar. It now lives in #gameCol (position:relative) and spans the
+     FULL game-column height (title→hint, ~900px+), concentric with the canvas — so the
+     dashboard has ample room and rarely needs to scroll. `safe center` keeps it centred when
+     it fits but top-aligns + scrolls (instead of clipping) only if the column itself is short
+     (tiny viewport). Desktop-applicable; the ≤920px block owns its own fixed/scroll layout. */
   #startScreen { overflow-y: auto; justify-content: safe center; padding: 10px 14px; }
   #overlay h2 { font-size: 38px; margin-bottom: 6px; }
   #overlay p, #startScreen p { font-size: 15px; margin-bottom: 12px; color: #8b949e; white-space: pre-line; max-width: 800px; }

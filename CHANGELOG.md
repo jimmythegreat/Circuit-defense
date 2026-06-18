@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.18.0 — 2026-06-17 — Start menu spans the full game column (no scrollbar)
+
+**Type:** UX fix (owner FEEDBACK). Minor bump. CSS/markup + one JS line; save/economy/balance-neutral; phone layout unchanged.
+
+Owner FEEDBACK: "The menu screen now has a scroll bar. It should use the entire game size minus the What's New panel." The start menu was `#gameWrap`'s child, so it was clipped to the 900×560 canvas box — Campaign's tall 40-level grid overflowed into a scrollbar (the v2.1.0 `safe center` containment fallback). `#startScreen` now lives in `#gameCol` (made `position:relative`) as its last child, so it spans the **full game-column height** (title→hint, ~900px+), concentric with the canvas — the dashboard gets room to breathe and no longer scrolls in any mode. Also fixed a latent bug: `backToMenu()` hardcoded `style.display='flex'`, overriding the desktop dashboard `display:grid` after a game (reverting the menu to the tall stacked flow + reintroducing the scrollbar) — now it clears the inline display so the CSS governs. Child/position invariants preserved (tests [58]/[113]); mobile keeps its own `position:fixed` layout. New test group **[128]**. `sw.js` cache → `v2.18.0`.
+
 ## v2.17.0 — 2026-06-17 — ♾️ Endless mode is now selectable from the start menu
 
 **Type:** Feature (owner FEEDBACK). Minor bump. Save-safe (additive `endless` save field; old saves default false); no economy/balance change.

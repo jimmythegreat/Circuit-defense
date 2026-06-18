@@ -154,7 +154,10 @@ default-mode). _New table-stakes can be added here as the bar rises._
   (headless Playwright on push/PR; independent of Pages deploy; no build step).
 - Menu-revamp slices (COMPLETE, FEEDBACK closed v2.1.0): button hierarchy v1.39.1 [58] · PLAY sheen v1.41.0 [59] ·
   config card v1.42.0 [60] · hero header v1.45.0 [63] · ambient backdrop v1.69.0 [79] · hover polish v1.94.0 [102] ·
-  grouped toolbar v2.0.0 · accent tiles v2.0.2 [112] · **dashboard layout v2.1.0 [113]**.
+  grouped toolbar v2.0.0 · accent tiles v2.0.2 [112] · **dashboard layout v2.1.0 [113]** ·
+  **full-column overlay v2.18.0 [128]** (FEEDBACK: menu moved to `#gameCol` so it spans the whole
+  game height — campaign's 40-level grid no longer overflows into a scrollbar; `backToMenu` no longer
+  hardcodes `display:flex` over the desktop grid).
 
 ## Vetoed by owner — do not re-add
 

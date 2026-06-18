@@ -10,9 +10,11 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-The menu screen now has a scroll bar. It should use the entire game size minute the whats new panel.
+_(empty)_
 
 ## DONE
+
+- **2026-06-17 · v2.18.0** — "The menu screen now has a scroll bar. It should use the entire game size minus the What's New panel." → Moved the start menu out of `#gameWrap` (the 900×560 canvas box) to be `#gameCol`'s last child, anchored to `#gameCol` (now `position:relative`), so it spans the full game-column height instead of being clipped to the playfield. Campaign's tall 40-level grid no longer overflows into a scrollbar. Also fixed `backToMenu()` hardcoding `display:flex` (it overrode the desktop dashboard grid after a game). CSS/markup + 1 JS line; save/balance-neutral; phone layout unchanged. Test [128].
 
 - **2026-06-17 · v2.17.0** — "You keep adding features to endless mode but I don't see a way to select that on the menu" → Added a ♾️ **Endless** tile to the start menu beside Quick Play and Campaign. It's a quick-mode variant (`endless` config flag, not a 3rd gameMode) that banks the wave-30 win once then keeps playing with no victory wall — the run only stops on defeat. Fully resumable + save-safe (additive `endless` save field, old saves default false). Previously endless was only reachable via the post-win "Continue Endless ∞" button. Test [127].
 

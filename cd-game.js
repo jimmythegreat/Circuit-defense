@@ -150,7 +150,11 @@ function backToMenu() {
   // `victory` so a defeat→menu keeps the current level, and resetState() (below) clears `victory`.
   if (gameMode === 'campaign' && victory && campLevel < CAMPAIGN_LEVELS) campLevel++;
   document.getElementById('overlay').style.display = 'none';
-  document.getElementById('startScreen').style.display = 'flex';
+  // Clear the inline display (not a hardcoded 'flex') so the CSS governs the menu layout —
+  // the desktop dashboard `display:grid` (v2.1.0) and the ≤920px fixed/flex layout both win
+  // again. A hardcoded 'flex' here used to override the grid after a game, reverting the menu
+  // to the tall stacked flow (and re-introducing the scrollbar). (v2.18.0)
+  document.getElementById('startScreen').style.display = '';
   renderStartScreen();
   resetState();
   setActiveUI();

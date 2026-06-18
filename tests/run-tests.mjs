@@ -8863,6 +8863,83 @@ async function main() {
     await page.close();
   }
 
+  // [128] Start menu spans the full game column (v2.18.0, owner FEEDBACK "the menu has a
+  // scroll bar — it should use the entire game size minus the What's New panel"). The menu
+  // moved out of #gameWrap (the 900×560 canvas box) to be #gameCol's last child, anchored to
+  // #gameCol (position:relative), so it covers the full column height (title→hint) and the
+  // tall Campaign 40-level grid no longer overflows into a scrollbar. Concentric with the
+  // canvas, so the centered dashboard still fits horizontally. Mobile keeps its fixed layout.
+  console.log('\n[128] Start menu uses the full game-column height (no scrollbar)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const d = await page.evaluate(() => {
+      const ss = document.getElementById('startScreen');
+      const col = document.getElementById('gameCol');
+      const wrap = document.getElementById('gameWrap');
+      const h1 = document.querySelector('h1');
+      // select Campaign (the tall 40-level grid) to stress the height
+      const camp = [...document.querySelectorAll('#modeRow .optBtn')].find(t => /Campaign/.test(t.textContent));
+      camp && camp.click();
+      const r = e => e.getBoundingClientRect();
+      const ssH = r(ss).height, wrapH = r(wrap).height;
+      const util = document.querySelector('.startUtil');
+      return {
+        parentIsCol: ss.parentElement.id === 'gameCol',
+        colRelative: getComputedStyle(col).position === 'relative',
+        // the menu is taller than the canvas box — it spans the whole column
+        tallerThanCanvas: ssH > wrapH + 50,
+        coversTitle: Math.round(r(ss).top) <= Math.round(r(h1).top) + 1,
+        // Campaign content no longer overflows → no scrollbar
+        campaignNoOverflow: ss.scrollHeight <= ss.clientHeight + 1,
+        // dashboard still fits horizontally inside the canvas (concentric centering)
+        utilFits: Math.round(r(util).right) <= Math.round(r(document.getElementById('game')).right) + 1,
+      };
+    });
+    // quick mode also fits with no scroll
+    const quick = await page.evaluate(() => {
+      const q = [...document.querySelectorAll('#modeRow .optBtn')].find(t => /Quick/.test(t.textContent));
+      q && q.click();
+      const ss = document.getElementById('startScreen');
+      return { noOverflow: ss.scrollHeight <= ss.clientHeight + 1 };
+    });
+    // returning to the menu after a game restores the CSS-governed grid (not an inline 'flex')
+    const cycle = await page.evaluate(() => {
+      beginGame(); backToMenu();
+      const ss = document.getElementById('startScreen');
+      return {
+        display: getComputedStyle(ss).display,
+        inlineCleared: ss.style.display === '',
+        noOverflow: ss.scrollHeight <= ss.clientHeight + 1,
+      };
+    });
+    // phone layout untouched: startScreen stays position:fixed, no horizontal overflow
+    await page.setViewportSize({ width: 390, height: 844 });
+    const m = await page.evaluate(() => {
+      const ss = document.getElementById('startScreen');
+      return {
+        fixed: getComputedStyle(ss).position === 'fixed',
+        notGrid: getComputedStyle(ss).display !== 'grid',
+        noHorizOverflow: document.documentElement.scrollWidth <= window.innerWidth + 1,
+        lastChildUtil: document.querySelector('#startScreen > div:last-child').classList.contains('startUtil'),
+      };
+    });
+    check('start menu is a child of #gameCol (not #gameWrap)', d.parentIsCol);
+    check('#gameCol is a positioning context (position:relative)', d.colRelative);
+    check('menu spans the full column, taller than the canvas box', d.tallerThanCanvas);
+    check('menu covers the page title (full-height overlay)', d.coversTitle);
+    check('Campaign 40-level grid no longer overflows (no scrollbar)', d.campaignNoOverflow);
+    check('dashboard still fits horizontally inside the board', d.utilFits);
+    check('Quick mode menu fits with no scroll', quick.noOverflow);
+    check('back-to-menu restores the CSS grid layout (inline display cleared)', cycle.display === 'grid' && cycle.inlineCleared, JSON.stringify(cycle));
+    check('menu after a game still fits with no scroll', cycle.noOverflow);
+    check('phone: start menu stays position:fixed (mobile layout untouched)', m.fixed && m.notGrid);
+    check('phone: no horizontal overflow after the move', m.noHorizOverflow);
+    check('phone: util toolbar is still the last child (test [58] invariant)', m.lastChildUtil);
+    check('no console errors during full-height menu test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
