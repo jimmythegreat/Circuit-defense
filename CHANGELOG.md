@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.19.1 — 2026-06-17 — 🩺 Health check — all green (1390/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.15.1: v2.15.2, v2.16.0, v2.17.0, v2.18.0, v2.19.0 — at the 5-run trigger.)
+
+Suite green (**1390/0**, 129 groups, zero console errors, exit 0). **Refactor audit:** all 8 game files comfortably under the ~1500-line cap — largest cd-render.js **994**, cd-update.js 987, cd-game.js 929 — all with healthy headroom after the v2.15.2 split. No dead code / stray logging / TODOs (the TODO matches are prose inside old health-check What's-New bodies). The dev-only **test harness is now 9,014 lines / 129 groups / 1390 assertions** (by far the biggest file, ~+75/run) — still flagged as the top split candidate in ROADMAP (not bound by the game-file cap). **Integrity:** `file://` double-click play intact (8 classic scripts in dependency order, no ES modules, no build step, SW guarded to http/https); old-format save migration verified (talent back-fill + additive `meta.stats`/`endless`/`gameTime`/`mapTheme` defaults). **Docs coherence:** every headline count matches code (10 towers, 5 abilities, 25 talents, 19 achievements, 20 wave mods, 16 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties, 6 quick maps + mayhem). Versions consistent (GAME_VERSION = sw.js cache = v2.19.1, test [49]). Fixed two stale ROADMAP notes: the harness-size line (8,703→9,014 lines / 126→129 groups / 1342→1390 assertions) and a talent count (24→25 — `mastery_laser` v2.9.0 was missing from the inventory line). Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.19.0 — 2026-06-17 — 🏵️ Living Legend achievement + lifetime tower-kills stat
 
 **Type:** New content (achievement + progression stat). Minor bump. Recognition-only — no economy/gameplay/balance impact; save-safe (additive `meta.stats.towerKills`, old saves default 0).
