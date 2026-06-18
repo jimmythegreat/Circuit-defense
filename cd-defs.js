@@ -190,6 +190,14 @@ function towerRankTier(kills) {
   return tier;
 }
 function towerRank(kills) { return TOWER_RANKS[towerRankTier(kills)]; }
+// Rank colour for a tower's barrel tint (v2.21.0, cosmetic veterancy follow-up): the rank
+// colour for a veteran+ tower, else null (Rookie / buff towers — buff towers never rank). Used
+// by draw() to tint the barrel so an elite/legend tower reads as battle-hardened at a glance.
+function towerBarrelTint(t) {
+  if (!t || t.type === 'buff') return null;
+  const tier = towerRankTier(t.kills);
+  return tier > 0 ? TOWER_RANKS[tier].color : null;
+}
 
 // ================= Abilities =================
 const ABILITIES = {

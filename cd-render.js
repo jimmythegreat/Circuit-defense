@@ -365,6 +365,20 @@ function draw() {
       barG.addColorStop(1, shade(def.color, -70));
       ctx.fillStyle = barG;
       ctx.fillRect(3, -3.5, 17, 7);
+      // veterancy barrel tint (v2.21.0): a veteran+ tower gets a rank-coloured wash over the
+      // barrel + a bright muzzle band, so an Elite/Ace/Legend tower reads as battle-hardened
+      // at a glance (cosmetic — pairs with the rank pips; NO stat effect). Rotates with the gun.
+      const bTint = towerBarrelTint(t);
+      if (bTint) {
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        ctx.fillStyle = bTint;
+        ctx.fillRect(3, -3.5, 17, 7);
+        ctx.globalAlpha = 1;
+        if (t.rankFlash > 0) { ctx.shadowColor = bTint; ctx.shadowBlur = 6 * t.rankFlash; }
+        ctx.fillRect(16.5, -3.5, 3.5, 7);
+        ctx.restore();
+      }
       if (t.flash > 0) {
         ctx.fillStyle = '#fff';
         ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;

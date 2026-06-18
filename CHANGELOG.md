@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.21.0 — 2026-06-18 — 🎖️ Rank-tinted tower barrels (veterancy visual)
+
+**Type:** Graphics/UX polish (render-only). Minor bump. No gameplay/balance/economy/save impact.
+
+Completes the veterancy visual thread (kill-rank pips v1.100.0): a veteran+ tower now gets its **barrel tinted in its rank colour** (bronze→silver→gold→legendary-pink) plus a bright muzzle band, so an Elite/Ace/Legend tower reads as battle-hardened at a glance instead of relying only on the small star pips above it. New pure helper `towerBarrelTint(t)` (cd-defs.js) returns the rank colour for a veteran+ non-buff tower (null for Rookie/buff); `draw()` (cd-render.js) draws a low-alpha rank wash over the barrel + a solid muzzle band inside the existing rotated barrel frame (so it tracks aim), flaring with `rankFlash` on promotion. **Cosmetic only** — no stat change, buff towers excluded, and the tint derives from each tower's saved `kills`, so existing saves keep their earned ranks. New test group **[131]** (helper threshold/null-safety/buff-exclusion + draw() renders ranked towers cleanly). Suite **1400 → 1411** green. `sw.js` cache → `v2.21.0`.
+
 ## v2.20.0 — 2026-06-17 — 🎯 Critical Mass — legendary perk on the crit-damage axis
 
 **Type:** New content (legendary perk). Minor bump.

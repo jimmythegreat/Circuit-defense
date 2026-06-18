@@ -9085,6 +9085,56 @@ async function main() {
     await page.close();
   }
 
+  // [131] Rank-tinted tower barrels (v2.21.0): cosmetic veterancy follow-up. towerBarrelTint(t)
+  // returns the rank colour for a veteran+ tower (null for Rookie / buff towers); draw() uses it
+  // to tint the barrel. No stat effect; derived from saved kills so ranks survive a resume.
+  console.log('\n[131] Rank-tinted tower barrels (veterancy cosmetic)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const exists = typeof towerBarrelTint === 'function';
+      // null below the first veteran milestone; rank colour at/above each threshold.
+      const rookieNull = towerBarrelTint({ type:'gun', kills:0 }) === null &&
+                         towerBarrelTint({ type:'gun', kills:14 }) === null;
+      const vet = towerBarrelTint({ type:'gun', kills:15 })  === TOWER_RANKS[1].color;
+      const elite = towerBarrelTint({ type:'gun', kills:40 }) === TOWER_RANKS[2].color;
+      const ace = towerBarrelTint({ type:'gun', kills:90 })   === TOWER_RANKS[3].color;
+      const legend = towerBarrelTint({ type:'gun', kills:200 }) === TOWER_RANKS[4].color;
+      // colours are real, non-null strings for veteran+ tiers.
+      const colorsOk = [1,2,3,4].every(i => typeof TOWER_RANKS[i].color === 'string' && TOWER_RANKS[i].color);
+      // buff towers never rank → always null even with a (nonsensical) kill count.
+      const buffNull = towerBarrelTint({ type:'buff', kills:500 }) === null;
+      const nullSafe = towerBarrelTint(null) === null;
+
+      // draw() must render cleanly with ranked towers (incl. a Legend mid-promotion flash) on the board.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      towers.push({ type:'gun', x:140, y:140, range:120, dmg:10, rate:0.5, cd:0, level:3,
+        baseCost:50, invested:120, angle:0.4, mode:'first', spec:null, dealt:9000, kills:200, buffPower:0.25, flash:0, rankFlash:1 });
+      towers.push({ type:'sniper', x:240, y:180, range:200, dmg:30, rate:1.2, cd:0, level:2,
+        baseCost:80, invested:80, angle:1.2, mode:'first', spec:null, dealt:3000, kills:40, buffPower:0.25, flash:0 });
+      towers.push({ type:'buff', x:300, y:300, range:45, dmg:0, rate:1, cd:0, level:1,
+        baseCost:60, invested:60, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 });
+      let drew = true; try { draw(); } catch (e) { drew = 'ERR:' + e.message; }
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { exists, rookieNull, vet, elite, ace, legend, colorsOk, buffNull, nullSafe, drew };
+    });
+    check('towerBarrelTint helper exists', r.exists);
+    check('Rookie / sub-milestone tower has no barrel tint (null)', r.rookieNull);
+    check('Veteran tower tints to its rank colour (15 kills)', r.vet);
+    check('Elite tower tints to its rank colour (40 kills)', r.elite);
+    check('Ace tower tints to its rank colour (90 kills)', r.ace);
+    check('Legend tower tints to its rank colour (200 kills)', r.legend);
+    check('veteran+ rank colours are real non-null strings', r.colorsOk);
+    check('buff towers never get a barrel tint (always null)', r.buffNull);
+    check('towerBarrelTint(null) is null-safe', r.nullSafe);
+    check('draw() renders ranked towers cleanly', r.drew === true, `${r.drew}`);
+    check('no console errors during barrel-tint test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);
