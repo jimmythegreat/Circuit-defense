@@ -8257,7 +8257,7 @@ async function main() {
       const specsOk = Array.isArray(SPECS.laser) && SPECS.laser.length === 2
         && SPECS.laser.some(s => s.id === 'focus') && SPECS.laser.some(s => s.id === 'rapidcoil');
       const masteryOk = !!TALENTS.mastery_laser && TALENTS.mastery_laser.sect === 'TOWER MASTERY';
-      const inShopKeys = TYPE_KEYS.includes('laser') && TYPE_KEYS.length === 10;
+      const inShopKeys = TYPE_KEYS.includes('laser') && TYPE_KEYS.length === 11;
       const sfxOk = typeof SFX.laser === 'function';
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
@@ -8358,7 +8358,7 @@ async function main() {
     check('Laser definition wired (proj=beam/range/dmg)', r.defOk);
     check('Laser has 2 specs (Focusing Array + Pulse Drive)', r.specsOk);
     check('Laser Mastery talent exists', r.masteryOk);
-    check('Laser is in the shop keys and there are now 10 towers', r.inShopKeys);
+    check('Laser is in the shop keys and there are now 11 towers', r.inShopKeys);
     check('SFX.laser beam sound exists', r.sfxOk);
     check('Laser button rendered in the shop', r.shopHasLaser);
     check('Focusing Array spec = +35% damage', r.focusOk);
@@ -9208,6 +9208,114 @@ async function main() {
     check('a stamp on an empty cell highlights nothing', r.emptyNoHl);
     check('no stamp (old save) highlights nothing', r.absentNoHl);
     check('no console errors during latest-PB spotlight test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [133] Pulsar tower — the 11th: a self-centred radial AoE pulse that hits ALL enemies in range (v2.23.0)
+  console.log('\n[133] Pulsar tower (radial AoE pulse)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // definitions present & wired
+      const def = TOWER_TYPES.pulsar;
+      const defOk = !!def && def.proj === 'nova' && def.range > 0 && def.dmg > 0;
+      const specsOk = Array.isArray(SPECS.pulsar) && SPECS.pulsar.length === 2
+        && SPECS.pulsar.some(s => s.id === 'pulsepower') && SPECS.pulsar.some(s => s.id === 'pulsewide');
+      const masteryOk = !!TALENTS.mastery_pulsar && TALENTS.mastery_pulsar.sect === 'TOWER MASTERY';
+      const inShopKeys = TYPE_KEYS.includes('pulsar') && TYPE_KEYS.length === 11;
+      const sfxOk = typeof SFX.pulsar === 'function';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const shopHasPulsar = !!document.querySelector('#shop') &&
+        Array.prototype.some.call(document.querySelectorAll('.towerBtn'), b => /Pulsar/.test(b.textContent));
+
+      // specs: Overload = +40% dmg (effDmg); Resonance = +30% radius (effRange)
+      const pt0 = { type:'pulsar', x:100, y:300, level:1, spec:null, dmg:100, rate:0.8, range:85,
+                    dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      const dBase = effDmg(pt0), rgBase = effRange(pt0);
+      pt0.spec = 'pulsepower'; const powerOk = Math.abs(effDmg(pt0) - dBase * 1.4) < 1e-6;
+      pt0.spec = 'pulsewide';  const wideOk  = Math.abs(effRange(pt0) - rgBase * 1.3) < 1e-6;
+      pt0.spec = null;
+
+      // firePulse: hits EVERY enemy within range at once, but NOT one beyond range.
+      towers.length = 0; enemies.length = 0; rings.length = 0;
+      const pz = { type:'pulsar', x:100, y:300, level:1, spec:null, dmg:6, rate:0.8, range:85,
+                   dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      const mk = (x, y, extra) => Object.assign({ x, y, r:12, hp:500, maxHp:500, armor:0, dead:false,
+        flash:0, kind:'norm', blinkInvuln:0, bounty:1, dist:0 }, extra || {});
+      const near1 = mk(120, 300);            // 20px away — inside
+      const near2 = mk(100, 360);            // 60px away — inside
+      const farE  = mk(100, 500);            // 200px away — outside
+      enemies.push(near1, near2, farE);
+      firePulse(pz, 6);
+      const hitAllInRange = near1.hp < 500 && near2.hp < 500;
+      const missedFar     = farE.hp === 500;
+      const ringDrawn     = rings.length > 0;
+
+      // respects armor (a coherent pulse, not an armor-ignorer)
+      enemies.length = 0;
+      const armored = mk(110, 300, { hp:1000, maxHp:1000, armor:50, kind:'shield' });
+      enemies.push(armored);
+      firePulse(pz, 100);
+      const respectsArmor = (1000 - armored.hp) < 100 && armored.hp < 1000;
+
+      // skips intangible (phantom/cloak) enemies mid-blink
+      enemies.length = 0;
+      const ghost = mk(110, 300, { blinkInvuln: 0.3 });
+      enemies.push(ghost);
+      firePulse(pz, 50);
+      const skipsIntangible = ghost.hp === 500;
+
+      // drive the real update() fire loop: a pulsar clears a small bunched swarm around it.
+      towers.length = 0; enemies.length = 0; rings.length = 0; projectiles.length = 0;
+      autoStartTimer = -1; waveActive = false; paused = false;
+      const cpt = pointAt(pathLen * 0.4);
+      const pulsar = { type:'pulsar', x:cpt.x, y:cpt.y, level:1, spec:null, dmg:30, rate:0.8, range:85,
+                       dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+      towers.push(pulsar);
+      for (let i = 0; i < 4; i++) {
+        enemies.push({ kind:'norm', hp:40, maxHp:40, spd:0, r:12, bounty:1, color:'#fff', armor:0,
+          gap:0, dist:pathLen*0.4, x:cpt.x + (i-2)*10, y:cpt.y, slow:0, slowF:0.6, frozen:0, hasted:0,
+          warded:0, adrenaline:false, ccImmune:false, poison:null, flash:0, px:0, py:0, dead:false, blinkInvuln:0 });
+      }
+      let cleared = false;
+      for (let i = 0; i < 600; i++) { update(1/60); if (enemies.length === 0) { cleared = true; break; } }
+      const swarmCleared = cleared && pulsar.kills > 0;
+
+      // save/resume: pulsar round-trips (rebuilt generically from base × level mults)
+      towers.length = 0; enemies.length = 0; rings.length = 0;
+      towers.push({ type:'pulsar', x:250, y:250, level:3, spec:'pulsepower', mode:'strong',
+        invested:260, dealt:88, kills:9, range:def.range*Math.pow(1.08,2), dmg:def.dmg*Math.pow(1.45,2),
+        rate:def.rate*Math.pow(0.88,2), cd:0, baseCost:def.cost, angle:0, buffPower:0.25, flash:0 });
+      wave = 2; lives = 20; gold = 100; waveActive = false;
+      saveRun();
+      towers.length = 0;
+      const loaded = loadRun();
+      const prt = towers.find(t => t.type === 'pulsar');
+      const roundTrips = loaded === true && !!prt && prt.level === 3 && prt.spec === 'pulsepower' && prt.kills === 9;
+
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { defOk, specsOk, masteryOk, inShopKeys, sfxOk, shopHasPulsar, powerOk, wideOk,
+               hitAllInRange, missedFar, ringDrawn, respectsArmor, skipsIntangible, swarmCleared, roundTrips };
+    });
+    check('Pulsar definition wired (proj=nova/range/dmg)', r.defOk);
+    check('Pulsar has 2 specs (Overload + Resonance)', r.specsOk);
+    check('Pulsar Mastery talent exists', r.masteryOk);
+    check('Pulsar is in the shop keys and there are now 11 towers', r.inShopKeys);
+    check('SFX.pulsar sound exists', r.sfxOk);
+    check('Pulsar button rendered in the shop', r.shopHasPulsar);
+    check('Overload spec = +40% damage', r.powerOk);
+    check('Resonance spec = +30% pulse radius', r.wideOk);
+    check('firePulse hits ALL enemies within range at once', r.hitAllInRange);
+    check('firePulse does NOT hit an enemy beyond range', r.missedFar);
+    check('firePulse emits a ring effect', r.ringDrawn);
+    check('Pulsar respects armor', r.respectsArmor);
+    check('firePulse skips intangible (blinking) enemies', r.skipsIntangible);
+    check('a Pulsar clears a bunched swarm via the real update loop', r.swarmCleared);
+    check('Pulsar save/resume round-trips', r.roundTrips);
+    check('no console errors during Pulsar test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

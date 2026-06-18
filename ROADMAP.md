@@ -103,10 +103,12 @@ _None currently known._ (Add any here as found — top priority.)
 ## Shipped (condensed — do NOT re-implement; check CLAUDE.md for detail)
 
 ### Towers / specs / targeting
-- 10 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91] + Laser
-  v2.9.0 [121]); a new tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar
+- 11 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91] + Laser
+  v2.9.0 [121] + Pulsar v2.23.0 [133]); a new tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar
   lobbed-arc render v1.79.0 [87]. Laser = a ramp-up beam (×1→×2.2 on a held target, resets on switch) —
   sustained boss/tank DPS, poor at swarms; specs Focusing Array/Pulse Drive; hotkey `0`; mastery_laser.
+  Pulsar = a self-centred radial AoE pulse (`proj:'nova'`, hits ALL in range at once, low per-hit dmg →
+  swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
 - 6 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66]); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].

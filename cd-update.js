@@ -586,6 +586,8 @@ function update(dt) {
       fireRail(t, target, dmg);
     } else if (def.proj === 'beam') {
       fireBeam(t, target, dmg);
+    } else if (def.proj === 'nova') {
+      firePulse(t, dmg);
     } else {
       // Mortar shells are LOBBED (v1.79.0): they get a render-only parabolic arc. The
       // launch point (px/py) is recorded as x0/y0 so the arc helper can compute flight
@@ -763,6 +765,30 @@ function fireBeam(t, target, dmg) {
   beams.push({ x1: mx, y1: my, x2: target.x, y2: target.y,
     life: 0.1, color: def.color, straight: true,
     w: 2.4 + 4.2 * ramp, glow: 10 + 16 * ramp, bloom: 7 * ramp });
+}
+
+// Pulsar (v2.23.0): a self-centred radial AoE tower — it resolves INSTANTLY (no travelling
+// projectile, like fireChain/fireRail/fireBeam) and damages EVERY enemy within its range at
+// once. It's the only tower whose AoE is centred on itself rather than a projectile's impact
+// point, so it's a dedicated swarm tool: total output scales with how many foes are packed in,
+// but per-hit damage is among the lowest in the game and the range is short, so it's deliberately
+// poor against single tanks/bosses (the inverse of the Laser). Respects armor (NOT a melter).
+// The expanding ring is the firing cue (reuses addRing — gated by the particle/reduce-motion
+// settings, so it suppresses with every other juice effect). The caller already ramped `dmg`
+// (crit/boss/combo/ambush mults) before this branch, like the other instant-fire towers.
+function firePulse(t, dmg) {
+  SFX.pulsar();
+  const def = TOWER_TYPES[t.type];
+  const range = effRange(t);
+  for (const e of enemies) {
+    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;   // skip intangible (phantom/cloak)
+    if (Math.hypot(e.x - t.x, e.y - t.y) <= range + e.r) {
+      damage(e, dmg, t);
+      addExplosion(e.x, e.y, def.color, 3, 60);
+    }
+  }
+  addRing(t.x, t.y, def.color, range, { life: 0.4, w: 3 });
+  shake = Math.max(shake, 0.8);
 }
 
 function hitEnemy(p) {

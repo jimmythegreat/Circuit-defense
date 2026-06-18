@@ -556,7 +556,7 @@ function renderShop() {
     const btn = document.createElement('div');
     btn.className = 'towerBtn' + (selectedShop===key ? ' selected' : '') + (gold < cost ? ' cant' : '');
     btn.title = `${t.name} — ${t.tip || t.desc} · range ${Math.round(t.range)}`;  // hover tooltip
-    btn.innerHTML = `<span class="key">${i < 9 ? i+1 : '0'}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
+    btn.innerHTML = `<span class="key">${i < 9 ? i+1 : i === 9 ? '0' : ''}</span><span class="icon">${t.icon}</span>${t.name}<br><span class="price">${cost}💰</span><br><small style="color:#8b949e">${t.desc}</small>`;
     btn.onclick = () => {
       if (gold < cost) return;
       selectedShop = selectedShop === key ? null : key;
@@ -696,6 +696,7 @@ function effDmg(t) {
   if (t.spec === 'demo') d *= 1.35;
   if (t.spec === 'railpen') d *= 1.20;   // v2.0.0: was 1.35 — Penetrator out-DPS'd the Sniper at L5 (owner FEEDBACK)
   if (t.spec === 'focus') d *= 1.35;     // Laser Focusing Array
+  if (t.spec === 'pulsepower') d *= 1.4; // Pulsar Overload
   if (modIs('surge')) d *= 1.3;
   // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
@@ -726,7 +727,8 @@ function effRange(t) {
   // Targeting Array rare perk (v1.81.0): ×rangeMult (+20% per pick). Farsight talent (v1.92.0):
   // ×metaRangeMult (+2%/rank, meta tree). All apply to firing range only, not booster auras
   // (effBuffRange) — buff towers deal no damage.
-  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult;
+  // Pulsar Resonance spec (v2.23.0): +30% pulse radius (effRange IS the Pulsar's AoE radius).
+  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult * (t.spec === 'pulsewide' ? 1.3 : 1);
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');

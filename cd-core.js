@@ -73,10 +73,11 @@ function placeCoord(x, y) { return gridSnap ? { x: snapGridCoord(x), y: snapGrid
 let defaultTargetMode = localStorage.getItem('cd_defaultmode') || 'first';
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v2.22.0';
+const GAME_VERSION = 'v2.23.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v2.23.0', date: '2026-06-18', time: '10:30 EDT', body: "New tower — the 💫 Pulsar, the 11th tower. Instead of aiming and firing a projectile, it emits a radial energy PULSE that hits EVERY enemy within its short range at once — a dedicated swarm-clearer for chokepoints where the crowd bunches up. Its total damage scales with how many foes are packed inside the ring, but its per-hit damage is among the lowest in the game and its range is short, so it's deliberately POOR against single tanks and bosses (the exact inverse of the Laser). Two specs: Overload (+40% damage) and Resonance (+30% pulse radius), plus a Pulsar Mastery talent. Respects armor, so it's a positioning side-grade — not power creep. Fully additive and save-safe: old saves load fine and nothing about chips, talents, gold or existing balance changes. (Towers: 10 → 11.)" },
   { v: 'v2.22.0', date: '2026-06-18', time: '09:30 EDT', body: "Records polish — your latest personal best now gets the spotlight. When you set a new best wave or best score for a map and difficulty, that cell in the Records panel lights up gold with a ★ marker, so the moment you open Records you can see exactly which record you just beat. Wave bests and score bests are tracked separately, so each grid highlights its own latest milestone. Purely a UI touch — fully save-safe (old saves just show no highlight until your next personal best) and nothing about chips, talents, gold or balance changes." },
   { v: 'v2.21.0', date: '2026-06-18', time: '08:30 EDT', body: "Veterancy polish — your towers now wear their experience. A tower that's climbed the veterancy ranks (Veteran, Elite, Ace, Legend) gets its barrel tinted in its rank colour — bronze, silver, gold, then legendary pink — with a bright muzzle band, so a battle-hardened Legend tower reads as elite at a glance instead of just carrying a row of star pips above it. It's purely cosmetic — there's no stat change, buff towers are unaffected, and the tint is derived from each tower's saved lifetime kill count, so existing saves keep their hard-earned ranks. Nothing about chips, talents, gold or balance changes." },
   { v: 'v2.20.0', date: '2026-06-17', time: '08:30 EDT', body: "New legendary perk — 🎯 Critical Mass. It's the first upgrade that makes your crits hit HARDER, not just more often: while it's active, every critical strike deals ×1.5 its usual bonus damage (a normal crit goes from ×2.5 to ×3.75, a Deadeye sniper's from ×4 to ×6) and you gain +10% crit chance on top. It's a build-defining payoff for a crit-focused run — stack it with the 🔬 Crit Lab talent, the 🍀 Crit Systems perk and a Deadeye sniper and watch the big gold CRIT! numbers fly. Without crit investment the bonus rarely fires, so it rewards a dedicated build rather than being a free everyone-buff. Fully additive and save-safe: old saves load fine and nothing about chips, talents, gold or existing balance changes." },
@@ -494,6 +495,10 @@ const SFX = {
   // Laser: a short bright beam tick — a thin rising zap + a faint high hiss. Kept quiet/short
   // because the laser fires rapidly (a softer cousin of rail's CRACK).
   laser()   { tone(1800, 0.05, 'sawtooth', 0.022, 500); noise(0.04, 0.018, 'highpass', 5200, 0, 1); },
+  // Pulsar: a deep radial energy THRUM — a low note swelling upward under a soft outward whoosh,
+  // so the area pulse reads as a ripple of force rather than a single shot (v2.23.0).
+  pulsar()  { tone(180, 0.18, 'sine', 0.06, 240); tone(90, 0.22, 'triangle', 0.05, 60);
+              noise(0.18, 0.04, 'bandpass', 900, 600, 2); },
   // Tesla: lightning — bright crackle sweeping down + secondary snaps
   tesla()   { noise(0.16, 0.12, 'bandpass', 4200, -3600, 3); tone(2400, 0.1, 'sawtooth', 0.025, -2000);
               noise(0.04, 0.07, 'highpass', 5000, 0, 1, 0.04); noise(0.03, 0.05, 'highpass', 6000, 0, 1, 0.09); },

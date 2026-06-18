@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.23.0 — 2026-06-18 — 💫 Pulsar — the 11th tower (a self-centred radial AoE pulse)
+
+**Type:** New content (tower). Minor bump. Additive/save-safe; no economy/balance change to existing systems.
+
+A new tower, the **💫 Pulsar** (cost 120, range 90, dmg 10, rate 0.8, `proj:'nova'`): instead of aiming a projectile it emits an instant **radial pulse** that damages **every enemy within its range at once** — the only tower whose AoE is centred on itself rather than a projectile's impact point. A dedicated swarm-clearer: total output scales with crowd density, but per-hit damage is among the lowest in the game (single-target DPS 12.5, 2nd-weakest) so it's deliberately **poor vs single tanks/bosses** (the inverse of the Laser) and respects armor — a positioning side-grade, **not** power creep. Resolves instantly via `firePulse(t, dmg)` (mirrors fireChain/fireRail/fireBeam); the expanding ring reuses `addRing` (gated by the particle/reduce-motion settings). Specs **Overload** (+40% dmg) / **Resonance** (+30% radius); a **Pulsar Mastery** talent (26 talents); `SFX.pulsar()`. **Balance:** at equal gold and upgraded it lands alongside the Cannon (sim: w24/23/30 on classic/gauntlet/nexus vs Cannon w24/24/30) — competitive but never clearly stronger. Save-safe (rebuilt generically by `loadRun`; the pulse is run-only, never serialized). New test group **[133]**; `sw.js` cache → `v2.23.0`. (Towers: 10 → 11.)
+
 ## v2.22.0 — 2026-06-18 — ⭐ Records spotlight — your latest personal best is highlighted
 
 **Type:** Game-feel/UX polish (Records panel). Minor bump. Save-safe (two additive `cd_lastbest_*` keys); no economy/gameplay/balance impact.
