@@ -73,10 +73,11 @@ function placeCoord(x, y) { return gridSnap ? { x: snapGridCoord(x), y: snapGrid
 let defaultTargetMode = localStorage.getItem('cd_defaultmode') || 'first';
 
 // ================= Version & What's New =================
-const GAME_VERSION = 'v2.23.0';
+const GAME_VERSION = 'v2.24.0';
 // Most recent first. Show the FULL history (owner preference, v1.13.5 — do not trim
 // to a recent-N window; the panel scrolls). Mirrors CHANGELOG.md headings.
 const CHANGELOG_ENTRIES = [
+  { v: 'v2.24.0', date: '2026-06-18', time: '11:30 EDT', body: "Placement polish — lining your towers up is now clearer and more tactile. With grid snap on (the default), selecting a tower to place shows faint grid LINES across the board (not just dots) and highlights the exact cell the tower will occupy — green if it fits, red if it doesn't. As you drag, you'll hear a soft 'tick' each time the ghost crosses into a new cell, so the grid feels physical under your cursor. Purely a feel/readability touch: nothing about your saves, chips, talents, gold or balance changes." },
   { v: 'v2.23.0', date: '2026-06-18', time: '10:30 EDT', body: "New tower — the 💫 Pulsar, the 11th tower. Instead of aiming and firing a projectile, it emits a radial energy PULSE that hits EVERY enemy within its short range at once — a dedicated swarm-clearer for chokepoints where the crowd bunches up. Its total damage scales with how many foes are packed inside the ring, but its per-hit damage is among the lowest in the game and its range is short, so it's deliberately POOR against single tanks and bosses (the exact inverse of the Laser). Two specs: Overload (+40% damage) and Resonance (+30% pulse radius), plus a Pulsar Mastery talent. Respects armor, so it's a positioning side-grade — not power creep. Fully additive and save-safe: old saves load fine and nothing about chips, talents, gold or existing balance changes. (Towers: 10 → 11.)" },
   { v: 'v2.22.0', date: '2026-06-18', time: '09:30 EDT', body: "Records polish — your latest personal best now gets the spotlight. When you set a new best wave or best score for a map and difficulty, that cell in the Records panel lights up gold with a ★ marker, so the moment you open Records you can see exactly which record you just beat. Wave bests and score bests are tracked separately, so each grid highlights its own latest milestone. Purely a UI touch — fully save-safe (old saves just show no highlight until your next personal best) and nothing about chips, talents, gold or balance changes." },
   { v: 'v2.21.0', date: '2026-06-18', time: '08:30 EDT', body: "Veterancy polish — your towers now wear their experience. A tower that's climbed the veterancy ranks (Veteran, Elite, Ace, Legend) gets its barrel tinted in its rank colour — bronze, silver, gold, then legendary pink — with a bright muzzle band, so a battle-hardened Legend tower reads as elite at a glance instead of just carrying a row of star pips above it. It's purely cosmetic — there's no stat change, buff towers are unaffected, and the tint is derived from each tower's saved lifetime kill count, so existing saves keep their hard-earned ranks. Nothing about chips, talents, gold or balance changes." },
@@ -535,6 +536,9 @@ const SFX = {
   wave()    { tone(440, 0.1, 'square', 0.06); setTimeout(()=>tone(660, 0.12, 'square', 0.06), 110); },
   upgrade() { tone(523, 0.08, 'square', 0.06); setTimeout(()=>tone(659, 0.08, 'square', 0.06), 80); setTimeout(()=>tone(784, 0.12, 'square', 0.06), 160); },
   place()   { tone(330, 0.07, 'triangle', 0.06, 60); noise(0.05, 0.04, 'lowpass', 800); },
+  // Grid snap: a tiny dry "tick" as the placement ghost crosses into a new cell (v2.24.0).
+  // Kept very short + quiet so dragging across the board feels tactile, not chattery.
+  tick()    { tone(2100, 0.015, 'square', 0.012, 0); noise(0.012, 0.012, 'highpass', 5000); },
   sell()    { tone(500, 0.1, 'triangle', 0.06, -200); },
   perk()    { tone(660, 0.1, 'triangle', 0.08); setTimeout(()=>tone(990, 0.15, 'triangle', 0.08), 100); },
   // Meteor: long falling whistle into a huge boom

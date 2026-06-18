@@ -1,6 +1,9 @@
 'use strict';
 // ================= Render =================
 const RARITY_TIP_COL = { common: '#c9d1d9', rare: '#58a6ff', legendary: '#e3b341' };
+// Last grid cell the placement ghost occupied (render-only UI state, never saved) — drives the
+// snap "tick" SFX when the ghost crosses into a new cell while placing (v2.24.0). null = not placing.
+let _placeSnapCell = null;
 // Canonical symbol drawn on an enemy sphere. Frozen always shows ❄; heal/shield/
 // split/phantom/boss are always shape-coded; fast/tank are hue-only by default and
 // only gain a symbol when the colorblind aid is on (v1.18.0). '' = no glyph (norm,
@@ -234,17 +237,32 @@ function draw() {
     const def = TOWER_TYPES[selectedShop];
     // Snap the ghost to the grid so the preview lands exactly where the tower will (v1.24.0).
     const p = placeCoord(mouseX, mouseY);
-    // Faint grid of slot dots while placing, so you can line towers up cleanly (owner FEEDBACK).
+    const ok = canPlace(p.x, p.y);
+    // Visible placement grid while placing, so you can line towers up cleanly (owner FEEDBACK +
+    // ROADMAP: lines, not just dots). Faint full grid lines + a highlighted target cell (v2.24.0).
     if (gridSnap) {
       ctx.save();
-      ctx.fillStyle = 'rgba(139,148,158,0.16)';
-      for (let gy = PLACE_GRID/2; gy < H; gy += PLACE_GRID)
-        for (let gx = PLACE_GRID/2; gx < W; gx += PLACE_GRID) {
-          ctx.beginPath(); ctx.arc(gx, gy, 1.1, 0, Math.PI*2); ctx.fill();
-        }
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(139,148,158,0.10)';
+      ctx.beginPath();
+      for (let gx = 0; gx <= W; gx += PLACE_GRID) { ctx.moveTo(gx, 0); ctx.lineTo(gx, H); }
+      for (let gy = 0; gy <= H; gy += PLACE_GRID) { ctx.moveTo(0, gy); ctx.lineTo(W, gy); }
+      ctx.stroke();
+      // Highlight the exact cell the tower will occupy, tinted by placeability.
+      const cx0 = p.x - PLACE_GRID/2, cy0 = p.y - PLACE_GRID/2;
+      ctx.fillStyle = ok ? 'rgba(88,166,255,0.12)' : 'rgba(248,81,73,0.14)';
+      ctx.fillRect(cx0, cy0, PLACE_GRID, PLACE_GRID);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = ok ? 'rgba(88,166,255,0.55)' : 'rgba(248,81,73,0.6)';
+      ctx.strokeRect(cx0 + 0.5, cy0 + 0.5, PLACE_GRID - 1, PLACE_GRID - 1);
       ctx.restore();
+      // Snap "tick" SFX when the ghost crosses into a new cell — tactile grid feedback (v2.24.0).
+      const cellKey = Math.floor(p.x / PLACE_GRID) + ',' + Math.floor(p.y / PLACE_GRID);
+      if (_placeSnapCell !== null && _placeSnapCell !== cellKey) SFX.tick();
+      _placeSnapCell = cellKey;
+    } else {
+      _placeSnapCell = null;
     }
-    const ok = canPlace(p.x, p.y);
     ctx.beginPath();
     ctx.arc(p.x, p.y, def.range, 0, Math.PI*2);
     ctx.fillStyle = ok ? (selectedShop==='buff' ? 'rgba(240,136,62,0.1)' : 'rgba(88,166,255,0.08)') : 'rgba(248,81,73,0.08)';
@@ -255,6 +273,8 @@ function draw() {
     ctx.arc(p.x, p.y, 13, 0, Math.PI*2);
     ctx.fillStyle = ok ? def.color : '#f85149';
     ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+  } else {
+    _placeSnapCell = null; // not placing → no stale cell, so re-selecting won't fire a spurious tick
   }
 
   // Gamepad cursor reticle (v1.43.0): a controller drives mouseX/mouseY but has no OS

@@ -9319,6 +9319,63 @@ async function main() {
     await page.close();
   }
 
+  // [134] Grid placement readability — visible grid lines + snap "tick" SFX on cell change (v2.24.0)
+  console.log('\n[134] Grid placement lines + snap tick (v2.24.0)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const sfxOk = typeof SFX.tick === 'function';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0; gameOver = false; paused = false; armedAbility = null;
+      selectedTower = null; selectedShop = 'gun';
+
+      // spy on the snap tick
+      let ticks = 0; const realTick = SFX.tick; SFX.tick = () => { ticks++; };
+
+      // grid snap ON: draw with the ghost in cell A, then cell B → one tick on the crossing.
+      gridSnap = true;
+      mouseX = 200; mouseY = 200; draw();
+      const cellA = _placeSnapCell;                      // set on first frame, no tick yet
+      const noTickFirstFrame = ticks === 0 && typeof cellA === 'string' && /^\d+,\d+$/.test(cellA);
+
+      mouseX = 200 + PLACE_GRID * 2; mouseY = 200; draw(); // crosses into a new cell
+      const cellB = _placeSnapCell;
+      const tickedOnCross = ticks === 1 && cellB !== cellA;
+
+      draw(); // same cell again → no extra tick
+      const noTickSameCell = ticks === 1;
+
+      // not placing (no shop tower selected) → cell resets, no spurious tick on re-entry
+      selectedShop = null; draw();
+      const resetWhenIdle = _placeSnapCell === null;
+      selectedShop = 'gun'; mouseX = 200; mouseY = 200; draw(); // re-enter: first frame, still no tick
+      const noTickOnReentry = ticks === 1;
+
+      // grid snap OFF: no tick, cell stays null even while placing
+      gridSnap = false; ticks = 0; mouseX = 400; mouseY = 250; draw();
+      mouseX = 460; draw();
+      const noTickWhenSnapOff = ticks === 0 && _placeSnapCell === null;
+
+      SFX.tick = realTick;
+      gridSnap = true;
+      selectedShop = null; _placeSnapCell = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { sfxOk, noTickFirstFrame, tickedOnCross, noTickSameCell, resetWhenIdle,
+               noTickOnReentry, noTickWhenSnapOff };
+    });
+    check('SFX.tick snap sound exists', r.sfxOk);
+    check('placing: first frame sets the snapped cell with no tick', r.noTickFirstFrame);
+    check('snap tick fires exactly once when the ghost crosses into a new cell', r.tickedOnCross);
+    check('no extra tick while the ghost stays in the same cell', r.noTickSameCell);
+    check('snapped cell resets to null when not placing', r.resetWhenIdle);
+    check('no spurious tick on re-entering placement', r.noTickOnReentry);
+    check('grid-snap OFF: no tick and snapped cell stays null', r.noTickWhenSnapOff);
+    check('no console errors during grid-line/snap-tick test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

@@ -79,7 +79,8 @@ _None currently known._ (Add any here as found — top priority.)
       hide the faint between-wave `Next:` preview while the upgrade panel is open;
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
       a per-kind hover tooltip + DPS-relative read on the wave-threat number;
-      visible grid lines (not just dots) + a "snap" tick sound; combo-tier shape/label + high-contrast mode;
+      ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
+      target-cell highlight + a `SFX.tick()` on cell-cross while placing); combo-tier shape/label + high-contrast mode;
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
       rank-tinted barrels v2.21.0 [131].)

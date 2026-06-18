@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.24.0 — 2026-06-18 — ▦ Grid placement readability — visible lines + snap tick
+
+**Type:** Game-feel/UX polish (render + audio). Minor bump. No gameplay/balance/economy/save impact.
+
+Extends the owner-requested grid-snap placement (v1.24.0) per the ROADMAP polish item "visible grid lines (not just dots) + a snap tick sound." With grid snap on, selecting a tower to place now draws faint full **grid lines** across the board (replacing the old slot-dots) and **highlights the exact target cell** as a square tinted by placeability (blue=ok, red=blocked), so towers line up cleanly at a glance. A short, quiet `SFX.tick()` fires each time the placement ghost crosses into a new cell, making the grid feel tactile under the cursor. Render-only state: a `_placeSnapCell` global (cd-render.js, never saved) tracks the current cell to detect crossings and is cleared whenever the preview isn't shown (no spurious tick on re-selection); the whole effect is gated behind `gridSnap`, so grid-snap-off play is unchanged. New `SFX.tick` (cd-core.js). New test group **[134]** (tick on cell-cross only, no double-tick same cell, reset when idle, snap-off silent). Suite **1437 → 1445** green. `sw.js` cache → `v2.24.0`.
+
 ## v2.23.0 — 2026-06-18 — 💫 Pulsar — the 11th tower (a self-centred radial AoE pulse)
 
 **Type:** New content (tower). Minor bump. Additive/save-safe; no economy/balance change to existing systems.
