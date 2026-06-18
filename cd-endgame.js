@@ -162,15 +162,17 @@ function applyRecordFlourish(rec) {
 function openBests() { renderBests(); document.getElementById('bestPanel').style.display = 'flex'; focusPanel('bestPanel'); }
 function closeBests() { document.getElementById('bestPanel').style.display = 'none'; renderStartScreen(); }
 
-// ----- Bestiary / Codex panel (v2.26.0): an in-game reference for every enemy kind and
-// every boss archetype — what its glyph/colour means and how its mechanic works. The game
-// has 14 enemy kinds + 16 boss powers with no in-game explanation, so players faced glyphs
-// (⬢ ‼ ◈ 🔥 ⚡ ⚑ …) and coloured auras with no idea what they did. Render/UI-only — no
-// save/economy/balance impact. Data-driven COMPLETENESS is drift-guarded by test [136]:
-// every PREVIEW_COLOR enemy kind and every BOSS_ARCHETYPES entry must appear here, so a
-// future enemy/boss can't ship without a codex line. Enemy disc colour is read live from
-// PREVIEW_COLOR (cd-render.js, loads later — fine, this is a function-time lookup); boss
-// disc colours mirror the bossMechanicBadge() aura hues.
+// ----- Bestiary / Codex panel (v2.26.0): an in-game reference for every enemy kind,
+// every boss archetype, AND (v2.28.0) every tower + its specs — what its glyph/colour
+// means and how its mechanic works. The game has many enemy kinds + boss powers + towers
+// with no in-game explanation, so players faced glyphs (⬢ ‼ ◈ 🔥 ⚡ ⚑ …) and coloured
+// auras with no idea what they did. Render/UI-only — no save/economy/balance impact.
+// Data-driven COMPLETENESS is drift-guarded by test [136]: every PREVIEW_COLOR enemy kind
+// and every BOSS_ARCHETYPES entry must appear here, so a future enemy/boss can't ship
+// without a codex line. The Towers section is built LIVE from TOWER_TYPES/SPECS in
+// renderCodex(), so a new tower auto-appears with its specs (can't drift). Enemy disc
+// colour is read live from PREVIEW_COLOR (cd-render.js, loads later — fine, this is a
+// function-time lookup); boss disc colours mirror the bossMechanicBadge() aura hues.
 const CODEX_ENEMIES = [
   { kind: 'norm',     glyph: '',   name: 'Drone',     wave: 'Wave 1',  desc: 'The baseline threat — no special tricks.' },
   { kind: 'fast',     glyph: '»',  name: 'Sprinter',  wave: 'Wave 3',  desc: 'Much faster than a drone, but fragile.' },
@@ -211,10 +213,10 @@ const CODEX_BOSSES = [
 function openCodex() { renderCodex(); document.getElementById('codexPanel').style.display = 'flex'; focusPanel('codexPanel'); }
 function closeCodex() { document.getElementById('codexPanel').style.display = 'none'; renderStartScreen(); }
 function renderCodex() {
-  const row = (color, glyph, name, tag, desc) =>
+  const row = (color, glyph, name, tag, desc, extra) =>
     `<div class="cdxRow"><span class="cdxDisc" style="background:${color}">${glyph || ''}</span>`
     + `<div class="cdxText"><b>${name}</b>${tag ? `<span class="cdxTag">${tag}</span>` : ''}`
-    + `<small>${desc}</small></div></div>`;
+    + `<small>${desc}</small>${extra || ''}</div></div>`;
   let html = '<h4 class="bestSub">👾 Enemies</h4><div class="cdxList">';
   for (const e of CODEX_ENEMIES) html += row((typeof PREVIEW_COLOR !== 'undefined' && PREVIEW_COLOR[e.kind]) || '#3fb950', e.glyph, e.name, e.wave, e.desc);
   html += '</div>';
@@ -222,6 +224,17 @@ function renderCodex() {
     + '<p class="cdxNote">From wave 20, every boss also carries one of these mechanics, cycling deeper as you go.</p>'
     + '<div class="cdxList">';
   for (const b of CODEX_BOSSES) html += row(b.color, b.glyph, b.label, b.wave, b.desc);
+  html += '</div>';
+  // Towers — built live from TOWER_TYPES/SPECS so a new tower auto-appears (can't drift).
+  html += '<h4 class="bestSub">🛡 Towers</h4>'
+    + '<p class="cdxNote">Pick the right tool for the threat. At max level each tower unlocks one of two specializations.</p>'
+    + '<div class="cdxList">';
+  for (const k of TYPE_KEYS) {
+    const t = TOWER_TYPES[k];
+    const specs = (SPECS[k] || []).map(s => `<b>${s.name}</b> — ${s.desc}`).join(' · ');
+    const extra = specs ? `<small class="cdxSpec">Specs: ${specs}</small>` : '';
+    html += row(t.color, t.icon, t.name, `${t.cost}g`, t.tip || t.desc, extra);
+  }
   html += '</div>';
   document.getElementById('codexBody').innerHTML = html;
 }

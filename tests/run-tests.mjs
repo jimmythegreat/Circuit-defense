@@ -9531,7 +9531,8 @@ async function main() {
     check('no duplicate enemy/boss codex rows', complete.noDupEnemies && complete.noDupBosses);
     check('every codex row is well-formed (name/desc/wave/colour)', complete.enemiesWellFormed && complete.bossesWellFormed);
 
-    // open/close + render produces rows for a known enemy and a known boss power.
+    // open/close + render produces rows for a known enemy, a known boss power, and
+    // every tower (v2.28.0 Towers section — built live from TOWER_TYPES/SPECS).
     const render = await page.evaluate(() => {
       openCodex();
       const open = document.getElementById('codexPanel').style.display === 'flex';
@@ -9539,16 +9540,27 @@ async function main() {
       const rowCount = document.querySelectorAll('#codexPanel .cdxRow').length;
       const showsEnemy = /Breacher/.test(html) && /Warden/.test(html);
       const showsBoss = /Hydra/.test(html) && /Suppressor/.test(html);
-      const sectioned = (document.querySelectorAll('#codexPanel .bestSub').length >= 2);
+      const sectioned = (document.querySelectorAll('#codexPanel .bestSub').length >= 3);
+      // Towers section: a row per tower + its specs listed.
+      const everyTowerShown = TYPE_KEYS.every(k => html.includes(TOWER_TYPES[k].name));
+      const everySpecShown = TYPE_KEYS.every(k => (SPECS[k] || []).every(s => html.includes(s.name)));
+      const showsTower = /Gunner/.test(html) && /Sniper/.test(html);
+      const specCount = document.querySelectorAll('#codexPanel .cdxSpec').length;
+      const nTowers = TYPE_KEYS.length;
       closeCodex();
       const closed = document.getElementById('codexPanel').style.display === 'none';
-      return { open, rowCount, showsEnemy, showsBoss, sectioned, closed };
+      return { open, rowCount, showsEnemy, showsBoss, sectioned, closed,
+               everyTowerShown, everySpecShown, showsTower, specCount, nTowers };
     });
     check('openCodex shows the panel', render.open);
-    check('codex renders a row per enemy + boss (≥ 30)', render.rowCount >= (complete.nEnemies + complete.nBosses), 'rows=' + render.rowCount);
+    check('codex renders a row per enemy + boss + tower', render.rowCount >= (complete.nEnemies + complete.nBosses + render.nTowers), 'rows=' + render.rowCount);
     check('codex lists known enemies (Breacher/Warden)', render.showsEnemy);
     check('codex lists known boss powers (Hydra/Suppressor)', render.showsBoss);
-    check('codex has Enemies + Boss-powers sections', render.sectioned);
+    check('codex has Enemies + Boss-powers + Towers sections', render.sectioned);
+    check('codex Towers section covers EVERY tower (TYPE_KEYS)', render.everyTowerShown);
+    check('codex lists every tower spec (SPECS)', render.everySpecShown);
+    check('codex lists known towers (Gunner/Sniper)', render.showsTower);
+    check('codex shows a specs line for every tower', render.specCount >= render.nTowers, 'specRows=' + render.specCount);
     check('closeCodex hides the panel', render.closed);
 
     // Start-menu wiring: Bestiary button present, and the .startUtil-last-child

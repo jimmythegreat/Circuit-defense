@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.28.0 — 2026-06-18 — 🛡 Bestiary gains a Towers section (full reference)
+
+**Type:** Table-stakes UX / panel extension. Minor bump. Render/UI-only — no economy/balance/save impact.
+
+Extends the just-shipped 📖 Bestiary (v2.26.0) with a **🛡 Towers** section, completing it into a full in-game reference (ROADMAP follow-up: "a parallel tower/spec codex, folded into one Codex panel"). It lists all 11 towers — icon, rank-coloured disc, cost, a one-line role description (the shop `tip` where present, else `desc`), and **both max-level specializations** with their effects — so a player can plan a build and pick counters for the enemies/bosses listed above, without trial-and-error. The section is built **live from `TYPE_KEYS`/`TOWER_TYPES`/`SPECS`** in `renderCodex()`, so a new tower auto-appears with its specs (can't drift — no parallel data table to maintain). New `.cdxSpec` CSS for the specs sub-line. Test group **[136]** extended: the codex now has 3 sections, renders a row + spec line per tower, and covers EVERY tower and EVERY spec (completeness). Suite **1492 → 1496** green. `sw.js` cache → `v2.28.0`.
+
 ## v2.27.0 — 2026-06-18 — ◎ Absorber — 17th boss archetype (per-hit damage cap)
 
 **Type:** New content (boss archetype). Minor bump. Behaviour off the invariant-capped HP axis; no economy/save impact.

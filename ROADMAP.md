@@ -43,10 +43,11 @@ _None currently known._ (Add any here as found — top priority.)
       other Barrier lever, distinct from Aegis's charges); a hidden unlock condition for a secret legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
       ×1.6 double-speed variant of `frenzy`. (Pool is 20 mods; most axes covered.)
-- [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136]. A start-menu panel listing every enemy kind +
-      boss archetype with glyph/colour/first-wave + a one-line counter tip. Data-driven completeness
-      drift-guard. Follow-up ideas: a parallel **tower/spec codex** (or fold into one "Codex" panel); link
-      it from the in-game upgrade panel / boss bar so it's reachable mid-run.
+- [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136] (enemies + boss powers) + **v2.28.0** (🛡 Towers
+      section: all 11 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
+      start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
+      per tower. Remaining follow-up: **link it from the in-game upgrade panel / boss bar so it's reachable
+      mid-run** (still start-menu-only).
 - [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
 
 ### Balance (simulate before/after, ≤25% per number per run)
