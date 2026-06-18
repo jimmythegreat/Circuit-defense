@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.29.0 — 2026-06-18 — 🗡 Board-DPS readout on the wave-preview strip
+
+**Type:** Game-feel / readability polish. Minor bump. Render-only + one helper — no economy/balance/save impact.
+
+The between-waves bottom-left strip now shows your total board DPS (🗡) beside the incoming wave's ⚔ threat HP, so you can gauge whether your defense can handle the next wave at a glance (ROADMAP polish: "DPS-relative read on the wave-threat number"). New `boardDps()` helper (cd-game.js) sums `effDmg(t) ÷ effRate(t)` over towers — booster auras included (baked into `effDmg`), buff towers contribute 0, and it's a conservative lower bound (AoE/chain/DoT/crits uncounted). Same run, the whole preview strip now hides while a tower's upgrade panel is open (ROADMAP polish — they shared the corner). New test group **[138]**; suite **1496 → 1503** green. `sw.js` cache → `v2.29.0`.
+
 ## v2.28.0 — 2026-06-18 — 🛡 Bestiary gains a Towers section (full reference)
 
 **Type:** Table-stakes UX / panel extension. Minor bump. Render/UI-only — no economy/balance/save impact.

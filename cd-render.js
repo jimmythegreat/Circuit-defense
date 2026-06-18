@@ -873,7 +873,8 @@ function draw() {
 
   // wave preview — glanceable roster of the NEXT wave: a colour disc (+ colorblind
   // glyph) and ×count per enemy kind, so you can plan purchases (how many tanks? boss?).
-  if (!waveActive && !gameOver && started && wave >= 0 && wave < victoryWave()) {
+  if (!waveActive && !gameOver && started && wave >= 0 && wave < victoryWave()
+      && !(selectedTower && upPanel.style.display === 'block')) {   // hide while upgrade panel shares the corner (v2.29.0)
     const comp = waveComposition(wave + 1);
     const py = H - 14;
     let px = 12;
@@ -905,7 +906,16 @@ function draw() {
     const bossWave = (wave + 1) % 5 === 0;
     ctx.fillStyle = bossWave ? 'rgba(248,81,73,0.95)' : 'rgba(210,168,255,0.9)';
     ctx.font = 'bold 12px sans-serif';
-    ctx.fillText('⚔ ' + fmtNum(threat) + ' HP', px + 4, py);
+    const threatLabel = '⚔ ' + fmtNum(threat) + ' HP';
+    ctx.fillText(threatLabel, px + 4, py);
+    px += 4 + ctx.measureText(threatLabel).width;
+    // board DPS — your towers' total single-target output, glanceable against the ⚔ threat
+    // so you can judge if your defense can handle the next wave (conservative lower bound;
+    // AoE/chain/DoT/crits uncounted). v2.29.0.
+    if (towers.length) {
+      ctx.fillStyle = 'rgba(86,211,100,0.92)';
+      ctx.fillText('🗡 ' + fmtNum(boardDps()) + ' DPS', px + 12, py);
+    }
     ctx.textBaseline = 'alphabetic';
     if (isMayhem() && !daily && wave > 0 && wave % 5 === 0) {
       ctx.fillStyle = 'rgba(210,168,255,0.9)'; ctx.font = '13px sans-serif';

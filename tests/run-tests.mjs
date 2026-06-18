@@ -2192,6 +2192,47 @@ async function main() {
     await page.close();
   }
 
+  // ---- Test 138: Board DPS readout on the wave-preview strip (v2.29.0) ----
+  console.log('\n[138] Board DPS readout');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;
+      const empty = boardDps();                       // no towers → 0
+      // one plain gunner: DPS must equal effDmg ÷ effRate (damage per shot ÷ reload)
+      const gun = { type:'gun', x:200, y:200, dmg:8, rate:0.35, spec:null, kills:0, level:1, mode:'first' };
+      towers.push(gun);
+      const oneDps = boardDps();
+      const oneMatches = Math.abs(oneDps - (effDmg(gun) / effRate(gun))) < 0.001 && oneDps > 0;
+      // a buff tower FAR from the gun (out of aura range) contributes 0 DPS itself (dmg 0)
+      const farBuff = { type:'buff', x:700, y:200, dmg:0, rate:1, spec:null, kills:0, level:1, mode:'first', buffPower:0.25, range:45 };
+      towers.push(farBuff);
+      const buffAddsZero = Math.abs(boardDps() - oneDps) < 0.001;
+      // a buff tower NEXT to the gun raises the gunner's effDmg via its aura → boardDps rises
+      farBuff.x = 210; farBuff.y = 200;
+      const nearDps = boardDps();
+      const auraCounted = nearDps > oneDps + 0.001;
+      // between-waves draw with the upgrade panel open must run cleanly (overlap-hide path)
+      wave = 4; waveActive = false; gameOver = false; selectedTower = gun;
+      document.getElementById('upgradePanel').style.display = 'block';
+      let drewWithPanel = true; try { draw(); } catch(e){ drewWithPanel = false; }
+      document.getElementById('upgradePanel').style.display = 'none'; selectedTower = null;
+      let drewNoPanel = true; try { draw(); } catch(e){ drewNoPanel = false; }
+      backToMenu();
+      return { empty, oneMatches, buffAddsZero, auraCounted, drewWithPanel, drewNoPanel };
+    });
+    check('boardDps() is 0 with no towers', r.empty === 0);
+    check('boardDps() equals effDmg ÷ effRate for a single tower', r.oneMatches);
+    check('a buff tower out of range adds 0 board DPS (it deals no damage)', r.buffAddsZero);
+    check('boardDps() includes booster auras (rises with a near buff)', r.auraCounted);
+    check('draw() runs cleanly with the upgrade panel open (preview hidden)', r.drewWithPanel);
+    check('draw() runs cleanly with the preview shown', r.drewNoPanel);
+    check('no console errors during board-DPS test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   // ---- Test 41: Last Stand legendary perk (comeback damage, v1.22.0) ----
   console.log('\n[41] Last Stand comeback perk');
   {

@@ -422,6 +422,21 @@ function waveThreat(w) {
   return total;
 }
 
+// Board single-target DPS — sum of each tower's damage-per-second (effDmg ÷ reload),
+// surfaced beside the incoming ⚔ threat HP on the wave-preview strip (v2.29.0) so you can
+// gauge whether your defense can handle the next wave at a glance. Booster auras are
+// included (baked into effDmg) and buff towers contribute 0 (dmg 0). A deliberately
+// CONSERVATIVE lower bound: AoE/chain/Pulsar splash, poison DoT and crits aren't counted,
+// so an area/DoT build's real output is higher than shown. Render-only — no economy impact.
+function boardDps() {
+  let dps = 0;
+  for (const t of towers) {
+    const r = effRate(t);
+    if (r > 0) dps += effDmg(t) / r;
+  }
+  return dps;
+}
+
 function startWave() {
   if (gameOver || !started || draftOpen) return;
   // Concurrent waves: allow starting the next wave while others are still running,

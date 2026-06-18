@@ -84,9 +84,10 @@ _None currently known._ (Add any here as found — top priority.)
       the canvas (driven by `.hint` margins) → minor cosmetic gap. Could constrain column width to canvas.
 - [ ] **Small polish follow-ups** — slide-in animation on overlay buttons (note: R is already Shockwave —
       a quick-restart hotkey needs a free key, e.g. Enter on the game-over overlay);
-      hide the faint between-wave `Next:` preview while the upgrade panel is open;
+      ~~hide the faint between-wave `Next:` preview while the upgrade panel is open~~ (DONE v2.29.0 [138]);
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
-      a per-kind hover tooltip + DPS-relative read on the wave-threat number;
+      a per-kind hover tooltip (~~DPS-relative read on the wave-threat number~~ DONE v2.29.0 [138] —
+      board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing); combo-tier shape/label + high-contrast mode;
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
