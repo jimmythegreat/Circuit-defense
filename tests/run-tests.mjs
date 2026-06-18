@@ -2541,9 +2541,9 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 17 → regen, summoner, bulwark, enrager, teleporter,
+      // Rotation by boss number: (w/5 - 4) % 18 → regen, summoner, bulwark, enrager, teleporter,
       // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier,
-      // warlord, suppressor, absorber, then wraps (w95 → suppressor, w100 → absorber, w105 → regen).
+      // warlord, suppressor, absorber, distorter, then wraps (w100 → absorber, w105 → distorter, w110 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
@@ -2551,7 +2551,7 @@ async function main() {
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
                     && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
-                    && bt(105) === 'regen';
+                    && bt(105) === 'distorter' && bt(110) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6519,7 +6519,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 17);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 18);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7868,7 +7868,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 17);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 18);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8212,7 +8212,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 17);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 18);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8483,7 +8483,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 17);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 18);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8646,7 +8646,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 17);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 18);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8805,7 +8805,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 17);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 18);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9631,10 +9631,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 17th archetype: first appears at w100 (after suppressor at w95), then the cycle wraps at w105.
+      // 17th archetype: first appears at w100 (after suppressor at w95); w105 is the 18th (distorter, v2.30.0).
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(100) === 'absorber';
-      const wrapsAt105 = bt(105) === 'regen';
+      const wrapsAt105 = bt(105) === 'distorter';
       const archCount = BOSS_ARCHETYPES.length;
       const capLever = typeof ABSORB_CAP === 'number' && ABSORB_CAP > 0 && ABSORB_CAP < 1;
 
@@ -9685,8 +9685,8 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 17);
-    check('rotation wraps after absorber (w105 → regen)', r.wrapsAt105);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 18);
+    check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
     check('a small hit below the cap deals full damage', r.smallHitFull);
@@ -9696,6 +9696,95 @@ async function main() {
     check('absorber adds no HP or speed of its own', r.noHpOrSpeed);
     check('boss-bar badge reads ABSORBING', r.badgeOk);
     check('no console errors during Absorber test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [139] Distorter boss archetype — the 18th: a continuous tower-RANGE dampening aura (the range
+  // sibling of the Suppressor's fire-rate aura; the `fog` Mayhem mod as a boss). While alive it tags
+  // every non-buff tower within DISTORT_RANGE with `distorted`, which effRange reads as ×0.8 range
+  // (the same factor as the fog wave-mod); buff towers are immune, the tag lapses the instant the
+  // boss leaves range or dies, and a frozen distorter can't distort (v2.30.0).
+  console.log('\n[139] Distorter boss (tower-range dampening archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 18th archetype: appears at w105 (after absorber at w100); the cycle wraps at w110 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(105) === 'distorter';
+      const wrapsAt110 = bt(110) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const mkBoss = (over = {}) => Object.assign({ kind:'boss', bossType:'distorter', hp:5000, maxHp:5000,
+        spd:0, r:24, bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 }, over);
+      const mkTower = (over = {}) => Object.assign({ type:'gun', x:sp.x, y:sp.y, rate:TOWER_TYPES.gun.rate,
+        range:TOWER_TYPES.gun.range, spec:null, level:1, kills:0, cd:0, flash:0, rankFlash:0, empT:0,
+        suppressed:0, distorted:0, angle:0, invested:0, dealt:0, mode:'first' }, over);
+
+      // (B)+(D)+(I) the aura tags every NON-buff tower within range each frame, but never a buff
+      //   tower and never one out of range.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const near = mkTower();                              // on top of the boss → in range
+      const far  = mkTower({ x: sp.x + 400, y: sp.y });    // 400px away → out of range
+      const buff = mkTower({ type:'buff', x: sp.x, y: sp.y }); // in range but a buff tower → immune
+      towers.push(near, far, buff);
+      enemies.push(mkBoss());
+      for (let i = 0; i < 10; i++) update(1/60);
+      const tagsNear = near.distorted > 0;
+      const skipsFar = !(far.distorted > 0);
+      const buffImmune = !(buff.distorted > 0);
+
+      // (C) a distorted tower's effRange is exactly −20% (×0.8) vs an identical clean one.
+      const a = mkTower({ distorted: 0.3 }); const b = mkTower({ distorted: 0 });
+      const shrinks = Math.abs(effRange(a) / effRange(b) - 0.8) < 1e-6;
+      const rangeLever = typeof DISTORT_RANGE === 'number' && DISTORT_RANGE > 0;
+
+      // (G) adds no HP/speed of its own (no towers present, so nothing shoots it).
+      enemies.length = 0; towers.length = 0;
+      const boss = mkBoss();
+      enemies.push(boss);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = boss.hp === 5000 && boss.spd === 0;
+
+      // (E) the tag LAPSES once the distorter is gone (no refresher → decays to 0).
+      enemies.length = 0; towers.length = 0;
+      const orphan = mkTower({ distorted: 0.3 });
+      towers.push(orphan); // no distorter present
+      for (let i = 0; i < 40; i++) update(1/60); // ~0.66s, > the 0.3 timer
+      const lapsesWithoutBoss = orphan.distorted === 0;
+
+      // (F) a FROZEN distorter stops distorting (gated block; freeze counters it).
+      enemies.length = 0; towers.length = 0;
+      const fb = mkBoss({ frozen: 5 }); const ft = mkTower();
+      towers.push(ft); enemies.push(fb);
+      for (let i = 0; i < 10; i++) update(1/60);
+      const frozenStops = ft.distorted === 0;
+
+      // (H) badge names the archetype.
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'distorter' });
+      const badgeOk = !!badge && badge.label === 'DISTORTING';
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
+               rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
+    });
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 18);
+    check('rotation wraps after distorter (w110 → regen)', r.wrapsAt110);
+    check('a living distorter tags nearby non-buff towers', r.tagsNear);
+    check('out-of-range towers are not distorted', r.skipsFar);
+    check('buff/support towers are immune to distortion', r.buffImmune);
+    check('a distorted tower loses 20% range (effRange ×0.8)', r.shrinks);
+    check('DISTORT_RANGE lever exists', r.rangeLever);
+    check('distorter adds no HP or speed of its own', r.noHpOrSpeed);
+    check('distortion lapses the instant the distorter is gone', r.lapsesWithoutBoss);
+    check('a frozen distorter stops distorting (freeze counters it)', r.frozenStops);
+    check('boss-bar badge reads DISTORTING', r.badgeOk);
+    check('no console errors during Distorter test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

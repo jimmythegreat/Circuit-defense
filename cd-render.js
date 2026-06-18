@@ -81,6 +81,7 @@ function bossMechanicBadge(e) {
     case 'warlord':  return { label: 'RALLYING', c: '240,200,60' };
     case 'suppressor': return { label: 'SUPPRESSING', c: '111,143,175' };
     case 'absorber': return { label: 'ABSORBING', c: '45,212,191' };
+    case 'distorter': return { label: 'DISTORTING', c: '232,121,249' };
     default:         return null;
   }
 }
@@ -484,6 +485,15 @@ function draw() {
       ctx.beginPath();
       ctx.arc(t.x, t.y - 4, 14, 0, Math.PI*2);
       ctx.stroke();
+    } else if (t.distorted > 0) {
+      // Distorter boss aura (v2.30.0): a faint fuchsia ring marks a range-dampened tower (shorter reach).
+      // Distinct hue from the suppressor's slate slow-ring, so the two debuff auras read apart.
+      const pulse = 0.3 + 0.18 * Math.abs(Math.sin(performance.now()/220));
+      ctx.strokeStyle = `rgba(232,121,249,${pulse.toFixed(3)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y - 4, 14, 0, Math.PI*2);
+      ctx.stroke();
     }
   }
 
@@ -653,12 +663,13 @@ function draw() {
     // boss archetype aura (v1.25.0; enrager v1.34.0; teleporter v1.40.0; berserker v1.50.0;
     // disruptor v1.52.0; siphon v1.71.0): colour-codes the mechanic — green regen, red summoner,
     // blue bulwark, orange enrager, violet teleporter, crimson berserker, cyan disruptor,
-    // steel juggernaut, gold siphon, bronze fortifier, gold-amber warlord, slate suppressor. The bulwark ring
+    // steel juggernaut, gold siphon, bronze fortifier, gold-amber warlord, slate suppressor, teal absorber,
+    // fuchsia distorter. The bulwark ring
     // flares bright+thick during its active shield phase, and the berserker ring grows
     // brighter+thicker as it rages (scaling with missing HP), so the damage-soak window / rage
     // level is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : e.bossType === 'conduit' ? '94,242,200' : e.bossType === 'warper' ? '124,108,255' : e.bossType === 'fortifier' ? '205,127,50' : e.bossType === 'warlord' ? '240,200,60' : e.bossType === 'suppressor' ? '111,143,175' : e.bossType === 'absorber' ? '45,212,191' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : e.bossType === 'conduit' ? '94,242,200' : e.bossType === 'warper' ? '124,108,255' : e.bossType === 'fortifier' ? '205,127,50' : e.bossType === 'warlord' ? '240,200,60' : e.bossType === 'suppressor' ? '111,143,175' : e.bossType === 'absorber' ? '45,212,191' : e.bossType === 'distorter' ? '232,121,249' : '121,192,255';
       // Conduit boss (v2.2.0): draw a glowing tether to each nearby escort that's shielding it,
       // so the "clear the adds to break the link" read is visible at a glance (brighter with more
       // links). Recomputes neighbours in render — bounded (one boss), and uses last-frame x/y like

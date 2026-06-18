@@ -279,6 +279,9 @@ function update(dt) {
     //                (kill the keystone to strip it); checks the cheap high-rate-low-dmg build, no HP/speed
     //   suppressor : a continuous fire-rate DAMPENING aura — every nearby tower reloads +25% slower
     //                (a "localized brownout"; soft multi-tower counterpart to the disruptor's hard EMP)
+    //   absorber   : caps per-hit damage at maxHp×5% (the cap lives in damage(); freeze lifts it)
+    //   distorter  : a continuous tower-RANGE dampening aura — every nearby tower's range shrinks 20%
+    //                (a "localized fog"; opens coverage/leak gaps, the range sibling of the suppressor)
     // Frozen bosses pause their mechanic (freeze counters it, like heal/phantom). Juggernaut is the
     // exception by design — it can never be frozen, so its CC immunity above runs every frame.
     // All fields are run-only and lazily initialised, so nothing touches save state.
@@ -492,6 +495,24 @@ function update(dt) {
         // which doubles as the cue that freeze has dropped the cap. Run-only `absorbCd`, never persisted.
         e.absorbCd = (e.absorbCd == null ? 2.5 : e.absorbCd) - dt;
         if (e.absorbCd <= 0) { e.absorbCd = 2.5; addExplosion(e.x, e.y, '#2dd4bf', 10, 40); SFX.bossSkill(); }
+      } else if (e.bossType === 'distorter') {
+        // Distorter (v2.30.0, the 18th archetype — a fresh axis: a continuous tower-RANGE dampening
+        // aura, the SECOND tower-debuff aura after the Suppressor's fire-rate. It is the `fog` Mayhem
+        // mod as a boss, just as the Suppressor is the `brownout` mod as a boss. Each frame it refreshes
+        // a short `distorted` timer on every non-buff tower within DISTORT_RANGE; a distorted tower's
+        // firing range shrinks 20% (effRange reads `t.distorted`, the exact `fog` factor ×0.8), so
+        // towers near the boss stop reaching the path — opening a COVERAGE/LEAK gap right where the boss
+        // is (distinct from the Suppressor, which lowers DPS in place). Bounded / "too easy"-safe:
+        // adds NO HP or speed, range only SHRINKS (can't make a run easier), buff towers are immune
+        // (no firing range), the tag decays the instant the boss leaves range or dies, and freeze
+        // pauses the aura (gated block) so freeze counters it. A periodic pulse fires the SFX + a burst
+        // so the field reads at a glance. Run-only `distorted`/`distortCd`, never persisted.
+        for (const t of towers) {
+          if (t.type === 'buff') continue;
+          if (Math.hypot(t.x - e.x, t.y - e.y) < DISTORT_RANGE) t.distorted = 0.3;
+        }
+        e.distortCd = (e.distortCd == null ? 2.5 : e.distortCd) - dt;
+        if (e.distortCd <= 0) { e.distortCd = 2.5; addExplosion(e.x, e.y, '#e879f9', 9, DISTORT_RANGE); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -546,6 +567,7 @@ function update(dt) {
     if (t.rankFlash > 0) t.rankFlash = Math.max(0, t.rankFlash - dt * 1.4);   // veterancy promotion pulse (cosmetic, v1.100.0)
     if (t.empT > 0) t.empT = Math.max(0, t.empT - dt * perkState.empResist);   // tick down offline timer (all tower types); Surge Protector perk (empResist) recovers faster
     if (t.suppressed > 0) t.suppressed = Math.max(0, t.suppressed - dt);   // Suppressor boss aura: decays once out of range (effRate reads it, +25% reload while >0)
+    if (t.distorted > 0) t.distorted = Math.max(0, t.distorted - dt);   // Distorter boss aura: decays once out of range (effRange reads it, −20% range while >0)
     if (t.type === 'buff') continue;
     t.cd -= dt;
     if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire
@@ -764,6 +786,10 @@ const SUPPRESS_RANGE = 130;      // px reach of the suppression aura (matches th
 // rapid stream of small hits is unaffected — the precise counter to the high-per-hit burst/crit
 // build. Bounded: a cap not immunity (sustained DPS still kills it), and FREEZE lifts it (counter).
 const ABSORB_CAP = 0.05;         // single-hit damage ceiling = maxHp × this (≥20 hits to kill)
+// Distorter boss archetype (v2.30.0, the 18th) lever: the radius of its tower-RANGE dampening aura. A
+// non-buff tower within it has its firing range cut 20% (effRange's `t.distorted` factor — a localized
+// `fog`), opening a coverage gap near the boss. Distinct axis from the Suppressor (fire rate vs range).
+const DISTORT_RANGE = 130;       // px reach of the range-distortion aura (matches the suppressor aura reach)
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];

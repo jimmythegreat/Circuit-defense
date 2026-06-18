@@ -197,13 +197,14 @@ function enemyTemplate(w) {
 }
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
 // disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
-// conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0, suppressor v2.16.0). Indexed by
-// boss number from wave 20 on, so deep bosses cycle regen → summoner → bulwark → enrager → teleporter →
-// berserker → disruptor → juggernaut → siphon → hydra → revenant → conduit → warper → fortifier →
-// warlord → suppressor (w90 → warlord, w95 → suppressor, w100 wraps to regen). The cycle length reads
+// conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0, suppressor v2.16.0,
+// absorber v2.27.0, distorter v2.30.0). Indexed by boss number from wave 20 on, so deep bosses cycle
+// regen → summoner → bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon →
+// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter
+// (w95 → suppressor, w100 → absorber, w105 → distorter, w110 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter'];
 function buildWave(w) {
   const q = [];
   let count = 8 + Math.floor(w*1.7);
@@ -743,7 +744,8 @@ function effRange(t) {
   // ×metaRangeMult (+2%/rank, meta tree). All apply to firing range only, not booster auras
   // (effBuffRange) — buff towers deal no damage.
   // Pulsar Resonance spec (v2.23.0): +30% pulse radius (effRange IS the Pulsar's AoE radius).
-  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult * (t.spec === 'pulsewide' ? 1.3 : 1);
+  // Distorter boss aura (v2.30.0): −20% range while in its field (×0.8, the localized `fog` factor).
+  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult * (t.spec === 'pulsewide' ? 1.3 : 1) * (t.distorted > 0 ? 0.8 : 1);
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');

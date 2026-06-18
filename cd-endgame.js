@@ -209,6 +209,7 @@ const CODEX_BOSSES = [
   { type: 'warlord',    glyph: '⚔',  color: '#f0c83c', label: 'Warlord',      wave: 'Wave 90', desc: 'Grants +10 flat armor to the WHOLE wave. Kill the keystone.' },
   { type: 'suppressor', glyph: '🔇', color: '#6f8faf', label: 'Suppressor',   wave: 'Wave 95', desc: 'Dampens the fire rate of every nearby tower.' },
   { type: 'absorber',   glyph: '◎',  color: '#2dd4bf', label: 'Absorber',     wave: 'Wave 100', desc: 'Caps damage from a single hit — big crits are wasted. Use rapid fire or freeze it to crack it open.' },
+  { type: 'distorter',  glyph: '🔮', color: '#e879f9', label: 'Distorter',    wave: 'Wave 105', desc: 'Shrinks the firing range of nearby towers (−20%), opening coverage gaps. Freeze it to stop the field.' },
 ];
 function openCodex() { renderCodex(); document.getElementById('codexPanel').style.display = 'flex'; focusPanel('codexPanel'); }
 function closeCodex() { document.getElementById('codexPanel').style.display = 'none'; renderStartScreen(); }

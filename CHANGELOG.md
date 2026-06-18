@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.30.0 — 2026-06-18 — 🔮 Distorter — 18th boss archetype (tower-range dampening aura)
+
+**Type:** New content (boss archetype). Minor bump. Behaviour off the invariant-capped HP axis; no economy/save impact.
+
+Added the **18th boss archetype**, 🔮 **Distorter**, to the wave-20+ cycle (first appears at **wave 105**, deep Endless). While alive it projects a tower-RANGE dampening aura: every non-buff tower within `DISTORT_RANGE` has its firing range cut 20% (`effRange ×0.8`, the same factor as the `fog` wave-mod), so towers near the boss stop reaching the path — opening a coverage/leak gap right where the boss walks. It's the **range sibling of the Suppressor** (fire-rate aura) and the `fog` Mayhem mod as a boss. **Bounded / "too easy"-safe:** adds no HP/speed, range only shrinks (can't make a run easier), buff towers immune, the tag lapses the instant the boss leaves range or dies, and **freeze pauses the aura** (a clean counter). Mirrors the Suppressor implementation: one freeze-gated tick block + one `effRange` factor + a fuchsia render ring; boss bar shows `DISTORTING`; added to the Bestiary. Run-only — no save migration. New test group `[139]`; suite **1503 → 1515** green. `sw.js` cache → `v2.30.0`.
+
 ## v2.29.1 — 2026-06-18 — 🩺 Health check — all green (1503/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.24.1: v2.25.0, v2.26.0, v2.27.0, v2.28.0, v2.29.0 — at the 5-run trigger.)
