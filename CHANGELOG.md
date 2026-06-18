@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.29.1 — 2026-06-18 — 🩺 Health check — all green (1503/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (5 entries since the last health check v2.24.1: v2.25.0, v2.26.0, v2.27.0, v2.28.0, v2.29.0 — at the 5-run trigger.)
+
+Suite **1503/0** green, zero console errors. All 8 game files under the ~1500-line cap (largest cd-render.js 1039, cd-update.js 1034). file:// playability intact (8 classic scripts in order, no ES modules, SW guarded to http/https). Old-format save/meta migrate cleanly (verified live: legacy meta back-fills achievements/stats; legacy run defaults mapTheme/endless/gameTime/barrierCharges). Docs coherent — every headline count matches code (11 towers, 17 boss archetypes, 19 achievements, 7 maps+mayhem, 20 wave mods, 26 talents, 5 abilities, 6 modes). Versions consistent (GAME_VERSION = sw.js cache = v2.29.1). Refreshed the stale ROADMAP test-harness figure (~9,392→9,715 lines, 138 groups, 1503 assertions). Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.29.0 — 2026-06-18 — 🗡 Board-DPS readout on the wave-preview strip
 
 **Type:** Game-feel / readability polish. Minor bump. Render-only + one helper — no economy/balance/save impact.
