@@ -9804,6 +9804,123 @@ async function main() {
     await page.close();
   }
 
+  // [140] Deep-wave ability/aura scaling (v2.32.0, FEEDBACK follow-up to the v2.31.0 HP ramp):
+  // enemy regen %, summoner add cap, the warden/herald/enrager aura radii, and the siphon drain
+  // grow with wave DEPTH so deep Endless keeps pressuring DPS/coverage instead of plateauing.
+  // enemyMechScale() is a pure function of `wave`: 1.0 through wave 40 (early/mid byte-identical),
+  // then +1.5%/wave, CAPPED at +60% (×1.6) at wave 80. Bounded (no raw HP added).
+  console.log('\n[140] Deep-wave ability/aura scaling');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // (A) the curve: flat 1.0 through w40, ramps +1.5%/wave, caps at +60%, never overshoots.
+      wave = 30;  const s30 = enemyMechScale();
+      wave = 40;  const s40 = enemyMechScale();
+      wave = 60;  const s60 = enemyMechScale();
+      wave = 80;  const s80 = enemyMechScale();
+      wave = 140; const s140 = enemyMechScale();
+      const flatEarly = s30 === 1 && s40 === 1;
+      const ramps     = Math.abs(s60 - 1.3) < 1e-9;            // 1 + 20·0.015
+      const caps      = Math.abs(s80 - 1.6) < 1e-9 && s140 === s80;  // +60% cap, no overshoot
+      const monotonic = s40 <= s60 && s60 <= s80;
+
+      // (B) regen heals at 2%/s × mechScale: byte-identical at w30, ~1.6× more at w80.
+      const tickRegen = (w) => {
+        wave = w;
+        enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        autoStartTimer = -1; waveActive = false;
+        const p = pointAt(pathLen * 0.4);
+        const e = { kind:'norm', regen:true, hp:500, maxHp:1000, spd:0, r:11, bounty:1,
+          color:'#3fb950', armor:0, gap:0, dist:pathLen*0.4, x:p.x, y:p.y, px:p.x, py:p.y,
+          slow:0, slowF:0.6, frozen:0, poison:null, flash:0 };
+        enemies.push(e);
+        const h0 = e.hp;
+        for (let i = 0; i < 60; i++) update(1/60);            // ~1s
+        return e.hp - h0;
+      };
+      const heal30 = tickRegen(30);
+      const heal80 = tickRegen(80);
+      const regenFlatEarly  = Math.abs(heal30 - 1000 * 0.02) < 1.5;  // ~2%/s at mechScale 1
+      const regenScalesDeep = heal80 > heal30 * 1.5;                 // ~×1.6 at the cap
+
+      // (C) aura radius scales: a victim explicitly placed 90px from a warden is OUTSIDE the base
+      //   75px aura at w30 (radius 75) but INSIDE the scaled 120px aura at w80 (75×1.6). The warden
+      //   is pushed FIRST so it reads the victim's explicit x/y on this single frame (array-order
+      //   gotcha: update() recomputes x/y from dist per-enemy mid-loop).
+      const wardAt = (w) => {
+        wave = w;
+        enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        autoStartTimer = -1; waveActive = false;
+        const wd = pathLen * 0.4; const wp = pointAt(wd);
+        const warden = { kind:'warden', hp:1000, maxHp:1000, spd:0, r:13, bounty:1, color:'#58a6ff',
+          armor:0, gap:0, dist:wd, x:wp.x, y:wp.y, px:wp.x, py:wp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 };
+        const victim = { kind:'norm', hp:1000, maxHp:1000, spd:0, r:11, bounty:1, color:'#3fb950',
+          armor:0, gap:0, dist:wd, x:wp.x + 90, y:wp.y, px:wp.x + 90, py:wp.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0 };
+        enemies.push(warden, victim);
+        update(1/60);
+        return victim.warded > 0;
+      };
+      const radiusFlatEarly  = wardAt(30) === false;   // 90px outside the base 75 aura
+      const radiusScalesDeep = wardAt(80) === true;    // inside the 120px scaled aura
+
+      // (D) summoner add cap = round(8 × mechScale): 8 at w30, 13 at w80 (round(12.8)).
+      const summonCapAt = (w) => {
+        wave = w;
+        enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        autoStartTimer = -1; waveActive = false;
+        const p = pointAt(5);
+        const boss = { kind:'boss', bossType:'summoner', hp:1e9, maxHp:2e9, spd:0, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:5, x:p.x, y:p.y, px:p.x, py:p.y, slow:0, slowF:0.8, frozen:0, poison:null, flash:0 };
+        enemies.push(boss);
+        for (let i = 0; i < 2400; i++) update(1/60);          // ~40s → cap reached
+        return enemies.filter(k => k.kind === 'norm').length;
+      };
+      const summonsEarly = summonCapAt(30);
+      const summonsDeep  = summonCapAt(80);
+      const summonScales = summonsEarly === 8 && summonsDeep === 13;
+
+      // (E) siphon drain = floor((6 + wave·0.4) × mechScale): scaled above the old un-scaled amount.
+      const siphonDrainAt = (w) => {
+        wave = w;
+        enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; towers.length = 0;
+        autoStartTimer = -1; waveActive = false;
+        gold = 100000;
+        const p = pointAt(5);
+        const boss = { kind:'boss', bossType:'siphon', hp:1e9, maxHp:2e9, spd:0, r:24, bounty:100,
+          color:'#f85149', armor:0, gap:1.5, dist:5, x:p.x, y:p.y, px:p.x, py:p.y, slow:0, slowF:0.8, frozen:0, poison:null, flash:0 };
+        enemies.push(boss);
+        const g0 = gold;
+        for (let i = 0; i < 220; i++) update(1/60);            // ~3.67s → exactly one ~3.5s pulse
+        return g0 - gold;
+      };
+      const drain80 = siphonDrainAt(80);
+      const siphonScales = drain80 === Math.floor((6 + 80 * 0.4) * 1.6)   // = 60
+                        && drain80 > (6 + Math.floor(80 * 0.4));          // > the old un-scaled 38
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0; gold = 0; wave = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { flatEarly, ramps, caps, monotonic, regenFlatEarly, regenScalesDeep,
+               radiusFlatEarly, radiusScalesDeep, summonsEarly, summonsDeep, summonScales,
+               drain80, siphonScales };
+    });
+    check('enemyMechScale is flat 1.0 through wave 40', r.flatEarly);
+    check('enemyMechScale ramps +1.5%/wave past 40 (w60 = 1.3)', r.ramps);
+    check('enemyMechScale caps at +60% (w80 = 1.6, no overshoot at w140)', r.caps);
+    check('enemyMechScale is monotonic in the ramp band', r.monotonic);
+    check('regen is byte-identical (2%/s) at wave 30', r.regenFlatEarly);
+    check('regen heals ~1.6× more at wave 80', r.regenScalesDeep, `h80 vs h30`);
+    check('aura radius unchanged at wave 30 (90px outside the 75 aura)', r.radiusFlatEarly);
+    check('aura radius scales at wave 80 (90px inside the 120 aura)', r.radiusScalesDeep);
+    check('summoner cap is 8 at wave 30', r.summonsEarly === 8, `n=${r.summonsEarly}`);
+    check('summoner cap scales to 13 at wave 80', r.summonScales, `early=${r.summonsEarly} deep=${r.summonsDeep}`);
+    check('siphon drain scales with depth (60 at wave 80, > old 38)', r.siphonScales, `drain80=${r.drain80}`);
+    check('no console errors during deep-wave scaling test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

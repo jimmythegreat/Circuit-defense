@@ -1,6 +1,21 @@
 'use strict';
 // ================= Update =================
 let abilityUiAcc = 0;
+// Deep-wave mechanic scaling (v2.32.0, FEEDBACK follow-up to the v2.31.0 HP ramp): enemy
+// ABILITIES/AURAS — regen tick %, summoner add cap, the warden/herald/enrager aura radii, and
+// the siphon drain — grow with wave DEPTH so deep Endless keeps pressuring DPS/coverage instead
+// of plateauing while the HP ramp does all the work (owner: "scale them with wave, not just HP").
+// A pure function of the current `wave`: 1.0 through wave 40 (so early/mid is byte-identical —
+// the owner said early/mid is "good"), then +1.5%/wave, CAPPED at +60% (reached at wave 80).
+// Bounded by design — it scales the EXISTING bounded pressure (regen still beatable by DPS, a
+// bigger aura is still a focus-fire decision, more adds are still weak), never adds raw HP, so it
+// can't break the invariant-capped HP curve and stays "too easy"-safe. Reads the global `wave`
+// (consistent with the siphon drain, which already wave-scaled); enemies don't carry their own
+// wave. Deep waves are only reachable in Endless / deep Campaign, so normal quick runs (≤w30) and
+// every focused mechanic test (which runs at wave 0 after beginGame) are unaffected.
+function enemyMechScale() {
+  return 1 + Math.min(0.6, Math.max(0, wave - 40) * 0.015);
+}
 function update(dt) {
   if (gameOver || paused || !started || draftOpen) return;
   gameTime += dt;
@@ -82,6 +97,7 @@ function update(dt) {
   }
 
   // enemies
+  const mechScale = enemyMechScale();   // deep-wave ability/aura scaling (v2.32.0), 1.0 through wave 40
   for (const e of enemies) {
     e.flash = Math.max(0, e.flash - dt);
     e.frozen = Math.max(0, (e.frozen || 0) - dt);
@@ -187,7 +203,7 @@ function update(dt) {
     if (e.kind === 'heal' && e.frozen <= 0) {
       for (const o of enemies) {
         if (o === e || o.dead || o.hp >= o.maxHp) continue;
-        if (Math.hypot(o.x-e.x, o.y-e.y) < 70) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.04 * dt);
+        if (Math.hypot(o.x-e.x, o.y-e.y) < 70) o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.04 * mechScale * dt);
       }
     }
     // Warden support enemy (v1.35.0): projects a protective aura that refreshes a short
@@ -200,7 +216,7 @@ function update(dt) {
     if (e.kind === 'warden' && e.frozen <= 0) {
       for (const o of enemies) {
         if (o === e || o.dead || o.kind === 'warden') continue;
-        if (Math.hypot(o.x-e.x, o.y-e.y) < 75) o.warded = 0.25;
+        if (Math.hypot(o.x-e.x, o.y-e.y) < 75 * mechScale) o.warded = 0.25;
       }
     }
     // Herald support enemy (v2.4.0): the REGULAR-enemy cousin of the Enrager boss — projects a
@@ -216,7 +232,7 @@ function update(dt) {
     if (e.kind === 'herald' && e.frozen <= 0) {
       for (const o of enemies) {
         if (o === e || o.dead || o.kind === 'herald') continue;
-        if (Math.hypot(o.x-e.x, o.y-e.y) < 90) o.hasted = 0.25;
+        if (Math.hypot(o.x-e.x, o.y-e.y) < 90 * mechScale) o.hasted = 0.25;
       }
     }
     // Jammer enemy (v1.91.0): the REGULAR-enemy cousin of the Disruptor boss / Static Storm mod.
@@ -252,7 +268,7 @@ function update(dt) {
     // max HP while alive — pressures under-investment in DPS without adding raw HP (re: the
     // recurring "too easy" feedback). Tagged at spawn in buildWave (run-only, never saved),
     // so concurrent waves each keep their own mod; freeze pauses it (like heal/boss-regen).
-    if (e.regen && e.frozen <= 0 && !e.dead) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.02 * dt);
+    if (e.regen && e.frozen <= 0 && !e.dead) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.02 * mechScale * dt);
     // teleporter boss (v1.40.0): decay the post-blink intangibility EVERY frame — even while
     // frozen — so a boss frozen mid-blink can't get stuck permanently invulnerable (the blink
     // trigger itself is paused by freeze in the gated block below, like phantom's blinkCd).
@@ -287,7 +303,7 @@ function update(dt) {
     // All fields are run-only and lazily initialised, so nothing touches save state.
     if (e.kind === 'boss' && e.bossType && e.frozen <= 0) {
       if (e.bossType === 'regen') {
-        e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.012 * dt);
+        e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.012 * mechScale * dt);
       } else if (e.bossType === 'bulwark') {
         if (e.shieldOn) {
           e.shieldT -= dt;
@@ -297,7 +313,7 @@ function update(dt) {
           if (e.shieldCd <= 0) { e.shieldT = 2; e.shieldOn = true; SFX.bossSkill(); }
         }
       } else if (e.bossType === 'summoner') {
-        if (e.summonsLeft == null) e.summonsLeft = 8;
+        if (e.summonsLeft == null) e.summonsLeft = Math.round(8 * mechScale);
         e.summonCd = (e.summonCd == null ? 3 : e.summonCd) - dt;
         if (e.summonCd <= 0 && e.summonsLeft > 0) {
           e.summonCd = 4.5;
@@ -319,7 +335,7 @@ function update(dt) {
         // SFX + a burst so the buff window is readable without spamming sound every frame.
         for (const o of enemies) {
           if (o === e || o.dead) continue;
-          if (Math.hypot(o.x - e.x, o.y - e.y) < 120) o.hasted = 0.6;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < 120 * mechScale) o.hasted = 0.6;
         }
         e.enrageCd = (e.enrageCd == null ? 2.5 : e.enrageCd) - dt;
         if (e.enrageCd <= 0) { e.enrageCd = 2.5; addExplosion(e.x, e.y, '#ffb454', 8, 100); SFX.bossSkill(); }
@@ -378,7 +394,7 @@ function update(dt) {
         if (e.siphonCd <= 0) {
           e.siphonCd = 3.5;
           if (gold > 0) {
-            const steal = Math.min(gold, 6 + Math.floor(wave * 0.4));
+            const steal = Math.min(gold, Math.floor((6 + wave * 0.4) * mechScale));
             gold -= steal;
             addFloater(e.x, e.y - 26, `-${steal}💰`, '#e3b341', 15);
             addExplosion(e.x, e.y, '#e3b341', 8, 95);

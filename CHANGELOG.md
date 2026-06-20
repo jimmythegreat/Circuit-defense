@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.32.0 — 2026-06-20 — 📈 Deep-wave enemy ability/aura scaling — FEEDBACK
+
+**Type:** Balance / difficulty scaling (owner FEEDBACK — the top PENDING follow-up to the v2.31.0 HP slice). Minor bump. No economy/save/schema change. Waves ≤40 byte-identical (every focused mechanic test runs at wave 0, so unaffected).
+
+Owner FEEDBACK (follow-up to harder-Endless): *"buff the enemies' special abilities/auras as the level grows — scale them with wave, not just HP (regen %, summoner add count, enrager/herald aura radius, siphon drain)."* v2.31.0 only scaled HP; deep bosses' *mechanics* still fired at their wave-20 strength. Added a single `enemyMechScale()` helper (cd-update.js) — a pure function of the current `wave`: **1.0 through wave 40**, then **+1.5%/wave, capped at +60%** (×1.6 at wave 80, then flat). Applied to: the **regen** wave-mod & **regen boss** self-heal %, the **heal** enemy aura %, the **Warden / Herald / Enrager** aura *radii*, the **Summoner** add cap (8 → up to 13), and the **Siphon** boss gold drain. Bounded by design — it scales the *existing* bounded pressure (regen still beatable by DPS, a wider aura is still a focus-fire decision, more adds are still weak), **never adds raw HP**, so the invariant-capped norm-HP curve (test [16]) and boss-HP/armor slopes (test [44]) are untouched, and **freeze still pauses every one of these**. A pure wave function so it applies in all modes, but deep waves (>40) are only reachable in Endless / deep Campaign (campaign maxes at wave 54 → +21%), so normal quick runs are unaffected. Remaining sub-asks still in PENDING: more enemies per deep wave; endless milestone drafts past wave 30. New test group **[140]** (curve shape + flat-early + deep-scaling of regen/radius/summon/siphon); suite green. `sw.js` cache → `v2.32.0`.
+
 ## v2.31.0 — 2026-06-19 — 🔥 Uncapped deep-endless HP ramp (Hard/Nightmare) — FEEDBACK
 
 **Type:** Balance / difficulty scaling (owner FEEDBACK; the ≤25%/run swing rule was explicitly waived). Minor bump. Gated to quick-mode Hard/Nightmare — Normal/Easy/Campaign byte-identical, so test [16]/[44] invariants are untouched. No economy/save/schema change.

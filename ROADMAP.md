@@ -67,9 +67,11 @@ _None currently known._ (Add any here as found — top priority.)
         DEEP ramp from wave 40** (hard +5%/wave, nightmare +8%/wave; FEEDBACK "way harder as levels
         progress, especially endless — 1.5m unused gold at w140", 25% rule waived). Hard ×2.5 @w65 / ×6.25
         @w140; bosses inherit it proportionally via `t.hp`. Normal/Easy/Campaign exempt so test `[16]`/`[44]`
-        stay safe. **REMAINING FEEDBACK sub-asks (top of PENDING):** scale enemy *abilities/auras* with wave
-        (regen %, summoner add-count, enrager/herald aura radius, siphon drain — currently flat); maybe more
-        enemies per deep wave (watch perf, ~250 @w140); re-check the proportional boss scaling isn't too high.
+        stay safe. **v2.32.0 [140] scaled enemy ABILITIES/AURAS with wave depth** — one `enemyMechScale()`
+        (`1 + min(0.6, max(0,w−40)·0.015)`, 1.0 ≤w40, cap +60% @w80) feeds regen %, the warden/herald/enrager
+        aura radii, summoner add-cap (8→13), and siphon drain. Bounded (no raw HP). **REMAINING FEEDBACK
+        sub-asks (top of PENDING):** maybe more enemies per deep wave (watch perf, ~250 @w140); re-check the
+        proportional boss scaling isn't too high; endless milestone drafts past wave 30.
       - **Economy lever near-exhausted** (measured v1.24.4): 10-wave war chest ≈2613 gold (≈70% bounty).
         Untrimmed levers move it <2% each → low leverage. Prefer difficulty/tower-power levers.
 - [~] **Frost/booster damage snowball** — Shatter ×6→×4.5 (v1.10.0); booster aura power +75%→+65%
