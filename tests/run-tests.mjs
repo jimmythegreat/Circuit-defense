@@ -7479,23 +7479,39 @@ async function main() {
       diffKey = 'hard';
       const hardBelow = Math.abs(enemyTemplate(10).hp - base(10, DIFFS.hard.hp)) < 1e-6; // w10 < threshold 15
       const hardW30 = enemyTemplate(30).hp / base(30, DIFFS.hard.hp);   // 1 + min(.25,(30-15)*.015)=1.225
-      const hardCap = enemyTemplate(60).hp / base(60, DIFFS.hard.hp);   // capped at 1.25
+      const hardW40 = enemyTemplate(40).hp / base(40, DIFFS.hard.hp);   // early cap 1.25, deep term 0 → 1.25
+      // v2.31.0: deep UNCAPPED ramp from w40 (+5%/wave hard) — keeps growing past the old +25% cap.
+      const hardW65 = enemyTemplate(65).hp / base(65, DIFFS.hard.hp);   // 1.25 + 25*.05 = 2.50
+      const hardW100 = enemyTemplate(100).hp / base(100, DIFFS.hard.hp); // 1.25 + 60*.05 = 4.25
       diffKey = 'nightmare';
       const nightW30 = enemyTemplate(30).hp / base(30, DIFFS.nightmare.hp); // 1 + min(.80,(30-10)*.03)=1.60
-      const nightCap = enemyTemplate(60).hp / base(60, DIFFS.nightmare.hp); // capped at 1.80
+      const nightW40 = enemyTemplate(40).hp / base(40, DIFFS.nightmare.hp); // early cap 1.80, deep term 0 → 1.80
+      const nightW65 = enemyTemplate(65).hp / base(65, DIFFS.nightmare.hp); // 1.80 + 25*.08 = 3.80
+      const nightW100 = enemyTemplate(100).hp / base(100, DIFFS.nightmare.hp); // 1.80 + 60*.08 = 6.60
       // Campaign is deliberately exempt (gated to gameMode==='quick'); campLevel 1 → campScale 1.
+      // Exempt at a DEEP wave too (the v2.31.0 deep ramp is quick-only).
       gameMode = 'campaign'; diffKey = 'hard';
       const campaignExempt = Math.abs(enemyTemplate(30).hp - base(30, DIFFS.hard.hp)) < 1e-6;
+      const campaignDeepExempt = Math.abs(enemyTemplate(65).hp - base(65, DIFFS.hard.hp)) < 1e-6;
       gameMode = 'quick'; diffKey = 'normal';
-      return { normalNoScale, hardBelow, hardW30, hardCap, nightW30, nightCap, campaignExempt };
+      return { normalNoScale, hardBelow, hardW30, hardW40, hardW65, hardW100,
+               nightW30, nightW40, nightW65, nightW100, campaignExempt, campaignDeepExempt };
     });
     check('Normal HP is unchanged by late-scale (test-[16] invariant safe)', ls.normalNoScale);
     check('Hard late-scale is inert below the wave threshold (w10)', ls.hardBelow);
     check('Hard ramps to +22.5% at w30', Math.abs(ls.hardW30 - 1.225) < 1e-6, 'r=' + ls.hardW30);
-    check('Hard late-scale caps at +25%', Math.abs(ls.hardCap - 1.25) < 1e-6, 'r=' + ls.hardCap);
+    check('Hard early ramp still caps +25% at w40 (deep term starts here)', Math.abs(ls.hardW40 - 1.25) < 1e-6, 'r=' + ls.hardW40);
+    // v2.31.0: deep ramp is UNCAPPED — keeps growing through deep endless (owner FEEDBACK).
+    check('Hard deep ramp ×2.50 at w65 (no cap)', Math.abs(ls.hardW65 - 2.50) < 1e-6, 'r=' + ls.hardW65);
+    check('Hard deep ramp ×4.25 at w100 (keeps growing)', Math.abs(ls.hardW100 - 4.25) < 1e-6, 'r=' + ls.hardW100);
     check('Nightmare ramps harder (+60% at w30)', Math.abs(ls.nightW30 - 1.60) < 1e-6, 'r=' + ls.nightW30);
-    check('Nightmare late-scale caps at +80%', Math.abs(ls.nightCap - 1.80) < 1e-6, 'r=' + ls.nightCap);
+    check('Nightmare early ramp caps +80% at w40', Math.abs(ls.nightW40 - 1.80) < 1e-6, 'r=' + ls.nightW40);
+    check('Nightmare deep ramp ×3.80 at w65 (no cap)', Math.abs(ls.nightW65 - 3.80) < 1e-6, 'r=' + ls.nightW65);
+    check('Nightmare deep ramp ×6.60 at w100 (keeps growing)', Math.abs(ls.nightW100 - 6.60) < 1e-6, 'r=' + ls.nightW100);
+    check('Deep ramp keeps growing (w100 > w65 > w40, no plateau)',
+      ls.hardW100 > ls.hardW65 && ls.hardW65 > ls.hardW40 && ls.nightW100 > ls.nightW65 && ls.nightW65 > ls.nightW40);
     check('Campaign is exempt from the quick late-scale', ls.campaignExempt);
+    check('Campaign is exempt from the deep ramp too (quick-only)', ls.campaignDeepExempt);
 
     // --- v2.12.0 "~2× harder" intent: difficulty index (total wave HP / total run income) ---
     // Locks the design goal so a future run can't silently soften Nightmare back toward Hard.

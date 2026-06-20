@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.31.0 — 2026-06-19 — 🔥 Uncapped deep-endless HP ramp (Hard/Nightmare) — FEEDBACK
+
+**Type:** Balance / difficulty scaling (owner FEEDBACK; the ≤25%/run swing rule was explicitly waived). Minor bump. Gated to quick-mode Hard/Nightmare — Normal/Easy/Campaign byte-identical, so test [16]/[44] invariants are untouched. No economy/save/schema change.
+
+Owner FEEDBACK: *"Make the game way harder as the levels progress, especially endless — at wave 65 Hard I have 100k gold and don't need it; by wave 140 I had 1.5m gold and started selling towers just to end the game."* Root cause: `enemyTemplate`'s `lateScale` **capped** (+25% Hard ≈w32, +80% Nightmare ≈w37), so past ~w40 enemy HP stopped scaling while income kept climbing → deep Endless became a trivial victory lap. Added an **uncapped deep ramp from wave 40**: Hard +5%/wave, Nightmare +8%/wave, on top of the unchanged early ramp. So Hard is ×1.25 at w40 (unchanged), ×2.50 at w65, ×4.25 at w100, ×6.25 at w140; Nightmare ×1.80/×3.80/×6.60/×9.80. **Bosses inherit it proportionally** (boss HP = `t.hp × (14+0.6w)`) — honouring the owner's "bosses should also be scaled (maybe not as high)" without touching the test-[44]-pinned boss-HP slope. Waves ≤40 are byte-identical (owner said early/mid is "good"). The run now actually ends, so the player must spend gold and lean on talents. **Follow-ups noted in FEEDBACK/ROADMAP:** scale enemy *abilities/auras* (regen rate, summon count, aura radius) with wave; more enemies per deep wave; endless milestone drafts past wave 30. Test group [109] extended (deep-ramp values + monotonic growth + campaign deep-exempt); suite green. `sw.js` cache → `v2.31.0`.
+
 ## v2.30.0 — 2026-06-18 — 🔮 Distorter — 18th boss archetype (tower-range dampening aura)
 
 **Type:** New content (boss archetype). Minor bump. Behaviour off the invariant-capped HP axis; no economy/save impact.

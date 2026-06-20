@@ -63,8 +63,13 @@ _None currently known._ (Add any here as found — top priority.)
       - **Boss-HP slope (`14 + w*0.6`) can't pass ~0.625** without breaking test `[44]`'s ≤25%-vs-0.5
         invariant. **Boss-armor slope is at `w*0.5`** (test `[44]`; further ≤25% bumps OK).
       - **Archetype threshold w20 can't drop to w15** — test `[45]` pins tutorial bosses (<w20) vanilla.
-      - **Quick-mode `lateScale` (v2.0.0)** is the newest late lever (hard cap +25%, nightmare cap +40%);
-        Normal/Easy/Campaign exempt so test `[16]` stays safe. Room to tune the ramp ≤25%/run.
+      - **Quick-mode `lateScale`** — v2.0.0 added a capped early ramp; **v2.31.0 [109] added an UNCAPPED
+        DEEP ramp from wave 40** (hard +5%/wave, nightmare +8%/wave; FEEDBACK "way harder as levels
+        progress, especially endless — 1.5m unused gold at w140", 25% rule waived). Hard ×2.5 @w65 / ×6.25
+        @w140; bosses inherit it proportionally via `t.hp`. Normal/Easy/Campaign exempt so test `[16]`/`[44]`
+        stay safe. **REMAINING FEEDBACK sub-asks (top of PENDING):** scale enemy *abilities/auras* with wave
+        (regen %, summoner add-count, enrager/herald aura radius, siphon drain — currently flat); maybe more
+        enemies per deep wave (watch perf, ~250 @w140); re-check the proportional boss scaling isn't too high.
       - **Economy lever near-exhausted** (measured v1.24.4): 10-wave war chest ≈2613 gold (≈70% bounty).
         Untrimmed levers move it <2% each → low leverage. Prefer difficulty/tower-power levers.
 - [~] **Frost/booster damage snowball** — Shatter ×6→×4.5 (v1.10.0); booster aura power +75%→+65%
@@ -135,7 +140,8 @@ _None currently known._ (Add any here as found — top priority.)
 
 ### Difficulty / progression / meta
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
-- Quick-mode `lateScale` on hard/nightmare v2.0.0 [109] (progressive late HP, capped, Normal/Campaign exempt).
+- Quick-mode `lateScale` on hard/nightmare v2.0.0 + **uncapped deep ramp from w40 v2.31.0** [109] (deep-endless
+  HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
   cost rework v1.38.0 [55]. 19 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —

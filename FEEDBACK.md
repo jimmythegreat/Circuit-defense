@@ -10,9 +10,15 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-_(empty)_
+[follow-up to the harder-endless request — v2.31.0 shipped the HP slice] Make the game way harder as the levels progress (endless). v2.31.0 uncapped the deep-wave enemy/boss HP ramp on Hard/Nightmare (was flat past ~wave 40), so a run now actually ends instead of becoming a million-gold victory lap. STILL TODO from the original request: (1) buff the enemies' **special abilities/auras** as the level grows (e.g. regen tick %, summoner add count, enrager/herald aura radius, siphon drain — scale them with wave, not just HP); (2) maybe **more enemies per wave** deep (watch performance — already ~250 at wave 140); (3) keep an eye on whether the proportional **boss** scaling is "not as high" as the owner wanted. Original note: "at level 65 hard I have 100k gold and don't need to use it… wave 140 I had 1.5m gold and started selling towers to end the game." Reference image: \feedback_resources\endless.png
+
+On endless mode I don't get the milestone upgrades after it goes infinite mode.
+
+[low priority] I should be able to add as many waves as I want.
 
 ## DONE
+
+- **2026-06-19 · v2.31.0** — "Make the game way harder as the levels progress, especially endless — at wave 65 Hard I have 100k gold and don't need it; by wave 140 I had 1.5m gold and sold towers to end the game" (25% rule waived) → **PARTIAL (HP slice).** Uncapped the deep-wave HP ramp: `enemyTemplate.lateScale` used to cap (+25% Hard ≈w32 / +80% Nightmare ≈w37), so past ~w40 enemy HP stopped scaling while income climbed. Added an uncapped deep ramp from wave 40 (Hard +5%/wave, Nightmare +8%/wave) → Hard ×2.5 @ w65, ×6.25 @ w140; bosses inherit it proportionally via `t.hp` (the "bosses should also be scaled" ask). Quick-mode Hard/Nightmare only; Normal/Easy/Campaign untouched (test [16]/[44] safe). A run now ends so gold/talents matter. Remaining sub-asks (scale enemy abilities/auras, more enemies/wave) kept at top of PENDING. Test [109].
 
 - **2026-06-17 · v2.18.0** — "The menu screen now has a scroll bar. It should use the entire game size minus the What's New panel." → Moved the start menu out of `#gameWrap` (the 900×560 canvas box) to be `#gameCol`'s last child, anchored to `#gameCol` (now `position:relative`), so it spans the full game-column height instead of being clipped to the playfield. Campaign's tall 40-level grid no longer overflows into a scrollbar. Also fixed `backToMenu()` hardcoding `display:flex` (it overrode the desktop dashboard grid after a game). CSS/markup + 1 JS line; save/balance-neutral; phone layout unchanged. Test [128].
 

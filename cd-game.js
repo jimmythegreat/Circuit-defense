@@ -176,15 +176,28 @@ function enemyTemplate(w) {
   // "scale the hardness on hard more as the waves progress … good early, easier mid, super easy
   // late; campaign progression is good"). Campaign already ramps via campScale and the owner
   // praised it, so this is gated to gameMode==='quick' AND hard/nightmare — Normal/Easy and ALL
-  // campaign runs are byte-identical (so the test-[16] Normal HP invariant is untouched). It
-  // ramps from a wave threshold and CAPS, so it stays inside the per-run swing guardrail and
-  // makes each LATER wave a bigger jump (exactly the "scale more as waves progress" ask):
-  //   • hard:      +1.5%/wave from w15, cap +25% (reached ≈w32) → +7.5% w20, +22.5% w30.
-  //   • nightmare: +3%/wave from w10, cap +80% (reached ≈w37) — steepened v2.12.0 (was +2%/cap+40%)
-  //     as part of the owner "Nightmare should be about twice as hard" pass: +30% w20, +60% w30.
+  // campaign runs are byte-identical (so the test-[16] Normal HP invariant is untouched).
+  //
+  // Two parts: an EARLY capped ramp (waves ~15-40, the well-tuned mid-game the owner said is
+  // "good") + an UNCAPPED DEEP ramp from wave 40 (v2.31.0). The deep ramp is the fix for the
+  // owner FEEDBACK "make the game way harder as the levels progress, especially endless — at
+  // wave 65 hard I have 100k gold and don't need it; by wave 140 I had 1.5m gold and started
+  // selling towers just to end the game" (the 25%/run swing rule was explicitly waived for it).
+  // The old ramp CAPPED (+25% hard ≈w32 / +80% nightmare ≈w37), so past ~w40 enemy HP stopped
+  // scaling while income kept climbing → trivial deep endless. The deep linear term keeps HP
+  // (and, via t.hp, every enemy kind + the boss) growing for the rest of the run, so a run
+  // actually ends instead of running forever, and the player must spend their gold / invest in
+  // talents. Waves ≤40 are byte-identical to before (deep term is 0), honouring "good early/mid":
+  //   • hard:      +1.5%/wave from w15 (cap +25% ≈w32) PLUS +5%/wave from w40 (uncapped):
+  //                 w40 ×1.25, w65 ×2.50, w100 ×4.25, w140 ×6.25.
+  //   • nightmare: +3%/wave from w10 (cap +80% ≈w37) PLUS +8%/wave from w40 (uncapped):
+  //                 w40 ×1.80, w65 ×3.80, w100 ×6.60, w140 ×9.80.
+  // Bosses inherit the deep ramp proportionally (boss HP = t.hp × (14 + w*0.6)) — the owner asked
+  // for bosses to "also be scaled (maybe not as high)"; proportional keeps them threatening
+  // relative to the new regular difficulty without touching the test-[44]-pinned boss-HP slope.
   const lateScale = gameMode === 'quick'
-    ? (diffKey === 'nightmare' ? 1 + Math.min(0.80, Math.max(0, w - 10) * 0.03)
-     : diffKey === 'hard'      ? 1 + Math.min(0.25, Math.max(0, w - 15) * 0.015)
+    ? (diffKey === 'nightmare' ? 1 + Math.min(0.80, Math.max(0, w - 10) * 0.03) + Math.max(0, w - 40) * 0.08
+     : diffKey === 'hard'      ? 1 + Math.min(0.25, Math.max(0, w - 15) * 0.015) + Math.max(0, w - 40) * 0.05
      : 1)
     : 1;
   const hpBase = (18 + w*7 + 1.25 * Math.pow(w, 1.9)) * 1.80 * d.hp * campScale * lateScale;
