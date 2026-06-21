@@ -9921,6 +9921,70 @@ async function main() {
     await page.close();
   }
 
+  // [141] Deep-wave enemy COUNT ramp (v2.33.0, FEEDBACK follow-up — the body-count slice after the
+  // v2.31.0 HP ramp + v2.32.0 ability/aura scaling). Quick-mode hard/nightmare get a BOUNDED extra
+  // body count from wave 40 (+floor((w-40)·0.4), CAPPED at +30) on top of the historic base; the
+  // shared waveCount() helper feeds both buildWave() and waveComposition(), so the preview/threat
+  // can never drift from the real spawn. Normal/Easy/Campaign + waves ≤40 stay byte-identical.
+  console.log('\n[141] Deep-wave enemy count ramp');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const base = (w) => 8 + Math.floor(w * 1.7);   // the historic, unbounded base count
+      gameMode = 'quick'; mapKey = 'classic'; campLevel = 1;
+
+      // Normal: no extra body bump at any depth (byte-identical to the historic formula).
+      diffKey = 'normal';
+      const normalFlat = waveCount(20) === base(20) && waveCount(65) === base(65) && waveCount(140) === base(140);
+
+      // Hard: byte-identical through wave 40, then a bounded deep ramp; the EXTRA caps at +30.
+      diffKey = 'hard';
+      const hardEarly = waveCount(40) === base(40);                          // deep term 0 at w40
+      const hardW65   = waveCount(65) === base(65) + 10;                     // floor(25·0.4)=10
+      const hardW100  = waveCount(100) === base(100) + 24;                   // floor(60·0.4)=24
+      const hardCap   = waveCount(140) === base(140) + 30                    // floor(100·0.4)=40 → cap 30
+                     && waveCount(200) === base(200) + 30;                   // extra stays flat at +30
+      const hardMono  = waveCount(50) < waveCount(80) && waveCount(80) < waveCount(140);  // total keeps rising
+
+      // Nightmare gets the same bounded body bump (its EXTRA HP comes from lateScale, not bodies).
+      diffKey = 'nightmare';
+      const nightSame = waveCount(65) === base(65) + 10 && waveCount(140) === base(140) + 30;
+
+      // The real spawn uses waveCount: buildWave's non-boss count matches it at a deep hard wave,
+      // and a boss wave still appends exactly one boss on top of that count.
+      diffKey = 'hard';
+      const spawnUsesCount = buildWave(63).filter(e => e.kind !== 'boss').length === waveCount(63);
+      const bossOnTop = buildWave(65).length === waveCount(65) + 1;
+
+      // Preview/threat drift guard at deep HARD waves (the test-[40] invariant, now exercised on a
+      // gated difficulty): waveThreat(w) must equal the real buildWave(w) total HP (no mod on classic).
+      const buildHp = (w) => buildWave(w).reduce((s, e) => s + e.maxHp, 0);
+      let threatMatches = true;
+      for (const w of [50, 63, 65, 100]) if (Math.abs(waveThreat(w) - buildHp(w)) > 1e-3) threatMatches = false;
+
+      // Campaign is exempt (gated to quick mode), even at a deep wave.
+      gameMode = 'campaign'; diffKey = 'hard';
+      const campaignExempt = waveCount(65) === base(65) && waveCount(140) === base(140);
+
+      gameMode = 'quick'; diffKey = 'normal';
+      return { normalFlat, hardEarly, hardW65, hardW100, hardCap, hardMono, nightSame,
+               spawnUsesCount, bossOnTop, threatMatches, campaignExempt };
+    });
+    check('Normal gets no deep-wave body bump (byte-identical count)', r.normalFlat);
+    check('Hard count is byte-identical through wave 40', r.hardEarly);
+    check('Hard adds +10 bodies at wave 65', r.hardW65);
+    check('Hard adds +24 bodies at wave 100', r.hardW100);
+    check('Hard body bump caps at +30 (waves 140 & 200)', r.hardCap);
+    check('Hard total count keeps rising with depth', r.hardMono);
+    check('Nightmare gets the same bounded body bump', r.nightSame);
+    check('buildWave non-boss count uses waveCount at a deep hard wave', r.spawnUsesCount);
+    check('boss wave appends exactly one boss on top of the count', r.bossOnTop);
+    check('waveThreat preview matches real spawn HP at deep hard waves', r.threatMatches);
+    check('Campaign is exempt from the deep-wave body bump', r.campaignExempt);
+    check('no console errors during count-ramp test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

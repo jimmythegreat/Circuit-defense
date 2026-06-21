@@ -10,13 +10,13 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-[follow-up to the harder-endless request — v2.31.0 shipped the HP slice, v2.32.0 shipped the abilities/auras slice] Make the game way harder as the levels progress (endless). v2.31.0 uncapped the deep-wave HP ramp (Hard/Nightmare) and v2.32.0 scaled the enemy abilities/auras with wave depth (regen %, summoner add count, warden/herald/enrager aura radius, siphon drain — +60% by wave 80). STILL TODO from the original request: (1) maybe **more enemies per wave** deep (watch performance — already ~250 at wave 140); (2) keep an eye on whether the proportional **boss** scaling is "not as high" as the owner wanted. Original note: "at level 65 hard I have 100k gold and don't need to use it… wave 140 I had 1.5m gold and started selling towers to end the game." Reference image: \feedback_resources\endless.png
-
 On endless mode I don't get the milestone upgrades after it goes infinite mode.
 
 [low priority] I should be able to add as many waves as I want.
 
 ## DONE
+
+- **2026-06-21 · v2.33.0** — "Make the game way harder as the levels progress, especially endless" (harder-Endless follow-up; the "more enemies per deep wave" sub-ask) → **COMPLETE for this request.** Added a `waveCount()` helper: quick-mode Hard/Nightmare now get a bounded deep-wave body bump from wave 40 (`+floor((w−40)·0.4)`, capped +30 → ≈+10 @w65, +24 @w100, +30 from w115), shared by buildWave()+waveComposition() so the preview/threat can't drift. The +30 cap protects perf (~250 bodies @w140 already). Normal/Easy/Campaign + waves ≤40 byte-identical. Also re-checked the proportional boss scaling (sub-ask 2): bosses inherit the deep HP ramp via `t.hp` proportionally, matching "bosses should also be scaled (maybe not as high)" — left as-is. Test [141]. (Original note: "at wave 65 Hard I have 100k unused gold; at 140 I had 1.5m and sold towers to end it" — HP slice v2.31.0, ability/aura slice v2.32.0, body-count slice v2.33.0 together close it.)
 
 - **2026-06-20 · v2.32.0** — "Buff the enemies' special abilities/auras as the level grows — scale them with wave, not just HP (regen %, summoner add count, enrager/herald aura radius, siphon drain)" (follow-up to v2.31.0's HP slice) → **PARTIAL (abilities/auras slice).** Added one `enemyMechScale()` helper (pure function of wave: 1.0 ≤w40, then +1.5%/wave, cap +60% at w80) and wired it into the regen-mod & regen-boss heal %, the heal-enemy aura %, the Warden/Herald/Enrager aura radii, the Summoner add cap (8→13), and the Siphon gold drain. Bounded — scales existing pressure, adds no raw HP (test [16]/[44] invariants safe), and freeze still pauses all of it. Waves ≤40 byte-identical. Remaining sub-asks (more enemies/wave, boss-scaling check) kept in PENDING. Test [140].
 

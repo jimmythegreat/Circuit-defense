@@ -218,9 +218,25 @@ function enemyTemplate(w) {
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
 const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter'];
+// Enemy COUNT for a wave (v2.33.0, owner FEEDBACK "make the game way harder as the levels
+// progress, especially endless" — the body-count slice that follows the v2.31.0 HP ramp and
+// v2.32.0 ability/aura scaling). Base grows the same unbounded linear line it always has; the
+// harder QUICK difficulties (hard/nightmare) get a BOUNDED deep-wave body bump from wave 40 on.
+// Gated exactly like enemyTemplate's deep lateScale (quick-mode hard/nightmare only) so Normal/
+// Easy and ALL campaign waves are byte-identical and waves ≤40 are unchanged. CAPPED at +30 to
+// protect performance — deep endless already fields ~250 bodies at w140, and the cap bounds the
+// EXTRA so a wave can't balloon (e.g. +10 @w65, +24 @w100, +30 from w115 on). Shared by
+// buildWave() AND waveComposition() so the wave-preview/threat read can never drift from the
+// real spawn (test [40]'s waveThreat===buildWave invariant holds at every difficulty).
+function waveCount(w) {
+  let count = 8 + Math.floor(w * 1.7);
+  if (gameMode === 'quick' && (diffKey === 'hard' || diffKey === 'nightmare'))
+    count += Math.min(30, Math.floor(Math.max(0, w - 40) * 0.4));
+  return count;
+}
 function buildWave(w) {
   const q = [];
-  let count = 8 + Math.floor(w*1.7);
+  let count = waveCount(w);
   if (modIs('swarm')) count = Math.floor(count * 1.6);
   const t = enemyTemplate(w);
   for (let i = 0; i < count; i++) {
@@ -395,7 +411,7 @@ function buildWave(w) {
 // wave-preview so players can plan purchases (how many tanks? is there a boss?).
 // Mirrors the kind-assignment order/conditions in buildWave() — KEEP IN SYNC.
 function waveComposition(w) {
-  const count = 8 + Math.floor(w*1.7);
+  const count = waveCount(w);   // shared with buildWave() — keeps the preview in sync with the deep-wave body bump
   const tally = {};
   for (let i = 0; i < count; i++) {
     let k = 'norm';

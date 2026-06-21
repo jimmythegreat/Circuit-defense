@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.33.0 — 2026-06-21 — 👥 Deep-wave enemy COUNT ramp (Hard/Nightmare) — FEEDBACK
+
+**Type:** Balance / difficulty scaling (owner FEEDBACK — the top PENDING follow-up to the harder-Endless work, after the v2.31.0 HP slice + v2.32.0 ability/aura slice). Minor bump. Gated to quick-mode Hard/Nightmare; Normal/Easy/Campaign + waves ≤40 byte-identical. No economy/save/schema change.
+
+Owner FEEDBACK (the "more enemies per deep wave" sub-ask): deep Endless still leaned almost entirely on the per-enemy HP ramp, so a defense that could focus-fire never felt crowd pressure. Added a single `waveCount()` helper (cd-game.js) — the historic base `8 + floor(w·1.7)` plus, for quick-mode Hard/Nightmare only, a **bounded deep-wave body bump from wave 40**: `+floor((w−40)·0.4)`, **capped at +30** (≈+10 @w65, +24 @w100, +30 from w115 on). It's shared by `buildWave()` AND `waveComposition()`, so the bottom-left wave-preview/threat read can never drift from the real spawn (test [40]'s `waveThreat===buildWave` invariant now holds at every difficulty). The +30 cap protects performance — deep endless already fields ~250 bodies at w140 (this tops out ~+12%); the base count is the same unbounded line it always was. Gated exactly like `enemyTemplate`'s deep `lateScale`, so Normal/Easy and ALL campaign waves are unchanged and waves ≤40 are byte-identical. Also **re-checked the proportional boss scaling** (sub-ask 2): bosses inherit the deep HP ramp via `t.hp` *proportionally* (not super-linearly on top), which matches the owner's "bosses should also be scaled (maybe not as high)" — left as-is. **Remaining PENDING:** endless milestone drafts past wave 30. New test group **[141]** (curve + cap + flat-early + spawn/preview parity at deep hard waves + campaign-exempt); suite **1533 → 1545** green. `sw.js` cache → `v2.33.0`.
+
 ## v2.32.0 — 2026-06-20 — 📈 Deep-wave enemy ability/aura scaling — FEEDBACK
 
 **Type:** Balance / difficulty scaling (owner FEEDBACK — the top PENDING follow-up to the v2.31.0 HP slice). Minor bump. No economy/save/schema change. Waves ≤40 byte-identical (every focused mechanic test runs at wave 0, so unaffected).

@@ -69,9 +69,13 @@ _None currently known._ (Add any here as found — top priority.)
         @w140; bosses inherit it proportionally via `t.hp`. Normal/Easy/Campaign exempt so test `[16]`/`[44]`
         stay safe. **v2.32.0 [140] scaled enemy ABILITIES/AURAS with wave depth** — one `enemyMechScale()`
         (`1 + min(0.6, max(0,w−40)·0.015)`, 1.0 ≤w40, cap +60% @w80) feeds regen %, the warden/herald/enrager
-        aura radii, summoner add-cap (8→13), and siphon drain. Bounded (no raw HP). **REMAINING FEEDBACK
-        sub-asks (top of PENDING):** maybe more enemies per deep wave (watch perf, ~250 @w140); re-check the
-        proportional boss scaling isn't too high; endless milestone drafts past wave 30.
+        aura radii, summoner add-cap (8→13), and siphon drain. Bounded (no raw HP). **v2.33.0 [141] added the
+        deep-wave COUNT ramp** — a shared `waveCount()` helper gives quick-mode hard/nightmare a bounded body
+        bump from w40 (`+min(30, floor((w−40)·0.4))`, capped +30 for perf; ~+12% bodies @w140), shared by
+        buildWave()+waveComposition() so the preview can't drift. Re-checked the proportional **boss** scaling
+        — bosses inherit the deep HP ramp via `t.hp` proportionally (not super-linearly on top), matching the
+        owner's "scaled (maybe not as high)" — left as-is. **REMAINING FEEDBACK sub-ask (top of PENDING):**
+        endless milestone drafts past wave 30.
       - **Economy lever near-exhausted** (measured v1.24.4): 10-wave war chest ≈2613 gold (≈70% bounty).
         Untrimmed levers move it <2% each → low leverage. Prefer difficulty/tower-power levers.
 - [~] **Frost/booster damage snowball** — Shatter ×6→×4.5 (v1.10.0); booster aura power +75%→+65%
