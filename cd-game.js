@@ -510,7 +510,10 @@ function endWave() {
     // Wave-clear bonus, trimmed v1.16.1 (25->20 base, w*5->w*4 slope) — a flat ~20% cut to the
     // second-largest early income source, part of the same front-loaded-snowball trim as bounty.
     totalBonus += Math.floor((20 + w*4) * (1 + 0.10 * tRank('momentum')) * perkState.waveBonusMult) + interest;
-    if (w % 5 === 0 && w < victoryWave()) drafts++;
+    // Milestone draft every 5 waves. Quick/campaign stop at the victory wave (the run ends there).
+    // ENDLESS keeps drafting forever (incl. AT the victory wave) — the run continues past it, so
+    // the player must keep getting upgrade picks deep into infinite mode (FEEDBACK v2.34.0).
+    if (w % 5 === 0 && (endless || w < victoryWave())) drafts++;
   }
   gold += totalBonus;
   const label = to > from ? `${to - from + 1} waves clear!` : 'Wave clear!';

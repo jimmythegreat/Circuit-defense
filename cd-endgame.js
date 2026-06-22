@@ -22,11 +22,12 @@ const ACHIEVEMENTS = [
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
-  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 10 tower types on the board' },
+  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 11 tower types on the board' },
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
   { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
   { id:'nightmare_win', icon:'🌑', name:'Nightmare Walker', desc:'Win a game on Nightmare difficulty' },
   { id:'legend_tower',  icon:'🏵️', name:'Living Legend',     desc:'Promote a tower to Legend rank (200 kills)' },
+  { id:'endless100',    icon:'🌌', name:'Eternity',           desc:'Reach wave 100 in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -47,6 +48,7 @@ function grantAchievements(won) {
   if (won && gameMode === 'campaign' && campLevel >= 10) give('camp10');
   if (won && gameMode === 'campaign' && campLevel >= CAMPAIGN_LEVELS) give('camp_done');
   if (wave >= 50) give('endless50');
+  if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
   if (comboBest >= 30) give('combo30');

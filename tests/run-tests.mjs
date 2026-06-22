@@ -1115,14 +1115,26 @@ async function main() {
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
+      // --- Scenario A: parallel spawners + the (now cap-agnostic) concurrent-wave cap ---
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
       beginGame(); gold = 999999;
       __cdGodTowers(8);
       autoWave = false;
-      startWave(); startWave(); startWave();        // 3 parallel waves
+      const cap = MAX_CONCURRENT_WAVES;
+      startWave(); startWave(); startWave();        // 3 parallel waves (below the cap)
       const parallel = { wave, spawners: spawners.length, active: waveActive };
-      const w0 = wave; startWave();                  // capped: 4th must be blocked
-      const capped = wave === w0;
+      while (wave - lastSettledWave < cap) startWave();   // fill exactly to the cap
+      const atCap = { wave, unsettled: wave - lastSettledWave, spawners: spawners.length };
+      const w0 = wave; startWave();                  // one beyond the cap must be blocked
+      const capped = wave === w0 && (wave - lastSettledWave) === cap;
+      backToMenu();
+
+      // --- Scenario B: bundled settlement + deferred draft (fresh run, small batches) ---
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); gold = 999999;
+      __cdGodTowers(8);
+      autoWave = false;
+      startWave(); startWave(); startWave();        // waves 1-3 (below the wave-5 milestone)
       // drive to a full clear -> bundled settlement of waves 1,2,3 (no draft, no 5x)
       let g = 0; while ((spawners.length || enemies.length || pendingSpawns.length) && !draftOpen && g < 300000) { update(1/60); g++; }
       const settled = { wave, lastSettled: lastSettledWave, active: waveActive };
@@ -1133,11 +1145,13 @@ async function main() {
       if (draftOpen) document.getElementById('draftCards').children[0].click();
       const afterPick = { draftOpen, pendingDrafts, perks: runPerks.length };
       backToMenu();
-      return { parallel, capped, settled, draftState, afterPick };
+      return { parallel, atCap, capped, cap, settled, draftState, afterPick };
     });
     check('three waves run as parallel spawners at once', r.parallel.spawners === 3 && r.parallel.wave === 3,
       `spawners=${r.parallel.spawners} wave=${r.parallel.wave}`);
-    check('4th wave blocked at the concurrent cap (3)', r.capped, `wave went to ${r.parallel.wave}`);
+    check(`fills to the concurrent cap (${r.cap}) as parallel spawners`, r.atCap.unsettled === r.cap && r.atCap.spawners === r.cap,
+      `unsettled=${r.atCap.unsettled} spawners=${r.atCap.spawners} cap=${r.cap}`);
+    check('a wave beyond the cap is blocked', r.capped, `wave=${r.atCap.wave} unsettled=${r.atCap.unsettled}`);
     check('field fully clears and settles all bundled waves', r.settled.lastSettled === 3 && r.settled.active === false,
       `lastSettled=${r.settled.lastSettled} active=${r.settled.active}`);
     check('a rush across wave 5 defers exactly one draft', r.draftState.draftOpen === true && r.draftState.pendingDrafts === 1,
@@ -3079,7 +3093,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 19 badges', r.total === 19, `total=${r.total}`);
+    check('achievement roster grew to 20 badges', r.total === 20, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6178,8 +6192,8 @@ async function main() {
     const r = await page.evaluate(() => {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.railhit5 && /Railgun/.test(ACH_BY_ID.railhit5.desc);
-      // stale-label fix: Full Arsenal now reads "10 tower types" (Laser added v2.9.0)
-      const arsenalOk = /10 tower types/.test(ACH_BY_ID.arsenal.desc);
+      // stale-label fix: Full Arsenal now reads "11 tower types" (Pulsar added v2.23.0; desc fixed v2.34.0)
+      const arsenalOk = /11 tower types/.test(ACH_BY_ID.arsenal.desc);
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
@@ -6214,7 +6228,7 @@ async function main() {
       return { badgeOk, arsenalOk, startsZero, tracked, grantedOnLoss, notUnder5 };
     });
     check('Sharpshooter badge defined (railhit5, Railgun desc)', r.badgeOk);
-    check('Full Arsenal desc updated to "10 tower types"', r.arsenalOk);
+    check('Full Arsenal desc updated to "11 tower types"', r.arsenalOk);
     check('railBestHit resets to 0 on a new run', r.startsZero);
     check('fireRail tracks the peak single-beam rake (6 in a line)', r.tracked === 6, `tracked=${r.tracked}`);
     check('railBestHit>=5 grants Sharpshooter (win or loss)', r.grantedOnLoss);
@@ -9008,7 +9022,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 19;
+      const rosterOk = ACHIEVEMENTS.length === 20;   // +endless100 🌌 Eternity (v2.34.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9047,7 +9061,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 19', r.rosterOk);
+    check('achievement roster grew to 20', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -9982,6 +9996,79 @@ async function main() {
     check('waveThreat preview matches real spawn HP at deep hard waves', r.threatMatches);
     check('Campaign is exempt from the deep-wave body bump', r.campaignExempt);
     check('no console errors during count-ramp test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [142] Endless milestone drafts past wave 30 + the 🌌 Eternity (wave-100) achievement (v2.34.0,
+  // FEEDBACK "On endless mode I don't get the milestone upgrades after it goes infinite mode").
+  console.log('\n[142] Endless drafts past wave 30 + Eternity badge');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const mkTower = (x, y) => ({ type:'gun', x, y, range:120, dmg:10, rate:0.5, cd:0, level:1,
+        kills:0, dealt:0, mode:'first', invested:0 });
+      const clearField = () => { enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; };
+      const resetDraft = () => { pendingDrafts = 0; draftOpen = false;
+        document.getElementById('draftModal').style.display = 'none'; };
+
+      // --- ENDLESS: the victory-wave crossing (30) queues a milestone draft (the bug fix) ---
+      localStorage.removeItem('cd_save');
+      endless = true; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); gold = 99999; towers.push(mkTower(200, 200)); autoWave = false;
+      resetDraft();
+      wave = 30; lastSettledWave = 29; waveActive = true; victory = false; clearField();
+      endWave();
+      const draftAt30 = draftOpen === true && victory === true && gameOver === false;
+      resetDraft();
+
+      // …and a deeper multiple of 5 (35) keeps drafting (victory already banked).
+      wave = 35; lastSettledWave = 34; waveActive = true; clearField();
+      endWave();
+      const draftAt35 = draftOpen === true && gameOver === false;
+      resetDraft();
+
+      // …but a non-milestone wave (33) does NOT draft.
+      wave = 33; lastSettledWave = 32; waveActive = true; clearField();
+      endWave();
+      const noDraftAt33 = draftOpen === false && pendingDrafts === 0;
+      resetDraft();
+      backToMenu();
+
+      // --- NON-endless Quick at wave 30 ends the run (no draft — contrast) ---
+      localStorage.removeItem('cd_save');
+      endless = false; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); gold = 99999; towers.push(mkTower(200, 200)); autoWave = false;
+      resetDraft();
+      wave = 30; lastSettledWave = 29; waveActive = true; victory = false; clearField();
+      endWave();
+      const quickNoDraft = draftOpen === false && gameOver === true;
+      resetDraft();
+      backToMenu();
+
+      // --- 🌌 Eternity: granted at wave ≥100, withheld below ---
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'endless100');
+      endless = true; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); towers.push(mkTower(200, 200));
+      wave = 99;
+      const at99 = grantAchievements(false).map(a => a.id).includes('endless100');
+      meta.achievements = {};
+      wave = 100;
+      const at100 = grantAchievements(false).map(a => a.id).includes('endless100');
+
+      endless = false; localStorage.removeItem('cd_save'); localStorage.removeItem('cd_campaign');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { draftAt30, draftAt35, noDraftAt33, quickNoDraft, inRoster, at99, at100 };
+    });
+    check('endless: a draft opens at the victory wave (30) and the run continues', r.draftAt30);
+    check('endless: a draft opens at a deeper milestone (wave 35)', r.draftAt35);
+    check('endless: no draft on a non-milestone wave (33)', r.noDraftAt33);
+    check('non-endless Quick wave 30 ends the run with no draft', r.quickNoDraft);
+    check('Eternity is in the achievement roster', r.inRoster);
+    check('Eternity withheld below wave 100 (wave 99)', !r.at99);
+    check('Eternity granted at wave 100', r.at100);
+    check('no console errors during endless-draft test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

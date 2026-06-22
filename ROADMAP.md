@@ -74,8 +74,9 @@ _None currently known._ (Add any here as found — top priority.)
         bump from w40 (`+min(30, floor((w−40)·0.4))`, capped +30 for perf; ~+12% bodies @w140), shared by
         buildWave()+waveComposition() so the preview can't drift. Re-checked the proportional **boss** scaling
         — bosses inherit the deep HP ramp via `t.hp` proportionally (not super-linearly on top), matching the
-        owner's "scaled (maybe not as high)" — left as-is. **REMAINING FEEDBACK sub-ask (top of PENDING):**
-        endless milestone drafts past wave 30.
+        owner's "scaled (maybe not as high)" — left as-is. The harder-Endless FEEDBACK thread is now
+        **CLOSED** — endless milestone drafts past wave 30 shipped v2.34.0 [142] (the draft loop was gated
+        `w < victoryWave()`; Endless's victory wave is 30, so it stopped drafting the moment it went infinite).
       - **Economy lever near-exhausted** (measured v1.24.4): 10-wave war chest ≈2613 gold (≈70% bounty).
         Untrimmed levers move it <2% each → low leverage. Prefer difficulty/tower-power levers.
 - [~] **Frost/booster damage snowball** — Shatter ×6→×4.5 (v1.10.0); booster aura power +75%→+65%
@@ -138,7 +139,7 @@ _None currently known._ (Add any here as found — top priority.)
 ### Enemies / bosses / waves
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
-  haste-aura, Enrager's regular-enemy cousin). Concurrent waves (up to 3) v1.12.0 [20].
+  haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
 - 18 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
   siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter) v1.25.0–v2.30.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable).
 - 20 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
@@ -150,8 +151,9 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 19 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
-  reach a tower's top Legend veterancy rank; lifetime tower-kills stat in Records); roster data-driven [48]/[92].
+  cost rework v1.38.0 [55]. 20 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
+  lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting
@@ -165,6 +167,7 @@ _None currently known._ (Add any here as found — top priority.)
 - Daily Challenge (date-seeded) v1.28.0 [47] + streak v1.31.0 [50] + preview v1.47.0; combo meter v1.7.0 [71].
 - **♾️ Endless mode** v2.17.0 [127] (FEEDBACK): menu tile (quick-mode + `endless` flag, NOT a 3rd gameMode);
   banks the wave-30 win once then continues with no victory wall; resumable; additive save field (old saves → false).
+  **Milestone drafts continue past wave 30** v2.34.0 [142] (FEEDBACK — they used to stop at the victory wave).
 
 ### Scoring / records / save
 - End-of-run score+grade + restyled overlay v1.16.0 [31]; speed bonus v1.78.0; breakdown v1.62.0 [73].

@@ -21,7 +21,11 @@ let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // or enemies still on the field. lastSettledWave = highest wave whose clear-bonus/draft
 // has been paid; pendingDrafts = drafts owed but not yet shown (bundled rush settlement).
 let spawners = [], lastSettledWave = 0, pendingDrafts = 0;
-const MAX_CONCURRENT_WAVES = 3;  // cap unsettled waves so rapid Space can't stack endlessly
+// Cap on unsettled (in-flight) waves you can stack at once. Raised 3→8 per owner FEEDBACK
+// ("I should be able to add as many waves as I want", v2.34.0) — a high ceiling that plays as
+// "pour as many as you like" for normal sessions while still bounding the body count so a stuck
+// Space key / a deep-endless stack can't lock up the browser. Settlement/draft logic is cap-agnostic.
+const MAX_CONCURRENT_WAVES = 8;
 let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
 // Restore the game-speed preference (1x/2x/3x) — persisted like cd_mute so a refresh
 // (and resuming a run) keeps your chosen speed instead of silently dropping to 1x,

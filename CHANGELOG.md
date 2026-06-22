@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.34.0 — 2026-06-22 — ♾️ Endless milestone drafts past wave 30 + higher wave cap — FEEDBACK
+
+**Type:** Bug fix + feature (owner FEEDBACK, the top two PENDING items) + a new achievement. Minor bump. No economy/balance/save-schema change (additive achievement only).
+
+- **Endless milestone drafts past wave 30 (FEEDBACK #1, the bug).** In Endless the every-5-waves upgrade draft silently stopped at wave 30 — `endWave()`'s draft loop was gated `w % 5 === 0 && w < victoryWave()`, and Endless's `victoryWave()` is 30, so the run continued past the win with no more perk picks. Changed the gate to `w % 5 === 0 && (endless || w < victoryWave())`, so Endless now drafts at **every** multiple of 5 forever (including AT wave 30). Quick/Campaign are unchanged (the loop already `return`s at the victory crossing for non-endless). The perk pool can't run dry — 6 REPEATABLE perks always keep ≥3 cards available, so no empty/soft-locked modal. New test group **[142]**.
+- **Concurrent-wave cap 3 → 8 (FEEDBACK #2, low-pri).** Owner: *"I should be able to add as many waves as I want."* Raised `MAX_CONCURRENT_WAVES` 3→8 — pour up to eight in-flight waves at once. Kept a (high) ceiling rather than fully unbounded so a stuck Space key or a deep-Endless stack (waves already field ~250 bodies each at w140) can't lock up the browser; say the word to lift it further. All settlement/draft/Add-Wave-button logic was already cap-agnostic (reads the constant). Test [20] rewritten to be cap-agnostic (fills to the cap, asserts one-beyond is blocked).
+- **New achievement 🌌 Eternity (roster 19 → 20).** Reach **wave 100** in a single run (no `won` gate — a feat, like 🎯 Sharpshooter; pairs with the existing ♾️ Endless at wave 50). Rewards the now-rewarding deep-Endless grind. Additive/save-safe. Also fixed the stale 🧰 Full Arsenal description ("all 10 tower types" → "all 11"; the condition was always `TYPE_KEYS.length`, now 11 since the Pulsar).
+
+Suite **1545 → 1556** green (new [142] + the roster-count + cap assertions updated). `sw.js` cache → `v2.34.0`. **PENDING now empty.**
+
 ## v2.33.0 — 2026-06-21 — 👥 Deep-wave enemy COUNT ramp (Hard/Nightmare) — FEEDBACK
 
 **Type:** Balance / difficulty scaling (owner FEEDBACK — the top PENDING follow-up to the harder-Endless work, after the v2.31.0 HP slice + v2.32.0 ability/aura slice). Minor bump. Gated to quick-mode Hard/Nightmare; Normal/Easy/Campaign + waves ≤40 byte-identical. No economy/save/schema change.

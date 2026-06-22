@@ -10,11 +10,13 @@ When it completes an item it moves it to DONE below with the date and version.
 
 ## PENDING
 
-On endless mode I don't get the milestone upgrades after it goes infinite mode.
-
-[low priority] I should be able to add as many waves as I want.
+_(empty — all items shipped)_
 
 ## DONE
+
+- **2026-06-22 · v2.34.0** — "On endless mode I don't get the milestone upgrades after it goes infinite mode" → **FIXED.** `endWave()`'s draft loop was gated `w < victoryWave()`, and Endless's victory wave is 30, so the every-5-waves perk draft stopped the moment the run went infinite. Changed to `(endless || w < victoryWave())` so Endless drafts at every multiple of 5 forever (incl. at wave 30). Quick/Campaign unchanged. Pool can't run dry (6 REPEATABLE perks). Test [142].
+
+- **2026-06-22 · v2.34.0** — "[low priority] I should be able to add as many waves as I want" → Raised the concurrent-wave cap `MAX_CONCURRENT_WAVES` 3→8 (pour up to eight in-flight waves at once). Kept a high ceiling rather than fully unbounded so a stuck Space key / a deep-Endless stack (~250 bodies/wave at w140) can't lock the browser — ask if you want it lifted further. Test [20] (cap-agnostic). Also shipped this run: a new 🌌 Eternity achievement (reach wave 100).
 
 - **2026-06-21 · v2.33.0** — "Make the game way harder as the levels progress, especially endless" (harder-Endless follow-up; the "more enemies per deep wave" sub-ask) → **COMPLETE for this request.** Added a `waveCount()` helper: quick-mode Hard/Nightmare now get a bounded deep-wave body bump from wave 40 (`+floor((w−40)·0.4)`, capped +30 → ≈+10 @w65, +24 @w100, +30 from w115), shared by buildWave()+waveComposition() so the preview/threat can't drift. The +30 cap protects perf (~250 bodies @w140 already). Normal/Easy/Campaign + waves ≤40 byte-identical. Also re-checked the proportional boss scaling (sub-ask 2): bosses inherit the deep HP ramp via `t.hp` proportionally, matching "bosses should also be scaled (maybe not as high)" — left as-is. Test [141]. (Original note: "at wave 65 Hard I have 100k unused gold; at 140 I had 1.5m and sold towers to end it" — HP slice v2.31.0, ability/aura slice v2.32.0, body-count slice v2.33.0 together close it.)
 
