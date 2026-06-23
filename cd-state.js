@@ -37,6 +37,10 @@ let comboCount = 0, comboTimer = 0, comboBest = 0, comboFlash = 0;
 // this run. Run-only, never saved (enemies aren't persisted, and the feat is a momentary one
 // that can recur any time the rail fires — so a resumed run can still earn it; no force-on-load).
 let railBestHit = 0;
+// Hoarder tracking (v2.35.0): peak gold banked at any point this run. Run-only, never saved — the
+// feat is re-earnable (a resumed run re-accumulates from the restored gold on the first update frame),
+// so no force-on-load (mirrors railBestHit). Grants the 💰 Hoarder achievement at 10,000.
+let peakGold = 0;
 const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
@@ -87,6 +91,7 @@ function resetState() {
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   railBestHit = 0;
+  peakGold = 0;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);

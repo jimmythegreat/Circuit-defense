@@ -211,13 +211,13 @@ function enemyTemplate(w) {
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
 // disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
 // conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0, suppressor v2.16.0,
-// absorber v2.27.0, distorter v2.30.0). Indexed by boss number from wave 20 on, so deep bosses cycle
+// absorber v2.27.0, distorter v2.30.0, custodian v2.35.0). Indexed by boss number from wave 20 on, so deep bosses cycle
 // regen → summoner → bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon →
-// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter
-// (w95 → suppressor, w100 → absorber, w105 → distorter, w110 wraps to regen). The cycle length reads
+// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter → custodian
+// (w100 → absorber, w105 → distorter, w110 → custodian, w115 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian'];
 // Enemy COUNT for a wave (v2.33.0, owner FEEDBACK "make the game way harder as the levels
 // progress, especially endless" — the body-count slice that follows the v2.31.0 HP ramp and
 // v2.32.0 ability/aura scaling). Base grows the same unbounded linear line it always has; the
@@ -349,6 +349,19 @@ function buildWave(w) {
     // is ever active so no stacking with wardens/breachers/jammers despite the shared slot. Run-only
     // (enemies are never persisted) — no save migration.
     if (modIs('bastions') && e.kind === 'norm' && i % 4 === 1) e = { kind:'bastion', hp:t.hp*1.6, spd:t.speed*0.9, r:14, bounty:Math.ceil(t.bounty*2.2), color:'#7a86c8', armor:0, gap:0.85, aoeResist:true };
+    // Herald Surge (Mayhem, v2.35.0): convert a fraction of would-be basic enemies into ⚑ Herald
+    // escorts (the wave-wide cousin of the Herald enemy, like Warden Surge ↔ the Warden / Breacher
+    // Surge ↔ the Breacher / Jammer Surge ↔ the Jammer / Bastion Surge ↔ the Bastion). Mirrors those
+    // conversions exactly — only norms convert (so it never overrides the rarer special kinds above)
+    // and it's a conversion not an addition (wave length unchanged). The converted heralds carry the
+    // full herald stats, so the general kind==='herald' aura tick in update() drives them identically:
+    // each refreshes the +35% haste aura on nearby allies, so a densely-heralded wave SURGES toward the
+    // exit en masse — pressuring TARGET PRIORITY (pop the heralds and the pack slows back to base) on
+    // the SPEED axis, distinct from the flat frenzy mod (everyone fast) because it's source-gated. Bounded:
+    // haste is capped at +35% and binary (no stacking), heralds are slow (×0.9) and only moderately tanky,
+    // frost slow still multiplies in and freeze pauses the aura → can't make a run easier. One mod is ever
+    // active so no stacking with wardens/breachers/jammers/bastions despite the shared slot. Run-only.
+    if (modIs('heralds') && e.kind === 'norm' && i % 4 === 1) e = { kind:'herald', hp:t.hp*1.25, spd:t.speed*0.9, r:13, bounty:Math.ceil(t.bounty*2.2), color:'#ff79c6', armor:0, gap:0.85 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;

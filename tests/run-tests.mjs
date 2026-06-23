@@ -2555,9 +2555,10 @@ async function main() {
       // Archetypes only attach from wave 20+; earlier (tutorial) bosses stay vanilla.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const vanillaEarly = bt(5) === undefined && bt(10) === undefined && bt(15) === undefined;
-      // Rotation by boss number: (w/5 - 4) % 18 → regen, summoner, bulwark, enrager, teleporter,
+      // Rotation by boss number: (w/5 - 4) % 19 → regen, summoner, bulwark, enrager, teleporter,
       // berserker, disruptor, juggernaut, siphon, hydra, revenant, conduit, warper, fortifier,
-      // warlord, suppressor, absorber, distorter, then wraps (w100 → absorber, w105 → distorter, w110 → regen).
+      // warlord, suppressor, absorber, distorter, custodian, then wraps (w105 → distorter, w110 →
+      // custodian, w115 → regen).
       const rotation = bt(20) === 'regen' && bt(25) === 'summoner'
                     && bt(30) === 'bulwark' && bt(35) === 'enrager'
                     && bt(40) === 'teleporter' && bt(45) === 'berserker'
@@ -2565,7 +2566,7 @@ async function main() {
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
                     && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
-                    && bt(105) === 'distorter' && bt(110) === 'regen';
+                    && bt(105) === 'distorter' && bt(110) === 'custodian' && bt(115) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -3093,7 +3094,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 20 badges', r.total === 20, `total=${r.total}`);
+    check('achievement roster grew to 21 badges', r.total === 21, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6533,7 +6534,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 18);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 19);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7898,7 +7899,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 18);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 19);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8242,7 +8243,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 18);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 19);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8513,7 +8514,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 18);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 19);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8676,7 +8677,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 18);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 19);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8835,7 +8836,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 18);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 19);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9022,7 +9023,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 20;   // +endless100 🌌 Eternity (v2.34.0)
+      const rosterOk = ACHIEVEMENTS.length === 21;   // +hoarder 💰 Hoarder (v2.35.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9061,7 +9062,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 20', r.rosterOk);
+    check('achievement roster grew to 21', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -9715,7 +9716,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 18);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 19);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9741,10 +9742,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 18th archetype: appears at w105 (after absorber at w100); the cycle wraps at w110 → regen.
+      // 18th archetype: appears at w105 (after absorber at w100); w110 is the 19th (custodian, v2.35.0).
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(105) === 'distorter';
-      const wrapsAt110 = bt(110) === 'regen';
+      const wrapsAt110 = bt(110) === 'custodian';
       const archCount = BOSS_ARCHETYPES.length;
 
       const sp = pointAt(60);
@@ -9803,8 +9804,8 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 18);
-    check('rotation wraps after distorter (w110 → regen)', r.wrapsAt110);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 19);
+    check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
     check('buff/support towers are immune to distortion', r.buffImmune);
@@ -10069,6 +10070,191 @@ async function main() {
     check('Eternity withheld below wave 100 (wave 99)', !r.at99);
     check('Eternity granted at wave 100', r.at100);
     check('no console errors during endless-draft test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [143] Custodian boss archetype — the 19th: a continuous damage-SHIELD aura projected to its
+  // cohort (the ◈ Warden's protection as a BOSS; reuses the `warded` ×0.6 factor). (v2.35.0)
+  console.log('\n[143] Custodian boss (cohort damage-shield archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 19th archetype: appears at w110 (after distorter at w105); the cycle wraps at w115 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(110) === 'custodian';
+      const wrapsAt115 = bt(115) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      // Focused aura: a custodian + allies at the same path point (x/y set from pointAt so the
+      // distance check is valid on the first frame regardless of array order).
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const mid = pathLen * 0.4;
+      const mk = (kind, dist, extra = {}) => { const p = pointAt(dist); return ({ kind,
+        hp:5000, maxHp:5000, spd:0, r:13, bounty:1, color:'#fff', armor:0, gap:0, dist,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      const custo  = mk('boss', mid, { bossType:'custodian' });
+      const ally   = mk('norm', mid);    // same point → in the ward aura
+      const far    = mk('norm', 0);      // start of path → out of range
+      const otherB = mk('boss', mid, { bossType:'regen' });  // another boss → never warded
+      enemies.push(custo, ally, far, otherB);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const allyWarded   = ally.warded > 0;
+      const farUnwarded  = !(far.warded > 0);
+      const bossPeerFree = !(otherB.warded > 0);
+      const selfFree     = !(custo.warded > 0);
+
+      // damage reduction: a warded enemy takes 40% less (×0.6); a clean one takes full
+      const wa = mk('norm', mid, { warded: 0.25 }); const hpA = wa.hp; damage(wa, 100, null);
+      const wardedTook = hpA - wa.hp;
+      const wb = mk('norm', 0); const hpB = wb.hp; damage(wb, 100, null);
+      const cleanTook = hpB - wb.hp;
+
+      // adds no HP/speed of its own (nothing shoots the lone boss)
+      enemies.length = 0;
+      const lone = mk('boss', mid, { bossType:'custodian' });
+      enemies.push(lone);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = lone.hp === 5000 && lone.spd === 0;
+
+      // the ward LAPSES once the custodian is gone (no refresher → decays to 0)
+      enemies.length = 0;
+      const orphan = mk('norm', mid, { warded: 0.25 });
+      enemies.push(orphan);   // no custodian present
+      for (let i = 0; i < 30; i++) update(1/60);
+      const lapses = orphan.warded === 0;
+
+      // a FROZEN custodian stops warding (gated block; freeze counters it)
+      enemies.length = 0;
+      const fb = mk('boss', mid, { bossType:'custodian', frozen: 5 });
+      const fv = mk('norm', mid);
+      enemies.push(fb, fv);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const frozenStops = !(fv.warded > 0);
+
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'custodian' });
+      const badgeOk = !!badge && badge.label === 'WARDING';
+      const rangeLever = typeof CUSTODIAN_RANGE === 'number' && CUSTODIAN_RANGE > 0;
+
+      enemies.length = 0; pendingSpawns.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
+               wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
+    });
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 19);
+    check('rotation wraps after custodian (w115 → regen)', r.wrapsAt115);
+    check('a living custodian wards a nearby ally', r.allyWarded);
+    check('an ally outside the aura is not warded', r.farUnwarded);
+    check('the custodian never wards another boss', r.bossPeerFree);
+    check('the custodian does not ward itself', r.selfFree);
+    check('a warded ally takes 40% less damage (×0.6)', Math.abs(r.wardedTook - 60) < 1e-6, 'took=' + r.wardedTook);
+    check('a clean ally takes full damage', Math.abs(r.cleanTook - 100) < 1e-6, 'took=' + r.cleanTook);
+    check('custodian adds no HP or speed of its own', r.noHpOrSpeed);
+    check('the ward lapses the instant the custodian is gone', r.lapses);
+    check('a frozen custodian stops warding (freeze counters it)', r.frozenStops);
+    check('boss-bar badge reads WARDING', r.badgeOk);
+    check('CUSTODIAN_RANGE lever exists', r.rangeLever);
+    check('no console errors during Custodian test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [144] Herald Surge wave mod — converts basic enemies into haste-aura ⚑ Heralds (v2.35.0)
+  console.log('\n[144] Herald Surge (haste-aura wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'heralds');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) herald count for a wave-10 wave (no natural heralds until w18).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainHeralds = plainWave.filter(e => e.kind === 'herald').length;
+
+      // HERALD SURGE — a fraction of basic enemies become heralds, so the wave has MORE.
+      setMod('heralds');
+      const surgeWave = buildWave(10);
+      const surgeHeralds = surgeWave.filter(e => e.kind === 'herald').length;
+      const moreHeralds = surgeHeralds > plainHeralds;
+      const conv = surgeWave.find(e => e.kind === 'herald');
+      const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#ff79c6' && conv.r === 13;
+      // Conversion not addition: total wave length unchanged, special kinds untouched.
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'herald').length === plainHeralds;
+
+      // A converted herald projects the +35% haste aura on a nearby ally (reuses the general tick).
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const mid = pathLen * 0.4;
+      const mk = (kind, dist, extra = {}) => { const p = pointAt(dist); return ({ kind,
+        hp:1000, maxHp:1000, spd:0, r:13, bounty:1, color:'#ff79c6', armor:0, gap:0, dist,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      const herald = mk('herald', mid);
+      const ally   = mk('norm', mid);
+      enemies.push(herald, ally);
+      for (let i = 0; i < 4; i++) update(1/60);
+      const hastesAlly = ally.hasted > 0;
+
+      enemies.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, moreHeralds, wellFormed, sameLength, fastUntouched, inertOff, hastesAlly,
+               plainHeralds, surgeHeralds };
+    });
+    check('WAVE_MODS includes Herald Surge', r.hasMod);
+    check('Herald Surge adds heralds to the wave', r.moreHeralds, `${r.plainHeralds}->${r.surgeHeralds}`);
+    check('converted heralds are well-formed (maxHp/colour/radius)', r.wellFormed);
+    check('Herald Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Herald Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Herald Surge is inert when the mod is off', r.inertOff);
+    check('a converted herald hastes a nearby ally', r.hastesAlly);
+    check('no console errors during Herald Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [145] Hoarder achievement — bank 10,000 gold at once in a single run (v2.35.0)
+  console.log('\n[145] Hoarder achievement (peak-gold feat)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const mkTower = (x, y) => ({ type:'gun', x, y, range:120, dmg:10, rate:0.5, cd:0, level:1,
+        kills:0, dealt:0, mode:'first', invested:0 });
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'hoarder');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame(); towers.push(mkTower(200, 200));
+
+      const startsZero = peakGold === 0;          // resetState zeroes the tracker
+      gold = 4000; update(1/60);
+      const tracks4k = peakGold === 4000;          // update() tracks the running peak
+      gold = 1000; update(1/60);                   // spending does NOT lower the peak
+      const peakSticks = peakGold === 4000;
+
+      meta.achievements = {}; peakGold = 9999;
+      const below = grantAchievements(false).map(a => a.id).includes('hoarder');
+      meta.achievements = {}; peakGold = 10000;
+      const at10k = grantAchievements(false).map(a => a.id).includes('hoarder');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, startsZero, tracks4k, peakSticks, below, at10k };
+    });
+    check('Hoarder is in the achievement roster', r.inRoster);
+    check('peakGold starts at 0 after resetState', r.startsZero);
+    check('update() tracks the running peak gold', r.tracks4k);
+    check('spending gold does not lower the peak', r.peakSticks);
+    check('Hoarder withheld below 10,000 gold', !r.below);
+    check('Hoarder granted at 10,000 gold', r.at10k);
+    check('no console errors during Hoarder test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

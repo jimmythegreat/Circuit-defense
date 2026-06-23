@@ -31,9 +31,9 @@ _None currently known._ (Add any here as found — top priority.)
       version is still open if wanted); a predictive lead-shot spec to counter blinkers
       (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun (Minigun vs AP) for a
       strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 19th boss archetype (18th = 🔮 Distorter tower-range dampening aura,
-      shipped v2.30.0 [139], first at w105 — the range sibling of the Suppressor; the `fog` mod as a boss,
-      freeze-counterable; 17th = ◎ Absorber per-hit damage CAP v2.27.0 [137]); per-campaign-tier *fixed*
+- [ ] **Boss/enemy follow-ups** — a 20th boss archetype (19th = 🛡 Custodian cohort damage-shield aura,
+      shipped v2.35.0 [143], first at w110 — the ◈ Warden's protection as a boss, freeze-counterable; 18th =
+      🔮 Distorter tower-range dampening aura v2.30.0 [139]); per-campaign-tier *fixed*
       archetypes (vs the wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
@@ -42,7 +42,8 @@ _None currently known._ (Add any here as found — top priority.)
       already does −6%/rank ability cd, so this would overlap); a Barrier *cooldown*-shortening talent (the
       other Barrier lever, distinct from Aegis's charges); a hidden unlock condition for a secret legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses); a stronger
-      ×1.6 double-speed variant of `frenzy`. (Pool is 20 mods; most axes covered.)
+      ×1.6 double-speed variant of `frenzy`. (Pool is 21 mods after ⚑ Herald Surge v2.35.0 [144] — the
+      haste-aura surge, Herald enemy's wave-wide cousin; most axes covered.)
 - [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136] (enemies + boss powers) + **v2.28.0** (🛡 Towers
       section: all 11 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
       start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
@@ -140,10 +141,10 @@ _None currently known._ (Add any here as found — top priority.)
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
-- 18 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter) v1.25.0–v2.30.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable).
-- 20 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
-  adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/meteors) [46]+ many.
+- 19 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian) v1.25.0–v2.35.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable).
+- 21 Mayhem wave mods (frenzy/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
+  adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/meteors) [46]+ many; Herald Surge v2.35.0 [144].
 
 ### Difficulty / progression / meta
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
@@ -151,9 +152,9 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 20 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 21 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
-  lifetime tower-kills stat in Records); roster data-driven [48]/[92].
+  + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting

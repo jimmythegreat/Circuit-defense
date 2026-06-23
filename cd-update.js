@@ -19,6 +19,7 @@ function enemyMechScale() {
 function update(dt) {
   if (gameOver || paused || !started || draftOpen) return;
   gameTime += dt;
+  if (gold > peakGold) peakGold = gold;   // 💰 Hoarder feat tracking (v2.35.0)
 
   // ability cooldowns
   for (const k of Object.keys(abilityCd)) abilityCd[k] = Math.max(0, abilityCd[k] - dt);
@@ -529,6 +530,28 @@ function update(dt) {
         }
         e.distortCd = (e.distortCd == null ? 2.5 : e.distortCd) - dt;
         if (e.distortCd <= 0) { e.distortCd = 2.5; addExplosion(e.x, e.y, '#e879f9', 9, DISTORT_RANGE); SFX.bossSkill(); }
+      } else if (e.bossType === 'custodian') {
+        // Custodian (v2.35.0, the 19th archetype — a fresh axis: a continuous damage-SHIELD aura
+        // projected to its COHORT. It is the ◈ Warden's protective aura as a BOSS, just as the
+        // Suppressor/Distorter are the brownout/fog mods as bosses. Each frame it refreshes a short
+        // `warded` timer on every nearby non-boss ally within CUSTODIAN_RANGE (×mechScale so it grows
+        // with wave depth, like the warden/herald/enrager auras); a warded enemy takes 40% less damage
+        // (damage() reads `e.warded`, reusing the EXACT warden factor ×0.6). So the whole pack escorting
+        // the boss is shielded — pressuring TARGET PRIORITY (drop the Custodian and the cohort's
+        // protection lapses at once, since `warded` decays the instant nothing refreshes it). Distinct
+        // from the Conduit (protected BY its escorts) and the Warlord (flat ARMOR rally): this is a %
+        // damage reduction the boss GIVES to the cluster. Bounded / "too easy"-safe: it adds NO HP or
+        // speed, the shield is the same bounded −40% the Warden already grants (no stacking — `warded`
+        // is a single timer), buff towers are unaffected, and freeze pauses the aura (gated block) so a
+        // frozen Custodian can't ward — making freeze + focus a clean counter. A periodic pulse fires the
+        // SFX + a burst so the ward reads at a glance. Run-only `wardCd`, never persisted.
+        const wr = CUSTODIAN_RANGE * mechScale;
+        for (const o of enemies) {
+          if (o === e || o.kind === 'boss' || o.dead) continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < wr) o.warded = 0.25;
+        }
+        e.wardCd = (e.wardCd == null ? 2.5 : e.wardCd) - dt;
+        if (e.wardCd <= 0) { e.wardCd = 2.5; addExplosion(e.x, e.y, '#8ec7ff', 10, wr); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -806,6 +829,10 @@ const ABSORB_CAP = 0.05;         // single-hit damage ceiling = maxHp × this (�
 // non-buff tower within it has its firing range cut 20% (effRange's `t.distorted` factor — a localized
 // `fog`), opening a coverage gap near the boss. Distinct axis from the Suppressor (fire rate vs range).
 const DISTORT_RANGE = 130;       // px reach of the range-distortion aura (matches the suppressor aura reach)
+// Custodian boss archetype (v2.35.0) lever: it refreshes the warden damage-shield (warded → ×0.6 / −40%)
+// on every nearby non-boss ally within this reach (×enemyMechScale, so it widens with wave depth like the
+// warden/herald/enrager auras). The shield itself reuses the warden factor in damage(); only the radius lives here.
+const CUSTODIAN_RANGE = 115;     // px reach of the protective ward aura
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];

@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.35.0 — 2026-06-23 — 🛡 Custodian boss + ⚑ Herald Surge mod + 💰 Hoarder badge
+
+**Type:** Content (a boss archetype, a Mayhem wave-mod, an achievement). Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP. No economy/balance/save-schema change (all additive; enemies/mods are run-only).
+
+- **🛡 Custodian — the 19th boss archetype (ROADMAP "boss follow-ups").** First appears at wave **110** (the cycle now wraps `w115 → regen`). While alive (and unfrozen) it projects a continuous **damage-shield aura** over its cohort — every nearby non-boss ally within `CUSTODIAN_RANGE` (115px, ×`enemyMechScale` so it widens deep) takes **40% less damage**. It reuses the ◈ Warden's fully-managed `warded` infra (the general per-frame decay + the existing `dmg *= 0.6` line in `damage()`), so the only new logic is the aura tick. A "kill the keystone" target-priority fight: drop the Custodian (or **freeze** it) and the ward lapses off the whole pack at once. Adds **no HP/speed** (bounded; can't make a run easier), boss-bar badge reads **WARDING** (light-azure aura ring), and the Bestiary lists it. New test group **[143]**.
+- **⚑ Herald Surge — the 21st Mayhem wave-mod (ROADMAP "wave-mod follow-ups").** Converts a fraction of would-be basic enemies (`i%4===1` norms) into haste-projecting ⚑ **Herald** escorts — the wave-wide cousin of the Herald enemy, mirroring Warden/Breacher/Jammer/Bastion Surge exactly (conversion, not addition; only norms convert; one mod ever active). A densely-heralded wave **surges** toward the exit en masse, pressuring **target priority** (pop the heralds to slow the pack). Reuses the general `kind==='herald'` aura tick, so no new aura code; bounded (haste is the capped +35%, frost slow/freeze still counter it). New test group **[144]**.
+- **💰 Hoarder — a new achievement (roster 20 → 21).** Bank **10,000 gold at once** in a single run (no `won` gate — a feat, like 🎯 Sharpshooter; a wink at the deep-Endless gold pile-up). Tracked by a run-only `peakGold` (reset in `resetState()`, updated each `update()` frame, never saved → re-earnable on resume). New test group **[145]**.
+
+Suite **1556 → 1583** green (new [143]/[144]/[145] + the roster-count & boss-rotation assertions updated). `sw.js` cache → `v2.35.0`.
+
 ## v2.34.0 — 2026-06-22 — ♾️ Endless milestone drafts past wave 30 + higher wave cap — FEEDBACK
 
 **Type:** Bug fix + feature (owner FEEDBACK, the top two PENDING items) + a new achievement. Minor bump. No economy/balance/save-schema change (additive achievement only).
