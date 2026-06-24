@@ -3,6 +3,12 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.35.1 — 2026-06-24 — 🩺 Health check — all green (1583/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.29.1: v2.30.0, v2.31.0, v2.32.0, v2.33.0, v2.34.0, v2.35.0 — at the 6-run trigger.)
+
+Suite **1583/0** green, zero console errors, exit 0. All 8 game files under the ~1500-line cap (largest cd-update.js 1103, cd-render.js 1051, cd-game.js 993). file:// playability intact (8 classic scripts in order, no ES modules, SW guarded to http/https). Old-format save/meta migrate cleanly (verified live in-browser: legacy meta `{chips,talents}` back-fills achievements/stats/bestCombo/towerKills; legacy run defaults mapTheme/endless/gameTime, rebuilds towers). Docs coherent — every headline count matches code (11 towers, 5 abilities, 26 talents, 21 achievements, 21 Mayhem wave mods, 19 boss archetypes, 6 targeting modes, 14 enemy kinds incl. boss, 4 difficulties incl. 🌑 Nightmare, 7 quick maps + mayhem). Versions consistent (GAME_VERSION = sw.js cache = v2.35.1). Refreshed the stale ROADMAP test-harness figure (~9,715→10,274 lines, 138→145 groups, 1503→1583 assertions). Deploy workflow still a static no-build copy. Table-stakes checklist still complete. No gameplay/balance/economy/save changes.
+
 ## v2.35.0 — 2026-06-23 — 🛡 Custodian boss + ⚑ Herald Surge mod + 💰 Hoarder badge
 
 **Type:** Content (a boss archetype, a Mayhem wave-mod, an achievement). Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP. No economy/balance/save-schema change (all additive; enemies/mods are run-only).
