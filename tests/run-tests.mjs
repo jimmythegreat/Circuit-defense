@@ -2566,7 +2566,8 @@ async function main() {
                     && bt(60) === 'siphon' && bt(65) === 'hydra' && bt(70) === 'revenant'
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
                     && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
-                    && bt(105) === 'distorter' && bt(110) === 'custodian' && bt(115) === 'regen';
+                    && bt(105) === 'distorter' && bt(110) === 'custodian'
+                    && bt(115) === 'veil' && bt(120) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -3094,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 21 badges', r.total === 21, `total=${r.total}`);
+    check('achievement roster grew to 22 badges', r.total === 22, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6534,7 +6535,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 19);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 20);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7899,7 +7900,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 19);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 20);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8243,7 +8244,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 19);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 20);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8514,7 +8515,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 19);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 20);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8677,7 +8678,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 19);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 20);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8836,7 +8837,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 19);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 20);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9023,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 21;   // +hoarder 💰 Hoarder (v2.35.0)
+      const rosterOk = ACHIEVEMENTS.length === 22;   // +combo50 🌠 Combo God (v2.36.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9062,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 21', r.rosterOk);
+    check('achievement roster grew to 22', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -9716,7 +9717,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 19);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 20);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9804,7 +9805,7 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 19);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 20);
     check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
@@ -10082,10 +10083,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 19th archetype: appears at w110 (after distorter at w105); the cycle wraps at w115 → regen.
+      // 19th archetype: appears at w110 (after distorter at w105); w115 is the 20th (veil, v2.36.0).
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(110) === 'custodian';
-      const wrapsAt115 = bt(115) === 'regen';
+      const wrapsAt115 = bt(115) === 'veil';
       const archCount = BOSS_ARCHETYPES.length;
 
       // Focused aura: a custodian + allies at the same path point (x/y set from pointAt so the
@@ -10144,8 +10145,8 @@ async function main() {
       return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
                wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
     });
-    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 19);
-    check('rotation wraps after custodian (w115 → regen)', r.wrapsAt115);
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 20);
+    check('veil follows custodian (w115 → veil)', r.wrapsAt115);
     check('a living custodian wards a nearby ally', r.allyWarded);
     check('an ally outside the aura is not warded', r.farUnwarded);
     check('the custodian never wards another boss', r.bossPeerFree);
@@ -10255,6 +10256,165 @@ async function main() {
     check('Hoarder withheld below 10,000 gold', !r.below);
     check('Hoarder granted at 10,000 gold', r.at10k);
     check('no console errors during Hoarder test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [146] Veil boss archetype — the 20th: spreads the cloak (intangibility) flag to its cohort,
+  // the 🫥 Cloaking Field mod / 👻 phantom as a BOSS aura; reuses the existing cloak machinery. (v2.36.0)
+  console.log('\n[146] Veil boss (cohort-cloak archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 20th archetype: appears at w115 (after custodian at w110); the cycle wraps at w120 → regen.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(115) === 'veil';
+      const wrapsAt120 = bt(120) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const mid = pathLen * 0.4;
+      const mk = (kind, dist, extra = {}) => { const p = pointAt(dist); return ({ kind,
+        hp:5000, maxHp:5000, spd:0, r:13, bounty:1, color:'#fff', armor:0, gap:0, dist,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      const veil   = mk('boss', mid, { bossType:'veil' });
+      const ally   = mk('norm', mid);    // same point → in the veil aura
+      const far    = mk('norm', 0);      // start of path → out of range
+      const otherB = mk('boss', mid, { bossType:'regen' });  // another boss → never tagged
+      enemies.push(veil, ally, far, otherB);
+      // run long enough for the cloak machinery to pulse the tagged ally intangible (~2.5s + margin)
+      let sawInvuln = false;
+      for (let i = 0; i < 200; i++) { update(1/60); if (ally.blinkInvuln > 0) sawInvuln = true; }
+      const allyCloaked  = ally.cloak === true;
+      const farUntagged  = !far.cloak;
+      const bossPeerFree = !otherB.cloak;
+      const selfFree     = !veil.cloak;
+
+      // adds no HP/speed of its own (nothing shoots the lone boss)
+      enemies.length = 0;
+      const lone = mk('boss', mid, { bossType:'veil' });
+      enemies.push(lone);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = lone.hp === 5000 && lone.spd === 0;
+
+      // a FROZEN veil stops tagging (gated block; freeze counters it)
+      enemies.length = 0;
+      const fb = mk('boss', mid, { bossType:'veil', frozen: 5 });
+      const fv = mk('norm', mid);
+      enemies.push(fb, fv);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const frozenStops = !fv.cloak;
+
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'veil' });
+      const badgeOk = !!badge && badge.label === 'VEILING';
+      const rangeLever = typeof VEIL_RANGE === 'number' && VEIL_RANGE > 0;
+      const codexOk = CODEX_BOSSES.some(b => b.type === 'veil');
+
+      enemies.length = 0; pendingSpawns.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt120, archCount, allyCloaked, farUntagged, bossPeerFree, selfFree,
+               sawInvuln, noHpOrSpeed, frozenStops, badgeOk, rangeLever, codexOk };
+    });
+    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 20);
+    check('rotation wraps after veil (w120 → regen)', r.wrapsAt120);
+    check('a living veil cloaks a nearby ally', r.allyCloaked);
+    check('a cloaked ally periodically phases out (untargetable)', r.sawInvuln);
+    check('an ally outside the aura is not cloaked', r.farUntagged);
+    check('the veil never cloaks another boss', r.bossPeerFree);
+    check('the veil does not cloak itself', r.selfFree);
+    check('veil adds no HP or speed of its own', r.noHpOrSpeed);
+    check('a frozen veil stops cloaking (freeze counters it)', r.frozenStops);
+    check('boss-bar badge reads VEILING', r.badgeOk);
+    check('VEIL_RANGE lever exists', r.rangeLever);
+    check('veil has a Bestiary/Codex entry', r.codexOk);
+    check('no console errors during Veil test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [147] Blitz wave mod — the "double-time" +60% speed variant of Frenzy (v2.36.0)
+  console.log('\n[147] Blitz (faster Frenzy variant wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'blitz');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      setMod(null);
+      const plainNorm = buildWave(8).find(e => e.kind === 'norm');
+      const plainSpd = plainNorm.spd;
+      const plainBoss = buildWave(10).find(e => e.kind === 'boss');
+      const plainBossSpd = plainBoss.spd;
+
+      const plainLen = buildWave(8).length;
+      setMod('blitz');
+      const blitzNorm = buildWave(8).find(e => e.kind === 'norm');
+      const blitzSpd = blitzNorm.spd;
+      const blitzBoss = buildWave(10).find(e => e.kind === 'boss');
+      const blitzBossSpd = blitzBoss.spd;
+      // pure speed bump: wave length unchanged (no conversion/addition like the surge mods)
+      const sameLen = buildWave(8).length === plainLen;
+
+      setMod('frenzy');
+      const frenzySpd = buildWave(8).find(e => e.kind === 'norm').spd;
+
+      setMod(null);
+      const inertOff = Math.abs(buildWave(8).find(e => e.kind === 'norm').spd - plainSpd) < 1e-9;
+
+      backToMenu(); localStorage.removeItem('cd_save'); waveMod = null;
+      return { hasMod, plainSpd, blitzSpd, plainBossSpd, blitzBossSpd, frenzySpd, inertOff, sameLen };
+    });
+    check('WAVE_MODS includes Blitz', r.hasMod);
+    check('Blitz gives enemies +60% speed (×1.60)', Math.abs(r.blitzSpd / r.plainSpd - 1.60) < 1e-6, `${r.plainSpd}->${r.blitzSpd}`);
+    check('Blitz speeds the boss too (×1.60)', Math.abs(r.blitzBossSpd / r.plainBossSpd - 1.60) < 1e-6, `${r.plainBossSpd}->${r.blitzBossSpd}`);
+    check('Blitz is faster than Frenzy (1.60 vs 1.35)', r.blitzSpd > r.frenzySpd);
+    check('Blitz changes speed only, not wave length', r.sameLen);
+    check('Blitz is inert when the mod is off', r.inertOff);
+    check('no console errors during Blitz test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [148] Combo-tier word + Combo God achievement (v2.36.0)
+  console.log('\n[148] Combo-tier label + Combo God achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // comboTierLabel mapping steps at the same 10/20/30/50 breakpoints as comboColor/glow
+      const fn = typeof comboTierLabel === 'function';
+      const t0  = comboTierLabel(5)  === '';
+      const t10 = comboTierLabel(12) === 'HEATING UP';
+      const t20 = comboTierLabel(22) === 'RAMPAGE';
+      const t30 = comboTierLabel(35) === 'UNSTOPPABLE';
+      const t50 = comboTierLabel(55) === 'GODLIKE';
+      const boundary = comboTierLabel(10) === 'HEATING UP' && comboTierLabel(9) === ''
+                    && comboTierLabel(50) === 'GODLIKE';
+
+      // Combo God achievement: granted at a 50× peak streak (a feat, no `won` gate); withheld below
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'combo50');
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal';
+      beginGame();
+      meta.achievements = {}; comboBest = 49;
+      const below = grantAchievements(false).map(a => a.id).includes('combo50');
+      meta.achievements = {}; comboBest = 50;
+      const at50 = grantAchievements(false).map(a => a.id).includes('combo50');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fn, t0, t10, t20, t30, t50, boundary, inRoster, below, at50 };
+    });
+    check('comboTierLabel function exists', r.fn);
+    check('comboTierLabel is empty below the first milestone', r.t0);
+    check('comboTierLabel steps HEATING UP / RAMPAGE / UNSTOPPABLE / GODLIKE', r.t10 && r.t20 && r.t30 && r.t50);
+    check('comboTierLabel breakpoints align with the tier (10/50)', r.boundary);
+    check('Combo God is in the achievement roster', r.inRoster);
+    check('Combo God withheld below a 50× streak', !r.below);
+    check('Combo God granted at a 50× streak', r.at50);
+    check('no console errors during Combo God test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -52,6 +52,13 @@ function comboColor(n) {
 function comboGlowTier(n) {
   return n < 10 ? 0 : n >= 50 ? 4 : n >= 30 ? 3 : n >= 20 ? 2 : 1;
 }
+// Combo-tier WORD (v2.36.0, game-feel polish): a short escalating label shown under the bottom-right
+// combo meter once the streak crosses a milestone — '' below 10× (just the number), then a rising
+// shout at the same 10/20/30/50 tier breakpoints as comboColor/comboGlowTier (so colour + word + glow
+// all step together). Pure mapping → unit-testable; render-only, no gameplay/economy/save impact.
+function comboTierLabel(n) {
+  return n >= 50 ? 'GODLIKE' : n >= 30 ? 'UNSTOPPABLE' : n >= 20 ? 'RAMPAGE' : n >= 10 ? 'HEATING UP' : '';
+}
 // Killing Spree perk (v1.73.0): the damage multiplier a HOT kill-combo grants when the
 // 🔥 Killing Spree legendary is held — +1% per combo, capped +25% at a 25× streak. Returns
 // 1 unless the perk is held AND a streak is currently active (comboTimer>0), so it's

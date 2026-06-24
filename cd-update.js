@@ -552,6 +552,29 @@ function update(dt) {
         }
         e.wardCd = (e.wardCd == null ? 2.5 : e.wardCd) - dt;
         if (e.wardCd <= 0) { e.wardCd = 2.5; addExplosion(e.x, e.y, '#8ec7ff', 10, wr); SFX.bossSkill(); }
+      } else if (e.bossType === 'veil') {
+        // Veil (v2.36.0, the 20th archetype — a fresh axis: it spreads INTANGIBILITY to its cohort,
+        // the 🫥 Cloaking Field mod / 👻 phantom enemy as a BOSS aura. Each frame (while unfrozen) it
+        // tags every nearby non-boss ally within VEIL_RANGE (×mechScale, like the warden/custodian
+        // auras) with `o.cloak = true`, handing them to the fully-managed cloak machinery (the general
+        // cloak tick above decays their `blinkInvuln`, re-phases them ~every 2.5s, and the violet cue
+        // ring + faded sphere already render) — so the whole pack escorting the boss periodically PHASES
+        // OUT, untargetable in brief windows. Pressures COVERAGE/UPTIME (slow single-target towers waste
+        // shots; rapid towers barely notice) — distinct from the Custodian's % shield, the Conduit's
+        // by-escort shield, and the Warlord's flat armor. Bounded / "too easy"-safe: adds NO HP or speed,
+        // the cloak is the same brief bounded phase the mod already grants (no stacking — `cloak` is a
+        // binary flag), bosses are never tagged (always killable), and FREEZE pauses the tagging (gated
+        // block) so a frozen Veil can't spread it (freeze + focus is a clean counter). The veil CLINGS —
+        // a tagged escort keeps phasing for the rest of its life (the mod's persistent flag), so the
+        // danger lingers past the boss kill. A periodic pulse fires the SFX + a burst so it reads at a
+        // glance. Reuses the existing cloak infra (zero new fields/skip-sites). Run-only `veilCd`, never saved.
+        const vr = VEIL_RANGE * mechScale;
+        for (const o of enemies) {
+          if (o === e || o.kind === 'boss' || o.dead) continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) < vr) o.cloak = true;
+        }
+        e.veilCd = (e.veilCd == null ? 2.5 : e.veilCd) - dt;
+        if (e.veilCd <= 0) { e.veilCd = 2.5; addExplosion(e.x, e.y, '#dcd2ff', 9, vr); SFX.blink(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -833,6 +856,10 @@ const DISTORT_RANGE = 130;       // px reach of the range-distortion aura (match
 // on every nearby non-boss ally within this reach (×enemyMechScale, so it widens with wave depth like the
 // warden/herald/enrager auras). The shield itself reuses the warden factor in damage(); only the radius lives here.
 const CUSTODIAN_RANGE = 115;     // px reach of the protective ward aura
+// Veil boss archetype (v2.36.0, the 20th) lever: the reach of its intangibility aura — it tags every
+// nearby non-boss ally within this radius (×enemyMechScale) with the persistent `cloak` flag, handing
+// them to the existing cloak machinery (periodic brief untargetability). Adds no HP/speed; freeze pauses it.
+const VEIL_RANGE = 115;          // px reach of the cohort-cloak (intangibility) aura
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];

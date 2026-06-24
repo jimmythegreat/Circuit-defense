@@ -29,6 +29,7 @@ const ACHIEVEMENTS = [
   { id:'legend_tower',  icon:'🏵️', name:'Living Legend',     desc:'Promote a tower to Legend rank (200 kills)' },
   { id:'endless100',    icon:'🌌', name:'Eternity',           desc:'Reach wave 100 in a single run' },
   { id:'hoarder',       icon:'💰', name:'Hoarder',            desc:'Bank 10,000 gold at once in a single run' },
+  { id:'combo50',       icon:'🌠', name:'Combo God',           desc:'Reach a 50× kill-streak in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -53,6 +54,7 @@ function grantAchievements(won) {
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
   if (comboBest >= 30) give('combo30');
+  if (comboBest >= 50) give('combo50');   // 🌠 v2.36.0 — a feat (no `won` gate), pairs with the combo-tier "GODLIKE" word
   if (railBestHit >= 5) give('railhit5');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
   // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
@@ -215,6 +217,7 @@ const CODEX_BOSSES = [
   { type: 'absorber',   glyph: '◎',  color: '#2dd4bf', label: 'Absorber',     wave: 'Wave 100', desc: 'Caps damage from a single hit — big crits are wasted. Use rapid fire or freeze it to crack it open.' },
   { type: 'distorter',  glyph: '🔮', color: '#e879f9', label: 'Distorter',    wave: 'Wave 105', desc: 'Shrinks the firing range of nearby towers (−20%), opening coverage gaps. Freeze it to stop the field.' },
   { type: 'custodian',  glyph: '🛡', color: '#8ec7ff', label: 'Custodian',    wave: 'Wave 110', desc: 'Shields its whole escort — nearby allies take 40% less damage. Kill the Custodian (or freeze it) to drop the ward.' },
+  { type: 'veil',       glyph: '🫥', color: '#dcd2ff', label: 'Veil',         wave: 'Wave 115', desc: 'Cloaks its escorts — nearby allies periodically phase out, untargetable. Use rapid fire or freeze it to stop the spread.' },
 ];
 function openCodex() { renderCodex(); document.getElementById('codexPanel').style.display = 'flex'; focusPanel('codexPanel'); }
 function closeCodex() { document.getElementById('codexPanel').style.display = 'none'; renderStartScreen(); }

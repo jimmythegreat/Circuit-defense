@@ -3,6 +3,17 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.36.0 — 2026-06-24 — 🫥 Veil boss + ⏩ Blitz mod + combo-tier word + 🌠 Combo God
+
+**Type:** Content (a boss archetype, a Mayhem wave-mod, an achievement) + game-feel polish. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP. No economy/balance/save-schema change (all additive; enemies/mods/combo state are run-only).
+
+- **🫥 Veil — the 20th boss archetype (ROADMAP "boss follow-ups").** First appears at wave **115** (the cycle now wraps `w120 → regen`). While alive (and unfrozen) it spreads **intangibility** to its cohort — each frame it tags every nearby non-boss ally within `VEIL_RANGE` (115px ×`enemyMechScale`) with the persistent `cloak` flag, handing them to the existing cloak machinery (periodic brief untargetability + the violet cue ring / faded sphere). The escorting pack **phases out** in windows, so slow single-target towers waste shots while rapid fire barely notices — a fresh **coverage/uptime** axis (the 🫥 Cloaking Field mod / 👻 phantom as a boss). Adds **no HP/speed** (bounded), boss-bar badge reads **VEILING** (pale-spectral aura ring), the Bestiary lists it, and **freeze** pauses the spread (a clean counter). Reuses the cloak infra → zero new fields/skip-sites. New test group **[146]**.
+- **⏩ Blitz — the 22nd Mayhem wave-mod (ROADMAP "wave-mod follow-ups").** A "double-time" speed surge: enemies (and the boss) move **+60% faster** (×1.60) — a bigger flat spike than Frenzy's +35%, leaning hard on coverage/leak. Conversion-free (no extra bodies), mutually exclusive with every other mod (one is ever active). New test group **[147]**.
+- **Combo-tier word (game-feel polish).** The bottom-right combo meter now shouts an escalating label under the multiplier — **HEATING UP → RAMPAGE → UNSTOPPABLE → GODLIKE** — stepping at the same 10/20/30/50 breakpoints as the meter colour/glow. New `comboTierLabel()` (cd-state.js, pure/unit-testable); render-only.
+- **🌠 Combo God — a new achievement (roster 21 → 22).** Reach a **50× kill-streak** in a single run (no `won` gate — a feat, like 💥 Combo Master at 30×; pairs with the new "GODLIKE" tier word). Reads the run's `comboBest` peak in `grantAchievements()`. New test group **[148]**.
+
+Suite **1583 → 1610** green (new [146]/[147]/[148] + the roster-count & boss-rotation assertions updated). `sw.js` cache → `v2.36.0`.
+
 ## v2.35.1 — 2026-06-24 — 🩺 Health check — all green (1583/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.29.1: v2.30.0, v2.31.0, v2.32.0, v2.33.0, v2.34.0, v2.35.0 — at the 6-run trigger.)

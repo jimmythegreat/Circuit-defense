@@ -165,6 +165,7 @@ function distToPath(x, y) {
 // ================= Mayhem mode =================
 const WAVE_MODS = [
   { id:'frenzy',  icon:'💨', name:'Frenzy',        desc:'Enemies +35% speed' },
+  { id:'blitz',   icon:'⏩', name:'Blitz',          desc:'Enemies +60% speed' },
   { id:'swarm',   icon:'🐝', name:'Swarm',         desc:'+60% enemies at -35% HP' },
   { id:'titans',  icon:'🗿', name:'Titans',        desc:'Enemies +50% HP, +50% bounty' },
   { id:'goldrush',icon:'💰', name:'Gold Rush',     desc:'Double bounty this wave' },

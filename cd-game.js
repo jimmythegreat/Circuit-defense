@@ -211,13 +211,13 @@ function enemyTemplate(w) {
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
 // disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
 // conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0, suppressor v2.16.0,
-// absorber v2.27.0, distorter v2.30.0, custodian v2.35.0). Indexed by boss number from wave 20 on, so deep bosses cycle
+// absorber v2.27.0, distorter v2.30.0, custodian v2.35.0, veil v2.36.0). Indexed by boss number from wave 20 on, so deep bosses cycle
 // regen → summoner → bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon →
-// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter → custodian
-// (w100 → absorber, w105 → distorter, w110 → custodian, w115 wraps to regen). The cycle length reads
+// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter → custodian → veil
+// (w105 → distorter, w110 → custodian, w115 → veil, w120 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian', 'veil'];
 // Enemy COUNT for a wave (v2.33.0, owner FEEDBACK "make the game way harder as the levels
 // progress, especially endless" — the body-count slice that follows the v2.31.0 HP ramp and
 // v2.32.0 ability/aura scaling). Base grows the same unbounded linear line it always has; the
@@ -365,6 +365,7 @@ function buildWave(w) {
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
+    if (modIs('blitz'))  e.spd *= 1.60;   // the "double-time" frenzy variant (v2.36.0): a bigger flat speed spike → leak pressure
     if (modIs('goldrush')) e.bounty *= 2;
     if (modIs('drought'))  e.bounty = Math.max(1, Math.floor(e.bounty * 0.5));
     if (modIs('armored')) e.armor += 5 + Math.floor(w * 0.3);
@@ -409,6 +410,7 @@ function buildWave(w) {
     if (modIs('goldrush')) boss.bounty *= 2;
     if (modIs('drought'))  boss.bounty = Math.max(1, Math.floor(boss.bounty * 0.5));
     if (modIs('frenzy')) boss.spd *= 1.35;
+    if (modIs('blitz'))  boss.spd *= 1.60;
     if (modIs('armored')) boss.armor += 5 + Math.floor(w * 0.3);
     if (modIs('regen'))   boss.regen = true;
     if (modIs('adrenaline')) boss.adrenaline = true;
