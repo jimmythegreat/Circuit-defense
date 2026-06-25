@@ -5,6 +5,10 @@ let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters,
 // cast / Meteor impact. Run-only, never saved; gated by particle-density + reduced-motion at source.
 let rings = [];
 let livesLostThisRun = false;
+// Mid-run Bestiary (v2.37.0): true while the 📖 Codex panel auto-paused a live game, so
+// closeCodex() resumes only the pause IT created (never clobbers a manual pause). Pure UI
+// state, never saved; harmless if stale (closeCodex clears it).
+let codexPausedGame = false;
 // Pacifist tracking (v1.29.0): true once any ability (meteor/freeze/rush) is cast this run.
 // Run-only, never saved; forced true on resume (loadRun) so a resumed run can't earn Pacifist.
 let abilityUsedThisRun = false;
@@ -95,6 +99,7 @@ function resetState() {
   barrierCharges = 0; barrierTimer = 0;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
+  codexPausedGame = false;
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   railBestHit = 0;

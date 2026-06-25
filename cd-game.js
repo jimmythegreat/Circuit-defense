@@ -894,6 +894,19 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ') { e.preventDefault(); if (!paused && !draftOpen) startWave(); }  // start/add a wave (startWave self-guards on the concurrent cap)
   if (e.key === 'p' || e.key === 'P') togglePause();
   if (e.key === 'm' || e.key === 'M') toggleMute();
+  // 'C' toggles the mid-run 📖 Bestiary (auto-pauses; v2.37.0). Not on the game-over overlay.
+  if ((e.key === 'c' || e.key === 'C') && !gameOver) {
+    const cp = document.getElementById('codexPanel');
+    if (cp && getComputedStyle(cp).display !== 'none') closeCodex(); else openCodex();
+  }
+  // Enter restarts the same run from the game-over overlay (v2.37.0) — only when Play Again
+  // is offered (it's hidden for one-off Daily runs, which playAgain() also guards).
+  if (e.key === 'Enter' && gameOver) {
+    const ov = document.getElementById('overlay'), retry = document.getElementById('ovRetry');
+    if (ov && getComputedStyle(ov).display !== 'none' && retry && retry.style.display !== 'none') {
+      e.preventDefault(); playAgain();
+    }
+  }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

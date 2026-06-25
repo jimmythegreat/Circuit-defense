@@ -219,8 +219,32 @@ const CODEX_BOSSES = [
   { type: 'custodian',  glyph: '🛡', color: '#8ec7ff', label: 'Custodian',    wave: 'Wave 110', desc: 'Shields its whole escort — nearby allies take 40% less damage. Kill the Custodian (or freeze it) to drop the ward.' },
   { type: 'veil',       glyph: '🫥', color: '#dcd2ff', label: 'Veil',         wave: 'Wave 115', desc: 'Cloaks its escorts — nearby allies periodically phase out, untargetable. Use rapid fire or freeze it to stop the spread.' },
 ];
-function openCodex() { renderCodex(); document.getElementById('codexPanel').style.display = 'flex'; focusPanel('codexPanel'); }
-function closeCodex() { document.getElementById('codexPanel').style.display = 'none'; renderStartScreen(); }
+// The 📖 Bestiary opens from the start menu AND mid-run (in-game Codex button / 'C' hotkey,
+// v2.37.0). When opened during a live game it auto-pauses so the player can read counters
+// without leaking; closeCodex() resumes the pause IT created and skips the start-screen
+// re-render. On the menu (started=false) both are no-ops, so menu behaviour is unchanged.
+function openCodex() {
+  if (started && !gameOver && !paused) {
+    paused = true;
+    const pb = document.getElementById('pauseBtn'); if (pb) pb.textContent = '▶ Resume';
+    codexPausedGame = true;
+  }
+  renderCodex();
+  document.getElementById('codexPanel').style.display = 'flex';
+  focusPanel('codexPanel');
+}
+function closeCodex() {
+  document.getElementById('codexPanel').style.display = 'none';
+  if (started && !gameOver) {
+    if (codexPausedGame) {
+      paused = false;
+      const pb = document.getElementById('pauseBtn'); if (pb) pb.textContent = '⏸ Pause';
+    }
+    codexPausedGame = false;
+  } else {
+    renderStartScreen();
+  }
+}
 function renderCodex() {
   const row = (color, glyph, name, tag, desc, extra) =>
     `<div class="cdxRow"><span class="cdxDisc" style="background:${color}">${glyph || ''}</span>`

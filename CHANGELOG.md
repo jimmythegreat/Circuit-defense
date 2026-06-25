@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.37.0 — 2026-06-25 — 📖 Mid-run Bestiary + ⏎ Enter-to-restart + ability test coverage
+
+**Type:** UX / quality-of-life + test coverage. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP ("link the Bestiary from in-game so it's reachable mid-run"; "Expand harness coverage — abilities"; "a quick-restart hotkey … Enter on the game-over overlay"). No economy/balance/save-schema change (all additive/UI; the one new global `codexPausedGame` is run-only UI state, never serialized).
+
+- **📖 Bestiary reachable mid-run (ROADMAP).** The codex was start-menu-only. Added a 📖 Codex button to the in-game wave-controls row (and a `C` hotkey) that opens the existing Bestiary panel during a live run. Opening it **auto-pauses** the game so you can read a counter without leaking; closing **resumes the pause it created** (never clobbers a manual pause — `openCodex()`/`closeCodex()` are now run-aware, and the new run-only `codexPausedGame` flag tracks whether the codex did the pausing). On the start menu both functions behave exactly as before. The landscape `#controls` row was pinned to one non-wrapping scroll row (mirrors `#shop`) so the extra button can never push Start Wave off-screen. New test group **[150]**.
+- **⏎ Enter restarts the run from the game-over overlay (ROADMAP).** Pressing Enter on the defeat/victory overlay now triggers Play Again (restart the same run) — only when Play Again is offered (hidden for one-off Daily runs). Saves a mouse trip after a loss. Part of test group **[150]**.
+- **Ability test coverage (ROADMAP "expand harness coverage").** New group **[149]** exercises all five abilities headlessly: Meteor arm/disarm, Time Freeze (freezes every live enemy; blocked on cooldown), Gold Rush (gated pre-wave, injects post-wave), Shockwave (knocks enemies back; CC-immune enemies unaffected), and Barrier (banks `barrierMax()` charges, vaporizes a leaker for zero lives, unused charges fade on timer). The abilities were previously almost untested.
+
+Suite **1611 → 1629** green (new [149]/[150]). `sw.js` cache → `v2.37.0`.
+
 ## v2.36.0 — 2026-06-24 — 🫥 Veil boss + ⏩ Blitz mod + combo-tier word + 🌠 Combo God
 
 **Type:** Content (a boss archetype, a Mayhem wave-mod, an achievement) + game-feel polish. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP. No economy/balance/save-schema change (all additive; enemies/mods/combo state are run-only).

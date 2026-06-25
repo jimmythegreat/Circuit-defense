@@ -10418,6 +10418,134 @@ async function main() {
     await page.close();
   }
 
+  // [149] Abilities — meteor arm, freeze, gold rush gating, shockwave, barrier (v2.37.0 coverage)
+  console.log('\n[149] Abilities (meteor/freeze/rush/shock/barrier)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+
+      // ☄️ Meteor is click-to-target: triggering toggles the armed state (no immediate effect).
+      armedAbility = null; abilityCd.meteor = 0;
+      triggerAbility('meteor'); const meteorArmed = armedAbility === 'meteor';
+      triggerAbility('meteor'); const meteorDisarmed = armedAbility === null;
+
+      // 💰 Gold Rush is gated until a wave has started (v1.100.1 anti-farm) — no gold pre-wave.
+      const goldPre = gold; abilityCd.rush = 0;
+      triggerAbility('rush');
+      const rushGated = gold === goldPre && abilityCd.rush === 0;
+
+      startWave();   // wave → 1, so Rush is now allowed and Freeze/Shock have a live wave
+      abilityCd.rush = 0;
+      const goldA = gold;
+      triggerAbility('rush');
+      const rushOk = gold === goldA + (50 + wave * 5) && abilityCd.rush > 0;
+
+      // 🧊 Time Freeze: every live enemy frozen for 4s; second cast blocked while on cooldown.
+      enemies = buildWave(3).filter(x => x.kind !== 'boss').slice(0, 3);
+      enemies.forEach(x => { x.dist = 100; x.dead = false; x.frozen = 0; x.x = 300; x.y = 200; });
+      abilityCd.freeze = 0;
+      triggerAbility('freeze');
+      const freezeOk = enemies.every(x => x.frozen === 4) && abilityCd.freeze > 0;
+      enemies.forEach(x => x.frozen = 0);
+      triggerAbility('freeze');   // cd>0 → early-return, nothing re-freezes
+      const freezeGated = enemies.every(x => x.frozen === 0);
+
+      // 🌀 Shockwave: rewinds path progress (norm −75) but CC-immune enemies shrug it off.
+      const a = buildWave(3).find(x => x.kind === 'norm'); a.dist = 200; a.dead = false; a.x = 400; a.y = 300; a.ccImmune = false; a.frozen = 0;
+      const imm = buildWave(3).find(x => x.kind === 'norm'); imm.dist = 200; imm.dead = false; imm.x = 400; imm.y = 300; imm.ccImmune = true; imm.frozen = 0;
+      enemies = [a, imm];
+      abilityCd.shock = 0;
+      triggerAbility('shock');
+      const shockOk = a.dist === 125;          // 200 − 75 knockback
+      const shockImmune = imm.dist === 200;    // ccImmune skipped entirely
+
+      // 🛡️ Barrier: banks charges that vaporize leakers for zero lives. Isolate one leaker.
+      const leaker = buildWave(1).find(x => x.kind === 'norm');
+      leaker.dist = pathLen + 5; leaker.dead = false; leaker.frozen = 0;
+      spawners = []; pendingSpawns = []; enemies = [leaker];
+      abilityCd.barrier = 0;
+      triggerAbility('barrier');
+      const charges0 = barrierCharges, lives0 = lives;
+      const barrierCast = barrierCharges === barrierMax() && barrierTimer > 0;
+      update(1 / 60);   // leaker reaches the exit → a charge blocks it, no life lost
+      const barrierBlocked = barrierCharges === charges0 - 1 && lives === lives0 && leaker.dead;
+      // Charges FADE: when the timer expires, unused charges clear (v1.100.1).
+      enemies = []; spawners = []; pendingSpawns = [];
+      barrierCharges = 3; barrierTimer = 0.005;
+      update(1 / 60);
+      const barrierFaded = barrierCharges === 0;
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { meteorArmed, meteorDisarmed, rushGated, rushOk, freezeOk, freezeGated,
+               shockOk, shockImmune, barrierCast, barrierBlocked, barrierFaded };
+    });
+    check('Meteor arms on trigger and disarms on re-trigger', r.meteorArmed && r.meteorDisarmed);
+    check('Gold Rush is gated before wave 1 (no pre-wave gold farm)', r.rushGated);
+    check('Gold Rush injects gold once a wave has started', r.rushOk);
+    check('Time Freeze freezes every live enemy for 4s', r.freezeOk);
+    check('Time Freeze is blocked while on cooldown', r.freezeGated);
+    check('Shockwave knocks enemies back along the path', r.shockOk);
+    check('Shockwave does NOT move CC-immune enemies', r.shockImmune);
+    check('Barrier banks charges on cast (barrierMax, with a fade timer)', r.barrierCast);
+    check('Barrier vaporizes a leaker for zero lives lost', r.barrierBlocked);
+    check('Unused Barrier charges fade when the timer expires', r.barrierFaded);
+    check('no console errors during abilities test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [150] Mid-run Bestiary (auto-pause) + Enter-to-restart on game-over overlay (v2.37.0)
+  console.log('\n[150] Mid-run Bestiary + Enter restart');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const cp = () => document.getElementById('codexPanel');
+      const disp = el => getComputedStyle(el).display;
+
+      // Opening the 📖 Codex during a live game auto-pauses and shows the panel with content.
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      openCodex();
+      const opened = disp(cp()) !== 'none';
+      const hasBody = document.getElementById('codexBody').children.length > 0;
+      const pausedOnOpen = paused === true && codexPausedGame === true;
+      closeCodex();
+      const closedHidden = disp(cp()) === 'none';
+      const resumed = paused === false && codexPausedGame === false;
+
+      // It must NOT clobber a manual pause: open over an already-paused game, close stays paused.
+      togglePause();                       // manual pause
+      const manualPaused = paused === true;
+      openCodex();                         // already paused → guard skips, flag stays false
+      const flagStayedFalse = codexPausedGame === false;
+      closeCodex();                        // flag false → does not auto-resume
+      const stillPaused = paused === true;
+      togglePause();                       // tidy up
+
+      // Enter on the game-over overlay restarts the same run (Play Again).
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      endGame();
+      const overlayShown = disp(document.getElementById('overlay')) !== 'none';
+      const retryShown = document.getElementById('ovRetry').style.display !== 'none';
+      const wasOver = gameOver === true;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      const restarted = gameOver === false && disp(document.getElementById('overlay')) === 'none' && started === true;
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { opened, hasBody, pausedOnOpen, closedHidden, resumed,
+               manualPaused, flagStayedFalse, stillPaused,
+               overlayShown, retryShown, wasOver, restarted };
+    });
+    check('mid-run Codex opens and renders content', r.opened && r.hasBody);
+    check('mid-run Codex auto-pauses the game', r.pausedOnOpen);
+    check('closing the Codex hides it and resumes the game it paused', r.closedHidden && r.resumed);
+    check('Codex does not clobber a manual pause (stays paused on close)',
+          r.manualPaused && r.flagStayedFalse && r.stillPaused);
+    check('game-over overlay shows Play Again (non-daily)', r.overlayShown && r.retryShown && r.wasOver);
+    check('Enter on the game-over overlay restarts the run', r.restarted);
+    check('no console errors during mid-run Bestiary test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

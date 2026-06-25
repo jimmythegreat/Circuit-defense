@@ -48,8 +48,9 @@ _None currently known._ (Add any here as found — top priority.)
 - [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136] (enemies + boss powers) + **v2.28.0** (🛡 Towers
       section: all 11 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
       start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
-      per tower. Remaining follow-up: **link it from the in-game upgrade panel / boss bar so it's reachable
-      mid-run** (still start-menu-only).
+      per tower. **Mid-run access DONE v2.37.0 [150]** — a 📖 Codex button in the in-game controls + a `C`
+      hotkey open it during a run (auto-pauses; closing resumes). A boss-bar / upgrade-panel deep-link to the
+      specific entry you're facing is a possible further follow-up.
 - [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
 
 ### Balance (simulate before/after, ≤25% per number per run)
@@ -96,8 +97,8 @@ _None currently known._ (Add any here as found — top priority.)
       (button hierarchy v1.39.1 → accent tiles v2.0.2 → dashboard v2.1.0). FEEDBACK item moved to DONE.
 - [ ] **What's New flush polish** — the panel butts against `#gameCol`'s right edge, ~21px wider than
       the canvas (driven by `.hint` margins) → minor cosmetic gap. Could constrain column width to canvas.
-- [ ] **Small polish follow-ups** — slide-in animation on overlay buttons (note: R is already Shockwave —
-      a quick-restart hotkey needs a free key, e.g. Enter on the game-over overlay);
+- [ ] **Small polish follow-ups** — slide-in animation on overlay buttons (~~a quick-restart hotkey, e.g.
+      Enter on the game-over overlay~~ DONE v2.37.0 [150] — Enter → Play Again when offered);
       ~~hide the faint between-wave `Next:` preview while the upgrade panel is open~~ (DONE v2.29.0 [138]);
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
       a per-kind hover tooltip (~~DPS-relative read on the wave-threat number~~ DONE v2.29.0 [138] —
@@ -116,11 +117,11 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~10,274 lines (145 groups, 1583
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~10,540 lines (150 groups, 1629
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
-- [ ] **Expand harness coverage** — abilities (meteor/freeze/rush/shock/barrier), spec selection at L5,
-      mayhem path-shift on resume. (Campaign next-level flow now covered by [109].)
+- [ ] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
+      spec selection at L5, mayhem path-shift on resume still open. (Campaign next-level flow covered by [109].)
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
       a numeric gold/dmg bound *after* a draft can flake if a gold/power perk lands in slot 0. v1.20.2 fixed
       group [32] by asserting the pre-draft economy. Sweep other run-driving groups; pin to pre-draft/perk-neutral.

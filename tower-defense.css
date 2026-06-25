@@ -641,7 +641,11 @@
     .towerBtn .icon { font-size: 14px; }
     .towerBtn .key { display: none; }
     .towerBtn small { display: none; }   /* drop the description line to keep buttons slim */
-    #controls { margin-top: 4px; }
-    button.ctl { padding: 6px 10px; font-size: 12px; }
+    /* Pin the wave controls to ONE non-wrapping row (mirrors #shop above) so Start Wave can
+       never be pushed off the bottom by an extra button / CI font metrics — it scrolls
+       sideways instead. overflow-x is contained, so no page-level horizontal overflow. */
+    #controls { margin-top: 4px; flex-wrap: nowrap; overflow-x: auto;
+                max-width: calc(100vw - 12px); justify-content: flex-start; }
+    button.ctl { padding: 6px 10px; font-size: 12px; flex: 0 0 auto; }
     .hint { display: none; }
   }
