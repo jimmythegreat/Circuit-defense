@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 22 badges', r.total === 22, `total=${r.total}`);
+    check('achievement roster grew to 24 badges', r.total === 24, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 22;   // +combo50 🌠 Combo God (v2.36.0)
+      const rosterOk = ACHIEVEMENTS.length === 24;   // +centurion 💯 +gravekeeper ⚰️ (v2.38.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 22', r.rosterOk);
+    check('achievement roster grew to 24', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -10543,6 +10543,101 @@ async function main() {
     check('game-over overlay shows Play Again (non-daily)', r.overlayShown && r.retryShown && r.wasOver);
     check('Enter on the game-over overlay restarts the run', r.restarted);
     check('no console errors during mid-run Bestiary test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [151] High-contrast mode — accessibility render aid + persisted device pref (v2.38.0)
+  console.log('\n[151] High-contrast mode');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // setter persists + toggles the global both ways
+      setHighContrast(true);
+      const onOk = highContrast === true && localStorage.getItem('cd_highcontrast') === '1';
+      setHighContrast(false);
+      const offOk = highContrast === false && localStorage.getItem('cd_highcontrast') === '0';
+      // Settings panel exposes the row
+      openSettings();
+      const hasRow = /High contrast/.test(document.getElementById('settingsBody').innerHTML);
+      closeSettings();
+      // a live board renders cleanly with it ON (the new dual-halo enemy outline path)
+      highContrast = true;
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      startWave();
+      let sawEnemies = false;
+      for (let i = 0; i < 150; i++) { update(1/60); draw(); if (enemies.length > 0) sawEnemies = true; }
+      highContrast = false;
+      try { localStorage.removeItem('cd_highcontrast'); } catch(e) {}
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { onOk, offOk, hasRow, sawEnemies };
+    });
+    check('setHighContrast(true) sets the global and persists cd_highcontrast=1', r.onOk);
+    check('setHighContrast(false) clears the global and persists cd_highcontrast=0', r.offOk);
+    check('Settings panel shows the High contrast row', r.hasRow);
+    check('board renders with high contrast on while enemies are present', r.sawEnemies);
+    check('no console errors during high-contrast test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [152] New achievements — 💯 Centurion (100 runs) + ⚰️ Gravekeeper (100k lifetime kills) (v2.38.0)
+  console.log('\n[152] Centurion + Gravekeeper achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'centurion') && ACHIEVEMENTS.some(a => a.id === 'gravekeeper');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      towers.length = 0;   // no per-run kills/dmg → only the lifetime stats we set drive the checks
+
+      // Centurion: grantAchievements increments runs by 1, so 99→100 grants, 98→99 withholds.
+      fresh(); meta.stats.runs = 98;
+      const centBelow = grantAchievements(false).map(a => a.id).includes('centurion');
+      fresh(); meta.stats.runs = 99;
+      const centAt = grantAchievements(false).map(a => a.id).includes('centurion');
+
+      // Gravekeeper: lifetime towerKills ≥ 100,000 (empty board → no kills added this run).
+      fresh(); meta.stats.towerKills = 99999;
+      const graveBelow = grantAchievements(false).map(a => a.id).includes('gravekeeper');
+      fresh(); meta.stats.towerKills = 100000;
+      const graveAt = grantAchievements(false).map(a => a.id).includes('gravekeeper');
+
+      fresh(); backToMenu(); localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
+      return { inRoster, centBelow, centAt, graveBelow, graveAt };
+    });
+    check('Centurion & Gravekeeper are in the achievement roster', r.inRoster);
+    check('Centurion withheld at 99 finished runs', !r.centBelow);
+    check('Centurion granted at the 100th finished run', r.centAt);
+    check('Gravekeeper withheld below 100,000 lifetime kills', !r.graveBelow);
+    check('Gravekeeper granted at 100,000 lifetime kills', r.graveAt);
+    check('no console errors during new-achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [153] Auto-wave preference persists across loads (cd_autowave, v2.38.0). Previously the
+  // 🔁 Auto-wave toggle silently reset to ON every page load; now it round-trips on this device.
+  console.log('\n[153] Auto-wave persistence');
+  {
+    // Pre-set the pref to OFF, then load a FRESH page and confirm `autoWave` restored to false
+    // and the toolbar button reflects it (the load-time restoration that was missing before).
+    const page = await browser.newPage();
+    await page.addInitScript(() => { try { localStorage.setItem('cd_mute', '1'); localStorage.setItem('cd_autowave', '0'); } catch (e) {} });
+    await page.goto(GAME_URL, { waitUntil: 'load' });
+    const r = await page.evaluate(() => {
+      const restored = autoWave;                    // should load as OFF from cd_autowave='0'
+      const labelOff = document.getElementById('autoBtn').textContent.includes('OFF');
+      toggleAuto();                                 // OFF -> ON, should persist
+      const afterOn = autoWave; const storedOn = localStorage.getItem('cd_autowave');
+      const labelOn = document.getElementById('autoBtn').textContent.includes('ON');
+      toggleAuto();                                 // ON -> OFF, should persist
+      const storedOff = localStorage.getItem('cd_autowave');
+      try { localStorage.removeItem('cd_autowave'); } catch (e) {}
+      return { restored, labelOff, afterOn, storedOn, labelOn, storedOff };
+    });
+    check('autoWave restores to OFF from cd_autowave="0" on load', r.restored === false);
+    check('auto-wave button label reflects the restored OFF state', r.labelOff);
+    check('toggleAuto flips the global and persists ON', r.afterOn === true && r.storedOn === '1' && r.labelOn);
+    check('toggleAuto persists OFF on the next flip', r.storedOff === '0');
     await page.close();
   }
 

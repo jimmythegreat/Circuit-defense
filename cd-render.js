@@ -714,9 +714,15 @@ function draw() {
     ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
     ctx.fillStyle = sphereG;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    // High-contrast mode (v2.38.0): a bold dual halo (thick black ring + bright white inner
+    // ring) makes every enemy pop off the busy/dark board regardless of its hue. Default OFF →
+    // the standard faint outline (byte-identical to pre-v2.38.0).
+    if (highContrast) {
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 3.5; ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1.4; ctx.stroke();
+    } else {
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     const gly = enemyGlyph(e);
@@ -1044,6 +1050,8 @@ function loop(now) {
 }
 started = false;
 document.getElementById('speedBtn').textContent = `⏩ ${speed}x`;  // reflect restored cd_speed pref
+{ const ab = document.getElementById('autoBtn');   // reflect restored cd_autowave pref (v2.38.0)
+  ab.textContent = `🔁 Auto-wave: ${autoWave ? 'ON' : 'OFF'}`; ab.classList.toggle('off', !autoWave); }
 loadMeta();
 buildPath();
 renderStartScreen();

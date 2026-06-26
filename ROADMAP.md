@@ -97,7 +97,8 @@ _None currently known._ (Add any here as found — top priority.)
       (button hierarchy v1.39.1 → accent tiles v2.0.2 → dashboard v2.1.0). FEEDBACK item moved to DONE.
 - [ ] **What's New flush polish** — the panel butts against `#gameCol`'s right edge, ~21px wider than
       the canvas (driven by `.hint` margins) → minor cosmetic gap. Could constrain column width to canvas.
-- [ ] **Small polish follow-ups** — slide-in animation on overlay buttons (~~a quick-restart hotkey, e.g.
+- [ ] **Small polish follow-ups** — (~~slide-in animation on overlay buttons~~ DONE v2.38.0 — overlay
+      buttons rise + fade in, reduced-motion-gated; ~~a quick-restart hotkey, e.g.
       Enter on the game-over overlay~~ DONE v2.37.0 [150] — Enter → Play Again when offered);
       ~~hide the faint between-wave `Next:` preview while the upgrade panel is open~~ (DONE v2.29.0 [138]);
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
@@ -105,7 +106,8 @@ _None currently known._ (Add any here as found — top priority.)
       board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing);
-      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE; a combo-tier *shape* is still open) + high-contrast mode;
+      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE; a combo-tier *shape* is still open);
+      ~~high-contrast mode~~ (DONE v2.38.0 [151] — ◐ Settings toggle, bold dual-halo enemy outlines);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
       rank-tinted barrels v2.21.0 [131].)
@@ -155,9 +157,10 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 22 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 24 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
+  + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -184,8 +187,9 @@ _None currently known._ (Add any here as found — top priority.)
 favicon/meta/OG (v1.8.6) · PWA install+offline (v1.30.0 [49]) · responsive/mobile (v1.14.0 [29] / v1.15.0 [30]) ·
 touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.43.0 [61]) · keyboard a11y menus
 (v1.19.0 [37]) + draft (v1.20.0 [38]) · colorblind aid (v1.18.0 [36]) · reduced-motion (v1.10.0) · volume slider
-(v1.13.2 [25]) · high-DPI scaling (v1.17.0 [35]) · settings persistence (shake/particles/grid/colorblind/vol/speed/
-default-mode). _New table-stakes can be added here as the bar rises._
+(v1.13.2 [25]) · high-DPI scaling (v1.17.0 [35]) · high-contrast mode (v2.38.0 [151]) · settings persistence
+(shake/particles/grid/colorblind/high-contrast/vol/speed/default-mode/auto-wave [v2.38.0 153]).
+_New table-stakes can be added here as the bar rises._
 
 ### Tech / tooling (done)
 - Domain-split into 7 `cd-*.js` classic scripts v1.8.1/v1.8.2 [12] (NEVER ES modules). GitHub Actions CI v1.71.1

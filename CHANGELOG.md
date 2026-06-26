@@ -3,6 +3,17 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.38.0 — 2026-06-26 — ◐ High-contrast mode + persistent auto-wave + overlay polish + 2 badges
+
+**Type:** Accessibility + settings-persistence + game-feel polish + content (2 achievements). Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP (accessibility "high-contrast mode"; settings persistence; "slide-in animation on overlay buttons"; owner-loves achievements). No economy/balance/save-schema change (all additive; two new device prefs default to no-op/identical behaviour, two new lifetime-feat badges read existing migrated stats).
+
+- **◐ High-contrast mode (accessibility / ROADMAP "high-contrast mode").** New Settings toggle (`cd_highcontrast`, default OFF). When ON, every enemy sphere is drawn with a bold dual halo — a thick black ring plus a bright white inner ring — so foes pop crisply off the busy/dark board whatever their own hue (a readability aid for low-vision play or a glary screen). Render-only and gated: with it OFF the board is byte-identical to before. New test group **[151]**.
+- **🔁 Auto-wave toggle now persists (settings persistence / table-stakes).** The auto-start-next-wave preference used to silently reset to ON every page load; it now round-trips on this device (`cd_autowave`, default ON), restored at load (button label + state synced in the startup block) and written in `toggleAuto()`. Device pref only — no run-state/economy/save-schema impact. New test group **[153]** (proves load-time restoration via a fresh-page reload).
+- **Overlay button slide-in (game-feel polish / ROADMAP).** The end-of-run action buttons now rise + fade in with a gentle stagger each time the overlay appears (CSS-only — the overlay toggles `display:none→flex`, which restarts the animation). Gated under `prefers-reduced-motion`.
+- **Two new achievements (roster 22 → 24).** 💯 **Centurion** — finish 100 runs (pairs with 🎖️ Veteran at 25). ⚰️ **Gravekeeper** — defeat 100,000 enemies across all runs (reads the lifetime `towerKills` stat). Both are cumulative-feat badges (no `won` gate), additive and save-safe. New test group **[152]**.
+
+Suite **1629 → 1644** green (new [151]/[152]/[153] + the roster-count assertions updated 22→24). `sw.js` cache → `v2.38.0`.
+
 ## v2.37.0 — 2026-06-25 — 📖 Mid-run Bestiary + ⏎ Enter-to-restart + ability test coverage
 
 **Type:** UX / quality-of-life + test coverage. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP ("link the Bestiary from in-game so it's reachable mid-run"; "Expand harness coverage — abilities"; "a quick-restart hotkey … Enter on the game-over overlay"). No economy/balance/save-schema change (all additive/UI; the one new global `codexPausedGame` is run-only UI state, never serialized).

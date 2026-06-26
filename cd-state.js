@@ -30,7 +30,11 @@ let spawners = [], lastSettledWave = 0, pendingDrafts = 0;
 // "pour as many as you like" for normal sessions while still bounding the body count so a stuck
 // Space key / a deep-endless stack can't lock up the browser. Settlement/draft logic is cap-agnostic.
 const MAX_CONCURRENT_WAVES = 8;
-let speed = 1, paused = false, autoWave = true, autoStartTimer = -1, shake = 0, gameTime = 0;
+// autoWave is the "auto-start the next wave after a short countdown" preference (the 🔁 Auto-wave
+// button). Persisted on this device (cd_autowave, default ON) so a player who turns it off to place
+// towers at their own pace keeps it off across refreshes/sessions (it used to silently reset to ON
+// every load). Device pref only — no run-state/economy/save-schema impact.
+let speed = 1, paused = false, autoWave = localStorage.getItem('cd_autowave') !== '0', autoStartTimer = -1, shake = 0, gameTime = 0;
 // Restore the game-speed preference (1x/2x/3x) — persisted like cd_mute so a refresh
 // (and resuming a run) keeps your chosen speed instead of silently dropping to 1x,
 // which made every tower appear to fire at its base cadence after a reload.

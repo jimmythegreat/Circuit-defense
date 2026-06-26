@@ -996,6 +996,7 @@ function togglePause() {
 }
 function toggleAuto() {
   autoWave = !autoWave;
+  try { localStorage.setItem('cd_autowave', autoWave ? '1' : '0'); } catch(e) {}   // persist the pref (v2.38.0)
   document.getElementById('autoBtn').textContent = `🔁 Auto-wave: ${autoWave ? 'ON' : 'OFF'}`;
   document.getElementById('autoBtn').classList.toggle('off', !autoWave);
   if (!autoWave) {

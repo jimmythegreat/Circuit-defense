@@ -30,6 +30,8 @@ const ACHIEVEMENTS = [
   { id:'endless100',    icon:'🌌', name:'Eternity',           desc:'Reach wave 100 in a single run' },
   { id:'hoarder',       icon:'💰', name:'Hoarder',            desc:'Bank 10,000 gold at once in a single run' },
   { id:'combo50',       icon:'🌠', name:'Combo God',           desc:'Reach a 50× kill-streak in a single run' },
+  { id:'centurion',     icon:'💯', name:'Centurion',           desc:'Finish 100 runs' },
+  { id:'gravekeeper',   icon:'⚰️', name:'Gravekeeper',         desc:'Defeat 100,000 enemies (lifetime)' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -53,6 +55,8 @@ function grantAchievements(won) {
   if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
+  if (meta.stats.runs >= 100) give('centurion');   // 💯 v2.38.0 — a grind/dedication feat (pairs with Veteran@25)
+  if ((meta.stats.towerKills || 0) >= 100000) give('gravekeeper');   // ⚰️ v2.38.0 — lifetime enemy-defeat grind (reads the towerKills stat just tallied)
   if (comboBest >= 30) give('combo30');
   if (comboBest >= 50) give('combo50');   // 🌠 v2.36.0 — a feat (no `won` gate), pairs with the combo-tier "GODLIKE" word
   if (railBestHit >= 5) give('railhit5');
@@ -286,6 +290,7 @@ function toggleSettings() {
 function setShake(on) { shakeEnabled = !!on; try { localStorage.setItem('cd_shake', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setParticles(d) { particleDensity = +d; try { localStorage.setItem('cd_particles', String(+d)); } catch(e) {} renderSettings(); }
 function setColorblind(on) { colorblindAid = !!on; try { localStorage.setItem('cd_colorblind', on ? '1' : '0'); } catch(e) {} renderSettings(); }
+function setHighContrast(on) { highContrast = !!on; try { localStorage.setItem('cd_highcontrast', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setGridSnap(on) { gridSnap = !!on; try { localStorage.setItem('cd_gridsnap', on ? '1' : '0'); } catch(e) {} renderSettings(); }
 function setDefaultMode(m) { defaultTargetMode = MODES.includes(m) ? m : 'first'; try { localStorage.setItem('cd_defaultmode', defaultTargetMode); } catch(e) {} renderSettings(); }
 function renderSettings() {
@@ -293,6 +298,7 @@ function renderSettings() {
     { name: '📳 Screen shake', fn: 'setShake', cur: shakeEnabled, opts: [['On', true], ['Off', false]] },
     { name: '✨ Particle effects', fn: 'setParticles', cur: particleDensity, opts: [['Full', 1], ['Reduced', 0.5], ['Off', 0]] },
     { name: '♿ Colorblind aid', fn: 'setColorblind', cur: colorblindAid, opts: [['On', true], ['Off', false]] },
+    { name: '◐ High contrast', fn: 'setHighContrast', cur: highContrast, opts: [['On', true], ['Off', false]] },
     { name: '▦ Grid snap', fn: 'setGridSnap', cur: gridSnap, opts: [['On', true], ['Off', false]] },
     { name: '🎯 New-tower target', fn: 'setDefaultMode', cur: defaultTargetMode, opts: MODES.map(m => [MODE_ICON[m], m]) },
   ];

@@ -195,6 +195,15 @@
   .ovScoreNum .best.newbest { color: #e3b341; font-weight: bold; }
   @keyframes scorePop { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
   #overlay.scored .ovGrade { animation: scorePop .5s cubic-bezier(.2,1.6,.4,1); }
+  /* Overlay button slide-in (v2.38.0, game-feel polish) — the action buttons rise + fade in,
+     gently staggered, each time the end-of-run overlay appears (the overlay toggles display
+     none→flex, which restarts descendant animations). Reduced-motion-gated below. */
+  @keyframes ovBtnIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  #overlay > div .ctl { animation: ovBtnIn .42s cubic-bezier(.2,.9,.3,1.15) both; }
+  #overlay > div .ctl:nth-child(2) { animation-delay: .07s; }
+  #overlay > div .ctl:nth-child(3) { animation-delay: .14s; }
+  #overlay > div .ctl:nth-child(4) { animation-delay: .21s; }
+  @media (prefers-reduced-motion: reduce) { #overlay > div .ctl { animation: none; } }
   #ovDetails { display: flex; flex-direction: column; align-items: center; gap: 10px;
     margin-bottom: 14px; max-width: 720px; }
   .scoreGrid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
