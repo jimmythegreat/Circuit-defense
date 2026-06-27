@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 24 badges', r.total === 24, `total=${r.total}`);
+    check('achievement roster grew to 26 badges', r.total === 26, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 24;   // +centurion 💯 +gravekeeper ⚰️ (v2.38.0)
+      const rosterOk = ACHIEVEMENTS.length === 26;   // +overlord 🗼 +marathoner 🐢 (v2.39.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 24', r.rosterOk);
+    check('achievement roster grew to 26', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -10638,6 +10638,185 @@ async function main() {
     check('auto-wave button label reflects the restored OFF state', r.labelOff);
     check('toggleAuto flips the global and persists ON', r.afterOn === true && r.storedOn === '1' && r.labelOn);
     check('toggleAuto persists OFF on the next flip', r.storedOff === '0');
+    await page.close();
+  }
+
+  // [154] Retaliation perk (rare, v2.39.0) — a comeback buff: a leak arms a transient +25% tower
+  // damage window that decays over RETALIATE_DUR seconds. "Too easy"-safe (only fires while losing).
+  console.log('\n[154] Retaliation perk (comeback buff)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'retaliation');
+      const inRoster = !!def && def.rarity === 'rare';
+
+      // freshPerkState defaults + apply
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.retaliation === false && fresh.retaliateT === 0;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.retaliation === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      perkState.retaliation = true; lives = 50;
+
+      // A real leak (an enemy reaches the exit) arms the buff timer.
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      const exit = pointAt(pathLen);
+      enemies.push({ kind:'norm', hp:10, maxHp:10, spd:0, r:10, bounty:1, color:'#fff', armor:0,
+        dist: pathLen + 5, x: exit.x, y: exit.y, slow:0, frozen:0, poison:null, flash:0 });
+      const livesBefore = lives;
+      update(1/60);
+      const armedOnLeak = perkState.retaliateT > 0 && perkState.retaliateT <= RETALIATE_DUR && lives < livesBefore;
+
+      // It decays to 0 after the window (RETALIATE_DUR=4s → ~240 frames; run extra for margin).
+      enemies.length = 0;
+      for (let i = 0; i < 300; i++) update(1/60);
+      const fadesOut = perkState.retaliateT === 0;
+
+      // Damage effect: an identical shot hits ×1.25 harder while the buff is active. Crit chance is
+      // 0 by default (no Crit Lab/Systems/Deadeye), so the only difference between runs is the buff.
+      towers.length = 0; enemies.length = 0; projectiles.length = 0;
+      const tp = pointAt(pathLen * 0.3);
+      const T = { type:'gun', x:tp.x, y:tp.y, range:300, dmg:10, rate:0.5, cd:0, level:1, kills:0,
+        dealt:0, mode:'first', invested:0, spec:null, buffPower:0.25, flash:0 };
+      towers.push(T);
+      const mkE = () => ({ kind:'norm', hp:1e6, maxHp:1e6, spd:0, r:10, bounty:1, color:'#fff',
+        armor:0, dist: pathLen * 0.3, x: tp.x, y: tp.y, slow:0, frozen:0, poison:null, flash:0 });
+      perkState.retaliateT = 0; T.cd = 0; const e0 = mkE(); enemies.length = 0; enemies.push(e0);
+      update(1/60); const base = e0.maxHp - e0.hp;
+      perkState.retaliateT = 10; T.cd = 0; const e1 = mkE(); enemies.length = 0; enemies.push(e1);
+      update(1/60); const boosted = e1.maxHp - e1.hp;
+      const dmgScales = base > 0 && Math.abs(boosted / base - 1.25) < 0.02;
+
+      // legendary-only Wildcard never resolves to this rare
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'retaliation';
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, armedOnLeak, fadesOut, dmgScales, base, boosted, wildcardSkips };
+    });
+    check('Retaliation is a rare perk in the roster', r.inRoster);
+    check('freshPerkState defaults retaliation:false / retaliateT:0', r.defaultsOk);
+    check('apply() sets the retaliation flag', r.appliesFlag);
+    check('a leak arms the retaliation buff (costs a life, timer set)', r.armedOnLeak);
+    check('the buff decays to 0 after its window', r.fadesOut);
+    check('a shot during the buff hits ~25% harder', r.dmgScales, `base=${r.base} boosted=${r.boosted}`);
+    check('Wildcard (legendary-only) never resolves to the rare Retaliation', r.wildcardSkips);
+    check('no console errors during Retaliation test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [155] New achievements — 🗼 Overlord (12 towers at once) + 🐢 Marathoner (30-min run) (v2.39.0)
+  console.log('\n[155] Overlord + Marathoner achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'overlord') && ACHIEVEMENTS.some(a => a.id === 'marathoner');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      const mkT = (x, y) => ({ type:'gun', x, y, range:120, dmg:10, rate:0.5, cd:0, level:1, kills:0, dealt:0, mode:'first', invested:0 });
+
+      // peakTowers tracker mirrors peakGold: zeroed by resetState, climbs in update(), never drops.
+      const startsZero = peakTowers === 0;
+      towers.length = 0; for (let i = 0; i < 12; i++) towers.push(mkT(40 + i*20, 200));
+      update(1/60); const tracks12 = peakTowers === 12;
+      towers.length = 8; update(1/60); const peakSticks = peakTowers === 12;
+
+      // Overlord: ≥12 peak towers (no `won` gate). Empty board for the grant checks.
+      fresh(); towers.length = 0; gameTime = 0; peakGold = 0; wave = 0;
+      peakTowers = 11; const ovBelow = grantAchievements(false).map(a => a.id).includes('overlord');
+      fresh(); peakTowers = 12; const ovAt = grantAchievements(false).map(a => a.id).includes('overlord');
+
+      // Marathoner: gameTime ≥ 1800s (30 min), no `won` gate.
+      fresh(); peakTowers = 0; gameTime = 1799; const maBelow = grantAchievements(false).map(a => a.id).includes('marathoner');
+      fresh(); gameTime = 1800; const maAt = grantAchievements(false).map(a => a.id).includes('marathoner');
+
+      fresh(); backToMenu(); localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
+      return { inRoster, startsZero, tracks12, peakSticks, ovBelow, ovAt, maBelow, maAt };
+    });
+    check('Overlord & Marathoner are in the achievement roster', r.inRoster);
+    check('peakTowers starts at 0 after resetState', r.startsZero);
+    check('update() tracks the peak tower count', r.tracks12);
+    check('selling towers does not lower the peak', r.peakSticks);
+    check('Overlord withheld below 12 towers', !r.ovBelow);
+    check('Overlord granted at 12 towers', r.ovAt);
+    check('Marathoner withheld below 30 minutes', !r.maBelow);
+    check('Marathoner granted at 30 minutes', r.maAt);
+    check('no console errors during Overlord/Marathoner test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [156] Combo-tier shape (v2.39.0) — pure escalating mark stepping at the 10/20/30/50 breakpoints,
+  // and draw() renders cleanly at a hot combo with the new shape line present.
+  console.log('\n[156] Combo-tier shape');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fn = typeof comboTierShape === 'function';
+      const below = comboTierShape(5) === '' && comboTierShape(9) === '';
+      const has = comboTierShape(10).length > 0;
+      // escalates with the tier and is distinct per tier
+      const lens = [comboTierShape(10), comboTierShape(20), comboTierShape(30), comboTierShape(50)].map(s => s.length);
+      const grows = lens[0] < lens[1] && lens[1] < lens[2] && lens[2] < lens[3];
+      const distinct = new Set([comboTierShape(10), comboTierShape(20), comboTierShape(30), comboTierShape(50)]).size === 4;
+      // breakpoints align with the colour/word/glow (constant within a tier band)
+      const boundary = comboTierShape(10) === comboTierShape(19) && comboTierShape(20) === comboTierShape(29)
+                    && comboTierShape(50) === comboTierShape(999) && comboTierShape(10) !== '';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
+      comboCount = 55; comboTimer = 1.5; comboFlash = 0.5;
+      let threw = false;
+      try { for (let i = 0; i < 5; i++) draw(); } catch (e) { threw = true; }
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fn, below, has, grows, distinct, boundary, threw };
+    });
+    check('comboTierShape function exists', r.fn);
+    check('comboTierShape is empty below the first milestone', r.below);
+    check('comboTierShape is non-empty at 10x+', r.has);
+    check('comboTierShape grows with the tier', r.grows);
+    check('comboTierShape is distinct per tier (10/20/30/50)', r.distinct);
+    check('comboTierShape breakpoints align with the tier bands', r.boundary);
+    check('draw() renders cleanly at a hot combo with the shape', !r.threw);
+    check('no console errors during combo-shape test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [157] L5 spec selection (coverage) — at level 5 a tower can pick a spec via chooseSpec(); the
+  // pick sets t.spec and feeds the effective stats. Gated below L5 and locked once chosen.
+  console.log('\n[157] L5 spec selection');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      towers.length = 0;
+      const tp = pointAt(pathLen * 0.3);
+      const T = { type:'gun', x:tp.x, y:tp.y, range:120, dmg:10, rate:0.5, cd:0, level:5, kills:0,
+        dealt:0, mode:'first', invested:100, spec:null, buffPower:0.25, flash:0 };
+      towers.push(T); selectedTower = T;
+      showUpgrade(T);
+      const offersSpec = /chooseSpec/.test(document.getElementById('upgradePanel').innerHTML);
+
+      const base = effDmg(T);
+      // gate: below L5 the choice is refused
+      T.level = 4; chooseSpec(1); const blockedLowLevel = T.spec === null;
+      T.level = 5; chooseSpec(1);   // AP Rounds (+25% dmg)
+      const chosen = T.spec === 'ap';
+      const dmgUp = base > 0 && Math.abs(effDmg(T) / base - 1.25) < 0.01;
+      chooseSpec(0);   // already specialised → must NOT overwrite
+      const locked = T.spec === 'ap';
+
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { offersSpec, blockedLowLevel, chosen, dmgUp, locked };
+    });
+    check('upgrade panel offers a spec choice at level 5', r.offersSpec);
+    check('chooseSpec is gated below level 5', r.blockedLowLevel);
+    check('chooseSpec sets the tower spec at level 5', r.chosen);
+    check('the chosen spec feeds effDmg (AP Rounds +25%)', r.dmgUp);
+    check('an already-specialised tower cannot re-choose', r.locked);
+    check('no console errors during L5 spec test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

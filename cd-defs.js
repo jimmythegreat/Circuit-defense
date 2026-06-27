@@ -506,6 +506,16 @@ const PERKS = [
   // Object.assign(freshPerkState(), s.perkState) — old saves default 1). The legendary-only
   // resolveWildcard() rolls it automatically. Test group [130].
   { id:'critmass', rarity:'legendary',icon:'🎯', name:'Critical Mass',     desc:'+10% crit chance; crits hit ×1.5 harder', apply:s=>{ s.critChance += 0.10; s.critMult *= 1.5; } },
+  // Retaliation (rare, v2.39.0): a COMEBACK perk on a fresh axis — for a few seconds after an enemy
+  // LEAKS (you lose a life), every tower deals +25% damage. It can ONLY trigger when you're being
+  // overrun, so a clean run gets nothing → "too easy"-safe by the Last Stand / Phoenix rationale (it
+  // softens a near-loss, never makes a winning run easier). Distinct from Last Stand (which scales
+  // PERMANENTLY with total lives lost): this is a short, repeating BURST armed by each fresh leak.
+  // Implemented in the FIRE path (a transient timer `retaliateT`, decayed in update()) like Ambush /
+  // Killing Spree — NOT effDmg, so the upgrade panel doesn't churn. Both fields live in perkState
+  // (save-safe defaults; round-trip via loadRun's Object.assign(freshPerkState(), s.perkState) — old
+  // saves default false/0). A RARE, so the legendary-only resolveWildcard() does NOT roll it. Test [154].
+  { id:'retaliation', rarity:'rare', icon:'🗯️', name:'Retaliation',        desc:'After a leak: +25% tower damage for 4s', apply:s=>s.retaliation = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -515,7 +525,7 @@ function freshPerkState() {
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
-    phoenix:false, phoenixUsed:false };
+    phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0 };
 }
 function ascendTowers() {
   for (const t of towers) {

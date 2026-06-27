@@ -106,7 +106,8 @@ _None currently known._ (Add any here as found — top priority.)
       board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing);
-      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE; a combo-tier *shape* is still open);
+      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE) +
+      ~~combo-tier shape~~ (DONE v2.39.0 [156] — an escalating star-burst above the tier word);
       ~~high-contrast mode~~ (DONE v2.38.0 [151] — ◐ Settings toggle, bold dual-halo enemy outlines);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
@@ -123,7 +124,7 @@ _None currently known._ (Add any here as found — top priority.)
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
 - [ ] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
-      spec selection at L5, mayhem path-shift on resume still open. (Campaign next-level flow covered by [109].)
+      ~~spec selection at L5~~ DONE v2.39.0 [157]; mayhem path-shift on resume still open. (Campaign next-level flow covered by [109].)
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
       a numeric gold/dmg bound *after* a draft can flake if a gold/power perk lands in slot 0. v1.20.2 fixed
       group [32] by asserting the pre-draft economy. Sweep other run-driving groups; pin to pre-draft/perk-neutral.
@@ -157,17 +158,19 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 24 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 26 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
+  + 🗼 Overlord + 🐢 Marathoner v2.39.0 [155] — field 12 towers at once / play a run 30+ min;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting
-  Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120]);
+  Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
+  Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);

@@ -980,6 +980,10 @@ function draw() {
       ctx.fillStyle = cc;
       ctx.shadowColor = cc; ctx.shadowBlur = 8;
       ctx.fillText(tierWord, 0, -22);
+      // escalating decorative spark shape above the word (v2.39.0) — grows with the tier so the
+      // meter reads richer at a glance; same colour/glow as the word, pulse-scaled by the block.
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(comboTierShape(comboCount), 0, -36);
       ctx.shadowBlur = 0;
     }
     ctx.restore();

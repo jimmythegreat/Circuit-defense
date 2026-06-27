@@ -16,10 +16,16 @@ let abilityUiAcc = 0;
 function enemyMechScale() {
   return 1 + Math.min(0.6, Math.max(0, wave - 40) * 0.015);
 }
+// 🗯️ Retaliation perk (v2.39.0) levers: how much extra damage the comeback buff grants and how
+// long it lasts after each leak. Transient (run-only `perkState.retaliateT`), armed at the leak
+// site and read in the fire loop; "too easy"-safe (only ever fires while you're losing lives).
+const RETALIATE_DMG = 1.25;   // tower damage multiplier while the buff is active
+const RETALIATE_DUR = 4;      // seconds the buff lasts (refreshed by each fresh leak)
 function update(dt) {
   if (gameOver || paused || !started || draftOpen) return;
   gameTime += dt;
   if (gold > peakGold) peakGold = gold;   // 💰 Hoarder feat tracking (v2.35.0)
+  if (towers.length > peakTowers) peakTowers = towers.length;   // 🗼 Overlord feat tracking (v2.39.0)
 
   // ability cooldowns
   for (const k of Object.keys(abilityCd)) abilityCd[k] = Math.max(0, abilityCd[k] - dt);
@@ -595,6 +601,7 @@ function update(dt) {
         lives -= dmgLives;
         livesLostThisRun = true;
         perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
+        if (perkState.retaliation) perkState.retaliateT = RETALIATE_DUR;   // 🗯️ Retaliation: arm the comeback buff (v2.39.0)
         shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
         addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
         SFX.life();
@@ -661,6 +668,11 @@ function update(dt) {
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and
     // NOT in effDmg, so the upgrade panel doesn't churn every kill.
     dmg *= comboDmgMult();
+    // 🗯️ Retaliation (rare, v2.39.0): a comeback buff — for RETALIATE_DUR seconds after an enemy
+    // LEAKS (armed at the leak site), all towers hit +25% harder. Only ever active while you're
+    // losing lives, so a clean run gets nothing → "too easy"-safe. Transient (retaliateT decays in
+    // update()), so it lives here in the fire path like Ambush/Killing Spree, NOT effDmg.
+    if (perkState.retaliateT > 0) dmg *= RETALIATE_DMG;
     // Laser (v2.9.0): the beam RAMPS UP while held on the SAME target (sustained boss/tank
     // DPS) and resets to ×1 the instant the target changes or dies — so it's deliberately
     // poor at swarms (the inverse of an area tower). `charge`/`beamTarget` are run-only and
@@ -728,6 +740,9 @@ function update(dt) {
 
   shake = Math.max(0, shake - 40*dt);
 
+  // 🗯️ Retaliation buff timer decays (armed at the leak site above when the perk is held); past
+  // update()'s pause/draft/gameOver early-return, so it freezes when not actively playing.
+  if (perkState.retaliateT > 0) perkState.retaliateT = Math.max(0, perkState.retaliateT - dt);
   // combo decay: streak lapses if no kill within the window
   if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) { comboTimer = 0; comboCount = 0; } }
   if (comboFlash > 0) comboFlash = Math.max(0, comboFlash - dt*3);

@@ -32,6 +32,8 @@ const ACHIEVEMENTS = [
   { id:'combo50',       icon:'🌠', name:'Combo God',           desc:'Reach a 50× kill-streak in a single run' },
   { id:'centurion',     icon:'💯', name:'Centurion',           desc:'Finish 100 runs' },
   { id:'gravekeeper',   icon:'⚰️', name:'Gravekeeper',         desc:'Defeat 100,000 enemies (lifetime)' },
+  { id:'overlord',      icon:'🗼', name:'Overlord',            desc:'Field 12 towers at once in a single run' },
+  { id:'marathoner',    icon:'🐢', name:'Marathoner',          desc:'Play a single run for 30+ minutes' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -61,6 +63,8 @@ function grantAchievements(won) {
   if (comboBest >= 50) give('combo50');   // 🌠 v2.36.0 — a feat (no `won` gate), pairs with the combo-tier "GODLIKE" word
   if (railBestHit >= 5) give('railhit5');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
+  if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board
+  if (gameTime >= 1800) give('marathoner'); // 🐢 v2.39.0 — a feat (no `won` gate): a 30-minute marathon run
   // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
   // the top veterancy rank (200 kills on one tower) is most natural in a long endless run, win or lose.
   if (towers.some(t => towerRankTier(t.kills) === 4)) give('legend_tower');

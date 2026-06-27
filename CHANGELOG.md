@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.39.0 — 2026-06-27 — 🗯️ Retaliation perk + 2 badges + combo-tier shape + L5 spec tests
+
+**Type:** Content (1 perk, 2 achievements) + game-feel polish + test coverage. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP (a fresh comeback perk; owner-loves achievements; "combo-tier shape"; "spec selection at L5" coverage). No economy/save-schema change; the new perk is "too easy"-safe (only fires while losing lives) and additive/save-safe (perkState fields default false/0 via `Object.assign(freshPerkState(), s.perkState)`).
+
+- **🗯️ Retaliation — a new rare draft perk (comeback axis).** For 4s after an enemy leaks (you lose a life), all towers deal +25% damage. Armed at the single leak site, read in the fire loop via a transient `perkState.retaliateT` that decays in `update()` (like Ambush/Killing Spree — not `effDmg`, so the panel doesn't churn). Only ever active while you're being overrun → it softens a near-loss, never makes a winning run easier (the Last Stand / Phoenix rationale). Distinct from Last Stand (which scales *permanently* with total lives lost). A rare, so the legendary-only Wildcard never rolls it. New test group **[154]**.
+- **Two new achievements (roster 24 → 26).** 🗼 **Overlord** — field 12 towers at once in a single run (tracked by a new run-only `peakTowers`, mirroring `peakGold`: reset in `resetState()`, climbs in `update()`, never saved → re-earnable on resume). 🐢 **Marathoner** — keep one run going for 30+ minutes (`gameTime ≥ 1800`, most natural deep in Endless). Both are feats (no `won` gate), additive and save-safe. New test group **[155]**.
+- **Combo-tier shape (game-feel polish / ROADMAP).** The bottom-right combo meter now draws an escalating decorative star-burst above the tier word, growing with the streak at the same 10/20/30/50 breakpoints as the colour/word/glow. New pure helper `comboTierShape()` (cd-state.js, unit-testable); render-only, run-only state, no economy/save impact. New test group **[156]**.
+- **Tests:** added L5 spec-selection coverage (ROADMAP "spec selection at L5") — a tower at level 5 picks a spec via `chooseSpec()`, the pick sets `t.spec`, feeds the effective stats, is gated below L5, and locks once chosen. New test group **[157]**. Suite green (1675/0).
+
 ## v2.38.0 — 2026-06-26 — ◐ High-contrast mode + persistent auto-wave + overlay polish + 2 badges
 
 **Type:** Accessibility + settings-persistence + game-feel polish + content (2 achievements). Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP (accessibility "high-contrast mode"; settings persistence; "slide-in animation on overlay buttons"; owner-loves achievements). No economy/balance/save-schema change (all additive; two new device prefs default to no-op/identical behaviour, two new lifetime-feat badges read existing migrated stats).

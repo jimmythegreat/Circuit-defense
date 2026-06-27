@@ -49,6 +49,10 @@ let railBestHit = 0;
 // feat is re-earnable (a resumed run re-accumulates from the restored gold on the first update frame),
 // so no force-on-load (mirrors railBestHit). Grants the 💰 Hoarder achievement at 10,000.
 let peakGold = 0;
+// Overlord tracking (v2.39.0): peak number of towers fielded at any point this run. Run-only,
+// never saved — re-earnable on resume (towers reload and the count re-accumulates on the first
+// update frame), so no force-on-load (mirrors peakGold/railBestHit). Grants 🗼 Overlord at 12.
+let peakTowers = 0;
 const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
@@ -66,6 +70,13 @@ function comboGlowTier(n) {
 // all step together). Pure mapping → unit-testable; render-only, no gameplay/economy/save impact.
 function comboTierLabel(n) {
   return n >= 50 ? 'GODLIKE' : n >= 30 ? 'UNSTOPPABLE' : n >= 20 ? 'RAMPAGE' : n >= 10 ? 'HEATING UP' : '';
+}
+// Combo-tier SHAPE (v2.39.0, game-feel polish): an escalating decorative spark mark shown on the
+// combo meter, stepping at the SAME 10/20/30/50 breakpoints as the colour/word/glow so all four
+// step together — '' below the first milestone, then a rising star-burst that grows with the tier.
+// Pure mapping → unit-testable; render-only, no gameplay/economy/save impact.
+function comboTierShape(n) {
+  return n >= 50 ? '✸✦✸✦✸' : n >= 30 ? '✸✦✸✦' : n >= 20 ? '✦✸✦' : n >= 10 ? '✦✸' : '';
 }
 // Killing Spree perk (v1.73.0): the damage multiplier a HOT kill-combo grants when the
 // 🔥 Killing Spree legendary is held — +1% per combo, capped +25% at a 25× streak. Returns
@@ -108,6 +119,7 @@ function resetState() {
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   railBestHit = 0;
   peakGold = 0;
+  peakTowers = 0;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);
