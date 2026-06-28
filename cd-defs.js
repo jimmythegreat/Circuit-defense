@@ -403,6 +403,21 @@ const PERKS = [
   // it just keeps the AoE strategy viable against the content built to check it. `aoePen` lives in
   // perkState (save-safe default false); a RARE, so the legendary-only resolveWildcard() skips it.
   { id:'shaped',  rarity:'rare', icon:'💣', name:'Shaped Charges',   desc:'Explosive towers pierce ⬢ Bastion blast-shells', apply:s=>s.aoePen = true },
+  // Hardened Circuits (v2.40.0): the perk pool's counter to the deep-Endless bosses that DAMPEN
+  // your defenses — the 🔵 Suppressor (v2.16.0, a fire-rate aura → +25% reload via t.suppressed in
+  // effRate) and the 🔮 Distorter (v2.30.0, a range aura → ×0.8 range via t.distorted in effRange).
+  // It makes towers IMMUNE to both auras: the two `eff*` factors are gated on `!perkState.auraImmune`,
+  // so a tower keeps its full fire rate and range even while standing in the boss's field. A fresh
+  // COUNTER-CONTENT axis (the sibling of 🔌 Surge Protector vs jamming and 💣 Shaped Charges vs the
+  // Bastion shell) and a meaningful situational pick — it does nothing in a run without those bosses
+  // (both first appear deep in Endless, w95/w105). Deliberately "too easy"-safe: it adds ZERO
+  // damage/range/economy of its own (range/rate can never exceed a tower's baseline) — it only
+  // removes a debuff, so it can't make a run easier, it just keeps your line firing where those
+  // bosses walk. `auraImmune` lives in perkState (save-safe default false; round-trips via loadRun's
+  // Object.assign(freshPerkState(), s.perkState) — old saves default false). A RARE, so the
+  // legendary-only resolveWildcard() skips it. upgradeKey() hashes effRate/effRange so the panel
+  // live-updates. Test group [158].
+  { id:'hardened',rarity:'rare', icon:'🔰', name:'Hardened Circuits', desc:'Towers ignore boss fire-rate & range dampening auras', apply:s=>s.auraImmune = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -525,7 +540,7 @@ function freshPerkState() {
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
-    phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0 };
+    phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false };
 }
 function ascendTowers() {
   for (const t of towers) {

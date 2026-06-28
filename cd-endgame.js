@@ -34,6 +34,8 @@ const ACHIEVEMENTS = [
   { id:'gravekeeper',   icon:'⚰️', name:'Gravekeeper',         desc:'Defeat 100,000 enemies (lifetime)' },
   { id:'overlord',      icon:'🗼', name:'Overlord',            desc:'Field 12 towers at once in a single run' },
   { id:'marathoner',    icon:'🐢', name:'Marathoner',          desc:'Play a single run for 30+ minutes' },
+  { id:'untouchable',   icon:'🏰', name:'Untouchable',         desc:'Win on Nightmare without losing a single life' },
+  { id:'combo100',      icon:'🎆', name:'Combo Deity',          desc:'Reach a 100× kill-streak in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -51,6 +53,7 @@ function grantAchievements(won) {
   if (won && !livesLostThisRun) give('flawless');
   if (won && (diffKey === 'hard' || diffKey === 'nightmare')) give('hard_win');   // Nightmare ≥ Hard
   if (won && diffKey === 'nightmare') give('nightmare_win');   // 🌑 v2.0.0 — the new top tier
+  if (won && diffKey === 'nightmare' && !livesLostThisRun) give('untouchable');   // 🏰 v2.40.0 — flawless Nightmare (the hardest flawless feat)
   if (won && gameMode === 'campaign' && campLevel >= 10) give('camp10');
   if (won && gameMode === 'campaign' && campLevel >= CAMPAIGN_LEVELS) give('camp_done');
   if (wave >= 50) give('endless50');
@@ -61,6 +64,7 @@ function grantAchievements(won) {
   if ((meta.stats.towerKills || 0) >= 100000) give('gravekeeper');   // ⚰️ v2.38.0 — lifetime enemy-defeat grind (reads the towerKills stat just tallied)
   if (comboBest >= 30) give('combo30');
   if (comboBest >= 50) give('combo50');   // 🌠 v2.36.0 — a feat (no `won` gate), pairs with the combo-tier "GODLIKE" word
+  if (comboBest >= 100) give('combo100');   // 🎆 v2.40.0 — the next rung above Combo God (no `won` gate)
   if (railBestHit >= 5) give('railhit5');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
   if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board

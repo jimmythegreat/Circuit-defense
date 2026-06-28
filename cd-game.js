@@ -779,7 +779,7 @@ function effRate(t) {
   if (t.spec === 'minigun') r *= 0.55;
   if (t.spec === 'rapidcoil') r *= 0.714;  // Laser Pulse Drive: fire rate ×1.4 (also ramps charge faster)
   if (modIs('brownout')) r *= 1.25;  // mayhem debuff: +25% reload = slower fire
-  if (t.suppressed > 0) r *= 1.25;   // Suppressor boss aura (v2.16.0): localized brownout — +25% reload while in range
+  if (t.suppressed > 0 && !perkState.auraImmune) r *= 1.25;   // Suppressor boss aura (v2.16.0): localized brownout — +25% reload while in range (🔰 Hardened Circuits perk negates it, v2.40.0)
 
   // Hair Trigger legendary (v1.68.0): +55% fire rate (shorter reload; paired with −25% dmg in effDmg).
   if (perkState.hairTrigger) r /= 1.55;
@@ -792,7 +792,8 @@ function effRange(t) {
   // (effBuffRange) — buff towers deal no damage.
   // Pulsar Resonance spec (v2.23.0): +30% pulse radius (effRange IS the Pulsar's AoE radius).
   // Distorter boss aura (v2.30.0): −20% range while in its field (×0.8, the localized `fog` factor).
-  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult * (t.spec === 'pulsewide' ? 1.3 : 1) * (t.distorted > 0 ? 0.8 : 1);
+  // 🔰 Hardened Circuits perk (v2.40.0) makes towers immune to that dampening (gated on !auraImmune).
+  return t.range * metaRangeMult() * (1 + 0.02 * tRank('mastery_' + t.type)) * (modIs('fog') ? 0.8 : 1) * (perkState.glassCannon ? 0.7 : 1) * perkState.rangeMult * (t.spec === 'pulsewide' ? 1.3 : 1) * (t.distorted > 0 && !perkState.auraImmune ? 0.8 : 1);
 }
 function effBuffPower(t) {
   return t.buffPower + (t.spec === 'overclock' ? 0.2 : 0) + (t.spec === 'network' ? 0.1 : 0) + 0.03 * tRank('mastery_buff');

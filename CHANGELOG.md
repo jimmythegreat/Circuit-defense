@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.40.0 — 2026-06-28 — 🔰 Hardened Circuits perk + 2 prestige badges + Mayhem-resume tests
+
+**Type:** Content (1 perk, 2 achievements) + test coverage. Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check; the major content systems (towers/bosses/mods) are saturated apart from big-lift items (Arc tower, path-swap, Crossroads), so this run ships safe, well-tested additive content + a ROADMAP harness item. No economy/save-schema change; the new perk is "too easy"-safe (removes a debuff only) and additive/save-safe (`auraImmune` defaults false via `Object.assign(freshPerkState(), s.perkState)`).
+
+- **🔰 Hardened Circuits — a new rare draft perk (counter-content axis).** Towers become immune to the two deep-Endless bosses that *dampen* your defenses: the 🔵 Suppressor (fire-rate aura, +25% reload) and the 🔮 Distorter (range aura, −20% range). Both `eff*` factors are gated on `!perkState.auraImmune`, so a held tower keeps full rate/range in the boss's field. The sibling of 🔌 Surge Protector (vs jamming) and 💣 Shaped Charges (vs the Bastion shell); situational (does nothing without those bosses). Adds zero damage/range/economy of its own — it only removes a debuff, so it can't make a run easier. A rare, so the legendary-only Wildcard never rolls it. New test group **[158]**.
+- **Two new prestige achievements (roster 26 → 28).** 🏰 **Untouchable** — win on Nightmare without losing a single life (the hardest flawless feat). 🎆 **Combo Deity** — reach a 100× kill-streak in a single run (the next rung above 🌠 Combo God at 50×; a feat, no `won` gate). Both additive and save-safe. New test group **[159]**.
+- **Tests:** added Mayhem mid-run path-shift-on-resume coverage (ROADMAP "expand harness coverage") — a resumed Mayhem run regenerates the path, relocates its towers onto valid spots, restores wave/towers, and drives a wave cleanly. New test group **[160]**. Suite green.
+
 ## v2.39.0 — 2026-06-27 — 🗯️ Retaliation perk + 2 badges + combo-tier shape + L5 spec tests
 
 **Type:** Content (1 perk, 2 achievements) + game-feel polish + test coverage. Minor bump. FEEDBACK PENDING was empty — picked from ROADMAP (a fresh comeback perk; owner-loves achievements; "combo-tier shape"; "spec selection at L5" coverage). No economy/save-schema change; the new perk is "too easy"-safe (only fires while losing lives) and additive/save-safe (perkState fields default false/0 via `Object.assign(freshPerkState(), s.perkState)`).

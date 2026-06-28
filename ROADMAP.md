@@ -26,6 +26,11 @@ _None currently known._ (Add any here as found — top priority.)
       "charge up the longer it fires" mechanic now exists as a TOWER (was sketched as a Railgun spec idea).
 - [ ] **Arc/chain tower** — chain-lightning that *bounces* between nearby enemies (a swarm counter,
       distinct from Tesla's fixed-target chain AND the Laser's single-target ramp). The remaining "new tower" idea.
+      ⚠ DESIGN NOTE (v2.40.0): Tesla's `fireChain` already *bounces* (nearest-unhit within 90px, falloff), so
+      the distinction is the hard part — to avoid a Tesla clone, make Arc a **travelling ricochet projectile**
+      (a `proj` kind in the projectile update loop, NOT an instant-fire fn): a moving bolt that hops to the
+      nearest unhit enemy across a *larger* reach with more bounces at low base dmg → a spread-swarm sweeper vs
+      Tesla's tight-cluster zap. Needs its own run (render + bounce logic + balance sim + tests).
 - [ ] **Tower spec follow-ups** — (a *charge-up* mechanic now exists via the 🔆 Laser tower v2.9.0);
       ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
       version is still open if wanted); a predictive lead-shot spec to counter blinkers
@@ -123,8 +128,10 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~10,540 lines (150 groups, 1629
       assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
-- [ ] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
-      ~~spec selection at L5~~ DONE v2.39.0 [157]; mayhem path-shift on resume still open. (Campaign next-level flow covered by [109].)
+- [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
+      ~~spec selection at L5~~ DONE v2.39.0 [157]; ~~mayhem path-shift on resume~~ DONE v2.40.0 [160]
+      (resumed Mayhem run regenerates the path, relocates towers, restores wave/towers, drives a wave).
+      (Campaign next-level flow covered by [109].) Remaining harness ideas: Daily-seed determinism on resume.
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
       a numeric gold/dmg bound *after* a draft can flake if a gold/power perk lands in slot 0. v1.20.2 fixed
       group [32] by asserting the pre-draft economy. Sweep other run-driving groups; pin to pre-draft/perk-neutral.
@@ -163,12 +170,14 @@ _None currently known._ (Add any here as found — top priority.)
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
   + 🗼 Overlord + 🐢 Marathoner v2.39.0 [155] — field 12 towers at once / play a run 30+ min;
+  + 🏰 Untouchable + 🎆 Combo Deity v2.40.0 [159] — win Nightmare flawless / reach a 100× streak;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
-  Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154]);
+  Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
+  Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).

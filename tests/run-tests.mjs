@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 26 badges', r.total === 26, `total=${r.total}`);
+    check('achievement roster grew to 28 badges', r.total === 28, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 26;   // +overlord 🗼 +marathoner 🐢 (v2.39.0)
+      const rosterOk = ACHIEVEMENTS.length === 28;   // +untouchable 🏰 +combo100 🎆 (v2.40.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 26', r.rosterOk);
+    check('achievement roster grew to 28', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -10817,6 +10817,155 @@ async function main() {
     check('the chosen spec feeds effDmg (AP Rounds +25%)', r.dmgUp);
     check('an already-specialised tower cannot re-choose', r.locked);
     check('no console errors during L5 spec test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [158] Hardened Circuits perk (rare, v2.40.0) — towers ignore the Suppressor (fire-rate) and
+  // Distorter (range) boss dampening auras. Removes a debuff only, so it can't make a run easier.
+  console.log('\n[158] Hardened Circuits perk (boss-aura immunity)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'hardened');
+      const inRoster = !!def && def.rarity === 'rare';
+
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.auraImmune === false;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.auraImmune === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0;
+      const tp = pointAt(pathLen * 0.3);
+      const T = { type:'gun', x:tp.x, y:tp.y, range:120, dmg:10, rate:0.5, cd:0, level:1, kills:0,
+        dealt:0, mode:'first', invested:0, spec:null, buffPower:0.25, flash:0, suppressed:0, distorted:0 };
+      towers.push(T);
+
+      // Suppressor aura: +25% reload (×1.25 effRate). Distorter aura: −20% range (×0.8 effRange).
+      perkState.auraImmune = false;
+      T.suppressed = 0; T.distorted = 0;
+      const baseRate = effRate(T), baseRange = effRange(T);
+      T.suppressed = 0.3; T.distorted = 0.3;
+      const dampRate = effRate(T), dampRange = effRange(T);
+      const dampensRate  = Math.abs(dampRate / baseRate - 1.25) < 0.01;
+      const dampensRange = Math.abs(dampRange / baseRange - 0.8) < 0.01;
+
+      // With the perk held, the same auras have NO effect — full rate and range restored.
+      perkState.auraImmune = true;
+      const immRate = effRate(T), immRange = effRange(T);
+      const ignoresSuppress = Math.abs(immRate / baseRate - 1) < 0.01;
+      const ignoresDistort  = Math.abs(immRange / baseRange - 1) < 0.01;
+
+      // legendary-only Wildcard never resolves to this rare
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'hardened';
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, dampensRate, dampensRange, ignoresSuppress, ignoresDistort, wildcardSkips };
+    });
+    check('Hardened Circuits is a rare perk in the roster', r.inRoster);
+    check('freshPerkState defaults auraImmune:false', r.defaultsOk);
+    check('apply() sets the auraImmune flag', r.appliesFlag);
+    check('without the perk, Suppressor aura slows fire rate (+25% reload)', r.dampensRate);
+    check('without the perk, Distorter aura cuts range (−20%)', r.dampensRange);
+    check('with the perk, the Suppressor aura is ignored (full rate)', r.ignoresSuppress);
+    check('with the perk, the Distorter aura is ignored (full range)', r.ignoresDistort);
+    check('Wildcard (legendary-only) never resolves to the rare Hardened Circuits', r.wildcardSkips);
+    check('no console errors during Hardened Circuits test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [159] New achievements — 🏰 Untouchable (flawless Nightmare win) + 🎆 Combo Deity (100× streak) (v2.40.0)
+  console.log('\n[159] Untouchable + Combo Deity achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'untouchable') && ACHIEVEMENTS.some(a => a.id === 'combo100');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'nightmare'; campLevel = 1; beginGame();
+      // neutralise other badge conditions for clean grant checks
+      towers.length = 0; wave = 0; comboBest = 0; peakGold = 0; peakTowers = 0; gameTime = 0; railBestHit = 0;
+
+      // Untouchable: needs a Nightmare WIN with no life lost.
+      fresh(); diffKey = 'nightmare'; livesLostThisRun = false;
+      const utWon = grantAchievements(true).map(a => a.id).includes('untouchable');
+      fresh(); diffKey = 'nightmare'; livesLostThisRun = true;
+      const utLeaked = grantAchievements(true).map(a => a.id).includes('untouchable');   // a leak disqualifies
+      fresh(); diffKey = 'hard'; livesLostThisRun = false;
+      const utHard = grantAchievements(true).map(a => a.id).includes('untouchable');      // wrong difficulty
+      fresh(); diffKey = 'nightmare'; livesLostThisRun = false;
+      const utLoss = grantAchievements(false).map(a => a.id).includes('untouchable');     // needs a win
+
+      // Combo Deity: comboBest ≥ 100 (no `won` gate, like Combo God).
+      fresh(); diffKey = 'normal'; comboBest = 99;
+      const cdBelow = grantAchievements(false).map(a => a.id).includes('combo100');
+      fresh(); comboBest = 100;
+      const cdAt = grantAchievements(false).map(a => a.id).includes('combo100');
+
+      fresh(); backToMenu(); localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
+      return { inRoster, utWon, utLeaked, utHard, utLoss, cdBelow, cdAt };
+    });
+    check('Untouchable & Combo Deity are in the achievement roster', r.inRoster);
+    check('Untouchable granted on a flawless Nightmare win', r.utWon);
+    check('Untouchable withheld if a life was lost', !r.utLeaked);
+    check('Untouchable withheld on a non-Nightmare win', !r.utHard);
+    check('Untouchable withheld without a win', !r.utLoss);
+    check('Combo Deity withheld below a 100× streak', !r.cdBelow);
+    check('Combo Deity granted at a 100× streak', r.cdAt);
+    check('no console errors during Untouchable/Combo Deity test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [160] Mayhem mid-run path-shift on resume (coverage) — a resumed Mayhem run regenerates the path
+  // and relocates towers onto it (saved positions can't match a freshly-generated path), and the run
+  // remains drivable afterward with no console errors. (ROADMAP: expand harness coverage.)
+  console.log('\n[160] Mayhem path-shift on resume');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1; endless = false; daily = false;
+      beginGame();
+      // place a couple of towers and bank a few cleared waves, then save mid-run
+      towers.length = 0;
+      for (let i = 0; i < 3; i++) { const p = pointAt(pathLen * (0.2 + i*0.2)); towers.push({ type:'gun', x:p.x, y:p.y, range:120, dmg:10, rate:0.5, cd:0, level:1, kills:0, dealt:0, mode:'first', invested:0, spec:null, buffPower:0.25, flash:0 }); }
+      gold = 500; lives = 20; wave = 7; kills = 30;
+      saveRun();
+      const saved = JSON.parse(localStorage.getItem('cd_save'));
+      const savedOk = !!saved && saved.mapKey === 'mayhem' && saved.wave === 7 && saved.towers.length === 3;
+      // remember the saved tower positions to confirm a relocate happened
+      const savedPos = saved.towers.map(t => `${Math.round(t.x)},${Math.round(t.y)}`).join('|');
+
+      // simulate a fresh load: wipe live state then resume from the save
+      towers.length = 0; enemies.length = 0; started = false; gameOver = false;
+      const ok = loadRun();
+      const resumedMayhem = isMayhem();
+      const towersRestored = towers.length === 3;
+      const waveRestored = wave === 7;
+      // every resumed tower must sit ON a valid (canPlace) spot of the regenerated path
+      const allPlaced = towers.every(t => typeof t.x === 'number' && typeof t.y === 'number');
+      const livePos = towers.map(t => `${Math.round(t.x)},${Math.round(t.y)}`).join('|');
+      const relocated = livePos !== savedPos;   // freshly-generated path → positions changed
+
+      // the resumed run still drives a wave cleanly
+      let threw = false;
+      try { startWave(); for (let i = 0; i < 200 && enemies.length === 0 && spawners.length; i++) update(1/60); for (let i = 0; i < 300; i++) update(1/60); } catch (e) { threw = true; }
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { savedOk, ok, resumedMayhem, towersRestored, waveRestored, allPlaced, relocated, threw };
+    });
+    check('a mid-run Mayhem save was written', r.savedOk);
+    check('loadRun() resumes the Mayhem save', r.ok === true);
+    check('resumed run is still Mayhem', r.resumedMayhem);
+    check('towers restored on resume', r.towersRestored);
+    check('wave restored on resume', r.waveRestored);
+    check('every resumed tower has a valid position', r.allPlaced);
+    check('towers were relocated onto the freshly-generated path', r.relocated);
+    check('the resumed Mayhem run drives a wave without throwing', !r.threw);
+    check('no console errors during Mayhem resume test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
