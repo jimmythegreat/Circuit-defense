@@ -126,9 +126,13 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~10,540 lines (150 groups, 1629
-      assertions)**, by far the largest file in the repo, growing ~75 lines/run. Could split per-group into
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~11,180 lines (163 groups, 1729
+      assertions)**, by far the largest file in the repo, growing ~55 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
+- [ ] **Watch: `cd-update.js` size** — largest game file at **1186 lines** (vs the ~1500 cap), growing
+      ~15-25 lines per new boss archetype (its per-frame tick block). Comfortable headroom (~15+ more
+      archetypes), but if it nears ~1400, split the combat helpers (pickTarget/fire*/hitEnemy/damage) into
+      a `cd-combat.js` — the same domain-split pattern that produced cd-endgame.js (v2.15.2).
 - [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
       ~~spec selection at L5~~ DONE v2.39.0 [157]; ~~mayhem path-shift on resume~~ DONE v2.40.0 [160]
       (resumed Mayhem run regenerates the path, relocates towers, restores wave/towers, drives a wave).

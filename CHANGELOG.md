@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.41.1 — 2026-07-03 — 🩺 Health check — all green (1729/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.35.1: v2.36.0, v2.37.0, v2.38.0, v2.39.0, v2.40.0, v2.41.0 — at the 6-run trigger.)
+
+- **Suite:** full run **1729/0 green**, zero console errors, 163 groups. Baseline confirmed green on the clean pull before any edit.
+- **Refactor audit:** every game file comfortably under the ~1500-line cap — cd-update.js 1186 (largest), cd-render.js 1079, cd-game.js 1010, cd-endgame.js 651, cd-defs.js 647, cd-core.js 604, cd-maps.js 330, cd-state.js 247; css 660, html 172, sw 51. No dead code / stray debug logging / TODOs found. Test harness `run-tests.mjs` now 11,180 lines (163 groups, 1698 `check()` calls) — the ROADMAP split-candidate note was refreshed (was ~10,540/150/1629) and a `cd-update.js` size-watch note added.
+- **Docs coherence:** every headline count in CLAUDE.md matches code — 11 towers, 7 targeting modes, 22 Mayhem wave-mods, 21 boss archetypes, 26 talents, 28 achievements, 14 enemy kinds (incl. boss), 4 difficulties, 7 maps, 5 abilities. `GAME_VERSION` = CHANGELOG top = sw.js cache (all v2.41.1). CLAUDE.md needed no correction; ROADMAP vetoed section intact.
+- **Table-stakes audit:** the polished-browser-game checklist stays complete (favicon/meta/OG, PWA install+offline, responsive/touch/tap-targets, gamepad, keyboard a11y, colorblind, reduced-motion, high-contrast, high-DPI, volume + settings persistence). No new gaps; the open tech items are the harness split + the cd-update.js size watch.
+- **Integrity spot-checks:** file:// playability sound (8 classic scripts in dependency order, no ES modules, no CDN, SW guarded to http/https); an ancient minimal `cd_save`/`cd_meta` (no perkState/endless/gameTime/mapTheme/achievements/stats) migrates cleanly via defaults and resumes with zero console errors (headless drive).
+
 ## v2.41.0 — 2026-07-03 — 🏎 Accelerator boss + 👁️ Spectral Sight perk + 🏎 Fastest targeting
 
 **Type:** Content (1 boss archetype, 1 perk, 1 targeting mode). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (5 runs in: v2.36–v2.40; next run is the 6th → health check). A coherent "speed & evasion" trio; all additive and save-safe, all "too easy"-safe (the boss adds no HP; the perk/mode add no damage). No economy/save-schema change.
