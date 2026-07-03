@@ -147,8 +147,8 @@ const TOWER_TYPES = {
   pulsar: { name:'Pulsar', icon:'💫', cost:120, range:90,  dmg:10,  rate:0.8,  color:'#b15dff', proj:'nova',   desc:'Radial pulse · hits all nearby', tip:'Emits a radial energy PULSE that hits EVERY enemy within its short range at once — no aiming, no projectile. A dedicated SWARM tool: total damage scales with how many foes are packed inside it, but its per-hit damage is among the lowest in the game, so it is deliberately POOR against single tanks/bosses (the inverse of the Laser). Short range and respects armor — place it on a chokepoint where the crowd bunches up.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
@@ -418,6 +418,19 @@ const PERKS = [
   // legendary-only resolveWildcard() skips it. upgradeKey() hashes effRate/effRange so the panel
   // live-updates. Test group [158].
   { id:'hardened',rarity:'rare', icon:'🔰', name:'Hardened Circuits', desc:'Towers ignore boss fire-rate & range dampening auras', apply:s=>s.auraImmune = true },
+  // Spectral Sight (v2.41.0): the perk pool's counter to the whole INTANGIBILITY axis — the 👻 phantom
+  // enemy, the 🫥 Cloaking Field mod, the ✦ Teleporter boss, and the 🫥 Veil boss's cohort-cloak all
+  // use the same `blinkInvuln` "briefly untargetable + immune" window. This makes your towers see
+  // through it: the four intangibility gates (pickTarget skip, fireRail/firePulse skip, and damage()'s
+  // early-return) are gated on `!perkState.phaseSight`, so towers can target AND hit a phasing enemy.
+  // A fresh COUNTER-CONTENT axis (the sibling of 🔌 Surge Protector, 💣 Shaped Charges, 🔰 Hardened
+  // Circuits) and a meaningful situational pick — it does nothing in a run without phasing enemies.
+  // Deliberately "too easy"-safe: it adds ZERO damage/range/economy — it only removes an evasion
+  // window, so it can't make a run easier, it just keeps blinkers honest. `phaseSight` lives in
+  // perkState (save-safe default false; round-trips via loadRun's Object.assign(freshPerkState(),
+  // s.perkState) — old saves default false). A RARE, so the legendary-only resolveWildcard() skips
+  // it. Test group [161].
+  { id:'phaselock',rarity:'rare', icon:'👁️', name:'Spectral Sight',    desc:'Towers can target & hit cloaked / blinking enemies', apply:s=>s.phaseSight = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -540,7 +553,8 @@ function freshPerkState() {
     orbital:false, meteorMult:1, meteorCdMult:1, bossDmg:1, lastStand:false, livesLost:0,
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
-    phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false };
+    phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
+    phaseSight:false };
 }
 function ascendTowers() {
   for (const t of towers) {

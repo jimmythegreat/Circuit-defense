@@ -33,14 +33,15 @@ _None currently known._ (Add any here as found — top priority.)
       Tesla's tight-cluster zap. Needs its own run (render + bounce logic + balance sim + tests).
 - [ ] **Tower spec follow-ups** — (a *charge-up* mechanic now exists via the 🔆 Laser tower v2.9.0);
       ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
-      version is still open if wanted); a predictive lead-shot spec to counter blinkers
-      (phantom/cloak/teleporter). Audit frost (Deep Freeze vs Shatter) & gun (Minigun vs AP) for a
-      strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 21st boss archetype (20th = 🫥 Veil cohort-cloak aura, shipped v2.36.0
-      [146], first at w115 — the Cloaking Field mod / phantom as a boss, freeze-counterable; 19th = 🛡 Custodian
-      cohort damage-shield aura v2.35.0 [143]); per-campaign-tier *fixed* archetypes (vs the wave-number cycle);
+      version is still open if wanted); ~~a counter to blinkers (phantom/cloak/teleporter/veil)~~ (DONE as
+      the 👁️ Spectral Sight *perk* v2.41.0 [161] — towers see through intangibility; a per-tower *spec* or
+      predictive lead-shot version is still open if wanted). Audit frost (Deep Freeze vs Shatter) & gun
+      (Minigun vs AP) for a strictly-dominated option (quick take: both look like healthy axes).
+- [ ] **Boss/enemy follow-ups** — a 22nd boss archetype (21st = 🏎 Accelerator self-speed ramp, shipped v2.41.0
+      [162], first at w120 — a pure DPS-race lever, freeze-pausable, electric-yellow ring; 20th = 🫥 Veil
+      cohort-cloak aura v2.36.0 [146]); per-campaign-tier *fixed* archetypes (vs the wave-number cycle);
       a Breacher variant that costs lives only if it *survives* a tower's range. (Color space for boss aura
-      rings is getting crowded — a 21st may want a clearly-distinct hue.)
+      rings is VERY crowded now — a 22nd needs a clearly-distinct hue, or reuse a shape/glyph cue instead.)
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -145,7 +146,8 @@ _None currently known._ (Add any here as found — top priority.)
   sustained boss/tank DPS, poor at swarms; specs Focusing Array/Pulse Drive; hotkey `0`; mastery_laser.
   Pulsar = a self-centred radial AoE pulse (`proj:'nova'`, hits ALL in range at once, low per-hit dmg →
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
-- 6 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66]); default-mode
+- 7 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
+  — dynamic effective speed, pops sprinters); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
@@ -154,8 +156,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
-- 20 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil) v1.25.0–v2.36.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable).
+- 21 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator) v1.25.0–v2.41.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP).
 - 22 Mayhem wave mods (frenzy/blitz/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
   adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/meteors) [46]+ many; Herald Surge v2.35.0 [144]; Blitz (+60% speed, the "double-time" Frenzy variant) v2.36.0 [147].
 
@@ -177,9 +179,10 @@ _None currently known._ (Add any here as found — top priority.)
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
-  Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158]);
+  Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/
+  Spectral Sight(towers target & hit intangible enemies — counters phantom/cloak/teleporter/veil, counter-content rare, v2.41.0 [161]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);

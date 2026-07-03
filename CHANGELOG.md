@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.41.0 — 2026-07-03 — 🏎 Accelerator boss + 👁️ Spectral Sight perk + 🏎 Fastest targeting
+
+**Type:** Content (1 boss archetype, 1 perk, 1 targeting mode). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (5 runs in: v2.36–v2.40; next run is the 6th → health check). A coherent "speed & evasion" trio; all additive and save-safe, all "too easy"-safe (the boss adds no HP; the perk/mode add no damage). No economy/save-schema change.
+
+- **🏎 Accelerator — the 21st boss archetype (self-speed ramp).** First appears around wave 120, deep in Endless. The longer it lives, the faster it moves, winding up to +80% speed (`e.accelMul`, ticked in the gated block so freeze pauses the ramp; read inline in the movement line beside `berserkMul`). A pure DPS-race / leak-pressure lever — distinct from the berserker (HP-linked accel) and enrager/herald (aura-linked). Bounded: adds no HP, and even at the cap (0.81× base) it's slower than a basic enemy; freeze pauses the wind-up. Levers `ACCEL_RATE`/`ACCEL_CAP` (cd-update.js); boss-bar badge ACCELERATING, electric-yellow aura ring that intensifies as it winds up, and a Bestiary/Codex row. New test group **[162]**.
+- **👁️ Spectral Sight — a new rare draft perk (counter-content axis).** Towers can target AND hit enemies that phase out — the four `blinkInvuln` intangibility gates (pickTarget / fireRail / firePulse / damage) are gated on `!perkState.phaseSight`. Covers every blink source: the 👻 phantom, the 🫥 Cloaking Field mod, and the ✦ Teleporter / 🫥 Veil bosses. The sibling of Surge Protector / Shaped Charges / Hardened Circuits; situational (does nothing without phasing enemies). Adds zero damage/range/economy — it only removes an evasion window. A rare, so the legendary-only Wildcard never rolls it. New test group **[161]**.
+- **🏎 Fastest — a 7th tower targeting mode (speed axis).** Prioritises the fastest-moving enemy (dynamic effective speed via `effSpeed()`, incl. haste / berserker / accelerator; a frozen enemy counts 0), so towers pop the sprinters before they leak. Auto-wires the shop/cycle/settings from `MODES`/`MODE_ICON`; `loadRun`'s `MODES.includes` guard validates it. New test group **[163]**.
+- **Tests:** suite green (1729/0).
+
 ## v2.40.0 — 2026-06-28 — 🔰 Hardened Circuits perk + 2 prestige badges + Mayhem-resume tests
 
 **Type:** Content (1 perk, 2 achievements) + test coverage. Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check; the major content systems (towers/bosses/mods) are saturated apart from big-lift items (Arc tower, path-swap, Crossroads), so this run ships safe, well-tested additive content + a ROADMAP harness item. No economy/save-schema change; the new perk is "too easy"-safe (removes a debuff only) and additive/save-safe (`auraImmune` defaults false via `Object.assign(freshPerkState(), s.perkState)`).

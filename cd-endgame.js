@@ -230,6 +230,7 @@ const CODEX_BOSSES = [
   { type: 'distorter',  glyph: '🔮', color: '#e879f9', label: 'Distorter',    wave: 'Wave 105', desc: 'Shrinks the firing range of nearby towers (−20%), opening coverage gaps. Freeze it to stop the field.' },
   { type: 'custodian',  glyph: '🛡', color: '#8ec7ff', label: 'Custodian',    wave: 'Wave 110', desc: 'Shields its whole escort — nearby allies take 40% less damage. Kill the Custodian (or freeze it) to drop the ward.' },
   { type: 'veil',       glyph: '🫥', color: '#dcd2ff', label: 'Veil',         wave: 'Wave 115', desc: 'Cloaks its escorts — nearby allies periodically phase out, untargetable. Use rapid fire or freeze it to stop the spread.' },
+  { type: 'accelerator',glyph: '🏎', color: '#ffec5a', label: 'Accelerator',  wave: 'Wave 120', desc: 'Ramps its own speed the longer it lives (up to +80%). Burst it down early, or freeze to pause the acceleration.' },
 ];
 // The 📖 Bestiary opens from the start menu AND mid-run (in-game Codex button / 'C' hotkey,
 // v2.37.0). When opened during a live game it auto-pauses so the player can read counters

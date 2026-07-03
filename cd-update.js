@@ -204,7 +204,11 @@ function update(dt) {
     // from 0 with missing HP, the average over an enemy's life is well under frenzy's flat
     // +35% — bounded + beatable. Tagged at spawn in buildWave (run-only, never saved).
     const adrenalineMul = e.adrenaline ? 1 + 0.5 * Math.max(0, 1 - e.hp / e.maxHp) : 1;
-    e.dist += e.spd * slowMul * hasteMul * berserkMul * adrenalineMul * dt;
+    // accelerator boss (v2.41.0): ramps its own speed with time alive (e.accelMul, ticked in the
+    // gated block below, capped at ACCEL_CAP). Read inline like berserkMul; slowMul zeroes it under
+    // freeze (which also pauses the ramp), frost slow multiplies in — so freeze/slow still counter it.
+    const accelBossMul = (e.kind === 'boss' && e.bossType === 'accelerator') ? (e.accelMul || 1) : 1;
+    e.dist += e.spd * slowMul * hasteMul * berserkMul * adrenalineMul * accelBossMul * dt;
     const p = pointAt(e.dist);
     e.x = p.x; e.y = p.y;
     if (e.kind === 'heal' && e.frozen <= 0) {
@@ -581,6 +585,17 @@ function update(dt) {
         }
         e.veilCd = (e.veilCd == null ? 2.5 : e.veilCd) - dt;
         if (e.veilCd <= 0) { e.veilCd = 2.5; addExplosion(e.x, e.y, '#dcd2ff', 9, vr); SFX.blink(); }
+      } else if (e.bossType === 'accelerator') {
+        // Accelerator (v2.41.0, the 21st archetype — a fresh axis: it ramps its OWN speed with time
+        // alive, so a slow opening fight turns into a sprint if you can't burst it. Distinct from the
+        // berserker (HP-linked) and the enrager/herald (aura-linked): purely time-based. The ramp
+        // lives in this gated block, so FREEZE pauses it (like every other archetype tick), and the
+        // movement line reads e.accelMul (slowMul zeroes it under freeze, frost slow multiplies in).
+        // Bounded / "too easy"-safe: it adds NO HP, and even at the +80% cap it stays slower than a
+        // basic enemy (base boss speed 0.45× → 0.81×) — beatable. Run-only, never persisted.
+        e.accelMul = Math.min(ACCEL_CAP, (e.accelMul || 1) + ACCEL_RATE * dt);
+        e.accelCd = (e.accelCd == null ? 2.5 : e.accelCd) - dt;
+        if (e.accelCd <= 0) { e.accelCd = 2.5; addExplosion(e.x, e.y, '#ffec5a', 9, e.r + 18); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -750,11 +765,24 @@ function update(dt) {
   if (waveActive && !spawners.length && !enemies.length && !pendingSpawns.length) endWave();
 }
 
+// Effective current movement speed of an enemy, used by the 'fastest' targeting mode (v2.41.0)
+// to prioritise the sprinters that leak first. Mirrors the movement-line multipliers (haste /
+// adrenaline / berserker / accelerator) so it tracks the DYNAMIC speed, not just base speed;
+// a frozen enemy counts as 0 (it isn't moving, so it isn't the leak threat right now).
+function effSpeed(e) {
+  if (e.frozen > 0) return 0;
+  let sp = e.spd;
+  if (e.hasted > 0) sp *= 1.35;
+  if (e.adrenaline) sp *= 1 + 0.5 * Math.max(0, 1 - e.hp / e.maxHp);
+  if (e.kind === 'boss' && e.bossType === 'berserker') sp *= 1 + 0.6 * Math.max(0, 1 - e.hp / e.maxHp);
+  if (e.kind === 'boss' && e.bossType === 'accelerator') sp *= (e.accelMul || 1);
+  return sp;
+}
 function pickTarget(t) {
   let target = null, bestVal = null;
   const range = effRange(t);
   for (const e of enemies) {
-    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;
+    if (e.x === undefined || e.dead || (e.blinkInvuln > 0 && !perkState.phaseSight)) continue;  // Spectral Sight (v2.41.0): see through intangibility
     const d = Math.hypot(e.x-t.x, e.y-t.y);
     if (d > range) continue;
     let val;
@@ -768,6 +796,10 @@ function pickTarget(t) {
       // 'support': prioritise aura enemies (heal/warden) — popping them un-buffs their
       // cluster. Support outranks everything; among same class, furthest-along wins (like 'first').
       case 'support': val = (SUPPORT_KINDS[e.kind] ? 1e7 : 0) + e.dist; break;
+      // 'fastest' (v2.41.0): pick the fastest-moving enemy (dynamic effective speed), tie-break
+      // toward the furthest-along — pop the sprinters (heralds / hasted / berserker / accelerator
+      // bosses) before they leak. A fresh targeting axis (speed) beside position/HP/distance/kind.
+      case 'fastest': val = effSpeed(e) * 1e4 + e.dist; break;
       default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }
@@ -822,7 +854,7 @@ function fireRail(t, target, dmg) {
   const halfW = t.spec === 'railwide' ? 26 : 14;          // beam half-width (perp tolerance)
   let hits = 0;                                           // enemies raked by this single beam
   for (const e of enemies) {
-    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;  // skip intangible (phantom/cloak)
+    if (e.x === undefined || e.dead || (e.blinkInvuln > 0 && !perkState.phaseSight)) continue;  // skip intangible (phantom/cloak) unless Spectral Sight (v2.41.0)
     const rx = e.x - t.x, ry = e.y - t.y;
     const along = rx*ux + ry*uy;                 // distance projected along the beam
     if (along < 0 || along > range + e.r) continue;       // behind the tower or past max range
@@ -875,6 +907,15 @@ const CUSTODIAN_RANGE = 115;     // px reach of the protective ward aura
 // nearby non-boss ally within this radius (×enemyMechScale) with the persistent `cloak` flag, handing
 // them to the existing cloak machinery (periodic brief untargetability). Adds no HP/speed; freeze pauses it.
 const VEIL_RANGE = 115;          // px reach of the cohort-cloak (intangibility) aura
+// Accelerator boss archetype (v2.41.0, the 21st) levers: a self-SPEED ramp over time-alive — the
+// longer the fight drags, the faster it moves (a pure DPS-race lever: burst it before it hits its
+// stride and sprints to the exit). Distinct from the berserker (HP-linked accel) and the enrager/
+// herald (aura-linked): this ramps purely with how long it survives. Ticked in the gated block so
+// FREEZE pauses the ramp, and the movement line reads e.accelMul (slowMul zeroes it under freeze,
+// frost slow multiplies in). Bounded: base boss speed is 0.45×, so even at the +80% cap (0.81×) it
+// stays slower than a basic enemy — beatable, adds NO HP. Run-only `accelMul`/`accelCd`, never saved.
+const ACCEL_RATE = 0.05;         // +speed multiplier per second alive (reaches cap in ~16s)
+const ACCEL_CAP  = 1.8;          // max self-speed multiplier (+80%)
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];
@@ -904,7 +945,7 @@ function firePulse(t, dmg) {
   const def = TOWER_TYPES[t.type];
   const range = effRange(t);
   for (const e of enemies) {
-    if (e.x === undefined || e.dead || e.blinkInvuln > 0) continue;   // skip intangible (phantom/cloak)
+    if (e.x === undefined || e.dead || (e.blinkInvuln > 0 && !perkState.phaseSight)) continue;   // skip intangible (phantom/cloak) unless Spectral Sight (v2.41.0)
     if (Math.hypot(e.x - t.x, e.y - t.y) <= range + e.r) {
       damage(e, dmg, t);
       addExplosion(e.x, e.y, def.color, 3, 60);
@@ -974,7 +1015,7 @@ function hitEnemy(p) {
 
 function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false) {
   if (e.hp <= 0 || e.dead) return;
-  if (e.blinkInvuln > 0) return;  // phantom is intangible mid-blink
+  if (e.blinkInvuln > 0 && !perkState.phaseSight) return;  // phantom is intangible mid-blink (Spectral Sight perk sees through it, v2.41.0)
   if (e.shieldOn) dmg *= 0.4;     // bulwark boss: active shield phase soaks 60% of incoming
   if (e.warded > 0) dmg *= 0.6;   // warden aura (v1.35.0): protected enemies take 40% less damage
   if (e.conduitGuard > 0) dmg *= (1 - 0.14 * e.conduitGuard);  // conduit boss (v2.2.0): each nearby escort shields it −14% (cap −70% at 5)

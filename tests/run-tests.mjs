@@ -2567,7 +2567,7 @@ async function main() {
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
                     && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
                     && bt(105) === 'distorter' && bt(110) === 'custodian'
-                    && bt(115) === 'veil' && bt(120) === 'regen';
+                    && bt(115) === 'veil' && bt(120) === 'accelerator' && bt(125) === 'regen';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -6535,7 +6535,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 20);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 21);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7900,7 +7900,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 20);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 21);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8244,7 +8244,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 20);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 21);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8515,7 +8515,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 20);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 21);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8678,7 +8678,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 20);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 21);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8837,7 +8837,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 20);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 21);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9717,7 +9717,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 20);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 21);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9805,7 +9805,7 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 20);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 21);
     check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
@@ -10145,7 +10145,7 @@ async function main() {
       return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
                wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
     });
-    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 20);
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 21);
     check('veil follows custodian (w115 → veil)', r.wrapsAt115);
     check('a living custodian wards a nearby ally', r.allyWarded);
     check('an ally outside the aura is not warded', r.farUnwarded);
@@ -10268,10 +10268,10 @@ async function main() {
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
 
-      // 20th archetype: appears at w115 (after custodian at w110); the cycle wraps at w120 → regen.
+      // 20th archetype: appears at w115 (after custodian at w110); accelerator follows at w120.
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(115) === 'veil';
-      const wrapsAt120 = bt(120) === 'regen';
+      const wrapsAt120 = bt(120) === 'accelerator';
       const archCount = BOSS_ARCHETYPES.length;
 
       enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
@@ -10318,8 +10318,8 @@ async function main() {
       return { inRotation, wrapsAt120, archCount, allyCloaked, farUntagged, bossPeerFree, selfFree,
                sawInvuln, noHpOrSpeed, frozenStops, badgeOk, rangeLever, codexOk };
     });
-    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 20);
-    check('rotation wraps after veil (w120 → regen)', r.wrapsAt120);
+    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 21);
+    check('accelerator follows veil (w120)', r.wrapsAt120);
     check('a living veil cloaks a nearby ally', r.allyCloaked);
     check('a cloaked ally periodically phases out (untargetable)', r.sawInvuln);
     check('an ally outside the aura is not cloaked', r.farUntagged);
@@ -10966,6 +10966,200 @@ async function main() {
     check('towers were relocated onto the freshly-generated path', r.relocated);
     check('the resumed Mayhem run drives a wave without throwing', !r.threw);
     check('no console errors during Mayhem resume test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [161] Spectral Sight perk (rare, v2.41.0) — towers can target & hit intangible enemies
+  // (phantom / cloak / teleporter / veil), by gating the four blinkInvuln checks on !phaseSight.
+  console.log('\n[161] Spectral Sight perk (see through intangibility)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const perk = PERKS.find(p => p.id === 'phaselock');
+      const isRare = !!perk && perk.rarity === 'rare';
+      const defaultOff = freshPerkState().phaseSight === false;
+      const applies = (() => { const s = freshPerkState(); perk.apply(s); return s.phaseSight === true; })();
+
+      const setup = () => {
+        enemies.length = 0; projectiles.length = 0; towers.length = 0;
+        spawners.length = 0; pendingSpawns.length = 0; waveActive = false; autoStartTimer = -1;
+        const p = pointAt(pathLen * 0.5);
+        towers.push({ type:'gun', x:p.x, y:p.y, range:160, dmg:40, rate:0.3, cd:0, level:1, kills:0,
+          dealt:0, mode:'first', invested:0, spec:null, buffPower:0.25, flash:0 });
+        const e = { kind:'norm', hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#fff', armor:0,
+          dist:pathLen*0.5, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, blinkInvuln:5 };
+        enemies.push(e);
+        return e;
+      };
+
+      // WITHOUT the perk: an intangible enemy is untargetable and unhittable
+      perkState.phaseSight = false;
+      let e = setup();
+      const targetedOff = pickTarget(towers[0]) === null;
+      for (let i = 0; i < 240; i++) update(1/60);
+      const untouchedOff = e.hp === 1000;
+
+      // WITH the perk: the tower sees through it and damages it
+      perkState.phaseSight = true;
+      e = setup();
+      const targetedOn = pickTarget(towers[0]) === e;
+      for (let i = 0; i < 240; i++) update(1/60);
+      const hitOn = e.hp < 1000;
+
+      // legendary-only Wildcard never resolves to this rare
+      let wildNever = true;
+      for (let i = 0; i < 50; i++) { const rp = resolveWildcard(); if (rp && rp.id === 'phaselock') wildNever = false; }
+
+      enemies.length = 0; towers.length = 0; projectiles.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { isRare, defaultOff, applies, targetedOff, untouchedOff, targetedOn, hitOn, wildNever };
+    });
+    check('Spectral Sight is a rare perk', r.isRare);
+    check('phaseSight defaults off', r.defaultOff);
+    check('apply() sets the phaseSight flag', r.applies);
+    check('without the perk, an intangible enemy is untargetable', r.targetedOff);
+    check('without the perk, an intangible enemy takes no damage', r.untouchedOff);
+    check('with the perk, the tower targets the intangible enemy', r.targetedOn);
+    check('with the perk, the intangible enemy takes damage', r.hitOn);
+    check('legendary-only Wildcard never rolls this rare', r.wildNever);
+    check('no console errors during Spectral Sight test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [162] Accelerator boss archetype — the 21st: ramps its own speed with time alive (up to +80%),
+  // freeze pauses the ramp, adds no HP. First appears at w120; the cycle wraps at w125 → regen. (v2.41.0)
+  console.log('\n[162] Accelerator boss (self-speed-ramp archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(120) === 'accelerator';
+      const wrapsAt125 = bt(125) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const clearField = () => { enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+        projectiles.length = 0; towers.length = 0; autoStartTimer = -1; waveActive = false; };
+      const mk = (extra = {}) => { const p = pointAt(0); return ({ kind:'boss',
+        hp:100000, maxHp:100000, spd:1, r:16, bounty:1, color:'#fff', armor:0,
+        dist:0, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+
+      // the ramp grows accelMul over time and CAPS at +80%
+      clearField();
+      const acc = mk({ bossType:'accelerator', spd:0 });   // spd 0 so it stays put during the ramp
+      enemies.push(acc);
+      for (let i = 0; i < 120; i++) update(1/60);           // ~2s → ~+10%
+      const rampsUp = acc.accelMul > 1.05 && acc.accelMul < 1.2;
+      for (let i = 0; i < 3000; i++) update(1/60);          // long enough to hit the cap
+      const caps = Math.abs(acc.accelMul - 1.8) < 1e-6;
+
+      // the ramp actually feeds movement: a primed accelerator outruns a plain (regen) boss
+      clearField();
+      const fast = mk({ bossType:'accelerator', spd:1, accelMul:1.8 });
+      const slow = mk({ bossType:'regen', spd:1 });
+      enemies.push(fast, slow);
+      for (let i = 0; i < 30; i++) update(1/60);
+      const movesFaster = fast.dist > slow.dist * 1.6;
+
+      // FREEZE pauses the ramp (gated block) — a frozen accelerator never speeds up
+      clearField();
+      const frz = mk({ bossType:'accelerator', spd:1, frozen:5 });
+      enemies.push(frz);
+      for (let i = 0; i < 120; i++) update(1/60);
+      const frozenStops = (frz.accelMul || 1) === 1;
+
+      // adds no HP of its own
+      clearField();
+      const lone = mk({ bossType:'accelerator', spd:0 });
+      enemies.push(lone);
+      for (let i = 0; i < 60; i++) update(1/60);
+      const noHp = lone.hp === 100000;
+
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'accelerator', accelMul:1.4 });
+      const badgeOk = !!badge && badge.label === 'ACCELERATING';
+      const codexOk = CODEX_BOSSES.some(b => b.type === 'accelerator');
+      const leversOk = typeof ACCEL_RATE === 'number' && typeof ACCEL_CAP === 'number' && ACCEL_CAP === 1.8;
+
+      enemies.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt125, archCount, rampsUp, caps, movesFaster, frozenStops, noHp,
+               badgeOk, codexOk, leversOk };
+    });
+    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 21);
+    check('rotation wraps after accelerator (w125 → regen)', r.wrapsAt125);
+    check('the accelerator ramps its speed over time', r.rampsUp);
+    check('the speed ramp caps at +80%', r.caps);
+    check('the ramp feeds movement (primed accelerator outruns a plain boss)', r.movesFaster);
+    check('a frozen accelerator stops ramping (freeze counters it)', r.frozenStops);
+    check('accelerator adds no HP of its own', r.noHp);
+    check('boss-bar badge reads ACCELERATING', r.badgeOk);
+    check('accelerator has a Bestiary/Codex entry', r.codexOk);
+    check('ACCEL_RATE / ACCEL_CAP levers exist', r.leversOk);
+    check('no console errors during Accelerator test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [163] Fastest targeting mode (v2.41.0) — a 7th per-tower targeting mode that prioritises the
+  // fastest-moving enemy (dynamic effective speed incl. haste / berserker / accelerator), so towers
+  // can pop the sprinters before they leak. Frozen enemies count as 0 (not the current leak threat).
+  console.log('\n[163] Fastest targeting mode');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const inModes = MODES.includes('fastest');
+      const hasIcon = typeof MODE_ICON.fastest === 'string' && MODE_ICON.fastest.length > 0;
+
+      const p = pointAt(pathLen * 0.5);
+      const mkT = () => { towers.length = 0; const T = { type:'gun', x:p.x, y:p.y, range:300, dmg:1,
+        rate:1, cd:99, level:1, kills:0, dealt:0, mode:'fastest', invested:0, spec:null, buffPower:0.25, flash:0 };
+        towers.push(T); return T; };
+      const mkE = (spd, extra = {}) => ({ kind:'norm', hp:100, maxHp:100, spd, r:12, bounty:1,
+        color:'#fff', armor:0, dist:pathLen*0.5, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0,
+        poison:null, flash:0, px:0, py:0, ...extra });
+
+      // among three enemies at the same spot, the highest base speed wins
+      let T = mkT();
+      enemies.length = 0;
+      const sSlow = mkE(0.5), sMed = mkE(1), sFast = mkE(2);
+      enemies.push(sSlow, sMed, sFast);
+      const picksFastest = pickTarget(T) === sFast;
+
+      // haste amplifies effective speed — a hasted enemy outranks an equal-base-speed one
+      enemies.length = 0;
+      const plain = mkE(1), hasted = mkE(1, { hasted: 1 });
+      enemies.push(plain, hasted);
+      const hastePriority = pickTarget(T) === hasted;
+
+      // an accelerating boss (accelMul) outranks a faster-base-speed enemy
+      enemies.length = 0;
+      const normFast = mkE(1.5), accBoss = mkE(1, { kind:'boss', bossType:'accelerator', accelMul:1.8 });
+      enemies.push(normFast, accBoss);
+      const accelPriority = pickTarget(T) === accBoss;
+
+      // a frozen (non-moving) enemy is deprioritised even with a huge base speed
+      enemies.length = 0;
+      const frozenFast = mkE(5, { frozen: 5 }), moving = mkE(1);
+      enemies.push(frozenFast, moving);
+      const frozenLast = pickTarget(T) === moving;
+
+      // effSpeed helper reports 0 for a frozen enemy and >0 for a moving one
+      const effSpeedOk = effSpeed(frozenFast) === 0 && effSpeed(moving) > 0;
+
+      enemies.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inModes, hasIcon, picksFastest, hastePriority, accelPriority, frozenLast, effSpeedOk };
+    });
+    check('fastest is in the MODES list', r.inModes);
+    check('fastest has a MODE_ICON label', r.hasIcon);
+    check('fastest mode picks the highest-speed enemy', r.picksFastest);
+    check('fastest mode counts haste toward effective speed', r.hastePriority);
+    check('fastest mode counts an accelerating boss toward effective speed', r.accelPriority);
+    check('fastest mode deprioritises a frozen enemy', r.frozenLast);
+    check('effSpeed reports 0 for frozen, >0 for moving', r.effSpeedOk);
+    check('no console errors during Fastest-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
