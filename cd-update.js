@@ -699,6 +699,11 @@ function update(dt) {
     // Reaper's execute. Keyed to the primary target's current HP, so it lives here (not effDmg);
     // applied before the proj branch so chain/rail/poison opening shots benefit too.
     if (perkState.ambush && target.hp > target.maxHp * 0.8) dmg *= 1.3;
+    // Finisher rare (v2.43.0): +35% damage to enemies below 40% HP — the CLOSER counterpart to
+    // Ambush's opener. Keyed to the primary target's current HP, so it lives here (not effDmg);
+    // applied before the proj branch so chain/rail/poison finishing shots benefit too. Conditional
+    // on a wounded target (never helps you START a kill), so it's a modest rare, not power creep.
+    if (perkState.finisher && target.hp < target.maxHp * 0.4) dmg *= 1.35;
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and

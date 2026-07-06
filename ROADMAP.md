@@ -172,13 +172,14 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 29 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 31 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
   + 🗼 Overlord + 🐢 Marathoner v2.39.0 [155] — field 12 towers at once / play a run 30+ min;
   + 🏰 Untouchable + 🎆 Combo Deity v2.40.0 [159] — win Nightmare flawless / reach a 100× streak;
   + 🪐 Astral v2.42.0 [166] — reach wave 150 in a run (the rung above Eternity);
+  + 😰 Clutch + 🎗️ Old Guard v2.43.0 [168] — win with ≤3 lives / hold 3 Legend-rank towers at once;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -187,9 +188,10 @@ _None currently known._ (Add any here as found — top priority.)
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/
   Spectral Sight(towers target & hit intangible enemies — counters phantom/cloak/teleporter/veil, counter-content rare, v2.41.0 [161])/
-  Phalanx(+2% tower dmg per tower on the board, max +20% — a wide-build rare, v2.42.0 [165]);
+  Phalanx(+2% tower dmg per tower on the board, max +20% — a wide-build rare, v2.42.0 [165])/
+  Finisher(+35% dmg to enemies below 40% HP — the closer bookend to Ambush's opener, v2.43.0 [167]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);

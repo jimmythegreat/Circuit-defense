@@ -913,6 +913,10 @@ document.addEventListener('keydown', e => {
       e.preventDefault(); playAgain();
     }
   }
+  // 'U' upgrades the selected tower (v2.43.0 QoL — saves a trip to the panel's Upgrade button).
+  // upgradeTower() self-guards on no selection / max level / affordability, so this is a safe no-op
+  // when nothing's selected. Placed before the ability keys so it never clashes (U isn't an ability).
+  if ((e.key === 'u' || e.key === 'U') && selectedTower) { upgradeTower(); return; }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

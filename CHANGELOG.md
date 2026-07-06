@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.43.0 — 2026-07-06 — 🔪 Finisher perk + 😰 Clutch / 🎗️ Old Guard badges + U-upgrade hotkey
+
+**Type:** Content + QoL (1 perk, 2 achievements, 1 hotkey). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0 is the only run since, so this is a normal run (not a health check). Baseline confirmed green (1753/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the perk is conditional + narrower than a flat buff). No economy/save-schema change.
+
+- **🔪 Finisher — new rare draft perk (low-HP closer).** +35% damage to enemies below 40% HP — the CLOSER bookend to the 🏹 Ambush rare (+30% above 80% HP), on the same current-HP-fraction axis. Distinct from 💀 Reaper (which EXECUTES non-boss enemies <12% HP): Finisher is a damage boost that also helps close out wounded tanks/bosses. Conditional (the tanky top 60% of every enemy is unaffected, so it never helps you START a kill) → strictly narrower than a flat +35%, a modest rare, not power creep. Wired in the FIRE path after Ambush (`perkState.finisher && target.hp < target.maxHp*0.4`), so it's not in effDmg (no panel churn) and covers chain/rail/poison finishing shots. `perkState.finisher` (save-safe default false); legendary-only Wildcard skips it. New test group **[167]**.
+- **😰 Clutch — new achievement.** Win a run with 3 or fewer lives remaining (`won && lives>0 && lives<=3`) — a nail-biter win feat. New test group **[168]**.
+- **🎗️ Old Guard — new achievement.** Hold 3 Legend-rank towers (200+ kills each) on the board at once — a deep-veterancy feat with no `won` gate (like 🏵️ Living Legend). Reads the final `towers` board. Roster 29 → 31. New test group **[168]**.
+- **U-upgrade hotkey (QoL).** Press **U** to instantly upgrade the selected tower (mirrors the panel's Upgrade button; self-guards on no-selection / max-level / affordability). Updated the in-game hotkey hint (also filled in the missing **T** ability). New test group **[169]**.
+- **Tests:** suite green (1776/0). Roster-count assertions (2 sites) bumped 29 → 31.
+
 ## v2.42.0 — 2026-07-06 — 💧 Cleanser boss + 🏛️ Phalanx perk + 🪐 Astral badge
 
 **Type:** Content (1 boss archetype, 1 perk, 1 achievement). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1). Baseline confirmed green (1729/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the boss adds no HP/speed; the perk is conditional + capped below Diamond Core). No economy/save-schema change.

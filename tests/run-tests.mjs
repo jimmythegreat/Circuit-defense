@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 29 badges', r.total === 29, `total=${r.total}`);
+    check('achievement roster grew to 31 badges', r.total === 31, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 29;   // +endless150 🪐 (v2.42.0)
+      const rosterOk = ACHIEVEMENTS.length === 31;   // +clutch 😰 + legion 🎗️ (v2.43.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -11308,6 +11308,174 @@ async function main() {
     check('Astral withheld below wave 150', r.at149 === false);
     check('Astral granted at wave 150 (no `won` gate)', r.at150);
     check('no console errors during Astral test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [167] Finisher rare perk (v2.43.0): +35% damage to enemies below 40% HP — the CLOSER
+  // counterpart to Ambush's opener. Fire-path (target-HP-keyed), so NOT in effDmg. Mirrors [93].
+  console.log('\n[167] Finisher perk (low-HP closer bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'finisher');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // finisher is keyed to current HP in the fire loop, so it must NOT be in effDmg (no panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.finisher = false;
+      const effBefore = effDmg(probe);
+      perkState.finisher = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // fire one instant rail shot and measure raw damage dealt at a given HP fraction
+      function shot(finisherOn, hpFrac) {
+        perkState.finisher = finisherOn;
+        perkState.critChance = 0;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
+        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:160, y:300, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return before - e.hp;
+      }
+      const base   = shot(false, 0.3);   // wounded enemy, no perk
+      const low    = shot(true,  0.3);    // wounded enemy (<40% HP), perk → +35%
+      const high   = shot(true,  0.5);    // healthy enemy (>40% HP), perk → no bonus
+      const bonusOk = Math.abs(low - base * 1.35) < 1e-4;
+      const noBonusAbove = Math.abs(high - base) < 1e-4;
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().finisher === false;
+      perkState.finisher = true;
+      saveRun();
+      perkState.finisher = false;
+      const loaded = loadRun();
+      const restored = perkState.finisher === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.finisher;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.finisher === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'finisher';
+      backToMenu();
+      return { inPool, notInEffDmg, base, low, high, bonusOk, noBonusAbove, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Finisher is a rare perk in the pool', r.inPool);
+    check('Finisher is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Finisher gives +35% damage to a <40% HP enemy', r.bonusOk, `base=${r.base} low=${r.low}`);
+    check('Finisher gives no bonus to a >40% HP enemy', r.noBonusAbove, `base=${r.base} high=${r.high}`);
+    check('freshPerkState defaults finisher:false', r.defaultsOk);
+    check('save/reload round-trips the finisher flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing finisher migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Finisher', r.wildcardSkips);
+    check('no console errors during Finisher test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [168] Clutch + Old Guard achievements (v2.43.0): win with ≤3 lives left; hold 3 Legend towers.
+  console.log('\n[168] Clutch + Old Guard achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const clutchInRoster = ACHIEVEMENTS.some(a => a.id === 'clutch');
+      const legionInRoster = ACHIEVEMENTS.some(a => a.id === 'legion');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      comboBest = 0; peakGold = 0; peakTowers = 0; gameTime = 0; railBestHit = 0; wave = 30;
+      const legendT = () => ({ type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120,
+        rate:1, dealt:0, kills:250, mode:'first', buffPower:0.25 });   // 250 kills → Legend (tier 4)
+
+      // Clutch: WIN with ≤3 lives → granted; 4 lives → withheld; 0 lives edge → withheld
+      towers.length = 0;
+      fresh(); lives = 3;
+      const clutchAt3 = grantAchievements(true).map(a => a.id).includes('clutch');
+      fresh(); lives = 4;
+      const clutchAt4 = grantAchievements(true).map(a => a.id).includes('clutch');
+      fresh(); lives = 0;
+      const clutchAt0 = grantAchievements(true).map(a => a.id).includes('clutch');
+      fresh(); lives = 3;
+      const clutchOnLoss = grantAchievements(false).map(a => a.id).includes('clutch');   // needs a WIN
+
+      // Old Guard: 3 Legend-rank towers → granted (no `won` gate); 2 → withheld
+      lives = 20;
+      towers.length = 0; towers.push(legendT(), legendT(), legendT());
+      fresh();
+      const legionAt3 = grantAchievements(false).map(a => a.id).includes('legion');   // feat, loss OK
+      towers.length = 0; towers.push(legendT(), legendT());
+      fresh();
+      const legionAt2 = grantAchievements(false).map(a => a.id).includes('legion');
+
+      towers.length = 0;
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_campaign');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { clutchInRoster, legionInRoster, clutchAt3, clutchAt4, clutchAt0, clutchOnLoss, legionAt3, legionAt2 };
+    });
+    check('Clutch (clutch) is in the achievement roster', r.clutchInRoster);
+    check('Old Guard (legion) is in the achievement roster', r.legionInRoster);
+    check('Clutch granted on a win with 3 lives', r.clutchAt3);
+    check('Clutch withheld on a win with 4 lives', r.clutchAt4 === false);
+    check('Clutch withheld at 0 lives (edge)', r.clutchAt0 === false);
+    check('Clutch needs a win (withheld on a loss)', r.clutchOnLoss === false);
+    check('Old Guard granted with 3 Legend towers (no win gate)', r.legionAt3);
+    check('Old Guard withheld with only 2 Legend towers', r.legionAt2 === false);
+    check('no console errors during Clutch/Old Guard test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [169] 'U' hotkey upgrades the selected tower (v2.43.0 QoL).
+  console.log('\n[169] U hotkey upgrades the selected tower');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      gold = 100000;
+      towers.length = 0;
+      const p = pointAt(120);
+      const t = { type:'gun', x:p.x, y:p.y, range:110, dmg:8, rate:0.35, cd:0, level:1, kills:0,
+                  dealt:0, mode:'first', invested:0, spec:null, buffPower:0.25, flash:0 };
+      towers.push(t);
+
+      // no selection → 'U' is a harmless no-op (level unchanged)
+      selectedTower = null;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'u', bubbles: true }));
+      const noopWhenNone = t.level === 1;
+
+      // select the tower, then 'U' upgrades it
+      selectedTower = t;
+      const goldBefore = gold, lvlBefore = t.level;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'u', bubbles: true }));
+      const leveled = t.level === lvlBefore + 1;
+      const goldSpent = gold < goldBefore;
+
+      // uppercase works too
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'U', bubbles: true }));
+      const leveledAgain = t.level === lvlBefore + 2;
+
+      towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { noopWhenNone, leveled, goldSpent, leveledAgain };
+    });
+    check("'U' with no tower selected is a no-op", r.noopWhenNone);
+    check("'U' upgrades the selected tower", r.leveled);
+    check("'U' spends gold on the upgrade", r.goldSpent);
+    check("'U' (uppercase) also upgrades", r.leveledAgain);
+    check('no console errors during U-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

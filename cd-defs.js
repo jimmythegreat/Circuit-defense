@@ -555,6 +555,18 @@ const PERKS = [
   // in perkState (save-safe default false; round-trips via loadRun's Object.assign(freshPerkState(),
   // s.perkState) — old saves default false). A RARE, so the legendary-only resolveWildcard() skips it.
   { id:'phalanx', rarity:'rare', icon:'🏛️', name:'Phalanx',              desc:'+2% tower damage per tower on the board (max +20%)', apply:s=>s.phalanx = true },
+  // Finisher (rare, v2.43.0): the CLOSER counterpart to the 🏹 Ambush rare (which adds +30% to
+  // enemies still above 80% HP). Finisher adds +35% damage to enemies already below 40% HP — a
+  // clean bookend with Ambush on the fresh current-HP-fraction axis. Distinct from 💀 Reaper
+  // (which EXECUTES non-boss enemies below 12% HP): this is a damage BOOST that helps you close
+  // out wounded tanks/bosses too (it applies to any kind, unlike Reaper's non-boss-only execute).
+  // Deliberately "too easy"-safe: it's CONDITIONAL (only wounded enemies qualify; the tanky top
+  // 60% of every enemy's HP is unaffected, so it never helps you START killing something), which
+  // makes it strictly narrower than a flat +35% buff — a modest rare, not power creep. Applied in
+  // the FIRE path (keyed to the primary target's current HP, like Ambush/Killing Spree — can't live
+  // in effDmg), before the proj branch so chain/rail/poison finishing shots benefit too. `finisher`
+  // lives in perkState (save-safe default false). A RARE, so the legendary-only resolveWildcard() skips it.
+  { id:'finisher', rarity:'rare', icon:'🔪', name:'Finisher',            desc:'+35% damage to enemies below 40% HP', apply:s=>s.finisher = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -565,7 +577,7 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false, phalanx:false };
+    phaseSight:false, phalanx:false, finisher:false };
 }
 function ascendTowers() {
   for (const t of towers) {

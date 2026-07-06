@@ -37,6 +37,8 @@ const ACHIEVEMENTS = [
   { id:'untouchable',   icon:'🏰', name:'Untouchable',         desc:'Win on Nightmare without losing a single life' },
   { id:'combo100',      icon:'🎆', name:'Combo Deity',          desc:'Reach a 100× kill-streak in a single run' },
   { id:'endless150',    icon:'🪐', name:'Astral',               desc:'Reach wave 150 in a single run' },
+  { id:'clutch',        icon:'😰', name:'Clutch',               desc:'Win a run with 3 or fewer lives left' },
+  { id:'legion',        icon:'🎗️', name:'Old Guard',             desc:'Have 3 Legend-rank towers at once' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -74,6 +76,13 @@ function grantAchievements(won) {
   // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
   // the top veterancy rank (200 kills on one tower) is most natural in a long endless run, win or lose.
   if (towers.some(t => towerRankTier(t.kills) === 4)) give('legend_tower');
+  // Old Guard (🎗️ v2.43.0): a feat (no `won` gate, like Living Legend) — hold THREE Legend-rank
+  // towers (200+ kills each) on the board at once. A deep-veterancy goal, most natural in a long
+  // endless run where a well-defended core racks up kills. Reads the same final `towers` board.
+  if (towers.filter(t => towerRankTier(t.kills) === 4).length >= 3) give('legion');
+  // Clutch (😰 v2.43.0): win a run with the wall nearly breached — 3 or fewer lives remaining. A
+  // nail-biter win feat (win-gated); `lives > 0` guards the edge where a final-leak win could read 0.
+  if (won && lives > 0 && lives <= 3) give('clutch');
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
