@@ -544,6 +544,17 @@ const PERKS = [
   // (save-safe defaults; round-trip via loadRun's Object.assign(freshPerkState(), s.perkState) — old
   // saves default false/0). A RARE, so the legendary-only resolveWildcard() does NOT roll it. Test [154].
   { id:'retaliation', rarity:'rare', icon:'🗯️', name:'Retaliation',        desc:'After a leak: +25% tower damage for 4s', apply:s=>s.retaliation = true },
+  // Phalanx (rare, v2.42.0): a "wide-build" damage perk on a fresh axis — every tower deals +2%
+  // damage per tower on the board (capped +20% at 10 towers). It rewards a broad, well-spread
+  // defensive line (the inverse of 🔮 Glass Cannon's few-heavy-hitters trade-off and ⚖️ Minimalist),
+  // so it's a genuine BUILD choice, not a flat board buff. Deliberately "too easy"-safe: it's
+  // CONDITIONAL on a real investment (a full +20% needs ten towers, which spreads your gold thin and
+  // demands the coverage to earn it) and CAPPED at +20% — strictly below the unconditional Diamond
+  // Core (+30% flat, the better pick for a concentrated build). Wired in effDmg via towers.length
+  // (upgradeKey() hashes effDmg, so the panel live-updates as you place/sell towers). `phalanx` lives
+  // in perkState (save-safe default false; round-trips via loadRun's Object.assign(freshPerkState(),
+  // s.perkState) — old saves default false). A RARE, so the legendary-only resolveWildcard() skips it.
+  { id:'phalanx', rarity:'rare', icon:'🏛️', name:'Phalanx',              desc:'+2% tower damage per tower on the board (max +20%)', apply:s=>s.phalanx = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -554,7 +565,7 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false };
+    phaseSight:false, phalanx:false };
 }
 function ascendTowers() {
   for (const t of towers) {

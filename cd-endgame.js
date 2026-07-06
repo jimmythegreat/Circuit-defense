@@ -36,6 +36,7 @@ const ACHIEVEMENTS = [
   { id:'marathoner',    icon:'🐢', name:'Marathoner',          desc:'Play a single run for 30+ minutes' },
   { id:'untouchable',   icon:'🏰', name:'Untouchable',         desc:'Win on Nightmare without losing a single life' },
   { id:'combo100',      icon:'🎆', name:'Combo Deity',          desc:'Reach a 100× kill-streak in a single run' },
+  { id:'endless150',    icon:'🪐', name:'Astral',               desc:'Reach wave 150 in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -58,6 +59,7 @@ function grantAchievements(won) {
   if (won && gameMode === 'campaign' && campLevel >= CAMPAIGN_LEVELS) give('camp_done');
   if (wave >= 50) give('endless50');
   if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
+  if (wave >= 150) give('endless150');   // 🪐 v2.42.0 — the next deep-endless rung above Eternity (no `won` gate)
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.runs >= 25) give('veteran');
   if (meta.stats.runs >= 100) give('centurion');   // 💯 v2.38.0 — a grind/dedication feat (pairs with Veteran@25)
@@ -231,6 +233,7 @@ const CODEX_BOSSES = [
   { type: 'custodian',  glyph: '🛡', color: '#8ec7ff', label: 'Custodian',    wave: 'Wave 110', desc: 'Shields its whole escort — nearby allies take 40% less damage. Kill the Custodian (or freeze it) to drop the ward.' },
   { type: 'veil',       glyph: '🫥', color: '#dcd2ff', label: 'Veil',         wave: 'Wave 115', desc: 'Cloaks its escorts — nearby allies periodically phase out, untargetable. Use rapid fire or freeze it to stop the spread.' },
   { type: 'accelerator',glyph: '🏎', color: '#ffec5a', label: 'Accelerator',  wave: 'Wave 120', desc: 'Ramps its own speed the longer it lives (up to +80%). Burst it down early, or freeze to pause the acceleration.' },
+  { type: 'cleanser',   glyph: '💧', color: '#e6fbff', label: 'Cleanser',     wave: 'Wave 125', desc: 'Purges poison & slow from itself and its escorts every few seconds. Bring direct DPS, or freeze it to stop the purge.' },
 ];
 // The 📖 Bestiary opens from the start menu AND mid-run (in-game Codex button / 'C' hotkey,
 // v2.37.0). When opened during a live game it auto-pauses so the player can read counters

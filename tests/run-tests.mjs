@@ -2567,7 +2567,7 @@ async function main() {
                     && bt(75) === 'conduit' && bt(80) === 'warper' && bt(85) === 'fortifier'
                     && bt(90) === 'warlord' && bt(95) === 'suppressor' && bt(100) === 'absorber'
                     && bt(105) === 'distorter' && bt(110) === 'custodian'
-                    && bt(115) === 'veil' && bt(120) === 'accelerator' && bt(125) === 'regen';
+                    && bt(115) === 'veil' && bt(120) === 'accelerator' && bt(125) === 'cleanser';
 
       // Drop a controlled boss into the live enemy array and tick update() on it.
       const mkBoss = (bossType, over = {}) => {
@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 28 badges', r.total === 28, `total=${r.total}`);
+    check('achievement roster grew to 29 badges', r.total === 29, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6535,7 +6535,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 21);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 22);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7900,7 +7900,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 21);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 22);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8244,7 +8244,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 21);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 22);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8515,7 +8515,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 21);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 22);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8678,7 +8678,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 21);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 22);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8837,7 +8837,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 21);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 22);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 28;   // +untouchable 🏰 +combo100 🎆 (v2.40.0)
+      const rosterOk = ACHIEVEMENTS.length === 29;   // +endless150 🪐 (v2.42.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9717,7 +9717,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 21);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 22);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9805,7 +9805,7 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 21);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 22);
     check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
@@ -10145,7 +10145,7 @@ async function main() {
       return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
                wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
     });
-    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 21);
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 22);
     check('veil follows custodian (w115 → veil)', r.wrapsAt115);
     check('a living custodian wards a nearby ally', r.allyWarded);
     check('an ally outside the aura is not warded', r.farUnwarded);
@@ -10318,7 +10318,7 @@ async function main() {
       return { inRotation, wrapsAt120, archCount, allyCloaked, farUntagged, bossPeerFree, selfFree,
                sawInvuln, noHpOrSpeed, frozenStops, badgeOk, rangeLever, codexOk };
     });
-    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 21);
+    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 22);
     check('accelerator follows veil (w120)', r.wrapsAt120);
     check('a living veil cloaks a nearby ally', r.allyCloaked);
     check('a cloaked ally periodically phases out (untargetable)', r.sawInvuln);
@@ -11037,7 +11037,7 @@ async function main() {
 
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(120) === 'accelerator';
-      const wrapsAt125 = bt(125) === 'regen';
+      const wrapsAt125 = bt(125) === 'cleanser';   // v2.42.0: the 22nd archetype now occupies w125
       const archCount = BOSS_ARCHETYPES.length;
 
       const clearField = () => { enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
@@ -11087,8 +11087,8 @@ async function main() {
       return { inRotation, wrapsAt125, archCount, rampsUp, caps, movesFaster, frozenStops, noHp,
                badgeOk, codexOk, leversOk };
     });
-    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 21);
-    check('rotation wraps after accelerator (w125 → regen)', r.wrapsAt125);
+    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 22);
+    check('rotation wraps after accelerator (w125 → cleanser)', r.wrapsAt125);
     check('the accelerator ramps its speed over time', r.rampsUp);
     check('the speed ramp caps at +80%', r.caps);
     check('the ramp feeds movement (primed accelerator outruns a plain boss)', r.movesFaster);
@@ -11160,6 +11160,154 @@ async function main() {
     check('fastest mode deprioritises a frozen enemy', r.frozenLast);
     check('effSpeed reports 0 for frozen, >0 for moving', r.effSpeedOk);
     check('no console errors during Fastest-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [164] Cleanser boss archetype — the 22nd (v2.42.0): every ~2.5s it PURGES poison + slow from
+  // itself and its nearby cohort (a fresh anti-debuff axis — nothing else removes poison). Freeze
+  // pauses the purge; it adds no HP. First appears at w125; the cycle wraps at w130 → regen.
+  console.log('\n[164] Cleanser boss (anti-debuff purge archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(125) === 'cleanser';
+      const wrapsAt130 = bt(130) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const clearField = () => { enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+        projectiles.length = 0; towers.length = 0; autoStartTimer = -1; waveActive = false; };
+      const p0 = pointAt(0);
+      const mk = (extra = {}) => ({ kind:'norm', hp:1e7, maxHp:1e7, spd:0, r:12, bounty:1, color:'#fff',
+        armor:0, dist:0, x:p0.x, y:p0.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra });
+      const psn = () => ({ dps:1, t:1000, src:null });
+
+      // A cleanser purges poison from itself + a NEARBY ally on its ~2.5s pulse, but not a FAR one.
+      clearField();
+      const boss = mk({ kind:'boss', bossType:'cleanser', poison:psn() });
+      const near = mk({ poison:psn() });                    // same point → within CLEANSE_RANGE
+      const far  = mk({ dist: pathLen * 0.4, poison:psn() }); // far along the path → outside range, no leak
+      enemies.push(boss, near, far);
+      for (let i = 0; i < 30; i++) update(1/60);            // 0.5s: the periodic purge hasn't fired yet
+      const periodic = boss.poison !== null && near.poison !== null;
+      for (let i = 0; i < 170; i++) update(1/60);           // past a full ~2.5s pulse
+      const purgesSelf = boss.poison === null;
+      const purgesNear = near.poison === null;
+      const sparesFar  = far.poison !== null;
+
+      // FREEZE pauses the purge (gated block) — a frozen cleanser never cleanses
+      clearField();
+      const frz = mk({ kind:'boss', bossType:'cleanser', frozen:1000, poison:psn() });
+      enemies.push(frz);
+      for (let i = 0; i < 200; i++) update(1/60);
+      const frozenStops = frz.poison !== null;
+
+      // adds no HP of its own
+      clearField();
+      const lone = mk({ kind:'boss', bossType:'cleanser' });
+      enemies.push(lone);
+      for (let i = 0; i < 60; i++) update(1/60);
+      const noHp = lone.hp === 1e7;
+
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'cleanser' });
+      const badgeOk = !!badge && badge.label === 'CLEANSING';
+      const codexOk = CODEX_BOSSES.some(b => b.type === 'cleanser');
+      const leverOk = typeof CLEANSE_RANGE === 'number';
+
+      enemies.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt130, archCount, periodic, purgesSelf, purgesNear, sparesFar,
+               frozenStops, noHp, badgeOk, codexOk, leverOk };
+    });
+    check('cleanser is the 22nd archetype (w125)', r.inRotation && r.archCount === 22);
+    check('rotation wraps after cleanser (w130 → regen)', r.wrapsAt130);
+    check('the purge is periodic (poison persists between pulses)', r.periodic);
+    check('a cleanser purges poison from itself', r.purgesSelf);
+    check('a cleanser purges poison from a nearby ally', r.purgesNear);
+    check('a cleanser does NOT purge a far-away ally (range-gated)', r.sparesFar);
+    check('a frozen cleanser cannot purge (freeze counters it)', r.frozenStops);
+    check('cleanser adds no HP of its own', r.noHp);
+    check('boss-bar badge reads CLEANSING', r.badgeOk);
+    check('cleanser has a Bestiary/Codex entry', r.codexOk);
+    check('CLEANSE_RANGE lever exists', r.leverOk);
+    check('no console errors during Cleanser test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [165] Phalanx perk (rare, v2.42.0): +2% tower damage per tower on the board, capped +20% at ten.
+  console.log('\n[165] Phalanx perk (wide-build damage)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'phalanx');
+      const inRoster = !!def && def.rarity === 'rare';
+      const fresh = freshPerkState();
+      const defaultsOk = fresh.phalanx === false;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.phalanx === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0;
+      const mkT = (i) => { const p = pointAt(60 + i*24); return { type:'gun', x:p.x, y:p.y, range:120,
+        dmg:10, rate:0.5, cd:0, level:1, kills:0, dealt:0, mode:'first', invested:0, spec:null,
+        buffPower:0.25, flash:0 }; };
+      const T = mkT(0); towers.push(T);
+
+      perkState.phalanx = false;
+      const base = effDmg(T);
+      perkState.phalanx = true;
+      const oneOk = Math.abs(effDmg(T) / base - 1.02) < 1e-6;    // 1 tower → +2%
+      for (let i = 1; i < 5; i++) towers.push(mkT(i));           // 5 towers → +10%
+      const fiveOk = Math.abs(effDmg(T) / base - 1.10) < 1e-6;
+      for (let i = 5; i < 14; i++) towers.push(mkT(i));          // 14 towers → capped +20%
+      const cappedOk = Math.abs(effDmg(T) / base - 1.20) < 1e-6;
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'phalanx';
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, oneOk, fiveOk, cappedOk, wildcardSkips };
+    });
+    check('Phalanx is a rare perk in the roster', r.inRoster);
+    check('freshPerkState defaults phalanx:false', r.defaultsOk);
+    check('apply() sets the phalanx flag', r.appliesFlag);
+    check('Phalanx gives +2% per tower (1 tower → +2%)', r.oneOk);
+    check('Phalanx scales with the board (5 towers → +10%)', r.fiveOk);
+    check('Phalanx caps at +20% (10+ towers)', r.cappedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Phalanx', r.wildcardSkips);
+    check('no console errors during Phalanx test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [166] Astral achievement (🪐, v2.42.0): granted at wave ≥150 — the deep-endless rung above Eternity.
+  console.log('\n[166] Astral achievement (reach wave 150)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'endless150');
+
+      endless = true; gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; comboBest = 0; peakGold = 0; peakTowers = 0; gameTime = 0; railBestHit = 0;
+
+      fresh(); wave = 149;
+      const at149 = grantAchievements(false).map(a => a.id).includes('endless150');   // withheld below 150
+      fresh(); wave = 150;
+      const at150 = grantAchievements(false).map(a => a.id).includes('endless150');   // granted at 150, no `won` gate
+
+      endless = false; localStorage.removeItem('cd_save'); localStorage.removeItem('cd_campaign');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { inRoster, at149, at150 };
+    });
+    check('Astral (endless150) is in the achievement roster', r.inRoster);
+    check('Astral withheld below wave 150', r.at149 === false);
+    check('Astral granted at wave 150 (no `won` gate)', r.at150);
+    check('no console errors during Astral test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.42.0 — 2026-07-06 — 💧 Cleanser boss + 🏛️ Phalanx perk + 🪐 Astral badge
+
+**Type:** Content (1 boss archetype, 1 perk, 1 achievement). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1). Baseline confirmed green (1729/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the boss adds no HP/speed; the perk is conditional + capped below Diamond Core). No economy/save-schema change.
+
+- **💧 Cleanser — the 22nd boss archetype (anti-debuff purge).** First appears around wave 125, deep in Endless. Every ~2.5s it PURGES poison DoT + frost slow from itself and its nearby cohort (`CLEANSE_RANGE` 115px ×`enemyMechScale`, ticked in the gated block so freeze pauses it), so DoT/slow builds can't soften the pack — bring direct DPS, or freeze it to stop the purge. A fresh axis (nothing else removes poison). Bounded: periodic (poison re-accumulates between pulses), adds no HP/speed, and it does NOT clear `frozen` so FREEZE stays the counter. Boss-bar badge CLEANSING, icy-white aura ring, Bestiary/Codex row. Cycle now wraps at w130 → regen. New test group **[164]**.
+- **🏛️ Phalanx — new rare draft perk (wide-build damage).** +2% tower damage per tower on the board, capped +20% at ten towers — a reward for a broad, well-spread line (the inverse of 🔮 Glass Cannon / ⚖️ Minimalist). Wired in `effDmg` via `towers.length` (upgradeKey hashes effDmg → panel live-updates). Conditional on a real investment + capped below the unconditional Diamond Core (+30%), so it's a build choice, not power creep. `perkState.phalanx` (save-safe default false); legendary-only Wildcard skips it. New test group **[165]**.
+- **🪐 Astral — new achievement.** Reach wave 150 in a single run — the next deep-endless rung above 🌌 Eternity (w100). No `won` gate (a feat). Roster 28 → 29. New test group **[166]**.
+- **Tests:** suite green after the change. Adding the 22nd archetype shifted every `archCount` assertion 21 → 22 and the w125-wrap check accelerator→cleanser; both updated.
+
 ## v2.41.1 — 2026-07-03 — 🩺 Health check — all green (1729/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.35.1: v2.36.0, v2.37.0, v2.38.0, v2.39.0, v2.40.0, v2.41.0 — at the 6-run trigger.)

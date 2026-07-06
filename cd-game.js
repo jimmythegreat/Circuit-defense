@@ -211,13 +211,14 @@ function enemyTemplate(w) {
 // Boss archetype rotation (v1.25.0; enrager added v1.34.0, teleporter v1.40.0, berserker v1.50.0,
 // disruptor v1.52.0, juggernaut v1.56.0, siphon v1.71.0, hydra v1.82.0, revenant v1.88.0,
 // conduit v2.2.0, warper v2.7.0, fortifier v2.10.0, warlord v2.14.0, suppressor v2.16.0,
-// absorber v2.27.0, distorter v2.30.0, custodian v2.35.0, veil v2.36.0, accelerator v2.41.0). Indexed by boss number from wave 20 on, so deep bosses cycle
+// absorber v2.27.0, distorter v2.30.0, custodian v2.35.0, veil v2.36.0, accelerator v2.41.0,
+// cleanser v2.42.0). Indexed by boss number from wave 20 on, so deep bosses cycle
 // regen → summoner → bulwark → enrager → teleporter → berserker → disruptor → juggernaut → siphon →
-// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter → custodian → veil → accelerator
-// (w110 → custodian, w115 → veil, w120 → accelerator, w125 wraps to regen). The cycle length reads
+// hydra → revenant → conduit → warper → fortifier → warlord → suppressor → absorber → distorter → custodian → veil → accelerator → cleanser
+// (w115 → veil, w120 → accelerator, w125 → cleanser, w130 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian', 'veil', 'accelerator'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian', 'veil', 'accelerator', 'cleanser'];
 // Enemy COUNT for a wave (v2.33.0, owner FEEDBACK "make the game way harder as the levels
 // progress, especially endless" — the body-count slice that follows the v2.31.0 HP ramp and
 // v2.32.0 ability/aura scaling). Base grows the same unbounded linear line it always has; the
@@ -772,6 +773,10 @@ function effDmg(t) {
   // panel on a promotion, not every kill (safe to live in effDmg, unlike combo/ambush). Conditional &
   // capped → below Diamond Core (+30% flat); rewards a small core of long-lived, elite towers.
   if (perkState.veteranBonus) d *= 1 + 0.05 * towerRankTier(t.kills);
+  // Phalanx rare (v2.42.0): a wide-build bonus — +2% damage per tower on the board, capped +20% at
+  // ten towers. Conditional on a real investment + capped, so it's below the flat Diamond Core and
+  // stays "too easy"-safe. upgradeKey() hashes effDmg, so the panel updates as the board grows/shrinks.
+  if (perkState.phalanx) d *= 1 + 0.02 * Math.min(10, towers.length);
   return d;
 }
 function effRate(t) {

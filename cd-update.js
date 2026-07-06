@@ -596,6 +596,27 @@ function update(dt) {
         e.accelMul = Math.min(ACCEL_CAP, (e.accelMul || 1) + ACCEL_RATE * dt);
         e.accelCd = (e.accelCd == null ? 2.5 : e.accelCd) - dt;
         if (e.accelCd <= 0) { e.accelCd = 2.5; addExplosion(e.x, e.y, '#ffec5a', 9, e.r + 18); SFX.bossSkill(); }
+      } else if (e.bossType === 'cleanser') {
+        // Cleanser (v2.42.0, the 22nd archetype — a fresh ANTI-DEBUFF axis: no other archetype or
+        // enemy removes poison). Every ~2.5s it PURGES the soft debuffs (poison DoT + frost slow) from
+        // itself and every nearby non-boss ally within CLEANSE_RANGE (×mechScale, like the warden/
+        // custodian/veil auras), so a DoT/slow build can't soften the pack — bring direct DPS. The
+        // purge is PERIODIC (on the pulse, not every frame), so poison/slow re-accumulate between
+        // pulses and the effect reads clearly (debuffs vanish on the flash). Deliberately does NOT
+        // clear `frozen`: FREEZE stays the counter (and, in this gated frozen<=0 block, a frozen
+        // Cleanser can't purge — freeze + focus is a clean answer). Bounded/"too easy"-safe: adds NO
+        // HP or speed, only strips the player's DoT/slow advantage. Run-only `cleanseCd`, never saved.
+        e.cleanseCd = (e.cleanseCd == null ? 2.5 : e.cleanseCd) - dt;
+        if (e.cleanseCd <= 0) {
+          e.cleanseCd = 2.5;
+          const cr = CLEANSE_RANGE * mechScale;
+          e.poison = null; e.slow = 0;
+          for (const o of enemies) {
+            if (o === e || o.kind === 'boss' || o.dead) continue;
+            if (Math.hypot(o.x - e.x, o.y - e.y) < cr) { o.poison = null; o.slow = 0; }
+          }
+          addExplosion(e.x, e.y, '#e6fbff', 10, cr); SFX.bossSkill();
+        }
       }
     }
     if (e.dist >= pathLen) {
@@ -916,6 +937,14 @@ const VEIL_RANGE = 115;          // px reach of the cohort-cloak (intangibility)
 // stays slower than a basic enemy — beatable, adds NO HP. Run-only `accelMul`/`accelCd`, never saved.
 const ACCEL_RATE = 0.05;         // +speed multiplier per second alive (reaches cap in ~16s)
 const ACCEL_CAP  = 1.8;          // max self-speed multiplier (+80%)
+// Cleanser boss archetype (v2.42.0, the 22nd) lever: the reach of its anti-debuff purge. Every ~2.5s
+// it PURGES the soft debuffs (poison DoT + frost slow) from itself and its nearby non-boss cohort
+// within this radius (×enemyMechScale, like the warden/custodian/veil auras) — a fresh axis, since no
+// other archetype/enemy removes poison. Deliberately does NOT clear `frozen`, so FREEZE stays the
+// counter (and, ticking in the gated frozen<=0 block, a frozen Cleanser can't purge). Bounded/"too
+// easy"-safe: adds NO HP or speed, only strips the player's DoT/slow advantage; periodic (not every
+// frame) so poison/slow can re-accumulate between pulses. Run-only `cleanseCd`, never persisted.
+const CLEANSE_RANGE = 115;       // px reach of the debuff-purge pulse
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];
