@@ -39,6 +39,8 @@ const ACHIEVEMENTS = [
   { id:'endless150',    icon:'🪐', name:'Astral',               desc:'Reach wave 150 in a single run' },
   { id:'clutch',        icon:'😰', name:'Clutch',               desc:'Win a run with 3 or fewer lives left' },
   { id:'legion',        icon:'🎗️', name:'Old Guard',             desc:'Have 3 Legend-rank towers at once' },
+  { id:'jackpot',       icon:'🎰', name:'Jackpot',              desc:'Collect 3 legendary perks in a single run' },
+  { id:'absolute_zero', icon:'🧊', name:'Absolute Zero',        desc:'Freeze 12+ enemies with a single Time Freeze' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -80,6 +82,12 @@ function grantAchievements(won) {
   // towers (200+ kills each) on the board at once. A deep-veterancy goal, most natural in a long
   // endless run where a well-defended core racks up kills. Reads the same final `towers` board.
   if (towers.filter(t => towerRankTier(t.kills) === 4).length >= 3) give('legion');
+  // Jackpot (🎰 v2.44.0): a feat (no `won` gate) — draft 3+ legendary perks in one run. A pure
+  // luck/greed goal; reads the run's runPerks (each carries its .rarity). Legendaries roll ~8%/slot.
+  if (runPerks.filter(p => p.rarity === 'legendary').length >= 3) give('jackpot');
+  // Absolute Zero (🧊 v2.44.0): a feat (no `won` gate) — catch 12+ enemies in a single 🧊 Time Freeze
+  // cast. Reads the run-only bestFreeze peak (set in triggerAbility's freeze branch, cd-defs.js).
+  if (bestFreeze >= 12) give('absolute_zero');
   // Clutch (😰 v2.43.0): win a run with the wall nearly breached — 3 or fewer lives remaining. A
   // nail-biter win feat (win-gated); `lives > 0` guards the edge where a final-leak win could read 0.
   if (won && lives > 0 && lives <= 3) give('clutch');

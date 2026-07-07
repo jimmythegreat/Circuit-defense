@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 31 badges', r.total === 31, `total=${r.total}`);
+    check('achievement roster grew to 33 badges', r.total === 33, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 31;   // +clutch 😰 + legion 🎗️ (v2.43.0)
+      const rosterOk = ACHIEVEMENTS.length === 33;   // +jackpot 🎰 + absolute_zero 🧊 (v2.44.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -11476,6 +11476,137 @@ async function main() {
     check("'U' spends gold on the upgrade", r.goldSpent);
     check("'U' (uppercase) also upgrades", r.leveledAgain);
     check('no console errors during U-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [170] Wave-start banner (v2.44.0, game-feel): pure text helper + startWave sets it + it fades.
+  console.log('\n[170] Wave-start banner');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // pure helper: normal vs boss waves
+      const norm = waveBannerFor(4);
+      const boss = waveBannerFor(5);
+      const norm2 = waveBannerFor(7);
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const beforeStart = waveBanner === null;   // resetState cleared it
+      startWave();                                // launches wave 1
+      const setOnStart = !!waveBanner && waveBanner.text === 'WAVE 1' && waveBanner.t === 1;
+
+      // it fades over ~1.4s of update() time → clears to null
+      let cleared = false;
+      for (let i = 0; i < 120 && !cleared; i++) { update(1/60); if (waveBanner === null) cleared = true; }
+
+      towers.length = 0; enemies.length = 0;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { norm, boss, norm2, beforeStart, setOnStart, cleared };
+    });
+    check('waveBannerFor(4) → "WAVE 4", blue, not boss',
+      r.norm.text === 'WAVE 4' && r.norm.color === '#58a6ff' && r.norm.boss === false, JSON.stringify(r.norm));
+    check('waveBannerFor(5) → "☠ BOSS WAVE 5", red, boss',
+      r.boss.text === '☠ BOSS WAVE 5' && r.boss.color === '#f85149' && r.boss.boss === true, JSON.stringify(r.boss));
+    check('waveBannerFor(7) is a normal (non-boss) banner', r.norm2.boss === false);
+    check('banner is null before a wave starts (reset)', r.beforeStart);
+    check('startWave() sets the wave banner (t=1)', r.setOnStart);
+    check('banner fades to null over ~1.4s of update()', r.cleared);
+    check('no console errors during wave-banner test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [171] Jackpot + Absolute Zero achievements (v2.44.0): 3 legendary perks; 12+ frozen in one cast.
+  console.log('\n[171] Jackpot + Absolute Zero achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const jackpotInRoster = ACHIEVEMENTS.some(a => a.id === 'jackpot');
+      const azInRoster = ACHIEVEMENTS.some(a => a.id === 'absolute_zero');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      comboBest = 0; peakGold = 0; peakTowers = 0; gameTime = 0; railBestHit = 0; bestFreeze = 0; wave = 10;
+      towers.length = 0;
+      const leg = { id:'diamond', icon:'💎', name:'Diamond Core', rarity:'legendary' };
+      const rare = { id:'crit', icon:'🍀', name:'Crit Systems', rarity:'rare' };
+
+      // Jackpot: 3 legendaries → granted (no `won` gate); 2 → withheld
+      runPerks = [leg, leg, leg];
+      fresh();
+      const jackpotAt3 = grantAchievements(false).map(a => a.id).includes('jackpot');
+      runPerks = [leg, leg, rare];
+      fresh();
+      const jackpotAt2 = grantAchievements(false).map(a => a.id).includes('jackpot');
+      runPerks = [];
+
+      // Absolute Zero: bestFreeze ≥ 12 → granted; 11 → withheld
+      fresh(); bestFreeze = 12;
+      const azAt12 = grantAchievements(false).map(a => a.id).includes('absolute_zero');
+      fresh(); bestFreeze = 11;
+      const azAt11 = grantAchievements(false).map(a => a.id).includes('absolute_zero');
+
+      // casting Time Freeze on a packed lane records bestFreeze
+      bestFreeze = 0;
+      enemies.length = 0;
+      for (let i = 0; i < 15; i++) enemies.push({ x: 100 + i, y: 100, dead: false, frozen: 0, kind: 'norm' });
+      abilityCd.freeze = 0; paused = false; draftOpen = false;
+      triggerAbility('freeze');
+      const freezeTracked = bestFreeze >= 15;
+
+      enemies.length = 0; runPerks = [];
+      localStorage.removeItem('cd_save');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { jackpotInRoster, azInRoster, jackpotAt3, jackpotAt2, azAt12, azAt11, freezeTracked };
+    });
+    check('Jackpot (jackpot) is in the achievement roster', r.jackpotInRoster);
+    check('Absolute Zero (absolute_zero) is in the achievement roster', r.azInRoster);
+    check('Jackpot granted with 3 legendary perks (no win gate)', r.jackpotAt3);
+    check('Jackpot withheld with only 2 legendaries', r.jackpotAt2 === false);
+    check('Absolute Zero granted at bestFreeze 12', r.azAt12);
+    check('Absolute Zero withheld at bestFreeze 11', r.azAt11 === false);
+    check('Time Freeze cast records enemies frozen into bestFreeze', r.freezeTracked);
+    check('no console errors during Jackpot/Absolute Zero test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [172] 'S' hotkey sells the selected tower (v2.44.0 QoL).
+  console.log('\n[172] S hotkey sells the selected tower');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      gold = 1000;
+      towers.length = 0;
+      const p = pointAt(120);
+      const t = { type:'gun', x:p.x, y:p.y, range:110, dmg:8, rate:0.35, cd:0, level:1, kills:0,
+                  dealt:0, mode:'first', invested:120, spec:null, buffPower:0.25, flash:0 };
+      towers.push(t);
+
+      // no selection → 'S' is a harmless no-op (tower stays)
+      selectedTower = null;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+      const noopWhenNone = towers.length === 1;
+
+      // select the tower, then 'S' sells it (removed + gold refunded)
+      selectedTower = t;
+      const goldBefore = gold;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+      const sold = towers.length === 0;
+      const refunded = gold > goldBefore;
+      const deselected = selectedTower === null;
+
+      // uppercase works too (no-op now that nothing's selected → no crash)
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'S', bubbles: true }));
+
+      towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { noopWhenNone, sold, refunded, deselected };
+    });
+    check("'S' with no tower selected is a no-op", r.noopWhenNone);
+    check("'S' sells the selected tower", r.sold);
+    check("'S' refunds gold on the sale", r.refunded);
+    check("'S' clears the selection after selling", r.deselected);
+    check('no console errors during S-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

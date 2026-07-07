@@ -787,6 +787,9 @@ function update(dt) {
   // combo decay: streak lapses if no kill within the window
   if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) { comboTimer = 0; comboCount = 0; } }
   if (comboFlash > 0) comboFlash = Math.max(0, comboFlash - dt*3);
+  // wave-start banner fades over ~1.4s (v2.44.0); past the pause/draft/gameOver early-return so it
+  // freezes while paused. Run-only render state, never saved.
+  if (waveBanner) { waveBanner.t -= dt / 1.4; if (waveBanner.t <= 0) waveBanner = null; }
 
   if (waveActive && !spawners.length && !enemies.length && !pendingSpawns.length) endWave();
 }

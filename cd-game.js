@@ -483,6 +483,12 @@ function boardDps() {
   return dps;
 }
 
+// Wave-start banner text/style (v2.44.0, game-feel): a pure helper so the text/colour is
+// unit-testable. Boss waves (every 5th) get a red ☠ headline, others a blue "WAVE N".
+function waveBannerFor(w) {
+  const boss = w % 5 === 0;
+  return { text: boss ? `☠ BOSS WAVE ${w}` : `WAVE ${w}`, color: boss ? '#f85149' : '#58a6ff', boss };
+}
 function startWave() {
   if (gameOver || !started || draftOpen) return;
   // Concurrent waves: allow starting the next wave while others are still running,
@@ -499,6 +505,7 @@ function startWave() {
   rollWaveMod();
   spawners.push({ queue: buildWave(wave), timer: 0 });  // a parallel spawn stream for this wave
   waveActive = true;
+  { const wb = waveBannerFor(wave); waveBanner = { text: wb.text, color: wb.color, boss: wb.boss, t: 1 }; }  // v2.44.0 announcement
   autoStartTimer = -1;
   document.getElementById('startBtn').disabled = (wave - lastSettledWave >= MAX_CONCURRENT_WAVES);
   document.getElementById('startBtn').textContent =
@@ -917,6 +924,9 @@ document.addEventListener('keydown', e => {
   // upgradeTower() self-guards on no selection / max level / affordability, so this is a safe no-op
   // when nothing's selected. Placed before the ability keys so it never clashes (U isn't an ability).
   if ((e.key === 'u' || e.key === 'U') && selectedTower) { upgradeTower(); return; }
+  // 'S' sells the selected tower (v2.44.0 QoL — mirrors the panel's Sell button + the 'U' upgrade
+  // hotkey). sellTower() self-guards on no selection, so this is a safe no-op with nothing selected.
+  if ((e.key === 's' || e.key === 'S') && selectedTower) { sellTower(); return; }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.44.0 — 2026-07-07 — 📢 Wave-start banner + 🎰 Jackpot / 🧊 Absolute Zero badges + S-sell hotkey
+
+**Type:** Game-feel + content + QoL (1 polish, 2 achievements, 1 hotkey). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0/v2.43.0 are the only runs since, so this is a normal run (not a health check). Baseline confirmed green (1776/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (banner/hotkey add no gameplay power; the badges are recognition-only feats). No economy/save-schema change.
+
+- **📢 Wave-start banner (game-feel).** Launching a wave now flashes a big centered announcement — "WAVE N", or a red "☠ BOSS WAVE N" on every 5th wave — that pops in and fades over ~1.4s (reduced-motion skips the pop-in scale). Run-only render state (`waveBanner`, set in `startWave` via the pure `waveBannerFor()` helper, decayed in `update()`, drawn under the floaters at y≈188, clear of the HUD band / combo pop / bottom-left preview). Never saved. New test group **[170]**.
+- **🎰 Jackpot — new achievement.** Collect 3 legendary perks in a single run (reads `runPerks`; no `won` gate — a luck/greed feat). New test coverage in **[171]**.
+- **🧊 Absolute Zero — new achievement.** Catch 12+ enemies in a single 🧊 Time Freeze cast. Tracked by a run-only `bestFreeze` peak (set in the freeze ability branch, reset in `resetState()`, never saved → re-earnable on resume like `railBestHit`). No `won` gate. Roster 31 → 33. New test coverage in **[171]**.
+- **S-sell hotkey (QoL).** Press **S** to instantly sell the selected tower (mirrors the panel's Sell button, alongside the **U** upgrade hotkey; self-guards on no selection). Updated the in-game hotkey hint. New test group **[172]**.
+- **Tests:** suite green after the change. Roster-count assertions (2 sites) bumped 31 → 33.
+
 ## v2.43.0 — 2026-07-06 — 🔪 Finisher perk + 😰 Clutch / 🎗️ Old Guard badges + U-upgrade hotkey
 
 **Type:** Content + QoL (1 perk, 2 achievements, 1 hotkey). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0 is the only run since, so this is a normal run (not a health check). Baseline confirmed green (1753/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the perk is conditional + narrower than a flat buff). No economy/save-schema change.

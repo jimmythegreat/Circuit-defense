@@ -53,6 +53,14 @@ let peakGold = 0;
 // never saved — re-earnable on resume (towers reload and the count re-accumulates on the first
 // update frame), so no force-on-load (mirrors peakGold/railBestHit). Grants 🗼 Overlord at 12.
 let peakTowers = 0;
+// Absolute Zero tracking (v2.44.0): the most enemies caught by a single 🧊 Time Freeze cast this
+// run. Run-only, never saved — the feat is a momentary one re-earnable any time Freeze is cast (like
+// railBestHit), so no force-on-load. Grants the 🧊 Absolute Zero achievement at 12.
+let bestFreeze = 0;
+// Wave-start banner (v2.44.0, game-feel): a brief centered "WAVE N" / "☠ BOSS WAVE N" announcement
+// shown when a wave launches. Run-only render state {text,color,boss,t} (t = 1→0 life), set in
+// startWave(), decayed in update(), drawn in draw(); never saved, so no economy/save impact.
+let waveBanner = null;
 const COMBO_WINDOW = 2.0;
 function comboColor(n) {
   return n >= 50 ? '#d2a8ff' : n >= 30 ? '#f85149' : n >= 20 ? '#ff7b42' : n >= 10 ? '#ffd866' : '#3fb950';
@@ -120,6 +128,8 @@ function resetState() {
   railBestHit = 0;
   peakGold = 0;
   peakTowers = 0;
+  bestFreeze = 0;
+  waveBanner = null;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
   best = +(localStorage.getItem(bestKey()) || 0);

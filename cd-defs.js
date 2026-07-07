@@ -252,6 +252,8 @@ function triggerAbility(k) {
     abilityCd.freeze = ABILITIES.freeze.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
     for (const e of enemies) e.frozen = 4;
+    // Absolute Zero (v2.44.0): track the most enemies caught by one Freeze cast (feat at 12+).
+    bestFreeze = Math.max(bestFreeze, enemies.filter(e => !e.dead).length);
     addFloater(W/2, H/2, '🧊 TIME FREEZE', '#79c0ff', 26);
     SFX.freeze();
   }

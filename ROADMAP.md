@@ -116,6 +116,8 @@ _None currently known._ (Add any here as found — top priority.)
       ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE) +
       ~~combo-tier shape~~ (DONE v2.39.0 [156] — an escalating star-burst above the tier word);
       ~~high-contrast mode~~ (DONE v2.38.0 [151] — ◐ Settings toggle, bold dual-halo enemy outlines);
+      ~~wave-start announcement banner~~ (DONE v2.44.0 [170] — centered "WAVE N" / "☠ BOSS WAVE N" flash);
+      ~~sell-selected-tower hotkey~~ (DONE v2.44.0 [172] — press S, mirrors the U upgrade hotkey);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
       rank-tinted barrels v2.21.0 [131].)
@@ -172,7 +174,7 @@ _None currently known._ (Add any here as found — top priority.)
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
 - 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
-  cost rework v1.38.0 [55]. 31 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 33 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -180,6 +182,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🏰 Untouchable + 🎆 Combo Deity v2.40.0 [159] — win Nightmare flawless / reach a 100× streak;
   + 🪐 Astral v2.42.0 [166] — reach wave 150 in a run (the rung above Eternity);
   + 😰 Clutch + 🎗️ Old Guard v2.43.0 [168] — win with ≤3 lives / hold 3 Legend-rank towers at once;
+  + 🎰 Jackpot + 🧊 Absolute Zero v2.44.0 [171] — collect 3 legendary perks / freeze 12+ in one cast;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,

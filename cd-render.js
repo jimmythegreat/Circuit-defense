@@ -885,6 +885,23 @@ function draw() {
   }
   ctx.globalAlpha = 1;
 
+  // wave-start banner (v2.44.0, game-feel): a brief centered announcement when a wave launches.
+  // Sits below the top HUD band / combo pop, clear of the bottom-left preview. Pops in + fades out;
+  // reduce-motion skips the pop-in scale. Run-only render state, drawn under the floaters.
+  if (waveBanner && started) {
+    const b = waveBanner;
+    const age = 1 - Math.max(0, Math.min(1, b.t));        // 0 at spawn → 1 at death
+    const grow = reduceMotion() ? 1 : Math.min(1, 0.7 + age * 1.5);  // quick 0.7→1 pop-in
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, b.t * 2);               // hold opaque, then fade over the last half
+    ctx.textAlign = 'center';
+    ctx.font = `bold ${Math.round((b.boss ? 34 : 28) * grow)}px sans-serif`;
+    ctx.fillStyle = b.color;
+    ctx.shadowColor = b.color; ctx.shadowBlur = 12;
+    ctx.fillText(b.text, W/2, 188 - age * 22);            // drifts up as it fades
+    ctx.restore();
+  }
+
   // floaters
   for (const f of floaters) {
     ctx.globalAlpha = Math.min(1, f.life);
