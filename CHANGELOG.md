@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.45.0 — 2026-07-08 — 👑 Boss targeting mode + 🎯 Point Blank perk + 🐺 Lone Wolf / 🎴 Full House badges
+
+**Type:** Content (1 targeting mode, 1 rare perk, 2 achievements). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.44.0 are the only runs since (3), so this is a normal run (not a health check). Baseline confirmed green (1796/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the mode raises no stat; the perk is conditional on proximity; the badges are recognition-only feats). No economy/save-schema change.
+
+- **👑 Boss targeting mode (8th mode).** A per-tower `mode` that prioritises boss enemies — a dedicated boss-killer that keeps firing at the overlord even when it's wounded (distinct from `strong` = highest current HP, which drifts to a full-HP tank). `pickTarget()` case mirrors `support`/`fastest`; degrades to `first` with no boss in range. `MODES`/`MODE_ICON.boss` auto-wire the shop/cycle/settings; `loadRun`'s `MODES.includes` guard validates it. New test group **[173]**.
+- **🎯 Point Blank — new rare perk.** +25% damage to enemies within half a tower's effective range — a fresh positional axis (Ambush/Finisher key off HP; this off distance). Applied in the fire path (not `effDmg`, so no panel churn), keyed to the primary target's distance vs `effRange(t)` (the `effRange` call is flag-gated → no cost unless held). "Too easy"-safe: conditional on proximity (a back-line tower peppering its far edge gets +0%). `pointBlank` lives in `perkState` (save-safe default false). New test group **[174]**.
+- **🐺 Lone Wolf — new achievement.** Win a run with ≤3 towers (a stricter Minimalist; reads the final board, win-gated). Roster 33 → 35.
+- **🎴 Full House — new achievement.** Cast all 5 abilities (meteor/freeze/rush/shock/barrier) in a single run. Tracked by a run-only `abilitiesCastThisRun` Set (reset in `resetState()`, never saved → re-earnable on resume; arming the meteor doesn't count). No `won` gate. Both badges covered by new test group **[175]**.
+- **Tests:** suite green after the change (+3 groups, +25 assertions). Roster-count assertions read `ACHIEVEMENTS.length` dynamically (no hardcoded bump needed).
+
 ## v2.44.0 — 2026-07-07 — 📢 Wave-start banner + 🎰 Jackpot / 🧊 Absolute Zero badges + S-sell hotkey
 
 **Type:** Game-feel + content + QoL (1 polish, 2 achievements, 1 hotkey). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0/v2.43.0 are the only runs since, so this is a normal run (not a health check). Baseline confirmed green (1776/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (banner/hotkey add no gameplay power; the badges are recognition-only feats). No economy/save-schema change.

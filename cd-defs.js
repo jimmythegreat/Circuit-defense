@@ -147,8 +147,8 @@ const TOWER_TYPES = {
   pulsar: { name:'Pulsar', icon:'💫', cost:120, range:90,  dmg:10,  rate:0.8,  color:'#b15dff', proj:'nova',   desc:'Radial pulse · hits all nearby', tip:'Emits a radial energy PULSE that hits EVERY enemy within its short range at once — no aiming, no projectile. A dedicated SWARM tool: total damage scales with how many foes are packed inside it, but its per-hit damage is among the lowest in the game, so it is deliberately POOR against single tanks/bosses (the inverse of the Laser). Short range and respects armor — place it on a chokepoint where the crowd bunches up.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
@@ -310,12 +310,18 @@ function triggerAbility(k) {
     addExplosion(W/2, H/2, '#58e0ff', 22, 160);
     SFX.barrier();
   }
+  // Full House (v2.45.0): track which ability TYPES were actually cast this run (freeze/rush/shock/
+  // barrier reach here only on a successful cast — rush's pre-wave block early-returns above; meteor
+  // arms and returns without reaching here, so it's tracked in castMeteor instead). Run-only Set,
+  // never saved — the feat is re-earnable like bestFreeze, no force-on-load.
+  abilitiesCastThisRun.add(k);
   refreshAbilityBar();
 }
 function castMeteor(x, y) {
   abilityCd.meteor = ABILITIES.meteor.cd * metaCdMult() * perkState.meteorCdMult * perkState.abilityCdMult;
   armedAbility = null;
   abilityUsedThisRun = true;
+  abilitiesCastThisRun.add('meteor');   // Full House (v2.45.0): count the actual meteor cast, not the arm
   const dmg = (120 + wave * 14) * perkState.meteorMult;
   shake = Math.max(shake, 18);
   SFX.meteor();
@@ -569,6 +575,18 @@ const PERKS = [
   // in effDmg), before the proj branch so chain/rail/poison finishing shots benefit too. `finisher`
   // lives in perkState (save-safe default false). A RARE, so the legendary-only resolveWildcard() skips it.
   { id:'finisher', rarity:'rare', icon:'🔪', name:'Finisher',            desc:'+35% damage to enemies below 40% HP', apply:s=>s.finisher = true },
+  // Point Blank (rare, v2.45.0): a fresh POSITIONAL damage axis — every other damage perk keys off
+  // enemy HP (Ambush/Finisher), tower type (Sharpshooter/Heavy Rounds) or is flat (Overcharge). This
+  // adds +25% damage to any enemy within HALF a tower's effective range, rewarding tight placement
+  // right on the path (the natural partner of the 📍 Close targeting mode). Applied in the FIRE path,
+  // keyed to the primary target's distance vs effRange(t) (can't live in effDmg, like Ambush/Finisher);
+  // the effRange call is gated behind the flag so it costs nothing unless held. Deliberately
+  // "too easy"-safe: it's CONDITIONAL on proximity — a back-line sniper/mortar peppering the far edge
+  // of its range gets +0%, so it's a build/placement choice (cluster close for the bonus, trade coverage)
+  // rather than a flat board buff. `pointBlank` lives in perkState (save-safe default false;
+  // round-trips via loadRun's Object.assign(freshPerkState(), s.perkState)). A RARE, so the
+  // legendary-only resolveWildcard() skips it. Test group [174].
+  { id:'pointblank', rarity:'rare', icon:'🎯', name:'Point Blank',        desc:'+25% damage to enemies within half a tower’s range', apply:s=>s.pointBlank = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -579,7 +597,7 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false, phalanx:false, finisher:false };
+    phaseSight:false, phalanx:false, finisher:false, pointBlank:false };
 }
 function ascendTowers() {
   for (const t of towers) {

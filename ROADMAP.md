@@ -153,8 +153,8 @@ _None currently known._ (Add any here as found — top priority.)
   sustained boss/tank DPS, poor at swarms; specs Focusing Array/Pulse Drive; hotkey `0`; mastery_laser.
   Pulsar = a self-centred radial AoE pulse (`proj:'nova'`, hits ALL in range at once, low per-hit dmg →
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
-- 7 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
-  — dynamic effective speed, pops sprinters); default-mode
+- 8 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
+  + Boss v2.45.0 [173] — locks onto the boss, distinct from Strong); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
@@ -183,6 +183,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🪐 Astral v2.42.0 [166] — reach wave 150 in a run (the rung above Eternity);
   + 😰 Clutch + 🎗️ Old Guard v2.43.0 [168] — win with ≤3 lives / hold 3 Legend-rank towers at once;
   + 🎰 Jackpot + 🧊 Absolute Zero v2.44.0 [171] — collect 3 legendary perks / freeze 12+ in one cast;
+  + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast all 5 abilities in a run;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -192,9 +193,10 @@ _None currently known._ (Add any here as found — top priority.)
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/
   Spectral Sight(towers target & hit intangible enemies — counters phantom/cloak/teleporter/veil, counter-content rare, v2.41.0 [161])/
   Phalanx(+2% tower dmg per tower on the board, max +20% — a wide-build rare, v2.42.0 [165])/
-  Finisher(+35% dmg to enemies below 40% HP — the closer bookend to Ambush's opener, v2.43.0 [167]);
+  Finisher(+35% dmg to enemies below 40% HP — the closer bookend to Ambush's opener, v2.43.0 [167])/
+  Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174].
 - 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);

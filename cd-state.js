@@ -12,6 +12,10 @@ let codexPausedGame = false;
 // Pacifist tracking (v1.29.0): true once any ability (meteor/freeze/rush) is cast this run.
 // Run-only, never saved; forced true on resume (loadRun) so a resumed run can't earn Pacifist.
 let abilityUsedThisRun = false;
+// Full House tracking (v2.45.0): the set of ability TYPES cast this run (meteor/freeze/rush/shock/
+// barrier). Run-only, never saved — the 🎴 Full House achievement grants when all five have been cast.
+// Re-earnable like bestFreeze/railBestHit, so it's NOT force-filled on resume.
+let abilitiesCastThisRun = new Set();
 // Barrier ability (v1.93.0): banked leak-blocks. Each charge vaporizes one enemy that
 // reaches the exit (no lives lost). Run-only, never saved (cooldowns/charges are transient);
 // resetState() zeroes it, so a resumed run starts with no charges (consistent with abilityCd).
@@ -122,6 +126,7 @@ function resetState() {
   barrierCharges = 0; barrierTimer = 0;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
+  abilitiesCastThisRun = new Set();
   codexPausedGame = false;
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;

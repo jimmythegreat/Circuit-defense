@@ -704,6 +704,11 @@ function update(dt) {
     // applied before the proj branch so chain/rail/poison finishing shots benefit too. Conditional
     // on a wounded target (never helps you START a kill), so it's a modest rare, not power creep.
     if (perkState.finisher && target.hp < target.maxHp * 0.4) dmg *= 1.35;
+    // Point Blank rare (v2.45.0): +25% damage to enemies within HALF the tower's effective range —
+    // a fresh POSITIONAL axis (Ambush/Finisher key off HP; this keys off distance). effRange(t) is
+    // only computed when the perk is held (flag-gated), so no per-shot cost otherwise. Applied here
+    // (not effDmg) before the proj branch so chain/rail/poison close-range shots benefit too.
+    if (perkState.pointBlank && Math.hypot(target.x - t.x, target.y - t.y) <= effRange(t) * 0.5) dmg *= 1.25;
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and
@@ -829,6 +834,11 @@ function pickTarget(t) {
       // toward the furthest-along — pop the sprinters (heralds / hasted / berserker / accelerator
       // bosses) before they leak. A fresh targeting axis (speed) beside position/HP/distance/kind.
       case 'fastest': val = effSpeed(e) * 1e4 + e.dist; break;
+      // 'boss' (v2.45.0): prioritise boss enemies (a dedicated boss-killer), tie-break among
+      // same class toward the furthest-along (like 'first'). Distinct from 'strong' (highest
+      // CURRENT HP) — this locks the boss even when it's wounded, instead of switching to a
+      // full-HP tank. With no boss in range it degrades to plain 'first' (mirrors 'support').
+      case 'boss':    val = (e.kind === 'boss' ? 1e7 : 0) + e.dist; break;
       default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }

@@ -41,6 +41,8 @@ const ACHIEVEMENTS = [
   { id:'legion',        icon:'🎗️', name:'Old Guard',             desc:'Have 3 Legend-rank towers at once' },
   { id:'jackpot',       icon:'🎰', name:'Jackpot',              desc:'Collect 3 legendary perks in a single run' },
   { id:'absolute_zero', icon:'🧊', name:'Absolute Zero',        desc:'Freeze 12+ enemies with a single Time Freeze' },
+  { id:'lone_wolf',     icon:'🐺', name:'Lone Wolf',            desc:'Win a game with 3 or fewer towers' },
+  { id:'full_house',    icon:'🎴', name:'Full House',           desc:'Cast all 5 abilities in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -94,6 +96,13 @@ function grantAchievements(won) {
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
+  // Lone Wolf (🐺 v2.45.0): a stricter Minimalist — win with ≤3 towers (win-gated; reads the
+  // final board like Minimalist/Specialist). A tight-build skill feat.
+  if (won && towers.length > 0 && towers.length <= 3) give('lone_wolf');
+  // Full House (🎴 v2.45.0): cast all five abilities (meteor/freeze/rush/shock/barrier) in one run.
+  // No `won` gate — a completionist feat that nudges you to exercise the whole ability bar. Reads the
+  // run-only abilitiesCastThisRun Set (cd-state.js); Object.keys(ABILITIES).length keeps it data-driven.
+  if (abilitiesCastThisRun.size >= Object.keys(ABILITIES).length) give('full_house');
   if (won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length) give('arsenal');
   // Speed Demon (v1.74.0): win a Quick run (always 30 waves → comparable target) in under 7
   // minutes of play time. The standard sequential clear takes ~13 min even rushing, so this

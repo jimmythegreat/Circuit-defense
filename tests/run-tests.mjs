@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 33 badges', r.total === 33, `total=${r.total}`);
+    check('achievement roster grew to 35 badges', r.total === 35, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 33;   // +jackpot 🎰 + absolute_zero 🧊 (v2.44.0)
+      const rosterOk = ACHIEVEMENTS.length === 35;   // +lone_wolf 🐺 + full_house 🎴 (v2.45.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster grew to 28', r.rosterOk);
+    check('achievement roster is 35 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -11607,6 +11607,209 @@ async function main() {
     check("'S' refunds gold on the sale", r.refunded);
     check("'S' clears the selection after selling", r.deselected);
     check('no console errors during S-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [173] Boss targeting mode (v2.45.0): an 8th per-tower targeting mode that prioritises boss
+  // enemies — a dedicated boss-killer. Distinct from 'strong' (highest CURRENT HP): it locks the
+  // boss even when it's wounded, instead of switching to a full-HP tank. Degrades to 'first' with
+  // no boss in range. Mirrors the 'support' mode pattern ([66]).
+  console.log('\n[173] Boss targeting mode');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const inModes = MODES.includes('boss');
+      const hasIcon = typeof MODE_ICON.boss === 'string' && MODE_ICON.boss.length > 0;
+
+      const p = pointAt(pathLen * 0.5);
+      const mkT = () => { towers.length = 0; const T = { type:'gun', x:p.x, y:p.y, range:400, dmg:1,
+        rate:1, cd:99, level:1, kills:0, dealt:0, mode:'boss', invested:0, spec:null, buffPower:0.25, flash:0 };
+        towers.push(T); return T; };
+      const mkE = (extra = {}) => ({ kind:'norm', hp:100, maxHp:100, spd:1, r:12, bounty:1, color:'#fff',
+        armor:0, dist:pathLen*0.5, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0,
+        px:0, py:0, dead:false, blinkInvuln:0, ...extra });
+
+      // a WOUNDED boss outranks a full-HP tank (distinct from 'strong', which would pick the tank)
+      const T = mkT();
+      enemies.length = 0;
+      const tank = mkE({ kind:'tank', hp:9999, maxHp:9999 });
+      const boss = mkE({ kind:'boss', hp:100, maxHp:5000 });
+      enemies.push(tank, boss);
+      const picksBoss = pickTarget(T) === boss;
+
+      // with no boss in range, degrades to 'first' (furthest-along enemy wins)
+      enemies.length = 0;
+      const back  = mkE({ dist: 100 });
+      const front = mkE({ dist: 400 });
+      enemies.push(back, front);
+      const degradesToFirst = pickTarget(T) === front;
+
+      // cycleMode eventually reaches 'boss'
+      selectedTower = T; T.mode = 'first';
+      let reachedBoss = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (T.mode === 'boss') reachedBoss = true; }
+      hideUpgrade();
+
+      // save/resume round-trips the boss mode (loadRun validates against MODES)
+      T.mode = 'boss'; enemies.length = 0; projectiles.length = 0;
+      saveRun();
+      const rt = loadRun();
+      const restored = rt === true && towers.length === 1 && towers[0].mode === 'boss';
+
+      enemies.length = 0; towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { inModes, hasIcon, picksBoss, degradesToFirst, reachedBoss, restored };
+    });
+    check('boss is in the MODES list', r.inModes);
+    check('boss has a MODE_ICON label', r.hasIcon);
+    check('boss mode picks a wounded boss over a full-HP tank', r.picksBoss);
+    check('boss mode degrades to first-along with no boss in range', r.degradesToFirst);
+    check('cycleMode reaches the boss mode', r.reachedBoss);
+    check('save/resume round-trips the boss mode', r.restored);
+    check('no console errors during Boss-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [174] Point Blank rare perk (v2.45.0): +25% damage to enemies within HALF a tower's effective
+  // range — a fresh POSITIONAL axis. Fire-path (distance-keyed), so NOT in effDmg. Mirrors [167].
+  console.log('\n[174] Point Blank perk (close-range damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'pointblank');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // point blank is distance-keyed in the fire loop, so it must NOT be in effDmg (no panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.pointBlank = false;
+      const effBefore = effDmg(probe);
+      perkState.pointBlank = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // fire one instant rail shot at a controlled geometric distance (range 300 → half = 150)
+      function shot(pbOn, dist) {
+        perkState.pointBlank = pbOn;
+        perkState.critChance = 0; perkState.rangeMult = 1;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
+        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:100 + dist, y:300, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return before - e.hp;
+      }
+      const base    = shot(false, 60);    // close, no perk — the raw damage baseline
+      const close    = shot(true,  60);   // within half-range (60 ≤ 150), perk → +25%
+      const far      = shot(true,  260);  // beyond half-range (260 > 150) but in range, perk → no bonus
+      const bonusOk = Math.abs(close - base * 1.25) < 1e-4;
+      const noBonusFar = Math.abs(far - base) < 1e-4;
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().pointBlank === false;
+      perkState.pointBlank = true;
+      saveRun();
+      perkState.pointBlank = false;
+      const loaded = loadRun();
+      const restored = perkState.pointBlank === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.pointBlank;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.pointBlank === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'pointblank';
+      backToMenu();
+      return { inPool, notInEffDmg, base, close, far, bonusOk, noBonusFar, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Point Blank is a rare perk in the pool', r.inPool);
+    check('Point Blank is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Point Blank gives +25% damage within half range', r.bonusOk, `base=${r.base} close=${r.close}`);
+    check('Point Blank gives no bonus beyond half range', r.noBonusFar, `base=${r.base} far=${r.far}`);
+    check('freshPerkState defaults pointBlank:false', r.defaultsOk);
+    check('save/reload round-trips the pointBlank flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing pointBlank migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Point Blank', r.wildcardSkips);
+    check('no console errors during Point Blank test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [175] Lone Wolf + Full House achievements (v2.45.0): win with ≤3 towers; cast all 5 abilities.
+  console.log('\n[175] Lone Wolf + Full House achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const lwInRoster = ACHIEVEMENTS.some(a => a.id === 'lone_wolf');
+      const fhInRoster = ACHIEVEMENTS.some(a => a.id === 'full_house');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const mkT = () => ({ type:'gun', x:0, y:0, dealt:0, kills:0 });
+
+      // Lone Wolf: win with ≤3 towers → granted; 4 → withheld; a loss with 3 → withheld
+      towers.length = 0; towers.push(mkT(), mkT(), mkT());
+      fresh();
+      const lwAt3 = grantAchievements(true).map(a => a.id).includes('lone_wolf');
+      towers.push(mkT());
+      fresh();
+      const lwAt4 = grantAchievements(true).map(a => a.id).includes('lone_wolf');
+      towers.length = 0; towers.push(mkT());
+      fresh();
+      const lwOnLoss = grantAchievements(false).map(a => a.id).includes('lone_wolf');
+
+      // Full House: casting all five abilities fills abilitiesCastThisRun
+      towers.length = 0;
+      wave = 5; started = true; gameOver = false; paused = false; draftOpen = false;
+      abilitiesCastThisRun = new Set();
+      abilityCd = { meteor:0, freeze:0, rush:0, shock:0, barrier:0 };
+      enemies.length = 0;
+      triggerAbility('freeze');
+      abilityCd.shock = 0;   triggerAbility('shock');
+      abilityCd.barrier = 0; triggerAbility('barrier');
+      abilityCd.rush = 0;    triggerAbility('rush');   // wave=5 clears the pre-wave gate
+      castMeteor(300, 300);
+      const allFiveCast = abilitiesCastThisRun.size === Object.keys(ABILITIES).length;
+
+      fresh();
+      const fhGranted = grantAchievements(false).map(a => a.id).includes('full_house');
+      // withheld with only four distinct casts
+      abilitiesCastThisRun = new Set(['freeze', 'shock', 'barrier', 'rush']);
+      fresh();
+      const fhWithheld4 = grantAchievements(false).map(a => a.id).includes('full_house');
+      // arming the meteor (not casting) must NOT count toward Full House
+      abilitiesCastThisRun = new Set();
+      armedAbility = null; abilityCd.meteor = 0;
+      triggerAbility('meteor');   // arms only
+      const armDoesntCount = abilitiesCastThisRun.size === 0;
+
+      enemies.length = 0; towers.length = 0; abilitiesCastThisRun = new Set();
+      localStorage.removeItem('cd_save');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { lwInRoster, fhInRoster, lwAt3, lwAt4, lwOnLoss, allFiveCast, fhGranted, fhWithheld4, armDoesntCount };
+    });
+    check('Lone Wolf (lone_wolf) is in the achievement roster', r.lwInRoster);
+    check('Full House (full_house) is in the achievement roster', r.fhInRoster);
+    check('Lone Wolf granted on a win with 3 towers', r.lwAt3);
+    check('Lone Wolf withheld with 4 towers', r.lwAt4 === false);
+    check('Lone Wolf withheld on a loss', r.lwOnLoss === false);
+    check('casting all five abilities fills the run set', r.allFiveCast);
+    check('Full House granted after all 5 abilities cast (no win gate)', r.fhGranted);
+    check('Full House withheld with only 4 abilities cast', r.fhWithheld4 === false);
+    check('arming the meteor does not count toward Full House', r.armDoesntCount);
+    check('no console errors during Lone Wolf/Full House test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
