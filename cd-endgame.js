@@ -43,6 +43,7 @@ const ACHIEVEMENTS = [
   { id:'absolute_zero', icon:'🧊', name:'Absolute Zero',        desc:'Freeze 12+ enemies with a single Time Freeze' },
   { id:'lone_wolf',     icon:'🐺', name:'Lone Wolf',            desc:'Win a game with 3 or fewer towers' },
   { id:'full_house',    icon:'🎴', name:'Full House',           desc:'Cast all 5 abilities in a single run' },
+  { id:'ironclad',      icon:'🛡️', name:'Ironclad',             desc:'Block 5 leaks with Barrier in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -103,6 +104,11 @@ function grantAchievements(won) {
   // No `won` gate — a completionist feat that nudges you to exercise the whole ability bar. Reads the
   // run-only abilitiesCastThisRun Set (cd-state.js); Object.keys(ABILITIES).length keeps it data-driven.
   if (abilitiesCastThisRun.size >= Object.keys(ABILITIES).length) give('full_house');
+  // Ironclad (🛡️ v2.46.0): a defensive feat (no `won` gate) — vaporize 5+ leaks with the
+  // Barrier ability in one run. Reads the run-only barrierBlocks counter (cd-state.js),
+  // incremented at the leak-block site in cd-update.js. Pairs with the 🏯 Rampart / 🧱 Aegis
+  // Barrier meta upgrades; most natural vs heavy leak-pressure content (Breacher Surge / bosses).
+  if (barrierBlocks >= 5) give('ironclad');
   if (won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length) give('arsenal');
   // Speed Demon (v1.74.0): win a Quick run (always 30 waves → comparable target) in under 7
   // minutes of play time. The standard sequential clear takes ~13 min even rushing, so this

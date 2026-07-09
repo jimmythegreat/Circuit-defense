@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 35 badges', r.total === 35, `total=${r.total}`);
+    check('achievement roster grew to 36 badges', r.total === 36, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 35;   // +lone_wolf 🐺 + full_house 🎴 (v2.45.0)
+      const rosterOk = ACHIEVEMENTS.length === 36;   // +lone_wolf 🐺 + full_house 🎴 (v2.45.0) + ironclad 🛡️ (v2.46.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 35 badges', r.rosterOk);
+    check('achievement roster is 36 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -11811,6 +11811,172 @@ async function main() {
     check('arming the meteor does not count toward Full House', r.armDoesntCount);
     check('no console errors during Lone Wolf/Full House test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
+  }
+
+  // [176] Rampart meta talent (v2.46.0): −10% Barrier cooldown per rank (max 3 → −30%), applied
+  // via barrierCdMult() ONLY to abilityCd.barrier. A distinct Barrier lever from Aegis (charges)
+  // and Surge (all abilities). Defensive, save-safe via loadMeta migration. Mirrors [118] Aegis.
+  console.log('\n[176] Rampart Barrier-cooldown talent');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = TALENTS.rampart;
+      const inTree = !!def && def.sect === 'CORE' && def.max === 3;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0; spawners.length = 0; enemies.length = 0;
+
+      // rank 0 → full-length cooldown (no reduction)
+      meta.talents = {};
+      const mult0 = barrierCdMult();
+      abilityCd.barrier = 0; triggerAbility('barrier');
+      const cd0 = abilityCd.barrier;
+
+      // rank 3 → −30% cooldown, reflected by barrierCdMult() AND the real cast
+      meta.talents.rampart = 3;
+      const mult3 = barrierCdMult();
+      barrierTimer = 0; abilityCd.barrier = 0; triggerAbility('barrier');
+      const cd3 = abilityCd.barrier;
+      const ratio = cd0 > 0 ? cd3 / cd0 : -1;   // ≈ 0.7
+
+      // loadMeta migrates an old save that predates the talent (key defaults to 0)
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 30, talents: { funding: 3 } }));
+      loadMeta();
+      const migratedOk = meta.talents.rampart === 0 && meta.talents.funding === 3 && meta.chips === 30;
+
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg: 0, runs: 0 } };
+      loadMeta();
+      localStorage.removeItem('cd_meta'); localStorage.removeItem('cd_save');
+      barrierCharges = 0; barrierBlocks = 0; enemies.length = 0;
+      backToMenu();
+      return { inTree, mult0, mult3, cd0, cd3, ratio, migratedOk };
+    });
+    check('Rampart is a CORE talent (max 3)', r.inTree);
+    check('rank 0 => barrierCdMult 1.0 (no reduction)', Math.abs(r.mult0 - 1) < 1e-9, JSON.stringify(r));
+    check('rank 3 => barrierCdMult 0.7 (−30%)', Math.abs(r.mult3 - 0.7) < 1e-9, JSON.stringify(r));
+    check('rank 3 shortens the real Barrier cooldown ~30%', Math.abs(r.ratio - 0.7) < 0.02, JSON.stringify(r));
+    check('loadMeta migrates a pre-Rampart save (key defaults 0)', r.migratedOk, JSON.stringify(r));
+    check('no console errors during Rampart test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [177] Ironclad achievement (v2.46.0): block 5+ leaks with the Barrier ability in one run.
+  // Reads the run-only barrierBlocks counter, incremented at the leak-block site in cd-update.js.
+  // No `won` gate (a defensive feat). Verifies both the increment site AND the grant condition.
+  console.log('\n[177] Ironclad achievement (Barrier blocks)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'ironclad');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+
+      // (a) the leak-block site increments barrierBlocks + decrements a charge, no life lost
+      const atEnd = (kind, extra = {}) => { const p = pointAt(pathLen); return ({ kind,
+        hp:10, maxHp:10, spd:0, r:13, bounty:1, color:'#fff', armor:0, gap:0, dist:pathLen,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      // barrierTimer must be > 0 or the barrier-fade block in update() clears the charges
+      // (they expire 20s after a cast) before the leak is processed.
+      barrierBlocks = 0; barrierCharges = 3; barrierTimer = BARRIER_DURATION; lives = 1000;
+      enemies.push(atEnd('norm'));
+      const beforeLives = lives; update(1/60);
+      const blockedIncremented = barrierBlocks === 1;
+      const chargeConsumed = barrierCharges === 2;
+      const noLifeLost = lives === beforeLives;
+      enemies.length = 0;
+
+      // (b) grant condition: 5 blocks → granted (no win gate, works on a loss); 4 → withheld
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      barrierBlocks = 5; fresh();
+      const grantedAt5 = grantAchievements(false).map(a => a.id).includes('ironclad');
+      barrierBlocks = 4; fresh();
+      const withheldAt4 = grantAchievements(false).map(a => a.id).includes('ironclad');
+
+      barrierBlocks = 0; barrierCharges = 0; enemies.length = 0;
+      localStorage.removeItem('cd_save');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { inRoster, blockedIncremented, chargeConsumed, noLifeLost, grantedAt5, withheldAt4 };
+    });
+    check('Ironclad is in the achievement roster', r.inRoster);
+    check('a Barrier block increments barrierBlocks', r.blockedIncremented, JSON.stringify(r));
+    check('a Barrier block consumes one charge', r.chargeConsumed, JSON.stringify(r));
+    check('a Barrier block costs no lives', r.noLifeLost, JSON.stringify(r));
+    check('Ironclad granted at 5 blocks (no win gate)', r.grantedAt5, JSON.stringify(r));
+    check('Ironclad withheld at 4 blocks', r.withheldAt4 === false, JSON.stringify(r));
+    check('no console errors during Ironclad test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [178] 'D' hotkey cycles the selected tower's target mode (v2.46.0 QoL — mirrors U/S). Gated
+  // to non-buff towers (buff towers have no targeting). Mirrors [169]/[172].
+  console.log('\n[178] D hotkey cycles the target mode');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      gold = 1000; towers.length = 0;
+      const p = pointAt(120);
+      const t = { type:'gun', x:p.x, y:p.y, range:110, dmg:8, rate:0.35, cd:0, level:1, kills:0,
+                  dealt:0, mode:'first', invested:120, spec:null, buffPower:0.25, flash:0 };
+      towers.push(t);
+
+      // no selection → 'D' is a harmless no-op (mode unchanged)
+      selectedTower = null;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', bubbles: true }));
+      const noopWhenNone = t.mode === 'first';
+
+      // select → 'D' advances to the next MODES entry
+      selectedTower = t;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', bubbles: true }));
+      const advanced = t.mode === MODES[1];
+      // uppercase works too → advances again
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'D', bubbles: true }));
+      const advancedTwice = t.mode === MODES[2];
+
+      // a buff tower is exempt (no targeting) — mode stays put
+      const b = { type:'buff', x:0, y:0, mode:'first', level:1, spec:null, buffPower:0.25, flash:0 };
+      towers.push(b); selectedTower = b;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', bubbles: true }));
+      const buffExempt = b.mode === 'first';
+
+      towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { noopWhenNone, advanced, advancedTwice, buffExempt };
+    });
+    check("'D' with no tower selected is a no-op", r.noopWhenNone);
+    check("'D' advances the selected tower's target mode", r.advanced, JSON.stringify(r));
+    check("'D' (uppercase) advances again", r.advancedTwice, JSON.stringify(r));
+    check("'D' leaves buff towers untouched (no targeting)", r.buffExempt, JSON.stringify(r));
+    check('no console errors during D-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [179] Daily-seed cross-page determinism (v2.46.0 harness coverage): the same calendar date
+  // must yield the identical Daily Challenge (difficulty + map + wave-mod schedule) on any page
+  // load — a regression guard against Date.now()/Math.random() slipping into the seeded stream.
+  // Two independent fresh pages run setupDaily(D) and their results must match byte-for-byte.
+  console.log('\n[179] Daily-seed cross-page determinism');
+  {
+    const snap = async () => {
+      const { page } = await newPage(browser);
+      const s = await page.evaluate(() => {
+        setupDaily('20260704');
+        return { diffKey, seed: dailySeed, pts: JSON.stringify(MAPS.mayhem.pts), mods: JSON.stringify(dailyMods) };
+      });
+      await page.close();
+      return s;
+    };
+    const a = await snap();
+    const b = await snap();
+    check('same date → same seed across pages', a.seed === b.seed, `${a.seed} vs ${b.seed}`);
+    check('same date → same difficulty across pages', a.diffKey === b.diffKey, `${a.diffKey} vs ${b.diffKey}`);
+    check('same date → same seeded map path across pages', a.pts === b.pts);
+    check('same date → same wave-mod schedule across pages', a.mods === b.mods);
+    check('seeded daily difficulty is normal or hard (never easy/nightmare)', a.diffKey === 'normal' || a.diffKey === 'hard', a.diffKey);
   }
 
   await browser.close();

@@ -927,6 +927,10 @@ document.addEventListener('keydown', e => {
   // 'S' sells the selected tower (v2.44.0 QoL — mirrors the panel's Sell button + the 'U' upgrade
   // hotkey). sellTower() self-guards on no selection, so this is a safe no-op with nothing selected.
   if ((e.key === 's' || e.key === 'S') && selectedTower) { sellTower(); return; }
+  // 'D' cycles the selected tower's target mode (v2.46.0 QoL — mirrors the U/S hotkeys + the
+  // panel's target button). Gated to non-buff towers (buff towers have no targeting), so it's a
+  // safe no-op otherwise. D isn't an ability or tower hotkey, so no clash.
+  if ((e.key === 'd' || e.key === 'D') && selectedTower && selectedTower.type !== 'buff') { cycleMode(); return; }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

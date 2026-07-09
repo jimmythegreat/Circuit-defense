@@ -23,6 +23,9 @@ let abilitiesCastThisRun = new Set();
 // decayed in update(); when it hits 0 any unused charges are cleared (owner FEEDBACK: the
 // 3-life prevention "shouldn't last forever"). Run-only, never saved (like barrierCharges).
 let barrierCharges = 0, barrierTimer = 0;
+// barrierBlocks (v2.46.0): count of leaks a Barrier cast has vaporized this run — feeds the
+// 🛡️ Ironclad achievement (block 5+ in one run). Run-only, never saved, re-earnable on resume.
+let barrierBlocks = 0;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -123,7 +126,7 @@ function resetState() {
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
   abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
   armedAbility = null;
-  barrierCharges = 0; barrierTimer = 0;
+  barrierCharges = 0; barrierTimer = 0; barrierBlocks = 0;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
   abilitiesCastThisRun = new Set();

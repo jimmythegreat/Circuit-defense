@@ -47,8 +47,9 @@ _None currently known._ (Add any here as found — top priority.)
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
       [118]); a per-tower ability; a meta talent version of Capacitor (ability-cooldown — note: ⚡ Surge talent
-      already does −6%/rank ability cd, so this would overlap); a Barrier *cooldown*-shortening talent (the
-      other Barrier lever, distinct from Aegis's charges); a hidden unlock condition for a secret legendary.
+      already does −6%/rank ability cd, so this would overlap); ~~a Barrier *cooldown*-shortening talent (the
+      other Barrier lever, distinct from Aegis's charges)~~ (DONE as 🏯 Rampart talent v2.46.0 [176] — −10%
+      Barrier cooldown/rank, max 3); a hidden unlock condition for a secret legendary.
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses). (Pool is 22 mods
       after ⏩ Blitz v2.36.0 [147] — the +60% "double-time" Frenzy variant; ⚑ Herald Surge v2.35.0 [144]; most
       axes covered, so prefer the path-swap idea over another stat-scaler.)
@@ -118,6 +119,7 @@ _None currently known._ (Add any here as found — top priority.)
       ~~high-contrast mode~~ (DONE v2.38.0 [151] — ◐ Settings toggle, bold dual-halo enemy outlines);
       ~~wave-start announcement banner~~ (DONE v2.44.0 [170] — centered "WAVE N" / "☠ BOSS WAVE N" flash);
       ~~sell-selected-tower hotkey~~ (DONE v2.44.0 [172] — press S, mirrors the U upgrade hotkey);
+      ~~cycle-target-mode hotkey~~ (DONE v2.46.0 [178] — press D, mirrors U/S, non-buff only);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
       rank-tinted barrels v2.21.0 [131].)
@@ -139,7 +141,10 @@ _None currently known._ (Add any here as found — top priority.)
 - [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
       ~~spec selection at L5~~ DONE v2.39.0 [157]; ~~mayhem path-shift on resume~~ DONE v2.40.0 [160]
       (resumed Mayhem run regenerates the path, relocates towers, restores wave/towers, drives a wave).
-      (Campaign next-level flow covered by [109].) Remaining harness ideas: Daily-seed determinism on resume.
+      (Campaign next-level flow covered by [109].) ~~Daily-seed cross-page determinism~~ DONE v2.46.0 [179]
+      (two fresh pages produce the identical date-seeded challenge — a guard against Date.now()/Math.random()
+      slipping into the seeded stream). Note: Daily runs are one-off / not resumable by design, so this is
+      cross-page-load determinism, not save-resume.
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
       a numeric gold/dmg bound *after* a draft can flake if a gold/power perk lands in slot 0. v1.20.2 fixed
       group [32] by asserting the pre-draft economy. Sweep other run-driving groups; pin to pre-draft/perk-neutral.
@@ -172,8 +177,9 @@ _None currently known._ (Add any here as found — top priority.)
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 + **uncapped deep ramp from w40 v2.31.0** [109] (deep-endless
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
-- 26 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
-  + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]);
+- 27 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
+  + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
+  + Rampart Barrier-cooldown v2.46.0 [176]);
   cost rework v1.38.0 [55]. 33 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
@@ -184,6 +190,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 😰 Clutch + 🎗️ Old Guard v2.43.0 [168] — win with ≤3 lives / hold 3 Legend-rank towers at once;
   + 🎰 Jackpot + 🧊 Absolute Zero v2.44.0 [171] — collect 3 legendary perks / freeze 12+ in one cast;
   + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast all 5 abilities in a run;
+  + 🛡️ Ironclad v2.46.0 [177] — block 5+ leaks with Barrier in a single run;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,

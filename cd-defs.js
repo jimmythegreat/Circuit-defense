@@ -38,6 +38,14 @@ const TALENTS = {
   // "too easy" feedback — it just deepens the panic-wall vs leak-pressure content (Breacher / Breacher
   // Surge / boss leaks). Save-safe: loadMeta auto-migrates the new key to 0 for old saves.
   aegis:      { sect:'CORE', name:'Aegis',       icon:'🧱', max:2,  cost: r => 14 + r*12,  desc: r => `Barrier +${r} charge${r === 1 ? '' : 's'}` },
+  // Rampart (v2.46.0): the SECOND Barrier-ability meta upgrade and its distinct COOLDOWN lever
+  // (Aegis raises charges; the ⚡ Surge talent already shortens ALL ability cooldowns, so a
+  // Barrier-only cooldown talent is a fresh, distinct axis). −10%/rank → up to −30% off the
+  // Barrier recharge, applied via barrierCdMult() ONLY to abilityCd.barrier. Purely DEFENSIVE
+  // (Barrier vaporizes a leak for zero lives + no bounty, only matters when about to lose lives),
+  // so it can't power-creep the "too easy" feedback — it just gives the panic wall more uptime vs
+  // leak-pressure content. Save-safe: loadMeta auto-migrates the new key to 0 for old saves.
+  rampart:    { sect:'CORE', name:'Rampart',     icon:'🏯', max:3,  cost: r => 12 + r*10,  desc: r => `Barrier recharges ${10*r}% faster` },
   overdrive:  { sect:'CORE', name:'Overdrive',   icon:'🌟', max:2,  cost: r => 120 + r*180, desc: r => `tower max level +${r}` },
   // — tower mastery: upgrade your towers permanently — (cheapest big-damage talents pre-v1.38.0;
   //   doubled in cost so stacking +30% dmg across eight tower types is a real grind, not a freebie)
@@ -81,6 +89,7 @@ function metaCostMult() { return 1 - 0.03 * tRank('engineering'); }
 function metaCdMult() { return 1 - 0.06 * tRank('surge'); }
 function metaRangeMult() { return 1 + 0.02 * tRank('farsight'); }
 function barrierMax() { return BARRIER_CHARGES + tRank('aegis'); }  // 🧱 Aegis: +1 leak-block/rank (v2.6.0)
+function barrierCdMult() { return 1 - 0.1 * tRank('rampart'); }  // 🏯 Rampart: −10% Barrier cooldown/rank (v2.46.0)
 function sellRatio() { return Math.min(0.95, 0.6 + 0.05 * tRank('salvage') + (perkState ? perkState.sellBonus : 0)); }
 
 function openTalents() { renderTalents(); document.getElementById('talentPanel').style.display = 'flex'; focusPanel('talentPanel'); }
@@ -301,7 +310,7 @@ function triggerAbility(k) {
     // DEFENSIVE: it pays no bounty and only matters when you're about to leak, so it can't
     // power-creep the "too easy" feedback — a panic wall vs an overwhelming wave / boss leak,
     // countering the leak-pressure content (Breacher / Breacher Surge).
-    abilityCd.barrier = ABILITIES.barrier.cd * metaCdMult() * perkState.abilityCdMult;
+    abilityCd.barrier = ABILITIES.barrier.cd * metaCdMult() * perkState.abilityCdMult * barrierCdMult();  // 🏯 Rampart shortens it (v2.46.0)
     abilityUsedThisRun = true;
     const charges = barrierMax();   // 🧱 Aegis talent adds +1 charge/rank (v2.6.0)
     barrierCharges = charges;

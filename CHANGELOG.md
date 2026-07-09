@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.46.0 — 2026-07-09 — 🏯 Rampart talent + 🛡️ Ironclad badge + D target-cycle hotkey
+
+**Type:** Content/QoL (1 meta talent, 1 achievement, 1 hotkey, 1 harness-coverage test). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.45.0 are the only runs since (4), so this is a normal run (not a health check). Baseline confirmed green (1822/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (Rampart is purely defensive; Ironclad is a recognition-only feat; the hotkey is input-only). No economy/save-schema change.
+
+- **🏯 Rampart — new Core talent (max 3).** The 2nd Barrier meta upgrade and its distinct *cooldown* lever: −10% Barrier cooldown per rank (up to −30%), via a new `barrierCdMult()` helper multiplied ONLY into `abilityCd.barrier` (Aegis raises charges; Surge shortens all abilities). Purely defensive (Barrier vaporizes a leak for zero lives + no bounty), so it can't power-creep the "too easy" feedback. Save-safe via the `loadMeta` migration loop (old saves default the key to 0). New test group **[176]**.
+- **🛡️ Ironclad — new achievement.** Block 5+ leaks with the Barrier ability in a single run. Reads a new run-only `barrierBlocks` counter (cd-state.js, reset in `resetState()`, never saved, incremented at the leak-block site in cd-update.js). No `won` gate — a defensive feat that pairs with Rampart/Aegis. Roster 35 → 36. New test group **[177]**.
+- **⌨️ D hotkey — cycle target mode.** Press D to cycle the selected tower's targeting mode (mirrors the U-upgrade / S-sell QoL hotkeys + the panel's target button). Gated to non-buff towers (buff towers have no targeting); safe no-op otherwise. `.hint` string updated. New test group **[178]**.
+- **Tests:** suite green after the change (+4 groups). Added **[179]** — Daily-seed cross-page determinism (two fresh pages must produce an identical date-seeded challenge), a regression guard against `Date.now()`/`Math.random()` slipping into the seeded stream. Roster-count assertion in [129] bumped 35 → 36.
+
 ## v2.45.0 — 2026-07-08 — 👑 Boss targeting mode + 🎯 Point Blank perk + 🐺 Lone Wolf / 🎴 Full House badges
 
 **Type:** Content (1 targeting mode, 1 rare perk, 2 achievements). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.44.0 are the only runs since (3), so this is a normal run (not a health check). Baseline confirmed green (1796/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (the mode raises no stat; the perk is conditional on proximity; the badges are recognition-only feats). No economy/save-schema change.

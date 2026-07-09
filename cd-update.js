@@ -626,6 +626,7 @@ function update(dt) {
         // no bounty paid (purely defensive). Blocks any kind incl. a boss leak (which would
         // otherwise cost 5), so it's a real panic save; bounded by charge count + cooldown.
         barrierCharges--;
+        barrierBlocks++;   // 🛡️ Ironclad achievement: 5+ blocked leaks in one run (v2.46.0)
         const ex = waypoints[waypoints.length-1][0], ey = waypoints[waypoints.length-1][1];
         addExplosion(ex, ey, '#58e0ff', 22, 200);
         addFloater(ex, ey - 24, barrierCharges > 0 ? `🛡️ BLOCKED (${barrierCharges})` : '🛡️ BLOCKED', '#58e0ff', 16);
