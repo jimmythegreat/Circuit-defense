@@ -596,6 +596,19 @@ const PERKS = [
   // round-trips via loadRun's Object.assign(freshPerkState(), s.perkState)). A RARE, so the
   // legendary-only resolveWildcard() skips it. Test group [174].
   { id:'pointblank', rarity:'rare', icon:'🎯', name:'Point Blank',        desc:'+25% damage to enemies within half a tower’s range', apply:s=>s.pointBlank = true },
+  // Warpath (legendary, v2.47.0): a fresh SCALING axis — tower damage grows +2% per wave you've
+  // reached this run, capped +40% (at wave 20). A "scale into the late game" pick: drafted early it
+  // starts weak (+10% at wave 5), CROSSES the flat 💎 Diamond Core (+30%) around wave 15, and edges
+  // it out (+40%) deep in a run — so it's a genuine BACK-LOADED trade-off vs an immediate flat buff,
+  // NOT a dominated dupe (early it's strictly worse, late it's strictly better). Rewards long runs /
+  // Endless, which fits the addictive "get stronger the longer you survive" loop the owner likes.
+  // Deliberately "too easy"-safe: it's CAPPED (+40%) and worth little until you've already survived
+  // deep, where enemy HP has scaled far harder (the uncapped deep-wave lateScale), so it can't trivialise
+  // the early/mid game. Wired in effDmg via the live `wave` global (upgradeKey hashes effDmg, so the
+  // panel steps up each wave). `warpath` lives in perkState (save-safe default false; round-trips via
+  // loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default false). A legendary, so
+  // resolveWildcard() rolls it automatically. Test group [180].
+  { id:'warpath',  rarity:'legendary', icon:'🐗', name:'Warpath',          desc:'+2% tower damage per wave reached (max +40%)', apply:s=>s.warpath = true },
 ];
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
@@ -606,7 +619,7 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false, phalanx:false, finisher:false, pointBlank:false };
+    phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false };
 }
 function ascendTowers() {
   for (const t of towers) {

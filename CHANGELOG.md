@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.47.0 — 2026-07-10 — 🐗 Warpath perk + ⚕️ Medic Surge mod + 🌋 Annihilator / 🦣 Big Game Hunter badges
+
+**Type:** Content (1 legendary perk, 1 Mayhem wave-mod, 2 achievements). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.46.0 are the only runs since (5), so this is a normal run (not a health check). Baseline confirmed green (1845/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (Warpath is capped + back-loaded; Medic Surge is bounded difficulty; the badges are recognition-only feats). No economy/save-schema change.
+
+- **🐗 Warpath — new legendary perk.** +2% tower damage per wave reached this run, capped +40% (at wave 20). A fresh *scaling* axis: back-loaded so it starts weaker than the flat 💎 Diamond Core (+30%), crosses it ~wave 15 and edges it out deep in a run — a genuine trade-off (early power vs late power), not a dominated dupe; rewards long/Endless runs. Wired in `effDmg` via the live `wave` global; capped → "too easy"-safe (worth little until enemy HP has already scaled far harder). `warpath` lives in `perkState` (save-safe default false); `resolveWildcard()` rolls it. New test group **[180]**.
+- **⚕️ Medic Surge — new Mayhem wave-mod (23rd).** Converts a fraction of would-be basic enemies into 🚑 heal "medic" escorts (the wave-wide cousin of the heal enemy, mirroring Warden/Herald Surge). The medics heal nearby wounded allies (the general `kind==='heal'` aura tick drives them), so a densely-medic'd wave sustains itself under fire — pressuring TARGET PRIORITY (pop the medics to stop the regen). Distinct from the `regen` mod (self-heal) because it's source-gated. Bounded (medics slow, freeze pauses the aura) → can't make a run easier. Conversion not addition (wave length unchanged); one mod active at a time so no stacking. New test group **[181]**.
+- **🌋 Annihilator — new achievement.** Deal 10,000,000 total damage lifetime (the next rung above ⚡ Megadamage at 1M). Reads the `meta.stats.dmg` stat already tallied in `grantAchievements`. No `won` gate.
+- **🦣 Big Game Hunter — new achievement.** Defeat 5 bosses in a single run. Reads a new run-only `bossKills` counter (cd-state.js, reset in `resetState()`, never saved, incremented at the boss-death site in cd-update.js — only real boss deaths count; the revenant's fake death returns before the kill block). No `won` gate; most natural in a long Endless push. Roster 36 → 38. New test group **[182]**.
+- **Tests:** suite green after the change (+3 groups). Roster-count assertion in [129] bumped 36 → 38.
+
 ## v2.46.0 — 2026-07-09 — 🏯 Rampart talent + 🛡️ Ironclad badge + D target-cycle hotkey
 
 **Type:** Content/QoL (1 meta talent, 1 achievement, 1 hotkey, 1 harness-coverage test). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.45.0 are the only runs since (4), so this is a normal run (not a health check). Baseline confirmed green (1822/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (Rampart is purely defensive; Ironclad is a recognition-only feat; the hotkey is input-only). No economy/save-schema change.

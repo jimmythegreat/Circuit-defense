@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 36 badges', r.total === 36, `total=${r.total}`);
+    check('achievement roster grew to 38 badges', r.total === 38, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 36;   // +lone_wolf 🐺 + full_house 🎴 (v2.45.0) + ironclad 🛡️ (v2.46.0)
+      const rosterOk = ACHIEVEMENTS.length === 38;   // +ironclad 🛡️ (v2.46.0) + annihilator 🌋 + bosshunter 🦣 (v2.47.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 36 badges', r.rosterOk);
+    check('achievement roster is 38 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -11977,6 +11977,176 @@ async function main() {
     check('same date → same seeded map path across pages', a.pts === b.pts);
     check('same date → same wave-mod schedule across pages', a.mods === b.mods);
     check('seeded daily difficulty is normal or hard (never easy/nightmare)', a.diffKey === 'normal' || a.diffKey === 'hard', a.diffKey);
+  }
+
+  // [180] Warpath legendary perk (v2.47.0): +2% tower damage per wave reached this run, capped +40%
+  // at wave 20 — a back-loaded scaling axis wired in effDmg via the live `wave` global.
+  console.log('\n[180] Warpath perk (per-wave scaling damage)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {};   // zero firepower/masteries so the multiplier comparison is clean
+
+      const def = PERKS.find(p => p.id === 'warpath');
+      const inPool = !!def && def.rarity === 'legendary';
+
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1,
+                      dealt:0, kills:0, buffPower:0.25, mode:'first', invested:0 };
+      towers.push(probe);
+
+      perkState.warpath = false;
+      wave = 20;
+      const off = effDmg(probe);            // no perk → wave irrelevant, the clean baseline
+      perkState.warpath = true;
+      wave = 5;  const at5  = effDmg(probe); // +10%
+      wave = 20; const at20 = effDmg(probe); // +40% (cap reached exactly at wave 20)
+      wave = 40; const at40 = effDmg(probe); // still +40% — capped, no further growth
+      const scales5  = Math.abs(at5  - off * 1.10) < 1e-6;
+      const scales20 = Math.abs(at20 - off * 1.40) < 1e-6;
+      const capped   = Math.abs(at40 - at20) < 1e-6;
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().warpath === false;
+      perkState.warpath = true;
+      saveRun();
+      perkState.warpath = false;
+      const loaded = loadRun();
+      const restored = perkState.warpath === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.warpath;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.warpath === false;
+      localStorage.removeItem('cd_save');
+
+      backToMenu();
+      return { inPool, off, at5, at20, at40, scales5, scales20, capped, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Warpath is a legendary perk in the pool', r.inPool);
+    check('Warpath gives +10% damage at wave 5', r.scales5, `off=${r.off} at5=${r.at5}`);
+    check('Warpath gives +40% damage at wave 20', r.scales20, `off=${r.off} at20=${r.at20}`);
+    check('Warpath is capped at +40% past wave 20', r.capped, `at20=${r.at20} at40=${r.at40}`);
+    check('freshPerkState defaults warpath:false', r.defaultsOk);
+    check('save/reload round-trips the warpath flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing warpath migrates to default false', r.migratedOk);
+    check('no console errors during Warpath test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [181] Medic Surge wave mod (v2.47.0) — converts basic enemies into 🚑 heal "medic" escorts that
+  // heal the wounded around them (reuses the general kind==='heal' aura tick). Mirrors Herald Surge [144].
+  console.log('\n[181] Medic Surge (heal-aura wave mod)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'mayhem'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const hasMod = WAVE_MODS.some(m => m.id === 'medics');
+      const setMod = id => { waveMod = WAVE_MODS.find(m => m.id === id) || null; };
+
+      // Baseline (no mod) heal count for a wave-10 wave (natural heals appear at w7+).
+      setMod(null);
+      const plainWave = buildWave(10);
+      const plainHeals = plainWave.filter(e => e.kind === 'heal').length;
+
+      // MEDIC SURGE — a fraction of basic enemies become medics, so the wave has MORE heals.
+      setMod('medics');
+      const surgeWave = buildWave(10);
+      const surgeHeals = surgeWave.filter(e => e.kind === 'heal').length;
+      const moreHeals = surgeHeals > plainHeals;
+      const conv = surgeWave.find(e => e.kind === 'heal');
+      const wellFormed = !!conv && conv.maxHp === conv.hp && conv.color === '#56d364' && conv.r === 12;
+      // Conversion not addition: total wave length unchanged, special kinds untouched.
+      const sameLength = surgeWave.length === plainWave.length;
+      const fastUntouched = surgeWave.filter(e => e.kind === 'fast').length ===
+                            plainWave.filter(e => e.kind === 'fast').length;
+      setMod(null);
+      const inertOff = buildWave(10).filter(e => e.kind === 'heal').length === plainHeals;
+
+      // A converted medic heals a nearby WOUNDED ally (reuses the general heal aura tick).
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
+      autoStartTimer = -1; waveActive = false;
+      const mid = pathLen * 0.4;
+      const mk = (kind, dist, extra = {}) => { const p = pointAt(dist); return ({ kind,
+        hp:1000, maxHp:1000, spd:0, r:12, bounty:1, color:'#56d364', armor:0, gap:0, dist,
+        x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, px:0, py:0, ...extra }); };
+      const medic = mk('heal', mid);
+      const ally  = mk('norm', mid, { hp:500 });   // wounded → can be healed
+      enemies.push(medic, ally);
+      const before = ally.hp;
+      for (let i = 0; i < 4; i++) update(1/60);
+      const healsAlly = ally.hp > before;
+
+      enemies.length = 0; waveMod = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { hasMod, moreHeals, wellFormed, sameLength, fastUntouched, inertOff, healsAlly,
+               plainHeals, surgeHeals };
+    });
+    check('WAVE_MODS includes Medic Surge', r.hasMod);
+    check('Medic Surge adds healers to the wave', r.moreHeals, `${r.plainHeals}->${r.surgeHeals}`);
+    check('converted medics are well-formed (maxHp/colour/radius)', r.wellFormed);
+    check('Medic Surge converts (does not lengthen) the wave', r.sameLength);
+    check('Medic Surge leaves the special kinds untouched', r.fastUntouched);
+    check('Medic Surge is inert when the mod is off', r.inertOff);
+    check('a converted medic heals a nearby wounded ally', r.healsAlly);
+    check('no console errors during Medic Surge test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [182] Big Game Hunter + Annihilator achievements (v2.47.0): defeat 5 bosses in one run (run-only
+  // bossKills); deal 10,000,000 total damage lifetime (meta.stats.dmg).
+  console.log('\n[182] Big Game Hunter + Annihilator achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'bosshunter') &&
+                       ACHIEVEMENTS.some(a => a.id === 'annihilator');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      const startsZero = bossKills === 0;   // resetState zeroes the tracker
+
+      // a real boss death increments bossKills (routes through damage()'s kill block)
+      enemies.length = 0;
+      const boss = { kind:'boss', hp:100, maxHp:100, x:300, y:300, r:24, bounty:10, color:'#f85149',
+                     armor:0, dead:false, flash:0, dist:0, frozen:0, slow:0 };
+      enemies.push(boss);
+      const src = { type:'gun', x:100, y:100, kills:0, dealt:0 };
+      damage(boss, 1e9, src);
+      const counted = bossKills === 1;
+
+      // grant gate: 5 bosses in a run (no `won` gate)
+      towers.length = 0;   // so grantAchievements adds 0 run damage (isolate the dmg gate)
+      meta.achievements = {}; bossKills = 4;
+      const bhBelow = grantAchievements(false).map(a => a.id).includes('bosshunter');
+      meta.achievements = {}; bossKills = 5;
+      const bhAt5 = grantAchievements(false).map(a => a.id).includes('bosshunter');
+
+      // Annihilator gate: 10,000,000 lifetime damage
+      meta.achievements = {}; meta.stats.dmg = 9999999; bossKills = 0;
+      const annBelow = grantAchievements(false).map(a => a.id).includes('annihilator');
+      meta.achievements = {}; meta.stats.dmg = 1e7;
+      const annAt10m = grantAchievements(false).map(a => a.id).includes('annihilator');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, startsZero, counted, bhBelow, bhAt5, annBelow, annAt10m };
+    });
+    check('Big Game Hunter + Annihilator are in the roster', r.inRoster);
+    check('bossKills starts at 0 after resetState', r.startsZero);
+    check('a boss death increments bossKills', r.counted);
+    check('Big Game Hunter withheld below 5 boss kills', !r.bhBelow);
+    check('Big Game Hunter granted at 5 boss kills', r.bhAt5);
+    check('Annihilator withheld below 10,000,000 lifetime damage', !r.annBelow);
+    check('Annihilator granted at 10,000,000 lifetime damage', r.annAt10m);
+    check('no console errors during Big Game Hunter test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
   }
 
   await browser.close();

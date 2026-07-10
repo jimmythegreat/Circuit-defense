@@ -363,6 +363,19 @@ function buildWave(w) {
     // frost slow still multiplies in and freeze pauses the aura → can't make a run easier. One mod is ever
     // active so no stacking with wardens/breachers/jammers/bastions despite the shared slot. Run-only.
     if (modIs('heralds') && e.kind === 'norm' && i % 4 === 1) e = { kind:'herald', hp:t.hp*1.25, spd:t.speed*0.9, r:13, bounty:Math.ceil(t.bounty*2.2), color:'#ff79c6', armor:0, gap:0.85 };
+    // Medic Surge (Mayhem, v2.47.0): convert a fraction of would-be basic enemies into 🚑 heal
+    // "medic" escorts (the wave-wide cousin of the heal enemy, like Warden Surge ↔ the Warden /
+    // Herald Surge ↔ the Herald). Mirrors those conversions exactly — only norms convert (so it never
+    // overrides the rarer special kinds above) and it's a conversion not an addition (wave length
+    // unchanged). The converted medics carry the full heal stats, so the general kind==='heal' aura
+    // tick in update() drives them identically: each heals nearby wounded allies (4%/s ×mechScale within
+    // 70px), so a densely-medic'd wave SUSTAINS itself under fire — pressuring TARGET PRIORITY (pop the
+    // medics and the pack stops regenerating), the aura sibling of Warden/Herald Surge on the HEALING axis,
+    // distinct from the regen mod (self-heal) because it's source-gated (kill the healers to stop it).
+    // Bounded: medics are slow (×0.8), only moderately tanky, freeze pauses the aura and frost slow
+    // multiplies in → can't make a run easier. One mod is ever active so no stacking with the other
+    // surges despite the shared slot. Run-only (enemies are never persisted) — no save migration.
+    if (modIs('medics') && e.kind === 'norm' && i % 4 === 1) e = { kind:'heal', hp:t.hp*1.4, spd:t.speed*0.8, r:12, bounty:Math.ceil(t.bounty*2.2), color:'#56d364', armor:0, gap:0.9 };
     if (modIs('swarm'))  e.hp *= 0.65;
     if (modIs('titans')) { e.hp *= 1.5; e.bounty = Math.ceil(e.bounty * 1.5); }
     if (modIs('frenzy')) e.spd *= 1.35;
@@ -784,6 +797,10 @@ function effDmg(t) {
   // ten towers. Conditional on a real investment + capped, so it's below the flat Diamond Core and
   // stays "too easy"-safe. upgradeKey() hashes effDmg, so the panel updates as the board grows/shrinks.
   if (perkState.phalanx) d *= 1 + 0.02 * Math.min(10, towers.length);
+  // Warpath legendary (v2.47.0): +2% damage per wave reached this run, capped +40% at wave 20 — a
+  // back-loaded scaling pick (weak early, edges past Diamond Core late). Reads the live `wave` global;
+  // upgradeKey() hashes effDmg, so the panel steps up each wave. Capped → "too easy"-safe.
+  if (perkState.warpath) d *= 1 + Math.min(0.4, wave * 0.02);
   return d;
 }
 function effRate(t) {

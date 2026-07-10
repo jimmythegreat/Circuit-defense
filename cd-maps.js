@@ -185,6 +185,7 @@ const WAVE_MODS = [
   { id:'jammers', icon:'📡', name:'Jammer Surge',   desc:'Jammer escorts disable your towers' },
   { id:'bastions',icon:'⬢', name:'Bastion Surge',  desc:'Blast-shell escorts resist explosive splash' },
   { id:'heralds', icon:'⚑', name:'Herald Surge',   desc:'Herald escorts haste the whole wave' },
+  { id:'medics',  icon:'⚕️', name:'Medic Surge',    desc:'Medic escorts heal the whole wave' },
   { id:'meteors', icon:'☄️', name:'Meteor Shower', desc:'Friendly meteors rain down' },
 ];
 const MOD_BY_ID = Object.fromEntries(WAVE_MODS.map(m => [m.id, m]));

@@ -50,9 +50,9 @@ _None currently known._ (Add any here as found — top priority.)
       already does −6%/rank ability cd, so this would overlap); ~~a Barrier *cooldown*-shortening talent (the
       other Barrier lever, distinct from Aegis's charges)~~ (DONE as 🏯 Rampart talent v2.46.0 [176] — −10%
       Barrier cooldown/rank, max 3); a hidden unlock condition for a secret legendary.
-- [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses). (Pool is 22 mods
-      after ⏩ Blitz v2.36.0 [147] — the +60% "double-time" Frenzy variant; ⚑ Herald Surge v2.35.0 [144]; most
-      axes covered, so prefer the path-swap idea over another stat-scaler.)
+- [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses). (Pool is 23 mods
+      after ⚕️ Medic Surge v2.47.0 [181] — heal-aura escort surge; ⏩ Blitz v2.36.0 [147]; ⚑ Herald Surge
+      v2.35.0 [144]; most axes covered, so prefer the path-swap idea over another stat-scaler/escort-surge.)
 - [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136] (enemies + boss powers) + **v2.28.0** (🛡 Towers
       section: all 11 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
       start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
@@ -170,8 +170,8 @@ _None currently known._ (Add any here as found — top priority.)
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
 - 22 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
   siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator→cleanser) v1.25.0–v2.42.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]/[164]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP). Cleanser (v2.42.0 [164], first w125) purges poison/slow from itself + cohort every ~2.5s (an anti-debuff axis; freeze pauses it, adds no HP).
-- 22 Mayhem wave mods (frenzy/blitz/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
-  adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/meteors) [46]+ many; Herald Surge v2.35.0 [144]; Blitz (+60% speed, the "double-time" Frenzy variant) v2.36.0 [147].
+- 23 Mayhem wave mods (frenzy/blitz/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
+  adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/medics/meteors) [46]+ many; Herald Surge v2.35.0 [144]; Blitz (+60% speed, the "double-time" Frenzy variant) v2.36.0 [147]; Medic Surge (heal-aura escort surge) v2.47.0 [181].
 
 ### Difficulty / progression / meta
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
@@ -191,10 +191,12 @@ _None currently known._ (Add any here as found — top priority.)
   + 🎰 Jackpot + 🧊 Absolute Zero v2.44.0 [171] — collect 3 legendary perks / freeze 12+ in one cast;
   + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast all 5 abilities in a run;
   + 🛡️ Ironclad v2.46.0 [177] — block 5+ leaks with Barrier in a single run;
+  + 🌋 Annihilator + 🦣 Big Game Hunter v2.47.0 [182] — deal 10M lifetime damage / defeat 5 bosses in a run;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
-  v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125]); rares Targeting
+  v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125])/
+  Warpath(+2% dmg per wave reached, max +40% — a back-loaded scaling axis, v2.47.0 [180]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/

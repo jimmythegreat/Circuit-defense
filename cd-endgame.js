@@ -44,6 +44,8 @@ const ACHIEVEMENTS = [
   { id:'lone_wolf',     icon:'🐺', name:'Lone Wolf',            desc:'Win a game with 3 or fewer towers' },
   { id:'full_house',    icon:'🎴', name:'Full House',           desc:'Cast all 5 abilities in a single run' },
   { id:'ironclad',      icon:'🛡️', name:'Ironclad',             desc:'Block 5 leaks with Barrier in a single run' },
+  { id:'annihilator',   icon:'🌋', name:'Annihilator',          desc:'Deal 10,000,000 total damage (lifetime)' },
+  { id:'bosshunter',    icon:'🦣', name:'Big Game Hunter',       desc:'Defeat 5 bosses in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -68,6 +70,8 @@ function grantAchievements(won) {
   if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
   if (wave >= 150) give('endless150');   // 🪐 v2.42.0 — the next deep-endless rung above Eternity (no `won` gate)
   if (meta.stats.dmg >= 1e6) give('million');
+  if (meta.stats.dmg >= 1e7) give('annihilator');   // 🌋 v2.47.0 — the next lifetime-damage rung above Megadamage (reads the stat just tallied)
+  if (bossKills >= 5) give('bosshunter');   // 🦣 v2.47.0 — a feat (no `won` gate): defeat 5 bosses in one run (run-only bossKills, cd-state.js)
   if (meta.stats.runs >= 25) give('veteran');
   if (meta.stats.runs >= 100) give('centurion');   // 💯 v2.38.0 — a grind/dedication feat (pairs with Veteran@25)
   if ((meta.stats.towerKills || 0) >= 100000) give('gravekeeper');   // ⚰️ v2.38.0 — lifetime enemy-defeat grind (reads the towerKills stat just tallied)

@@ -1160,6 +1160,7 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
     addFloater(e.x, e.y - 14, `+${bounty}`, '#ffd866', 14,
       { merge: 'gold', value: bounty, prefix: '+', radius: 36 });
     if (e.kind === 'boss') {
+      bossKills++;   // 🦣 Big Game Hunter (v2.47.0): real boss kills only (the revenant fake death returns earlier)
       SFX.bossDeath();
       shake = Math.max(shake, 16);
       addExplosion(e.x, e.y, e.color, 36, 220);
