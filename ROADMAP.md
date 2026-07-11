@@ -131,11 +131,11 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~11,180 lines (163 groups, 1729
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~12,165 lines (182 groups, 1869
       assertions)**, by far the largest file in the repo, growing ~55 lines/run. Could split per-group into
       `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
-- [ ] **Watch: `cd-update.js` size** — largest game file at **1186 lines** (vs the ~1500 cap), growing
-      ~15-25 lines per new boss archetype (its per-frame tick block). Comfortable headroom (~15+ more
+- [ ] **Watch: `cd-update.js` size** — largest game file at **1235 lines** (vs the ~1500 cap), growing
+      ~15-25 lines per new boss archetype (its per-frame tick block). Comfortable headroom (~10+ more
       archetypes), but if it nears ~1400, split the combat helpers (pickTarget/fire*/hitEnemy/damage) into
       a `cd-combat.js` — the same domain-split pattern that produced cd-endgame.js (v2.15.2).
 - [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
@@ -180,7 +180,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 27 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176]);
-  cost rework v1.38.0 [55]. 33 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 38 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;

@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.47.1 — 2026-07-11 — 🩺 Health check — all green (1869/0, docs coherent, no drift)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.41.1: v2.42.0, v2.43.0, v2.44.0, v2.45.0, v2.46.0, v2.47.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)
+
+- **Suite:** full run **1869/0 green**, zero console errors, exit code 0, 182 groups. Baseline confirmed green on the clean pull before any edit.
+- **Refactor audit:** every game file comfortably under the ~1500-line cap — cd-update.js 1235 (largest), cd-render.js 1097, cd-game.js 1050, cd-defs.js 712, cd-endgame.js 690, cd-core.js 611, cd-maps.js 331, cd-state.js 271; css 660, html 172, sw 51. No dead code / stray debug logging / TODOs. Test harness `run-tests.mjs` now ~12,165 lines (182 groups, 1869 assertions) — refreshed the ROADMAP split-candidate note (was ~11,180/163/1729) and the cd-update.js size-watch note (1186 → 1235).
+- **Docs coherence:** every headline count in CLAUDE.md matches code — 11 towers, 8 targeting modes, 23 Mayhem wave-mods, 22 boss archetypes, 27 talents, 38 achievements, 14 enemy kinds (incl. boss), 4 difficulties, 8 maps (7 static + Mayhem), 5 abilities. `GAME_VERSION` = CHANGELOG top = sw.js cache (all v2.47.1). CLAUDE.md needed no correction; fixed one stale ROADMAP figure (Shipped-list "33 achievements" → 38); vetoed section intact.
+- **Table-stakes audit:** the polished-browser-game checklist stays complete (favicon/meta/OG, PWA install+offline, responsive/touch/tap-targets, gamepad, keyboard a11y, colorblind, reduced-motion, high-contrast, high-DPI, volume + settings persistence). No new gaps; open tech items remain the harness split + the cd-update.js size watch.
+- **Integrity spot-checks:** file:// playability sound (8 classic scripts in dependency order, no ES modules, no CDN, SW guarded to http/https); **live-verified** an old-format save (no perkState/endless/gameTime/mapTheme/barrier/achievements/stats, predating the newest talents) migrates cleanly via defaults, resumes, and drives a wave with zero console errors; visual sanity at 1280px (dashboard grid, panels on-screen, no overflow) and 375px (fixed scrollable menu, no overflow).
+
 ## v2.47.0 — 2026-07-10 — 🐗 Warpath perk + ⚕️ Medic Surge mod + 🌋 Annihilator / 🦣 Big Game Hunter badges
 
 **Type:** Content (1 legendary perk, 1 Mayhem wave-mod, 2 achievements). Minor bump. FEEDBACK PENDING was empty and no owner vetoes since the last health check (v2.41.1); v2.42.0–v2.46.0 are the only runs since (5), so this is a normal run (not a health check). Baseline confirmed green (1845/0) on the clean pull before any edit. All additive and save-safe; "too easy"-safe (Warpath is capped + back-loaded; Medic Surge is bounded difficulty; the badges are recognition-only feats). No economy/save-schema change.
