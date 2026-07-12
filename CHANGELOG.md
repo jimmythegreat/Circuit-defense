@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.48.0 — 2026-07-12 — Amplify ability, low-lives danger cue, Carpet Bomb badge
+
+**Type:** Minor (feature/content). Suite green (1891/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.
+
+- **📣 Amplify ability (6th ability, hotkey Y / gamepad R3):** the first **offensive-buff** ability — the other five are damage/CC/economy/knockback/defense; none temporarily buffs your own towers. Cast it to overdrive the whole board for **5s** — every tower deals **+30% damage AND reloads +30% faster** (read in `effDmg`/`effRate` via the run-only `overdriveT` timer, decayed in `update()`). Bounded/"too easy"-safe: a 5s burst on a **55s** cooldown (~8% uptime → only ~+6% average board DPS, below a single Diamond Core), so it's a burst-timing tool, not power creep. A golden edge glow washes the screen while active; `SFX.amp()` rising power chord. Additive/save-safe (`overdriveT` never serialized; `loadRun` migrates a save missing `abilityCd.amp` to 0). The 🎴 Full House badge is data-driven, so it now requires all **6** abilities. Test group `[183]`.
+- **🚨 Low-lives danger vignette:** when you're down to your last few lives (`DANGER_LIVES`=5) the screen edges pulse red, intensifying as lives fall (`dangerLevel()`), so a near-loss reads at a glance. Shows steadily under reduced-motion (survival feedback), pulses otherwise. Render-only, no economy/save impact. Test group `[184]`.
+- **💥 Carpet Bomb achievement (39th badge):** kill 12+ enemies with a single Meteor (run-only `meteorBestKills`, set in `castMeteor`; no `won` gate). Test group `[184]`.
+
 ## v2.47.1 — 2026-07-11 — 🩺 Health check — all green (1869/0, docs coherent, no drift)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.41.1: v2.42.0, v2.43.0, v2.44.0, v2.45.0, v2.46.0, v2.47.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)

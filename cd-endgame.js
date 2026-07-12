@@ -42,10 +42,11 @@ const ACHIEVEMENTS = [
   { id:'jackpot',       icon:'🎰', name:'Jackpot',              desc:'Collect 3 legendary perks in a single run' },
   { id:'absolute_zero', icon:'🧊', name:'Absolute Zero',        desc:'Freeze 12+ enemies with a single Time Freeze' },
   { id:'lone_wolf',     icon:'🐺', name:'Lone Wolf',            desc:'Win a game with 3 or fewer towers' },
-  { id:'full_house',    icon:'🎴', name:'Full House',           desc:'Cast all 5 abilities in a single run' },
+  { id:'full_house',    icon:'🎴', name:'Full House',           desc:'Cast all 6 abilities in a single run' },
   { id:'ironclad',      icon:'🛡️', name:'Ironclad',             desc:'Block 5 leaks with Barrier in a single run' },
   { id:'annihilator',   icon:'🌋', name:'Annihilator',          desc:'Deal 10,000,000 total damage (lifetime)' },
   { id:'bosshunter',    icon:'🦣', name:'Big Game Hunter',       desc:'Defeat 5 bosses in a single run' },
+  { id:'carpetbomb',    icon:'💥', name:'Carpet Bomb',          desc:'Kill 12+ enemies with a single Meteor' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -72,6 +73,7 @@ function grantAchievements(won) {
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.dmg >= 1e7) give('annihilator');   // 🌋 v2.47.0 — the next lifetime-damage rung above Megadamage (reads the stat just tallied)
   if (bossKills >= 5) give('bosshunter');   // 🦣 v2.47.0 — a feat (no `won` gate): defeat 5 bosses in one run (run-only bossKills, cd-state.js)
+  if (meteorBestKills >= 12) give('carpetbomb');   // 💥 v2.48.0 — a feat (no `won` gate): 12+ kills in one Meteor blast (run-only meteorBestKills, cd-defs.js)
   if (meta.stats.runs >= 25) give('veteran');
   if (meta.stats.runs >= 100) give('centurion');   // 💯 v2.38.0 — a grind/dedication feat (pairs with Veteran@25)
   if ((meta.stats.towerKills || 0) >= 100000) give('gravekeeper');   // ⚰️ v2.38.0 — lifetime enemy-defeat grind (reads the towerKills stat just tallied)

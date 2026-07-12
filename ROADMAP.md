@@ -46,7 +46,8 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
-      [118]); a per-tower ability; a meta talent version of Capacitor (ability-cooldown — note: ⚡ Surge talent
+      [118]; offensive-buff ability 📣 Amplify DONE v2.48.0 [183] — +30% tower dmg & rate for 5s); a per-tower
+      ability; a meta talent version of Capacitor (ability-cooldown — note: ⚡ Surge talent
       already does −6%/rank ability cd, so this would overlap); ~~a Barrier *cooldown*-shortening talent (the
       other Barrier lever, distinct from Aegis's charges)~~ (DONE as 🏯 Rampart talent v2.46.0 [176] — −10%
       Barrier cooldown/rank, max 3); a hidden unlock condition for a secret legendary.
@@ -120,6 +121,7 @@ _None currently known._ (Add any here as found — top priority.)
       ~~wave-start announcement banner~~ (DONE v2.44.0 [170] — centered "WAVE N" / "☠ BOSS WAVE N" flash);
       ~~sell-selected-tower hotkey~~ (DONE v2.44.0 [172] — press S, mirrors the U upgrade hotkey);
       ~~cycle-target-mode hotkey~~ (DONE v2.46.0 [178] — press D, mirrors U/S, non-buff only);
+      ~~low-lives danger cue~~ (DONE v2.48.0 [184] — red screen-edge vignette pulsing as lives fall);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
       rank-tinted barrels v2.21.0 [131].)
@@ -192,6 +194,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast all 5 abilities in a run;
   + 🛡️ Ironclad v2.46.0 [177] — block 5+ leaks with Barrier in a single run;
   + 🌋 Annihilator + 🦣 Big Game Hunter v2.47.0 [182] — deal 10M lifetime damage / defeat 5 bosses in a run;
+  + 💥 Carpet Bomb v2.48.0 [184] — kill 12+ enemies with a single Meteor;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -206,7 +209,8 @@ _None currently known._ (Add any here as found — top priority.)
   Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174].
-- 5 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]).
+- 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]
+  + **📣 Amplify v2.48.0 [183]** — the first offensive-BUFF ability: +30% tower dmg & fire rate for 5s, cd 55, hotkey Y).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].

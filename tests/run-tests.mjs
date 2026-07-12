@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 38 badges', r.total === 38, `total=${r.total}`);
+    check('achievement roster grew to 39 badges', r.total === 39, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 38;   // +ironclad 🛡️ (v2.46.0) + annihilator 🌋 + bosshunter 🦣 (v2.47.0)
+      const rosterOk = ACHIEVEMENTS.length === 39;   // +annihilator 🌋 + bosshunter 🦣 (v2.47.0) + carpetbomb 💥 (v2.48.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 38 badges', r.rosterOk);
+    check('achievement roster is 39 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -11769,15 +11769,16 @@ async function main() {
       fresh();
       const lwOnLoss = grantAchievements(false).map(a => a.id).includes('lone_wolf');
 
-      // Full House: casting all five abilities fills abilitiesCastThisRun
+      // Full House: casting all abilities fills abilitiesCastThisRun (6 as of v2.48.0)
       towers.length = 0;
       wave = 5; started = true; gameOver = false; paused = false; draftOpen = false;
       abilitiesCastThisRun = new Set();
-      abilityCd = { meteor:0, freeze:0, rush:0, shock:0, barrier:0 };
+      abilityCd = { meteor:0, freeze:0, rush:0, shock:0, barrier:0, amp:0 };
       enemies.length = 0;
       triggerAbility('freeze');
       abilityCd.shock = 0;   triggerAbility('shock');
       abilityCd.barrier = 0; triggerAbility('barrier');
+      abilityCd.amp = 0;     triggerAbility('amp');
       abilityCd.rush = 0;    triggerAbility('rush');   // wave=5 clears the pre-wave gate
       castMeteor(300, 300);
       const allFiveCast = abilitiesCastThisRun.size === Object.keys(ABILITIES).length;
@@ -11805,8 +11806,8 @@ async function main() {
     check('Lone Wolf granted on a win with 3 towers', r.lwAt3);
     check('Lone Wolf withheld with 4 towers', r.lwAt4 === false);
     check('Lone Wolf withheld on a loss', r.lwOnLoss === false);
-    check('casting all five abilities fills the run set', r.allFiveCast);
-    check('Full House granted after all 5 abilities cast (no win gate)', r.fhGranted);
+    check('casting all abilities fills the run set', r.allFiveCast);
+    check('Full House granted after all abilities cast (no win gate)', r.fhGranted);
     check('Full House withheld with only 4 abilities cast', r.fhWithheld4 === false);
     check('arming the meteor does not count toward Full House', r.armDoesntCount);
     check('no console errors during Lone Wolf/Full House test', consoleErrors.length === 0, consoleErrors.join(' | '));
@@ -12146,6 +12147,129 @@ async function main() {
     check('Annihilator withheld below 10,000,000 lifetime damage', !r.annBelow);
     check('Annihilator granted at 10,000,000 lifetime damage', r.annAt10m);
     check('no console errors during Big Game Hunter test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [183] Amplify ability (v2.48.0): the first OFFENSIVE-BUFF ability — while overdriveT>0 every
+  // tower deals +30% dmg (effDmg) & reloads +30% faster (effRate). Run-only timer, decayed in
+  // update(); save-safe (never serialized; loadRun migrates a save missing abilityCd.amp to 0).
+  // Mirrors the Shockwave [77] / Capacitor patterns.
+  console.log('\n[183] Amplify ability (tower overdrive)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = ABILITIES.amp;
+      const inBar = !!def && def.key === 'Y' && def.cd === 55;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; enemies.length = 0; spawners.length = 0; autoStartTimer = -1; waveActive = false;
+
+      const cdInit = abilityCd.amp === 0;               // resetState initialised the field
+      const t = { type: 'gun', dmg: 10, rate: 1, spec: null, kills: 0, x: 0, y: 0, level: 1 };
+      const dmgBase = effDmg(t), rateBase = effRate(t);
+
+      abilityUsedThisRun = false; abilitiesCastThisRun = new Set();
+      overdriveT = 0; abilityCd.amp = 0;
+      triggerAbility('amp');
+      const active   = overdriveT > 0;
+      const dmgUp    = Math.abs(effDmg(t) - dmgBase * OVERDRIVE_MULT) < 1e-6;   // +30% dmg
+      const rateUp   = Math.abs(effRate(t) - rateBase / OVERDRIVE_MULT) < 1e-6; // +30% fire rate (shorter reload)
+      const onCd     = abilityCd.amp > 0;
+      const usedFlag = abilityUsedThisRun === true;      // counts against Pacifist
+      const castSet  = abilitiesCastThisRun.has('amp');  // counts toward Full House
+
+      // a second cast while cooling is a no-op (overdriveT not refreshed)
+      overdriveT = 2;
+      triggerAbility('amp');
+      const cdGated = Math.abs(overdriveT - 2) < 1e-9;
+
+      // the buff decays in update() and effDmg returns to baseline
+      overdriveT = 0.05; started = true; gameOver = false; paused = false; draftOpen = false;
+      update(0.1);
+      const decayed = overdriveT === 0 && Math.abs(effDmg(t) - dmgBase) < 1e-6;
+
+      // old save missing amp in abilityCd migrates to 0
+      saveRun();
+      let migratedOk = false;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      if (old && old.abilityCd) {
+        delete old.abilityCd.amp;
+        localStorage.setItem('cd_save', JSON.stringify(old));
+        loadRun();
+        migratedOk = abilityCd.amp === 0;
+      }
+
+      overdriveT = 0; enemies.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inBar, cdInit, active, dmgUp, rateUp, onCd, usedFlag, castSet, cdGated, decayed, migratedOk };
+    });
+    check('Amplify is a 6th ability bound to Y (cd 55)', r.inBar);
+    check('abilityCd.amp initialises to 0', r.cdInit);
+    check('Amplify sets the overdrive timer', r.active);
+    check('Amplify raises tower damage +30% while active', r.dmgUp);
+    check('Amplify raises tower fire rate +30% while active', r.rateUp);
+    check('Amplify goes on cooldown after use', r.onCd);
+    check('Amplify sets abilityUsedThisRun (counts vs Pacifist)', r.usedFlag);
+    check('Amplify counts toward Full House (in abilitiesCastThisRun)', r.castSet);
+    check('a second Amplify cast while cooling is a no-op', r.cdGated);
+    check('the overdrive buff decays in update() back to baseline', r.decayed);
+    check('old save missing abilityCd.amp migrates to 0', r.migratedOk);
+    check('no console errors during Amplify test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [184] Low-lives danger vignette + Carpet Bomb badge (v2.48.0). dangerLevel() is a pure fn of run
+  // state (0 when safe/dead/over/menu, ramping up as lives fall) driving the red edge glow in draw().
+  // Carpet Bomb: kill 12+ enemies with one Meteor (run-only meteorBestKills, set in castMeteor). Both
+  // additive/save-safe (no `won` gate on the badge).
+  console.log('\n[184] Danger vignette + Carpet Bomb badge');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; enemies.length = 0; spawners.length = 0; autoStartTimer = -1; waveActive = false;
+
+      // dangerLevel(): 0 while safe, ramps as lives fall, 0 again at/after death, over, or on menu
+      started = true; gameOver = false;
+      lives = 20; const safe = dangerLevel() === 0;
+      lives = 5;  const d5 = dangerLevel();
+      lives = 1;  const d1 = dangerLevel();
+      const ramps = d5 > 0 && d1 > d5 && d1 <= 1;
+      lives = 0;  const dead = dangerLevel() === 0;
+      lives = 3;  gameOver = true; const goZero = dangerLevel() === 0;
+      gameOver = false; started = false; const menuZero = dangerLevel() === 0;
+      started = true; gameOver = false; lives = 20;
+
+      // Carpet Bomb: castMeteor tracks the most kills in one blast
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'carpetbomb');
+      meteorBestKills = 0; wave = 10;
+      const cx = 300, cy = 300; enemies.length = 0;
+      for (let i = 0; i < 14; i++) enemies.push({ kind:'norm', hp:1, maxHp:1, x:cx+(i%4), y:cy+(i%3), dist:100, r:10, armor:0, dead:false, slow:0, frozen:0 });
+      abilityCd.meteor = 0; armedAbility = null;
+      castMeteor(cx, cy);
+      const tracked = meteorBestKills >= 12;
+
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      meteorBestKills = 15; fresh();
+      const granted = grantAchievements(false).map(a => a.id).includes('carpetbomb');
+      meteorBestKills = 11; fresh();
+      const withheld = grantAchievements(false).map(a => a.id).includes('carpetbomb');
+
+      enemies.length = 0; meteorBestKills = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { safe, d5, d1, ramps, dead, goZero, menuZero, inRoster, tracked, granted, withheld };
+    });
+    check('dangerLevel() is 0 while lives are safe', r.safe);
+    check('dangerLevel() ramps up as lives fall', r.ramps, JSON.stringify(r));
+    check('dangerLevel() is 0 at 0 lives (death)', r.dead);
+    check('dangerLevel() is 0 once the run is over', r.goZero);
+    check('dangerLevel() is 0 on the menu', r.menuZero);
+    check('Carpet Bomb is in the achievement roster', r.inRoster);
+    check('castMeteor tracks 12+ kills in one blast', r.tracked, JSON.stringify(r));
+    check('Carpet Bomb granted at 12+ meteor kills', r.granted);
+    check('Carpet Bomb withheld below 12 meteor kills', r.withheld === false);
+    check('no console errors during danger/Carpet Bomb test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

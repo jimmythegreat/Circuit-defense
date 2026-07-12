@@ -1048,6 +1048,33 @@ function draw() {
     ctx.fillRect(0, 0, W, H);
   }
 
+  // 📣 Amplify overdrive glow (v2.48.0): a warm golden edge wash while the tower-buff burst
+  // is active, layered over the vignette so the empowered window reads at a glance. Juice —
+  // gated by the ✨ Particle setting + OS reduce-motion (it breathes), like the combo glow.
+  if (overdriveT > 0 && started && !gameOver && particleDensity > 0 && !reduceMotion()) {
+    const breathe = 0.6 + 0.4 * Math.abs(Math.sin(performance.now() / 150));
+    const a2 = Math.round(Math.min(1, 0.16 * particleDensity * breathe) * 255).toString(16).padStart(2, '0');
+    const ag = ctx.createRadialGradient(W/2, H/2, H*0.34, W/2, H/2, W*0.72);
+    ag.addColorStop(0, '#ffd86600');
+    ag.addColorStop(1, '#ffd866' + a2);
+    ctx.fillStyle = ag;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Low-lives danger vignette (v2.48.0): red screen-edge glow when the wall is nearly breached,
+  // intensifying as lives fall (dangerLevel()). Unlike the juice glows it shows even under
+  // reduce-motion (it's important survival feedback), but only PULSES when motion is allowed.
+  const dl = dangerLevel();
+  if (dl > 0) {
+    const breathe = reduceMotion() ? 0.7 : 0.55 + 0.45 * Math.abs(Math.sin(performance.now() / 320));
+    const a2 = Math.round(Math.min(1, (0.10 + 0.32 * dl) * breathe) * 255).toString(16).padStart(2, '0');
+    const dg = ctx.createRadialGradient(W/2, H/2, H*0.30, W/2, H/2, W*0.72);
+    dg.addColorStop(0, '#f8514900');
+    dg.addColorStop(1, '#f85149' + a2);
+    ctx.fillStyle = dg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
   // paused banner
   if (paused && started && !gameOver) {
     ctx.fillStyle = 'rgba(13,17,23,0.6)';

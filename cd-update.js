@@ -39,6 +39,13 @@ function update(dt) {
       addFloater(W/2, H/2, '🛡️ Barrier faded', '#8b949e', 18);
     }
   }
+  // 📣 Amplify tower-overdrive buff (v2.48.0): decay the timer while playing (past the
+  // pause/draft/gameOver early-return, so the buff pauses with the game). effDmg/effRate
+  // read overdriveT>0; a brief floater cues when it wears off.
+  if (overdriveT > 0) {
+    overdriveT = Math.max(0, overdriveT - dt);
+    if (overdriveT <= 0) addFloater(W/2, H/2, '📣 Amplify faded', '#8b949e', 18);
+  }
   abilityUiAcc += dt;
   if (abilityUiAcc > 0.25) {
     abilityUiAcc = 0; refreshAbilityBar();

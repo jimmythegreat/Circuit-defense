@@ -218,11 +218,14 @@ const ABILITIES = {
   rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection' },
   shock:  { name:'Shockwave', icon:'🌀', key:'R', cd:50, desc:'Blast ALL enemies backward along the path' },
   barrier:{ name:'Barrier',   icon:'🛡️', key:'T', cd:60, desc:'Vaporize the next 3 enemies that reach the exit — no lives lost' },
+  amp:    { name:'Amplify',   icon:'📣', key:'Y', cd:55, desc:'All towers +30% damage & fire rate for 5s' },
 };
 const BARRIER_CHARGES = 3;   // leak-blocks granted per Barrier cast (v1.93.0)
 const BARRIER_DURATION = 20;  // seconds unused barrier charges last before fading (v1.100.1)
 const PHOENIX_LIVES = 12;     // lives restored when 🌅 Phoenix cheats death once per run (v2.15.0)
-let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
+const OVERDRIVE_DUR = 5;      // seconds the 📣 Amplify tower-overdrive buff lasts (v2.48.0)
+const OVERDRIVE_MULT = 1.30;  // Amplify: ×dmg and ÷reload while overdriveT>0 (+30% dmg & fire rate)
+let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0, amp: 0 };
 let armedAbility = null;
 
 function renderAbilityBar() {
@@ -319,6 +322,23 @@ function triggerAbility(k) {
     addExplosion(W/2, H/2, '#58e0ff', 22, 160);
     SFX.barrier();
   }
+  if (k === 'amp') {
+    // Amplify (v2.48.0): the first OFFENSIVE-BUFF ability — a short window where every tower
+    // hits +30% harder AND reloads +30% faster (read by effDmg/effRate via the run-only
+    // `overdriveT` timer, decayed in update()). A fresh axis: the other five abilities are
+    // damage/CC/economy/knockback/defense — none temporarily buffs the towers themselves.
+    // Deliberately bounded/"too easy"-safe: it's a 5s burst on a 55s cooldown (~8% uptime of
+    // ~+69% DPS → only ~+6% average board DPS, below a single Diamond Core), so it enables a
+    // burst-timing playstyle (drop it on a boss/overwhelming wave) rather than raw power creep.
+    abilityCd.amp = ABILITIES.amp.cd * metaCdMult() * perkState.abilityCdMult;
+    abilityUsedThisRun = true;
+    overdriveT = OVERDRIVE_DUR;
+    addFloater(W/2, H/2, '📣 AMPLIFY', '#ffd866', 26);
+    addExplosion(W/2, H/2, '#ffd866', 22, 180);
+    addRing(W/2, H/2, '#ffd866', 300, {life: 0.5, w: 5});
+    shake = Math.max(shake, 8);
+    SFX.amp();
+  }
   // Full House (v2.45.0): track which ability TYPES were actually cast this run (freeze/rush/shock/
   // barrier reach here only on a successful cast — rush's pre-wave block early-returns above; meteor
   // arms and returns without reaching here, so it's tracked in castMeteor instead). Run-only Set,
@@ -337,10 +357,12 @@ function castMeteor(x, y) {
   addExplosion(x, y, '#ff7b42', 40, 260);
   addExplosion(x, y, '#ffd866', 24, 160);
   addRing(x, y, '#ff7b42', 150, {life: 0.45, w: 5});   // impact shock ring
+  const killsBefore = kills;   // 💥 Carpet Bomb feat: count how many this single blast slays (v2.48.0)
   for (const e of enemies) {
     if (e.x === undefined || e.dead) continue;
     if (Math.hypot(e.x - x, e.y - y) < 95) damage(e, dmg, null);
   }
+  meteorBestKills = Math.max(meteorBestKills, kills - killsBefore);
   addFloater(x, y - 30, 'METEOR!', '#ff7b42', 22);
   refreshAbilityBar();
 }

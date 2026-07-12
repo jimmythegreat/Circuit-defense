@@ -26,6 +26,13 @@ let barrierCharges = 0, barrierTimer = 0;
 // barrierBlocks (v2.46.0): count of leaks a Barrier cast has vaporized this run — feeds the
 // 🛡️ Ironclad achievement (block 5+ in one run). Run-only, never saved, re-earnable on resume.
 let barrierBlocks = 0;
+// Amplify ability (v2.48.0): while overdriveT>0 every tower deals +30% dmg & reloads +30% faster
+// (read in effDmg/effRate). Run-only, never saved (a transient burst like abilityCd); resetState()
+// zeroes it and update() decays it, so a resumed run simply starts with no active buff.
+let overdriveT = 0;
+// meteorBestKills (v2.48.0): most enemies slain by a single Meteor cast this run — feeds the
+// 💥 Carpet Bomb achievement (12+ in one blast). Run-only, never saved, re-earnable on resume.
+let meteorBestKills = 0;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -129,9 +136,10 @@ function resetState() {
   waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;
   selectedShop = null; selectedTower = null; gameOver = false; victory = false;
   autoStartTimer = -1; shake = 0; paused = false; draftOpen = false;
-  abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0 };
+  abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0, amp: 0 };
   armedAbility = null;
   barrierCharges = 0; barrierTimer = 0; barrierBlocks = 0;
+  overdriveT = 0; meteorBestKills = 0;
   livesLostThisRun = false;
   abilityUsedThisRun = false;
   abilitiesCastThisRun = new Set();
@@ -243,7 +251,7 @@ function loadRun() {
   if (s.mapTheme && (THEMES[s.mapTheme] || s.mapTheme === 'chaos')) mapTheme = s.mapTheme;
   if (s.perkState) perkState = Object.assign(freshPerkState(), s.perkState);
   if (s.runPerks) runPerks = s.runPerks;
-  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0,shock:0,barrier:0}, s.abilityCd);
+  if (s.abilityCd) abilityCd = Object.assign({meteor:0,freeze:0,rush:0,shock:0,barrier:0,amp:0}, s.abilityCd);
   for (const st of s.towers) {
     const def = TOWER_TYPES[st.type];
     if (!def) continue;

@@ -732,6 +732,14 @@ function fmtTime(s) {
   const pad = n => String(n).padStart(2, '0');
   return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
 }
+const DANGER_LIVES = 5;   // lives at/under which the red danger vignette begins (v2.48.0)
+// Low-lives danger level (v2.48.0): 0 when safe/dead/not playing, ramping 0→1 as lives fall
+// through the last few. Drives the red screen-edge "danger" vignette in draw() so a
+// near-loss reads at a glance (chunky game-feel). Pure function of run state → unit-testable.
+function dangerLevel() {
+  if (!started || gameOver || lives <= 0 || lives > DANGER_LIVES) return 0;
+  return (DANGER_LIVES + 1 - lives) / (DANGER_LIVES + 1);   // lives=5→~0.17 … lives=1→~0.83
+}
 function hideUpgrade() { upPanel.style.display = 'none'; selectedTower = null; }
 function cycleMode() {
   const t = selectedTower;
@@ -801,6 +809,10 @@ function effDmg(t) {
   // back-loaded scaling pick (weak early, edges past Diamond Core late). Reads the live `wave` global;
   // upgradeKey() hashes effDmg, so the panel steps up each wave. Capped → "too easy"-safe.
   if (perkState.warpath) d *= 1 + Math.min(0.4, wave * 0.02);
+  // 📣 Amplify ability (v2.48.0): +30% damage while the tower-overdrive burst is active.
+  // Run-only `overdriveT` (set on cast, decayed in update()); effDmg is hashed by upgradeKey,
+  // so the upgrade panel's dmg line steps up/down with the buff.
+  if (overdriveT > 0) d *= OVERDRIVE_MULT;
   return d;
 }
 function effRate(t) {
@@ -812,6 +824,8 @@ function effRate(t) {
 
   // Hair Trigger legendary (v1.68.0): +55% fire rate (shorter reload; paired with −25% dmg in effDmg).
   if (perkState.hairTrigger) r /= 1.55;
+  // 📣 Amplify ability (v2.48.0): +30% fire rate (shorter reload) while overdrive is active.
+  if (overdriveT > 0) r /= OVERDRIVE_MULT;
   return r;
 }
 function effRange(t) {
@@ -953,6 +967,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');
   if (e.key === 'r' || e.key === 'R') triggerAbility('shock');
   if (e.key === 't' || e.key === 'T') triggerAbility('barrier');
+  if (e.key === 'y' || e.key === 'Y') triggerAbility('amp');
   const idx = e.key === '0' ? 9 : parseInt(e.key) - 1;   // keys 1-9 → towers 1-9; '0' → 10th tower
   if (idx >= 0 && idx < TYPE_KEYS.length) {
     const key = TYPE_KEYS[idx];
@@ -1015,6 +1030,7 @@ function pollGamepad(dt) {
   if (E(6)) triggerAbility('rush');                           // LT
   if (E(7)) triggerAbility('shock');                          // RT
   if (E(3)) triggerAbility('barrier');                        // Y
+  if (E(11)) triggerAbility('amp');                           // R3 (right-stick press): 📣 Amplify
 }
 // Cycle the shop selection to the next tower type the player can currently afford (X button).
 function gpCycleTower() {
