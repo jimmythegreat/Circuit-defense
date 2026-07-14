@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.50.0 — 2026-07-14 — Corrosive Rounds perk, 2 badges, Auto-wave hotkey
+
+**Type:** Minor (feature/content). Suite green (1938/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.
+
+- **🧪 Corrosive Rounds perk (rare):** a fresh **synergy** axis — all towers deal **+30% damage** to any enemy with an active poison DoT (`perkState.corrosive`). Rewards a Poison-anchored build (the historically under-powered archetype, buffed as weak v1.10.0): a Poison tower softens the target and everything else then hits it harder. "Too easy"-safe — conditional (does nothing until a Poison tower tags the target) and in the modest rare bracket (cf. Ambush +30% / Finisher +35%). Fire-path (target-poison-keyed, not `effDmg`); save-safe (perkState default false). Test group `[188]`.
+- **🛸 Transcendent achievement (42nd badge):** reach wave 200 in a single run — the next deep-endless rung above 🪐 Astral (no `won` gate). Test group `[189]`.
+- **🧪 Plague Doctor achievement (43rd badge):** rack up 150 kills on a single Poison tower (poison DoT credits the source tower's kills; reads the final board, no `won` gate). Pairs with Corrosive Rounds. Test group `[189]`.
+- **⌨️ Auto-wave `A` hotkey (QoL):** press A to toggle the 🔁 Auto-wave preference on the fly, joining the U (upgrade) / S (sell) / D (target) hotkey family. `.hint` updated. Test group `[190]`.
+- Noted in ROADMAP: the older Finisher `[167]` / Point Blank `[174]` perk tests are *vacuous* (their mock enemy is repositioned off the rail's beam by `update()`, so the rail never fires and the damage ratios hold trivially at 0). `[188]` uses on-path placement + a fire guard to avoid that; a future test-quality pass should harden `[167]`/`[174]` the same way.
+
 ## v2.49.0 — 2026-07-14 — Chameleon boss, Empowered Arsenal perk, 2 badges
 
 **Type:** Minor (feature/content). Suite green (1916/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.

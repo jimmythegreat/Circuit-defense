@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 41 badges', r.total === 41, `total=${r.total}`);
+    check('achievement roster grew to 43 badges', r.total === 43, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 41;   // +heavy_hitter 🥊 + polymath 🧠 (v2.49.0)
+      const rosterOk = ACHIEVEMENTS.length === 43;   // +endless200 🛸 + plague 🧪 (v2.50.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9063,7 +9063,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 39 badges', r.rosterOk);
+    check('achievement roster is 43 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -12428,6 +12428,165 @@ async function main() {
     check('Polymath withheld with only 5 types', r.pmFiveWithheld === false);
     check('Polymath withheld on a loss', r.pmLostWithheld === false);
     check('no console errors during Heavy Hitter/Polymath test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [188] Corrosive Rounds rare perk (v2.50.0): +30% damage to a POISONED enemy — a poison-anchored
+  // synergy. Fire-path (live-poison-keyed), so NOT in effDmg. Mirrors [167]/[174].
+  console.log('\n[188] Corrosive Rounds perk (poisoned-target damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'corrosive');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // corrosive is keyed to the target's live poison state in the fire loop, so it must NOT be in effDmg
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.corrosive = false;
+      const effBefore = effDmg(probe);
+      perkState.corrosive = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // fire one instant rail shot and measure raw damage dealt to a poisoned vs clean enemy.
+      // Tower + enemy are placed ON the path (via pointAt) and the enemy is stationary (spd:0) so
+      // update()'s per-enemy repositioning can't shove it off the beam — otherwise the rail never
+      // fires (the x/y gotcha). The poison marker uses dps:0 so the DoT contributes 0 damage and
+      // only the corrosive fire-path multiplier is measured.
+      const tp = pointAt(120), ep = pointAt(180);
+      function shot(corrosiveOn, poisoned) {
+        perkState.corrosive = corrosiveOn;
+        perkState.critChance = 0;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:tp.x, y:tp.y, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp: maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0,
+                    poison: poisoned ? { dps:0, t:2 } : null };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return { dealt: before - e.hp, hits: railBestHit };
+      }
+      // Four shots isolate the corrosive fire-path multiplier from the DoT: a poison tick still
+      // deals damage()'s 0.5 minimum-damage floor even at dps:0, so we compare the RAIL portion
+      // differentially. clean0/clean1 = corrosive off/on on an un-poisoned enemy (pure rail R);
+      // pois0/pois1 = corrosive off/on on a poisoned enemy (rail + 0.5 floor).
+      const clean0  = shot(false, false);   // un-poisoned, no perk  → R
+      const clean1  = shot(true,  false);   // un-poisoned, perk     → R (corrosive needs poison)
+      const pois0   = shot(false, true);    // poisoned, no perk     → R + 0.5 floor
+      const pois1   = shot(true,  true);    // poisoned, perk        → 1.3R + 0.5 floor
+      const fired   = clean0.hits === 1 && clean1.hits === 1 && pois0.hits === 1 && pois1.hits === 1;
+      const railR   = clean0.dealt;         // the un-buffed rail damage
+      const bonusOk = Math.abs((pois1.dealt - pois0.dealt) - 0.3 * railR) < 1e-4;   // corrosive adds +30% of the rail hit
+      const noBonusClean = Math.abs(clean1.dealt - clean0.dealt) < 1e-4;            // corrosive does nothing un-poisoned
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().corrosive === false;
+      perkState.corrosive = true;
+      saveRun();
+      perkState.corrosive = false;
+      const loaded = loadRun();
+      const restored = perkState.corrosive === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.corrosive;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.corrosive === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'corrosive';
+      backToMenu();
+      return { inPool, notInEffDmg, railR, pois0: pois0.dealt, pois1: pois1.dealt, fired, bonusOk, noBonusClean, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Corrosive Rounds is a rare perk in the pool', r.inPool);
+    check('Corrosive Rounds is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Corrosive Rounds test actually fires the rail (non-vacuous)', r.fired, `railR=${r.railR}`);
+    check('Corrosive Rounds gives +30% damage to a poisoned enemy', r.bonusOk, `railR=${r.railR} pois0=${r.pois0} pois1=${r.pois1}`);
+    check('Corrosive Rounds gives no bonus to an un-poisoned enemy', r.noBonusClean);
+    check('freshPerkState defaults corrosive:false', r.defaultsOk);
+    check('save/reload round-trips the corrosive flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing corrosive migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Corrosive Rounds', r.wildcardSkips);
+    check('no console errors during Corrosive Rounds test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [189] Transcendent + Plague Doctor achievements (v2.50.0): reach wave 200 (a deep-endless rung,
+  // no `won` gate), and rack up 150 kills on a single Poison tower (a poison feat). Mirrors [187].
+  console.log('\n[189] Transcendent + Plague Doctor achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'endless200') && ACHIEVEMENTS.some(a => a.id === 'plague');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const mkT = (type, kills = 0) => ({ type, x:0, y:0, dealt:0, kills, level:1, mode:'first', spec:null, invested:0, flash:0 });
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      // Transcendent — reach wave 200 (no `won` gate)
+      towers.length = 0; wave = 200; fresh();
+      const t200Granted = grantAchievements(false).map(a => a.id).includes('endless200');
+      wave = 199; fresh();
+      const t199Withheld = grantAchievements(false).map(a => a.id).includes('endless200');
+      wave = 1;
+
+      // Plague Doctor — a single Poison tower at ≥150 kills (no `won` gate)
+      towers.length = 0; towers.push(mkT('poison', 150)); fresh();
+      const pdGranted = grantAchievements(false).map(a => a.id).includes('plague');
+      towers.length = 0; towers.push(mkT('poison', 149)); fresh();
+      const pdWithheld = grantAchievements(false).map(a => a.id).includes('plague');
+      // a non-poison tower at 150 kills does NOT count
+      towers.length = 0; towers.push(mkT('gun', 150)); fresh();
+      const pdWrongType = grantAchievements(false).map(a => a.id).includes('plague');
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, t200Granted, t199Withheld, pdGranted, pdWithheld, pdWrongType };
+    });
+    check('Transcendent + Plague Doctor are in the achievement roster', r.inRoster);
+    check('Transcendent granted at wave 200', r.t200Granted);
+    check('Transcendent withheld at wave 199', r.t199Withheld === false);
+    check('Plague Doctor granted at 150 Poison-tower kills', r.pdGranted);
+    check('Plague Doctor withheld at 149 kills', r.pdWithheld === false);
+    check('Plague Doctor withheld for a non-Poison tower', r.pdWrongType === false);
+    check('no console errors during Transcendent/Plague Doctor test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [190] 'A' hotkey toggles Auto-wave (v2.50.0 QoL — mirrors the U/S/D hotkey family). No tower
+  // selection needed; only fires in-game (the keydown handler early-returns when !started).
+  console.log('\n[190] A hotkey toggles Auto-wave');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      autoWave = false;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+      const onAfterA = autoWave === true;
+      const persistedOn = localStorage.getItem('cd_autowave') === '1';
+      // uppercase toggles back off
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'A', bubbles: true }));
+      const offAfterA = autoWave === false;
+      const persistedOff = localStorage.getItem('cd_autowave') === '0';
+
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_autowave'); autoWave = true; backToMenu();
+      return { onAfterA, persistedOn, offAfterA, persistedOff };
+    });
+    check("'A' turns Auto-wave on", r.onAfterA);
+    check("'A' persists the on state (cd_autowave='1')", r.persistedOn);
+    check("'A' (uppercase) toggles Auto-wave back off", r.offAfterA);
+    check("'A' persists the off state (cd_autowave='0')", r.persistedOff);
+    check('no console errors during A-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

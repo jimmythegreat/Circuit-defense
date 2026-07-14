@@ -49,6 +49,8 @@ const ACHIEVEMENTS = [
   { id:'carpetbomb',    icon:'💥', name:'Carpet Bomb',          desc:'Kill 12+ enemies with a single Meteor' },
   { id:'heavy_hitter',  icon:'🥊', name:'Heavy Hitter',         desc:'Deal 200,000 damage with a single tower in one run' },
   { id:'polymath',      icon:'🧠', name:'Polymath',             desc:'Win a game using 6 or more tower types' },
+  { id:'endless200',    icon:'🛸', name:'Transcendent',         desc:'Reach wave 200 in a single run' },
+  { id:'plague',        icon:'🧪', name:'Plague Doctor',        desc:'Rack up 150 kills on a single Poison tower' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -72,6 +74,7 @@ function grantAchievements(won) {
   if (wave >= 50) give('endless50');
   if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
   if (wave >= 150) give('endless150');   // 🪐 v2.42.0 — the next deep-endless rung above Eternity (no `won` gate)
+  if (wave >= 200) give('endless200');   // 🛸 v2.50.0 — the next deep-endless rung above Astral (no `won` gate)
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.dmg >= 1e7) give('annihilator');   // 🌋 v2.47.0 — the next lifetime-damage rung above Megadamage (reads the stat just tallied)
   if (bossKills >= 5) give('bosshunter');   // 🦣 v2.47.0 — a feat (no `won` gate): defeat 5 bosses in one run (run-only bossKills, cd-state.js)
@@ -89,6 +92,11 @@ function grantAchievements(won) {
   // run. Reads the final towers board's max t.dealt (a fresh per-tower axis, vs the lifetime dmg stat).
   // Most natural on a carry tower in a long/endless run.
   if (towers.some(t => (t.dealt || 0) >= 200000)) give('heavy_hitter');
+  // Plague Doctor (🧪 v2.50.0): a feat (no `won` gate) — a SINGLE Poison tower reaching 150 kills.
+  // Poison DoT ticks credit the source tower's kills (silent kills still src.kills++), so a
+  // well-placed Poison tower on a swarm rack up kills over a run. Pairs with the Corrosive Rounds
+  // perk; reads the final towers board like Heavy Hitter / Living Legend.
+  if (towers.some(t => t.type === 'poison' && (t.kills || 0) >= 150)) give('plague');
   if (gameTime >= 1800) give('marathoner'); // 🐢 v2.39.0 — a feat (no `won` gate): a 30-minute marathon run
   // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
   // the top veterancy rank (200 kills on one tower) is most natural in a long endless run, win or lose.

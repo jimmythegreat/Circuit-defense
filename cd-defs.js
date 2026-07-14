@@ -483,6 +483,18 @@ const PERKS = [
   // s.perkState) — old saves default 1; ability cooldowns/effects are run-only so nothing else migrates).
   // A RARE, so the legendary-only resolveWildcard() skips it. Test group [185].
   { id:'arsenal_pw',rarity:'rare', icon:'🎛️', name:'Empowered Arsenal', desc:'Meteor, Time Freeze & Shockwave effects +40%', apply:s=>s.abilityPower *= 1.4 },
+  // Corrosive Rounds (rare, v2.50.0): a fresh SYNERGY axis — +30% damage to any enemy currently
+  // poisoned (has an active `poison` DoT on it). Rewards a poison-anchored build: a Poison tower
+  // softens the target (DoT + −3 armor corrosion) and every other tower then hits it 30% harder.
+  // Deliberately buffs the historically WEAKER Poison archetype (buffed as underpowered v1.10.0),
+  // so it's the "too easy"-safe DIRECTION — and it's conditional (does nothing until a Poison tower
+  // has tagged the target), in the same modest bracket as Ambush (+30% vs >80% HP) / Finisher
+  // (+35% vs <40% HP). Keyed to the primary target's live poison state → implemented in the FIRE
+  // path (cd-update.js), not effDmg (no upgrade-panel churn); applied before the proj branch so
+  // chain/rail/poison shots benefit too. `corrosive` lives in perkState (save-safe default false;
+  // round-trips via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default
+  // false). A RARE, so the legendary-only resolveWildcard() skips it. Test group [188].
+  { id:'corrosive',rarity:'rare', icon:'🧪', name:'Corrosive Rounds',   desc:'+30% damage to poisoned enemies', apply:s=>s.corrosive = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -654,7 +666,8 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1 };
+    phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
+    corrosive:false };
 }
 function ascendTowers() {
   for (const t of towers) {

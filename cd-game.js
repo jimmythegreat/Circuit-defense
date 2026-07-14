@@ -962,6 +962,9 @@ document.addEventListener('keydown', e => {
   // panel's target button). Gated to non-buff towers (buff towers have no targeting), so it's a
   // safe no-op otherwise. D isn't an ability or tower hotkey, so no clash.
   if ((e.key === 'd' || e.key === 'D') && selectedTower && selectedTower.type !== 'buff') { cycleMode(); return; }
+  // 'A' toggles auto-wave (v2.50.0 QoL — mirrors the 🔁 Auto-wave button; no tower selection needed).
+  // toggleAuto() self-manages the button label/timer, so this is a safe standalone toggle in-game.
+  if (e.key === 'a' || e.key === 'A') { toggleAuto(); return; }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

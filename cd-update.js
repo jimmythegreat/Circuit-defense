@@ -725,6 +725,10 @@ function update(dt) {
     // only computed when the perk is held (flag-gated), so no per-shot cost otherwise. Applied here
     // (not effDmg) before the proj branch so chain/rail/poison close-range shots benefit too.
     if (perkState.pointBlank && Math.hypot(target.x - t.x, target.y - t.y) <= effRange(t) * 0.5) dmg *= 1.25;
+    // Corrosive Rounds rare (v2.50.0): +30% damage to a target with an active poison DoT — a
+    // poison-anchored synergy. Keyed to the primary target's live poison state, so it lives here
+    // (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
+    if (perkState.corrosive && target.poison && target.poison.t > 0) dmg *= 1.3;
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and
