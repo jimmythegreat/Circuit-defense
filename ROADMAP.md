@@ -37,12 +37,12 @@ _None currently known._ (Add any here as found — top priority.)
       the 👁️ Spectral Sight *perk* v2.41.0 [161] — towers see through intangibility; a per-tower *spec* or
       predictive lead-shot version is still open if wanted). Audit frost (Deep Freeze vs Shatter) & gun
       (Minigun vs AP) for a strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 23rd boss archetype (22nd = 💧 Cleanser anti-debuff purge, shipped
-      v2.42.0 [164], first at w125 — purges poison/slow from its cohort, freeze-pausable, icy-white ring;
-      21st = 🏎 Accelerator self-speed ramp v2.41.0 [162]; 20th = 🫥 Veil cohort-cloak aura v2.36.0 [146]);
-      per-campaign-tier *fixed* archetypes (vs the wave-number cycle);
+- [ ] **Boss/enemy follow-ups** — a 24th boss archetype (23rd = 🦎 Chameleon adaptive damage-resistance,
+      shipped v2.49.0 [186], first at w130 — a repeated same-tower-type hit deals −50%, rewards mixing,
+      freeze-pausable, rose ring; 22nd = 💧 Cleanser anti-debuff purge v2.42.0 [164]; 21st = 🏎 Accelerator
+      self-speed ramp v2.41.0 [162]); per-campaign-tier *fixed* archetypes (vs the wave-number cycle);
       a Breacher variant that costs lives only if it *survives* a tower's range. (Color space for boss aura
-      rings is VERY crowded now — a 23rd needs a clearly-distinct hue, or reuse a shape/glyph cue instead.)
+      rings is VERY crowded now — a 24th needs a clearly-distinct hue, or reuse a shape/glyph cue instead.)
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -170,8 +170,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
-- 22 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator→cleanser) v1.25.0–v2.42.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]/[164]; boss-bar mechanic badge v1.36.0 [53]. Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP). Cleanser (v2.42.0 [164], first w125) purges poison/slow from itself + cohort every ~2.5s (an anti-debuff axis; freeze pauses it, adds no HP).
+- 23 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator→cleanser→adaptive) v1.25.0–v2.49.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]/[164]/[186]; boss-bar mechanic badge v1.36.0 [53]. Chameleon (v2.49.0 [186], first w130) throttles a repeated same-tower-type hit −50% (a build-diversity axis; freeze lifts it, adds no HP). Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP). Cleanser (v2.42.0 [164], first w125) purges poison/slow from itself + cohort every ~2.5s (an anti-debuff axis; freeze pauses it, adds no HP).
 - 23 Mayhem wave mods (frenzy/blitz/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
   adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/medics/meteors) [46]+ many; Herald Surge v2.35.0 [144]; Blitz (+60% speed, the "double-time" Frenzy variant) v2.36.0 [147]; Medic Surge (heal-aura escort surge) v2.47.0 [181].
 
@@ -195,6 +195,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🛡️ Ironclad v2.46.0 [177] — block 5+ leaks with Barrier in a single run;
   + 🌋 Annihilator + 🦣 Big Game Hunter v2.47.0 [182] — deal 10M lifetime damage / defeat 5 bosses in a run;
   + 💥 Carpet Bomb v2.48.0 [184] — kill 12+ enemies with a single Meteor;
+  + 🥊 Heavy Hitter + 🧠 Polymath v2.49.0 [187] — deal 200k with one tower / win with 6+ tower types;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -206,7 +207,8 @@ _None currently known._ (Add any here as found — top priority.)
   Spectral Sight(towers target & hit intangible enemies — counters phantom/cloak/teleporter/veil, counter-content rare, v2.41.0 [161])/
   Phalanx(+2% tower dmg per tower on the board, max +20% — a wide-build rare, v2.42.0 [165])/
   Finisher(+35% dmg to enemies below 40% HP — the closer bookend to Ambush's opener, v2.43.0 [167])/
-  Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174]);
+  Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174])/
+  Empowered Arsenal(Meteor/Freeze/Shockwave effects +40% — an ability-magnitude axis, v2.49.0 [185]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]

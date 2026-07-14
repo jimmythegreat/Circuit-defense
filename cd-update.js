@@ -624,6 +624,14 @@ function update(dt) {
           }
           addExplosion(e.x, e.y, '#e6fbff', 10, cr); SFX.bossSkill();
         }
+      } else if (e.bossType === 'adaptive') {
+        // Chameleon (v2.49.0, the 23rd archetype — a fresh BUILD-DIVERSITY axis). Its whole mechanic
+        // is passive in damage() (a repeated same-tower-type hit deals −50%); this gated block only
+        // adds a periodic shimmer pulse (SFX + a burst) so the "it's adapting" read is legible and,
+        // because it's gated frozen<=0, the silence doubles as the cue that freeze has lifted the
+        // adaptation (like the absorber's tick). Run-only `adaptCd`, never persisted.
+        e.adaptCd = (e.adaptCd == null ? 2.5 : e.adaptCd) - dt;
+        if (e.adaptCd <= 0) { e.adaptCd = 2.5; addExplosion(e.x, e.y, '#ff5a8c', 9, e.r + 16); SFX.bossSkill(); }
       }
     }
     if (e.dist >= pathLen) {
@@ -971,6 +979,15 @@ const ACCEL_CAP  = 1.8;          // max self-speed multiplier (+80%)
 // easy"-safe: adds NO HP or speed, only strips the player's DoT/slow advantage; periodic (not every
 // frame) so poison/slow can re-accumulate between pulses. Run-only `cleanseCd`, never persisted.
 const CLEANSE_RANGE = 115;       // px reach of the debuff-purge pulse
+// Chameleon boss archetype (v2.49.0, the 23rd) lever: it ADAPTS to whatever last hit it, so a second
+// consecutive hit from the SAME tower TYPE deals this much less. It reads the previous damaging hit's
+// tower type (e.lastHitType, tracked in damage()) — so spamming one tower kind at it is throttled,
+// while a MIXED board (alternating types) barely notices. A fresh BUILD-DIVERSITY axis (nothing else
+// keys off the damage source's type) and the direct check on a single dominant tower spam (the
+// recurring "too easy" offender). Bounded/"too easy"-safe: it adds NO HP/speed, mixing towers escapes
+// it entirely, and FREEZE lifts it (the reduction is gated `frozen<=0` in damage(), like the absorber
+// cap). Run-only `lastHitType`/`adaptCd`, never persisted (enemies aren't serialized).
+const ADAPT_REDUCTION = 0.5;     // repeated same-tower-type hit deals (1 − this) damage
 function fireBeam(t, target, dmg) {
   SFX.laser();
   const def = TOWER_TYPES[t.type];
@@ -1081,6 +1098,14 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
   // LOW per-hit DPS). Bounded / "too easy"-safe: a cap not immunity (sustained DPS still kills it; adds
   // no HP/speed), and FREEZE COUNTERS IT (the cap lifts while frozen, so a Frost build cracks it open).
   if (e.bossType === 'absorber' && e.frozen <= 0) dmg = Math.min(dmg, e.maxHp * ABSORB_CAP);
+  // Chameleon boss (v2.49.0, the 23rd): a fresh BUILD-DIVERSITY axis — a second consecutive hit from
+  // the SAME tower TYPE deals −50%, so spamming one tower kind is throttled while a mixed board (hits
+  // alternate types) barely feels it. Reads/updates the previous damaging hit's tower type. Gated
+  // frozen<=0 (freeze lifts it, like the absorber cap) and src?.type (DoT/meteor with src=null skip).
+  if (e.bossType === 'adaptive' && e.frozen <= 0 && src && src.type) {
+    if (src.type === e.lastHitType) dmg *= (1 - ADAPT_REDUCTION);
+    e.lastHitType = src.type;
+  }
   // warlord boss (v2.14.0): a rallied enemy carries WARLORD_ARMOR flat bonus armor while the
   // Warlord lives — added into the existing flat-subtraction path, so Mortar/AP-gun (ignoreArmor)
   // skip it and high-per-hit towers barely feel it, but it blunts the cheap high-rate-low-dmg build.

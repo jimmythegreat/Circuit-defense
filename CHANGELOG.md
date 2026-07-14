@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.49.0 — 2026-07-14 — Chameleon boss, Empowered Arsenal perk, 2 badges
+
+**Type:** Minor (feature/content). Suite green (1916/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.
+
+- **🦎 Chameleon boss archetype (23rd, first at w130):** a fresh **build-diversity** axis — a second consecutive hit from the **same tower type** deals **−50%** (`ADAPT_REDUCTION`), so spamming one tower kind is throttled while a mixed board (alternating types) barely notices. The direct check on a single dominant tower spam (the recurring "too easy" offender). Bounded/"too easy"-safe: adds no HP/speed, mixing towers escapes it entirely, and **freeze lifts it** (the reduction is gated `frozen<=0` in `damage()`, like the absorber cap). Reads/updates the run-only `e.lastHitType`; a periodic shimmer pulse for game-feel. Rose aura ring, `ADAPTING` badge, 🦎 Bestiary entry. Test group `[186]`.
+- **🎛️ Empowered Arsenal perk (rare):** the perk pool's first **ability-magnitude** boost (distinct from Capacitor's cooldown and the meteor-only Singularity) — Meteor damage, Time Freeze duration, and Shockwave knockback all **+40%** via `perkState.abilityPower` (default 1). "Too easy"-safe: two of the three deal no damage (it enables a playstyle) and the offensive one (Meteor) is a burst on a 30s cooldown. Save-safe (perkState default 1). Test group `[185]`.
+- **🥊 Heavy Hitter achievement (40th badge):** deal 200,000 damage with a single tower in one run (reads max `t.dealt`; no `won` gate — a carry-tower feat). Test group `[187]`.
+- **🧠 Polymath achievement (41st badge):** win a game fielding 6+ distinct tower types (a build-diversity feat between 🧩 Specialist and 🧰 Full Arsenal — the lesson the Chameleon teaches). Test group `[187]`.
+
 ## v2.48.0 — 2026-07-12 — Amplify ability, low-lives danger cue, Carpet Bomb badge
 
 **Type:** Minor (feature/content). Suite green (1891/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.

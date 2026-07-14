@@ -47,6 +47,8 @@ const ACHIEVEMENTS = [
   { id:'annihilator',   icon:'🌋', name:'Annihilator',          desc:'Deal 10,000,000 total damage (lifetime)' },
   { id:'bosshunter',    icon:'🦣', name:'Big Game Hunter',       desc:'Defeat 5 bosses in a single run' },
   { id:'carpetbomb',    icon:'💥', name:'Carpet Bomb',          desc:'Kill 12+ enemies with a single Meteor' },
+  { id:'heavy_hitter',  icon:'🥊', name:'Heavy Hitter',         desc:'Deal 200,000 damage with a single tower in one run' },
+  { id:'polymath',      icon:'🧠', name:'Polymath',             desc:'Win a game using 6 or more tower types' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -83,6 +85,10 @@ function grantAchievements(won) {
   if (railBestHit >= 5) give('railhit5');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
   if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board
+  // Heavy Hitter (🥊 v2.49.0): a feat (no `won` gate) — a SINGLE tower dealing 200,000 damage in one
+  // run. Reads the final towers board's max t.dealt (a fresh per-tower axis, vs the lifetime dmg stat).
+  // Most natural on a carry tower in a long/endless run.
+  if (towers.some(t => (t.dealt || 0) >= 200000)) give('heavy_hitter');
   if (gameTime >= 1800) give('marathoner'); // 🐢 v2.39.0 — a feat (no `won` gate): a 30-minute marathon run
   // Living Legend (v2.19.0): a feat, not a win condition (no `won` gate — like railhit5). Reaching
   // the top veterancy rank (200 kills on one tower) is most natural in a long endless run, win or lose.
@@ -102,6 +108,10 @@ function grantAchievements(won) {
   if (won && lives > 0 && lives <= 3) give('clutch');
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
+  // Polymath (🧠 v2.49.0): win using 6+ distinct tower types — a build-DIVERSITY feat that sits
+  // between 🧩 Specialist (exactly 1 type) and 🧰 Full Arsenal (all 11), rewarding a varied board
+  // (thematically the lesson the 🦎 Chameleon boss teaches: mix your damage sources).
+  if (won && new Set(towers.map(t => t.type)).size >= 6) give('polymath');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');
   // Lone Wolf (🐺 v2.45.0): a stricter Minimalist — win with ≤3 towers (win-gated; reads the
   // final board like Minimalist/Specialist). A tight-build skill feat.
@@ -272,6 +282,7 @@ const CODEX_BOSSES = [
   { type: 'veil',       glyph: '🫥', color: '#dcd2ff', label: 'Veil',         wave: 'Wave 115', desc: 'Cloaks its escorts — nearby allies periodically phase out, untargetable. Use rapid fire or freeze it to stop the spread.' },
   { type: 'accelerator',glyph: '🏎', color: '#ffec5a', label: 'Accelerator',  wave: 'Wave 120', desc: 'Ramps its own speed the longer it lives (up to +80%). Burst it down early, or freeze to pause the acceleration.' },
   { type: 'cleanser',   glyph: '💧', color: '#e6fbff', label: 'Cleanser',     wave: 'Wave 125', desc: 'Purges poison & slow from itself and its escorts every few seconds. Bring direct DPS, or freeze it to stop the purge.' },
+  { type: 'adaptive',   glyph: '🦎', color: '#ff5a8c', label: 'Chameleon',    wave: 'Wave 130', desc: 'Adapts to your fire — a second hit from the SAME tower type deals 50% less. Mix your damage sources, or freeze it to lift the adaptation.' },
 ];
 // The 📖 Bestiary opens from the start menu AND mid-run (in-game Codex button / 'C' hotkey,
 // v2.37.0). When opened during a live game it auto-pauses so the player can read counters

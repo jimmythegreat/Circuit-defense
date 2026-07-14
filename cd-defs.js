@@ -263,7 +263,8 @@ function triggerAbility(k) {
   if (k === 'freeze') {
     abilityCd.freeze = ABILITIES.freeze.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
-    for (const e of enemies) e.frozen = 4;
+    const freezeDur = 4 * perkState.abilityPower;   // 🎛️ Empowered Arsenal (v2.49.0)
+    for (const e of enemies) e.frozen = freezeDur;
     // Absolute Zero (v2.44.0): track the most enemies caught by one Freeze cast (feat at 12+).
     bestFreeze = Math.max(bestFreeze, enemies.filter(e => !e.dead).length);
     addFloater(W/2, H/2, '🧊 TIME FREEZE', '#79c0ff', 26);
@@ -294,7 +295,7 @@ function triggerAbility(k) {
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
       if (e.ccImmune || (e.kind === 'boss' && e.bossType === 'juggernaut')) continue;
-      const kb = e.kind === 'boss' ? 28 : 75;
+      const kb = (e.kind === 'boss' ? 28 : 75) * perkState.abilityPower;   // 🎛️ Empowered Arsenal (v2.49.0)
       e.dist = Math.max(0, e.dist - kb);
       e.frozen = Math.max(e.frozen, 0.35);   // brief stagger
       e.flash = 0.2;
@@ -351,7 +352,7 @@ function castMeteor(x, y) {
   armedAbility = null;
   abilityUsedThisRun = true;
   abilitiesCastThisRun.add('meteor');   // Full House (v2.45.0): count the actual meteor cast, not the arm
-  const dmg = (120 + wave * 14) * perkState.meteorMult;
+  const dmg = (120 + wave * 14) * perkState.meteorMult * perkState.abilityPower;   // 🎛️ Empowered Arsenal (v2.49.0)
   shake = Math.max(shake, 18);
   SFX.meteor();
   addExplosion(x, y, '#ff7b42', 40, 260);
@@ -470,6 +471,18 @@ const PERKS = [
   // s.perkState) — old saves default false). A RARE, so the legendary-only resolveWildcard() skips
   // it. Test group [161].
   { id:'phaselock',rarity:'rare', icon:'👁️', name:'Spectral Sight',    desc:'Towers can target & hit cloaked / blinking enemies', apply:s=>s.phaseSight = true },
+  // Empowered Arsenal (rare, v2.49.0): the perk pool's first ABILITY-POWER (magnitude) boost — a fresh
+  // axis distinct from 🔋 Capacitor (cooldown) and 🕳️ Singularity (meteor-ONLY). It scales the EFFECT
+  // of your three combat abilities by +40%: bigger ☄️ Meteor blast damage, longer 🧊 Time Freeze, and a
+  // stronger 🌀 Shockwave knockback. Makes an ability-focused build a real pillar (more defensive
+  // uptime + a harder meteor) rather than raw board DPS. Deliberately "too easy"-safe: two of the three
+  // (Freeze/Shockwave) deal NO damage — it enables a PLAYSTYLE, and the one offensive boost (Meteor) is
+  // a burst on a 30s cooldown, so it's bounded. Wired via perkState.abilityPower (default 1) at the
+  // three cast sites in cd-defs.js (castMeteor dmg / freeze duration / shock knockback). `abilityPower`
+  // lives in perkState (save-safe default 1; round-trips via loadRun's Object.assign(freshPerkState(),
+  // s.perkState) — old saves default 1; ability cooldowns/effects are run-only so nothing else migrates).
+  // A RARE, so the legendary-only resolveWildcard() skips it. Test group [185].
+  { id:'arsenal_pw',rarity:'rare', icon:'🎛️', name:'Empowered Arsenal', desc:'Meteor, Time Freeze & Shockwave effects +40%', apply:s=>s.abilityPower *= 1.4 },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -641,7 +654,7 @@ function freshPerkState() {
     glassCannon:false, overkill:false, reaper:false, hairTrigger:false, comboPower:false, rangeMult:1,
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
-    phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false };
+    phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1 };
 }
 function ascendTowers() {
   for (const t of towers) {

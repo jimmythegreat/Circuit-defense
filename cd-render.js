@@ -86,6 +86,7 @@ function bossMechanicBadge(e) {
     case 'veil':     return { label: 'VEILING', c: '220,210,255' };
     case 'accelerator': return { label: 'ACCELERATING', c: '255,236,90' };
     case 'cleanser': return { label: 'CLEANSING', c: '230,251,255' };
+    case 'adaptive': return { label: 'ADAPTING', c: '255,90,140' };
     default:         return null;
   }
 }
@@ -673,7 +674,7 @@ function draw() {
     // brighter+thicker as it rages (scaling with missing HP), so the damage-soak window / rage
     // level is readable at a glance.
     if (e.kind === 'boss' && e.bossType) {
-      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : e.bossType === 'conduit' ? '94,242,200' : e.bossType === 'warper' ? '124,108,255' : e.bossType === 'fortifier' ? '205,127,50' : e.bossType === 'warlord' ? '240,200,60' : e.bossType === 'suppressor' ? '111,143,175' : e.bossType === 'absorber' ? '45,212,191' : e.bossType === 'distorter' ? '232,121,249' : e.bossType === 'custodian' ? '142,199,255' : e.bossType === 'veil' ? '220,210,255' : e.bossType === 'accelerator' ? '255,236,90' : e.bossType === 'cleanser' ? '230,251,255' : '121,192,255';
+      const ac = e.bossType === 'regen' ? '86,211,100' : e.bossType === 'summoner' ? '255,148,146' : e.bossType === 'enrager' ? '255,180,84' : e.bossType === 'teleporter' ? '188,140,255' : e.bossType === 'berserker' ? '255,106,106' : e.bossType === 'disruptor' ? '125,249,255' : e.bossType === 'juggernaut' ? '192,200,214' : e.bossType === 'siphon' ? '227,179,65' : e.bossType === 'hydra' ? '154,230,92' : e.bossType === 'revenant' ? '227,79,208' : e.bossType === 'conduit' ? '94,242,200' : e.bossType === 'warper' ? '124,108,255' : e.bossType === 'fortifier' ? '205,127,50' : e.bossType === 'warlord' ? '240,200,60' : e.bossType === 'suppressor' ? '111,143,175' : e.bossType === 'absorber' ? '45,212,191' : e.bossType === 'distorter' ? '232,121,249' : e.bossType === 'custodian' ? '142,199,255' : e.bossType === 'veil' ? '220,210,255' : e.bossType === 'accelerator' ? '255,236,90' : e.bossType === 'cleanser' ? '230,251,255' : e.bossType === 'adaptive' ? '255,90,140' : '121,192,255';
       // Conduit boss (v2.2.0): draw a glowing tether to each nearby escort that's shielding it,
       // so the "clear the adds to break the link" read is visible at a glance (brighter with more
       // links). Recomputes neighbours in render — bounded (one boss), and uses last-frame x/y like

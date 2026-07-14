@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 39 badges', r.total === 39, `total=${r.total}`);
+    check('achievement roster grew to 41 badges', r.total === 41, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6535,7 +6535,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 22);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 23);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7900,7 +7900,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 22);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 23);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8244,7 +8244,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 22);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 23);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8515,7 +8515,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 22);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 23);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8678,7 +8678,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 22);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 23);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8837,7 +8837,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 22);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 23);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9024,7 +9024,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 39;   // +annihilator 🌋 + bosshunter 🦣 (v2.47.0) + carpetbomb 💥 (v2.48.0)
+      const rosterOk = ACHIEVEMENTS.length === 41;   // +heavy_hitter 🥊 + polymath 🧠 (v2.49.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9717,7 +9717,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 22);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 23);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9805,7 +9805,7 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 22);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 23);
     check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
@@ -10145,7 +10145,7 @@ async function main() {
       return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
                wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
     });
-    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 22);
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 23);
     check('veil follows custodian (w115 → veil)', r.wrapsAt115);
     check('a living custodian wards a nearby ally', r.allyWarded);
     check('an ally outside the aura is not warded', r.farUnwarded);
@@ -10318,7 +10318,7 @@ async function main() {
       return { inRotation, wrapsAt120, archCount, allyCloaked, farUntagged, bossPeerFree, selfFree,
                sawInvuln, noHpOrSpeed, frozenStops, badgeOk, rangeLever, codexOk };
     });
-    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 22);
+    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 23);
     check('accelerator follows veil (w120)', r.wrapsAt120);
     check('a living veil cloaks a nearby ally', r.allyCloaked);
     check('a cloaked ally periodically phases out (untargetable)', r.sawInvuln);
@@ -11087,7 +11087,7 @@ async function main() {
       return { inRotation, wrapsAt125, archCount, rampsUp, caps, movesFaster, frozenStops, noHp,
                badgeOk, codexOk, leversOk };
     });
-    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 22);
+    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 23);
     check('rotation wraps after accelerator (w125 → cleanser)', r.wrapsAt125);
     check('the accelerator ramps its speed over time', r.rampsUp);
     check('the speed ramp caps at +80%', r.caps);
@@ -11165,7 +11165,7 @@ async function main() {
 
   // [164] Cleanser boss archetype — the 22nd (v2.42.0): every ~2.5s it PURGES poison + slow from
   // itself and its nearby cohort (a fresh anti-debuff axis — nothing else removes poison). Freeze
-  // pauses the purge; it adds no HP. First appears at w125; the cycle wraps at w130 → regen.
+  // pauses the purge; it adds no HP. First appears at w125; followed by the Chameleon at w130 (v2.49.0).
   console.log('\n[164] Cleanser boss (anti-debuff purge archetype)');
   {
     const { page, consoleErrors } = await newPage(browser);
@@ -11174,7 +11174,7 @@ async function main() {
 
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(125) === 'cleanser';
-      const wrapsAt130 = bt(130) === 'regen';
+      const nextAt130 = bt(130) === 'adaptive';   // v2.49.0: cleanser is now followed by the Chameleon
       const archCount = BOSS_ARCHETYPES.length;
 
       const clearField = () => { enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0;
@@ -11218,11 +11218,11 @@ async function main() {
 
       enemies.length = 0; towers.length = 0;
       backToMenu(); localStorage.removeItem('cd_save');
-      return { inRotation, wrapsAt130, archCount, periodic, purgesSelf, purgesNear, sparesFar,
+      return { inRotation, nextAt130, archCount, periodic, purgesSelf, purgesNear, sparesFar,
                frozenStops, noHp, badgeOk, codexOk, leverOk };
     });
-    check('cleanser is the 22nd archetype (w125)', r.inRotation && r.archCount === 22);
-    check('rotation wraps after cleanser (w130 → regen)', r.wrapsAt130);
+    check('cleanser is the 22nd archetype (w125)', r.inRotation && r.archCount === 23);
+    check('cleanser is followed by the Chameleon (w130 → adaptive)', r.nextAt130);
     check('the purge is periodic (poison persists between pulses)', r.periodic);
     check('a cleanser purges poison from itself', r.purgesSelf);
     check('a cleanser purges poison from a nearby ally', r.purgesNear);
@@ -12270,6 +12270,164 @@ async function main() {
     check('Carpet Bomb granted at 12+ meteor kills', r.granted);
     check('Carpet Bomb withheld below 12 meteor kills', r.withheld === false);
     check('no console errors during danger/Carpet Bomb test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [185] Empowered Arsenal perk (rare, v2.49.0): Meteor damage / Freeze duration / Shockwave
+  // knockback all ×abilityPower (default 1, perk ×1.4). A fresh ability-magnitude axis.
+  console.log('\n[185] Empowered Arsenal perk (ability power)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'arsenal_pw');
+      const inRoster = !!def && def.rarity === 'rare';
+      const defaultsOk = freshPerkState().abilityPower === 1;
+      const st = freshPerkState(); def.apply(st);
+      const appliesMult = Math.abs(st.abilityPower - 1.4) < 1e-9;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const p0 = pointAt(120);
+      const mkE = (extra = {}) => ({ kind:'norm', hp:1e9, maxHp:1e9, spd:0, r:12, bounty:1, color:'#fff',
+        armor:0, dist:200, x:p0.x, y:p0.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0, dead:false, px:0, py:0, ...extra });
+
+      // Freeze duration scales ×abilityPower (base 4s → 5.6s)
+      enemies.length = 0; const ef = mkE(); enemies.push(ef);
+      perkState.abilityPower = 1; abilityCd.freeze = 0; triggerAbility('freeze');
+      const freezeBase = ef.frozen;
+      ef.frozen = 0; perkState.abilityPower = 1.4; abilityCd.freeze = 0; triggerAbility('freeze');
+      const freezeBoost = ef.frozen;
+      const freezeOk = Math.abs(freezeBase - 4) < 1e-6 && Math.abs(freezeBoost - 5.6) < 1e-6;
+
+      // Shockwave knockback scales ×abilityPower (base 75 → 105 for a normal enemy)
+      const shockKb = (ap) => { enemies.length = 0; const es = mkE({ dist: 400 }); enemies.push(es);
+        perkState.abilityPower = ap; abilityCd.shock = 0; const b = es.dist; triggerAbility('shock'); return b - es.dist; };
+      const kb1 = shockKb(1), kb2 = shockKb(1.4);
+      const shockOk = Math.abs(kb1 - 75) < 1e-6 && Math.abs(kb2 - 105) < 1e-6;
+
+      // Meteor damage scales ×abilityPower
+      wave = 10;
+      const meteorDmg = (ap) => { enemies.length = 0; const em = mkE(); enemies.push(em);
+        perkState.abilityPower = ap; abilityCd.meteor = 0; armedAbility = null; castMeteor(em.x, em.y); return em.maxHp - em.hp; };
+      const dBase = meteorDmg(1), dBoost = meteorDmg(1.4);
+      const meteorOk = dBase > 0 && Math.abs(dBoost / dBase - 1.4) < 1e-3;
+
+      const wildcardSkips = resolveWildcard().id !== 'arsenal_pw';   // legendary-only wildcard skips a rare
+
+      enemies.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesMult, freezeOk, freezeBase, freezeBoost, shockOk, kb1, kb2, meteorOk, dBase, dBoost, wildcardSkips };
+    });
+    check('Empowered Arsenal is a rare in the perk pool', r.inRoster);
+    check('abilityPower defaults to 1 in freshPerkState', r.defaultsOk);
+    check('applying the perk multiplies abilityPower ×1.4', r.appliesMult);
+    check('Freeze duration scales with abilityPower (4s → 5.6s)', r.freezeOk, JSON.stringify(r));
+    check('Shockwave knockback scales with abilityPower (75 → 105)', r.shockOk, JSON.stringify(r));
+    check('Meteor damage scales ×1.4 with abilityPower', r.meteorOk, JSON.stringify(r));
+    check('legendary-only Wildcard does not roll this rare', r.wildcardSkips);
+    check('no console errors during Empowered Arsenal test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [186] Chameleon boss archetype — the 23rd (v2.49.0): a repeated hit from the SAME tower TYPE deals
+  // −50% (rewards mixing damage). Freeze lifts the adaptation; adds no HP. First at w130; wraps at w135.
+  console.log('\n[186] Chameleon boss (adaptive damage-resistance archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(130) === 'adaptive';
+      const wrapsAt135 = bt(135) === 'regen';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const p0 = pointAt(0);
+      const mk = (extra = {}) => ({ kind:'boss', bossType:'adaptive', hp:1e9, maxHp:1e9, r:16, spd:0,
+        dist:0, x:p0.x, y:p0.y, armor:0, frozen:0, dead:false, slow:0, poison:null, flash:0, ...extra });
+      const src = type => ({ type, dealt:0, kills:0 });
+
+      // A repeated same-type hit is throttled −50%; a different type resets to full.
+      const boss = mk(); const gun = src('gun');
+      let b = boss.hp; damage(boss, 1000, gun); const firstHit = b - boss.hp;      // full
+      b = boss.hp; damage(boss, 1000, gun); const secondHit = b - boss.hp;         // −50%
+      b = boss.hp; damage(boss, 1000, src('sniper')); const mixHit = b - boss.hp;  // new type → full
+      const repeatReduced = Math.abs(firstHit - 1000) < 1 && Math.abs(secondHit - 500) < 1;
+      const mixFull = Math.abs(mixHit - 1000) < 1;
+
+      // FREEZE lifts the adaptation — two same-type hits both land full while frozen
+      const fboss = mk({ frozen: 1000 }); const g2 = src('gun');
+      b = fboss.hp; damage(fboss, 1000, g2); const f1 = b - fboss.hp;
+      b = fboss.hp; damage(fboss, 1000, g2); const f2 = b - fboss.hp;
+      const frozenLifts = Math.abs(f1 - 1000) < 1 && Math.abs(f2 - 1000) < 1;
+
+      // adds no HP of its own (a lone adaptive boss ticked for a while)
+      enemies.length = 0; const lone = mk({ hp:1e7, maxHp:1e7 }); enemies.push(lone);
+      for (let i = 0; i < 60; i++) update(1/60);
+      const noHp = lone.hp === 1e7;
+
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'adaptive' });
+      const badgeOk = !!badge && badge.label === 'ADAPTING';
+      const codexOk = CODEX_BOSSES.some(bx => bx.type === 'adaptive');
+      const leverOk = typeof ADAPT_REDUCTION === 'number';
+
+      enemies.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, wrapsAt135, archCount, repeatReduced, mixFull, frozenLifts, noHp, badgeOk, codexOk, leverOk, firstHit, secondHit, mixHit };
+    });
+    check('adaptive is the 23rd archetype (w130)', r.inRotation && r.archCount === 23);
+    check('rotation wraps after adaptive (w135 → regen)', r.wrapsAt135);
+    check('a repeated same-type hit is throttled −50%', r.repeatReduced, JSON.stringify(r));
+    check('a different tower type resets to full damage', r.mixFull, JSON.stringify(r));
+    check('a frozen Chameleon takes full damage (freeze lifts adaptation)', r.frozenLifts);
+    check('Chameleon adds no HP of its own', r.noHp);
+    check('boss-bar badge reads ADAPTING', r.badgeOk);
+    check('Chameleon has a Bestiary/Codex entry', r.codexOk);
+    check('ADAPT_REDUCTION lever exists', r.leverOk);
+    check('no console errors during Chameleon test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [187] Heavy Hitter + Polymath achievements (v2.49.0): a single tower dealing 200k in one run
+  // (no `won` gate), and winning with 6+ distinct tower types (a build-diversity feat).
+  console.log('\n[187] Heavy Hitter + Polymath achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'heavy_hitter') && ACHIEVEMENTS.some(a => a.id === 'polymath');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const mkT = (type, dealt = 0) => ({ type, x:0, y:0, dealt, kills:0, level:1, mode:'first', spec:null, invested:0, flash:0 });
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      // Heavy Hitter — a single tower at ≥200k (no `won` gate)
+      towers.length = 0; towers.push(mkT('gun', 200000)); fresh();
+      const hhGranted = grantAchievements(false).map(a => a.id).includes('heavy_hitter');
+      towers.length = 0; towers.push(mkT('gun', 199999)); fresh();
+      const hhWithheld = grantAchievements(false).map(a => a.id).includes('heavy_hitter');
+
+      // Polymath — win with 6+ distinct types
+      const sixTypes = ['gun','sniper','frost','cannon','tesla','poison'];
+      towers.length = 0; sixTypes.forEach(t => towers.push(mkT(t))); fresh();
+      const pmGranted = grantAchievements(true).map(a => a.id).includes('polymath');
+      towers.length = 0; sixTypes.slice(0, 5).forEach(t => towers.push(mkT(t))); fresh();
+      const pmFiveWithheld = grantAchievements(true).map(a => a.id).includes('polymath');
+      towers.length = 0; sixTypes.forEach(t => towers.push(mkT(t))); fresh();
+      const pmLostWithheld = grantAchievements(false).map(a => a.id).includes('polymath');
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, hhGranted, hhWithheld, pmGranted, pmFiveWithheld, pmLostWithheld };
+    });
+    check('Heavy Hitter + Polymath are in the achievement roster', r.inRoster);
+    check('Heavy Hitter granted at 200k single-tower damage', r.hhGranted);
+    check('Heavy Hitter withheld below 200k', r.hhWithheld === false);
+    check('Polymath granted on a 6-type win', r.pmGranted);
+    check('Polymath withheld with only 5 types', r.pmFiveWithheld === false);
+    check('Polymath withheld on a loss', r.pmLostWithheld === false);
+    check('no console errors during Heavy Hitter/Polymath test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
