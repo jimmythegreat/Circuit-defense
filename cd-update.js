@@ -729,6 +729,11 @@ function update(dt) {
     // poison-anchored synergy. Keyed to the primary target's live poison state, so it lives here
     // (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
     if (perkState.corrosive && target.poison && target.poison.t > 0) dmg *= 1.3;
+    // Swarmbane rare (v2.51.0): +1% damage per LIVE enemy on the field (cap +25% at 25), so towers
+    // hit hardest exactly when the board is swamped — a self-correcting anti-swarm/comeback reward
+    // (the mirror of Phalanx's per-tower scaling). Keyed to the live enemies.length, so it lives
+    // here (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
+    if (perkState.swarmbane) dmg *= 1 + Math.min(0.25, enemies.length * 0.01);
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and

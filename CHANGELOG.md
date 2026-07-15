@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.51.0 — 2026-07-15 — Swarmbane perk, 2 badges, test hardening
+
+**Type:** Minor (feature/content). Suite green (1958/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.
+
+- **🐝 Swarmbane perk (rare):** a fresh **crowd-pressure** axis — every tower deals **+1% damage per live enemy** on the field, capped **+25%** at 25 (`perkState.swarmbane`). The mirror of 🏛️ Phalanx (per-tower): Swarmbane scales with the *threat*, so it spikes exactly when the board is swamped and does nothing when clear — a self-correcting anti-swarm/comeback reward. "Too easy"-safe (conditional + capped +25% < Diamond Core +30%; doesn't feed the watched Frost/booster snowball). Fire-path (keyed to `enemies.length`, not `effDmg`); save-safe (perkState default false). Test group `[191]`.
+- **🪳 Exterminator achievement (44th badge):** defeat 2,000 enemies in a single run (`runKills` — the sum of every tower's kills, no `won` gate; the per-run version of the lifetime Gravekeeper). Test group `[192]`.
+- **🌊 Wave Rider achievement (45th badge):** stack 5+ waves in flight at once (peak of `wave - lastSettledWave`, tracked in `startWave()` via run-only `peakConcurrentWaves`; no `won` gate). Celebrates the concurrent-wave system (cap 8). Test group `[192]`.
+- **Test hardening (ROADMAP):** retrofitted the *vacuous* fire-path perk tests `[93]` Ambush, `[167]` Finisher, `[174]` Point Blank — their mock enemy was repositioned off the rail's beam by `update()`, so the rail never fired and every damage ratio held trivially at 0. Now they place tower + a stationary (`spd:0`) enemy ON the path via `pointAt` and assert `railBestHit===1` (fire guard), mirroring the good `[188]` pattern — real coverage. (Point Blank varies the *tower's* geometric offset from a fixed on-path enemy.)
+
 ## v2.50.0 — 2026-07-14 — Corrosive Rounds perk, 2 badges, Auto-wave hotkey
 
 **Type:** Minor (feature/content). Suite green (1938/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.

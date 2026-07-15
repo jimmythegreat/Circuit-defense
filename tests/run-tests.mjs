@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 43 badges', r.total === 43, `total=${r.total}`);
+    check('achievement roster grew to 45 badges', r.total === 45, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6261,27 +6261,32 @@ async function main() {
       const effAfter = effDmg(probe);
       const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
 
-      // fire one instant rail shot and measure raw damage dealt at a given HP fraction
+      // fire one instant rail shot and measure raw damage dealt at a given HP fraction. Tower +
+      // enemy are placed ON the path (via pointAt on classic's straight first segment) and the enemy
+      // is stationary (spd:0) so update()'s per-enemy repositioning can't shove it off the beam —
+      // otherwise the rail never fires (the x/y gotcha) and every ratio passes trivially at 0.
+      const tp = pointAt(120), ep = pointAt(180);
       function shot(ambushOn, hpFrac) {
         perkState.ambush = ambushOn;
         perkState.critChance = 0;
-        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
-        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:tp.x, y:tp.y, level:1, spec:null, dmg:36, rate:1.7, range:300,
                      dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
         towers.push(rg);
         const maxHp = 100000;
-        const e = { x:160, y:300, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0,
-                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        const e = { x:ep.x, y:ep.y, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0 };
         enemies.push(e);
         const before = e.hp;
         update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
-        return before - e.hp;
+        return { dealt: before - e.hp, hits: railBestHit };
       }
       const base   = shot(false, 1.0);   // fresh enemy, no perk
       const fresh  = shot(true,  1.0);    // fresh enemy (>80% HP), perk → +30%
       const low    = shot(true,  0.5);    // wounded enemy (<80% HP), perk → no bonus
-      const bonusOk = Math.abs(fresh - base * 1.3) < 1e-4;
-      const noBonusBelow = Math.abs(low - base) < 1e-4;
+      const fired  = base.hits === 1 && fresh.hits === 1 && low.hits === 1;
+      const bonusOk = Math.abs(fresh.dealt - base.dealt * 1.3) < 1e-4;
+      const noBonusBelow = Math.abs(low.dealt - base.dealt) < 1e-4;
 
       // freshPerkState default + save/reload round-trip (boolean via Object.assign)
       const defaultsOk = freshPerkState().ambush === false;
@@ -6298,10 +6303,11 @@ async function main() {
       localStorage.removeItem('cd_save');
 
       backToMenu();
-      return { inPool, notInEffDmg, base, fresh, low, bonusOk, noBonusBelow, defaultsOk, loaded, restored, migratedOk };
+      return { inPool, notInEffDmg, base: base.dealt, fresh: fresh.dealt, low: low.dealt, fired, bonusOk, noBonusBelow, defaultsOk, loaded, restored, migratedOk };
     });
     check('Ambush is a rare perk in the pool', r.inPool);
     check('Ambush is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Ambush test actually fires the rail (non-vacuous)', r.fired, `base=${r.base}`);
     check('Ambush gives +30% damage to a >80% HP enemy', r.bonusOk, `base=${r.base} fresh=${r.fresh}`);
     check('Ambush gives no bonus to a <80% HP enemy', r.noBonusBelow, `base=${r.base} low=${r.low}`);
     check('freshPerkState defaults ambush:false', r.defaultsOk);
@@ -9024,7 +9030,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 43;   // +endless200 🛸 + plague 🧪 (v2.50.0)
+      const rosterOk = ACHIEVEMENTS.length === 45;   // +exterminator 🪳 + waverider 🌊 (v2.51.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -11334,27 +11340,32 @@ async function main() {
       const effAfter = effDmg(probe);
       const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
 
-      // fire one instant rail shot and measure raw damage dealt at a given HP fraction
+      // fire one instant rail shot and measure raw damage dealt at a given HP fraction. Tower +
+      // enemy are placed ON the path (via pointAt on classic's straight first segment) and the enemy
+      // is stationary (spd:0) so update()'s per-enemy repositioning can't shove it off the beam —
+      // otherwise the rail never fires (the x/y gotcha) and every ratio passes trivially at 0.
+      const tp = pointAt(120), ep = pointAt(180);
       function shot(finisherOn, hpFrac) {
         perkState.finisher = finisherOn;
         perkState.critChance = 0;
-        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
-        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:tp.x, y:tp.y, level:1, spec:null, dmg:36, rate:1.7, range:300,
                      dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
         towers.push(rg);
         const maxHp = 100000;
-        const e = { x:160, y:300, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0,
-                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        const e = { x:ep.x, y:ep.y, r:11, hp: maxHp * hpFrac, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0 };
         enemies.push(e);
         const before = e.hp;
         update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
-        return before - e.hp;
+        return { dealt: before - e.hp, hits: railBestHit };
       }
       const base   = shot(false, 0.3);   // wounded enemy, no perk
       const low    = shot(true,  0.3);    // wounded enemy (<40% HP), perk → +35%
       const high   = shot(true,  0.5);    // healthy enemy (>40% HP), perk → no bonus
-      const bonusOk = Math.abs(low - base * 1.35) < 1e-4;
-      const noBonusAbove = Math.abs(high - base) < 1e-4;
+      const fired  = base.hits === 1 && low.hits === 1 && high.hits === 1;
+      const bonusOk = Math.abs(low.dealt - base.dealt * 1.35) < 1e-4;
+      const noBonusAbove = Math.abs(high.dealt - base.dealt) < 1e-4;
 
       // freshPerkState default + save/reload round-trip (boolean via Object.assign)
       const defaultsOk = freshPerkState().finisher === false;
@@ -11372,10 +11383,11 @@ async function main() {
 
       const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'finisher';
       backToMenu();
-      return { inPool, notInEffDmg, base, low, high, bonusOk, noBonusAbove, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+      return { inPool, notInEffDmg, base: base.dealt, low: low.dealt, high: high.dealt, fired, bonusOk, noBonusAbove, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
     });
     check('Finisher is a rare perk in the pool', r.inPool);
     check('Finisher is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Finisher test actually fires the rail (non-vacuous)', r.fired, `base=${r.base}`);
     check('Finisher gives +35% damage to a <40% HP enemy', r.bonusOk, `base=${r.base} low=${r.low}`);
     check('Finisher gives no bonus to a >40% HP enemy', r.noBonusAbove, `base=${r.base} high=${r.high}`);
     check('freshPerkState defaults finisher:false', r.defaultsOk);
@@ -11694,27 +11706,32 @@ async function main() {
       const effAfter = effDmg(probe);
       const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
 
-      // fire one instant rail shot at a controlled geometric distance (range 300 → half = 150)
-      function shot(pbOn, dist) {
+      // fire one instant rail shot at a controlled geometric distance (range 300 → half = 150). The
+      // enemy sits ON the path (via pointAt) and is stationary (spd:0) so update() can't shove it off
+      // the beam (the x/y gotcha); we vary the geometric distance by OFFSETTING THE TOWER in y (towers
+      // aren't repositioned by update()), which controls hypot(tower,enemy) independent of the path.
+      const ep = pointAt(180);
+      function shot(pbOn, geomDist) {
         perkState.pointBlank = pbOn;
         perkState.critChance = 0; perkState.rangeMult = 1;
-        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0;
-        const rg = { type:'rail', x:100, y:300, level:1, spec:null, dmg:36, rate:1.7, range:300,
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:ep.x, y:ep.y + geomDist, level:1, spec:null, dmg:36, rate:1.7, range:300,
                      dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
         towers.push(rg);
         const maxHp = 100000;
-        const e = { x:100 + dist, y:300, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0,
-                    kind:'norm', blinkInvuln:0, bounty:1, dist:0, frozen:0, slow:0 };
+        const e = { x:ep.x, y:ep.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0 };
         enemies.push(e);
         const before = e.hp;
         update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
-        return before - e.hp;
+        return { dealt: before - e.hp, hits: railBestHit };
       }
       const base    = shot(false, 60);    // close, no perk — the raw damage baseline
       const close    = shot(true,  60);   // within half-range (60 ≤ 150), perk → +25%
       const far      = shot(true,  260);  // beyond half-range (260 > 150) but in range, perk → no bonus
-      const bonusOk = Math.abs(close - base * 1.25) < 1e-4;
-      const noBonusFar = Math.abs(far - base) < 1e-4;
+      const fired  = base.hits === 1 && close.hits === 1 && far.hits === 1;
+      const bonusOk = Math.abs(close.dealt - base.dealt * 1.25) < 1e-4;
+      const noBonusFar = Math.abs(far.dealt - base.dealt) < 1e-4;
 
       // freshPerkState default + save/reload round-trip (boolean via Object.assign)
       const defaultsOk = freshPerkState().pointBlank === false;
@@ -11732,10 +11749,11 @@ async function main() {
 
       const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'pointblank';
       backToMenu();
-      return { inPool, notInEffDmg, base, close, far, bonusOk, noBonusFar, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+      return { inPool, notInEffDmg, base: base.dealt, close: close.dealt, far: far.dealt, fired, bonusOk, noBonusFar, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
     });
     check('Point Blank is a rare perk in the pool', r.inPool);
     check('Point Blank is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Point Blank test actually fires the rail (non-vacuous)', r.fired, `base=${r.base}`);
     check('Point Blank gives +25% damage within half range', r.bonusOk, `base=${r.base} close=${r.close}`);
     check('Point Blank gives no bonus beyond half range', r.noBonusFar, `base=${r.base} far=${r.far}`);
     check('freshPerkState defaults pointBlank:false', r.defaultsOk);
@@ -12587,6 +12605,139 @@ async function main() {
     check("'A' (uppercase) toggles Auto-wave back off", r.offAfterA);
     check("'A' persists the off state (cd_autowave='0')", r.persistedOff);
     check('no console errors during A-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [191] Swarmbane rare perk (v2.51.0): +1% tower damage per LIVE enemy on the field (cap +25% at
+  // 25). Fire-path (keyed to enemies.length), so NOT in effDmg. Mirrors the non-vacuous [188] pattern:
+  // tower + tracked enemy placed ON the path (via pointAt) and stationary (spd:0) so the rail lands.
+  console.log('\n[191] Swarmbane perk (crowd-pressure damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'swarmbane');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // swarmbane is keyed to enemies.length in the fire loop, so it must NOT be in effDmg (no churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.swarmbane = false;
+      const effBefore = effDmg(probe);
+      perkState.swarmbane = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // The tracked enemy sits on the path at pointAt(180); padding enemies sit far down the path
+      // (pointAt(700) ≈ (420,210) on classic) — alive, on-path (so they don't leak), out of the rail's
+      // 300px range and off its horizontal ray (so they're never targeted or struck), but they DO raise
+      // enemies.length so we can dial the crowd size. railBestHit===1 confirms only the tracked enemy hit.
+      const tp = pointAt(120), ep = pointAt(180), pad = pointAt(700);
+      function shot(sbOn, padCount) {
+        perkState.swarmbane = sbOn;
+        perkState.critChance = 0;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:tp.x, y:tp.y, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0 };
+        enemies.push(e);
+        for (let i = 0; i < padCount; i++)
+          enemies.push({ x:pad.x, y:pad.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                         kind:'norm', blinkInvuln:0, bounty:1, dist:700, frozen:0, slow:0 });
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return { dealt: before - e.hp, hits: railBestHit, n: enemies.length };
+      }
+      const base = shot(false, 0);    // 1 enemy, no perk → R (the baseline rail damage)
+      const one  = shot(true,  0);    // 1 enemy, perk → R × (1 + 0.01)
+      const many = shot(true,  29);   // 30 enemies, perk → R × 1.25 (min(0.25, 0.30) caps it)
+      const fired = base.hits === 1 && one.hits === 1 && many.hits === 1 && base.n === 1 && many.n === 30;
+      const railR = base.dealt;
+      const oneOk = Math.abs(one.dealt - railR * 1.01) < 1e-4;         // +1% with a single enemy
+      const capOk = Math.abs(many.dealt - railR * 1.25) < 1e-4;        // capped at +25% with 30 enemies
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().swarmbane === false;
+      perkState.swarmbane = true;
+      saveRun();
+      perkState.swarmbane = false;
+      const loaded = loadRun();
+      const restored = perkState.swarmbane === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.swarmbane;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.swarmbane === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'swarmbane';
+      backToMenu();
+      return { inPool, notInEffDmg, railR, fired, oneOk, capOk, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Swarmbane is a rare perk in the pool', r.inPool);
+    check('Swarmbane is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Swarmbane test actually fires the rail (non-vacuous)', r.fired, `railR=${r.railR}`);
+    check('Swarmbane gives +1% damage per live enemy (1 enemy → +1%)', r.oneOk, `railR=${r.railR}`);
+    check('Swarmbane caps at +25% (30 enemies)', r.capOk, `railR=${r.railR}`);
+    check('freshPerkState defaults swarmbane:false', r.defaultsOk);
+    check('save/reload round-trips the swarmbane flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing swarmbane migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Swarmbane', r.wildcardSkips);
+    check('no console errors during Swarmbane test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [192] Exterminator + Wave Rider achievements (v2.51.0): defeat 2,000 enemies in one run (runKills,
+  // no `won` gate) and stack 5+ waves in flight at once (peakConcurrentWaves, tracked in startWave).
+  console.log('\n[192] Exterminator + Wave Rider achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'exterminator') && ACHIEVEMENTS.some(a => a.id === 'waverider');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      const mkT = (type, kills = 0) => ({ type, x:0, y:0, dealt:0, kills, level:1, mode:'first', spec:null, invested:0, flash:0 });
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      // Exterminator — runKills (sum of tower kills) ≥ 2000 (no `won` gate)
+      peakConcurrentWaves = 0;
+      towers.length = 0; towers.push(mkT('gun', 1200), mkT('sniper', 800)); fresh();  // sum 2000
+      const exGranted = grantAchievements(false).map(a => a.id).includes('exterminator');
+      towers.length = 0; towers.push(mkT('gun', 1200), mkT('sniper', 799)); fresh();  // sum 1999
+      const exWithheld = grantAchievements(false).map(a => a.id).includes('exterminator');
+
+      // Wave Rider — peakConcurrentWaves ≥ 5
+      towers.length = 0;
+      peakConcurrentWaves = 5; fresh();
+      const wrGranted = grantAchievements(false).map(a => a.id).includes('waverider');
+      peakConcurrentWaves = 4; fresh();
+      const wrWithheld = grantAchievements(false).map(a => a.id).includes('waverider');
+
+      // startWave() actually raises peakConcurrentWaves as waves stack (integration check)
+      beginGame();   // resets peakConcurrentWaves to 0 via resetState
+      const beforeStack = peakConcurrentWaves;
+      startWave(); startWave(); startWave();   // 3 unsettled waves poured on
+      const afterStack = peakConcurrentWaves;   // should be ≥ 3
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, exGranted, exWithheld, wrGranted, wrWithheld, beforeStack, afterStack };
+    });
+    check('Exterminator + Wave Rider are in the achievement roster', r.inRoster);
+    check('Exterminator granted at 2,000 run kills', r.exGranted);
+    check('Exterminator withheld at 1,999 run kills', r.exWithheld === false);
+    check('Wave Rider granted at 5 concurrent waves', r.wrGranted);
+    check('Wave Rider withheld at 4 concurrent waves', r.wrWithheld === false);
+    check('startWave() raises peakConcurrentWaves as waves stack', r.beforeStack === 0 && r.afterStack >= 3, `before=${r.beforeStack} after=${r.afterStack}`);
+    check('no console errors during Exterminator/Wave Rider test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

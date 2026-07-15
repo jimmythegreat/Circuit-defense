@@ -514,6 +514,7 @@ function startWave() {
     addFloater(W/2, 70, `Early call! +${bonus}💰`, '#3fb950', 16);
   }
   wave++;
+  if (wave - lastSettledWave > peakConcurrentWaves) peakConcurrentWaves = wave - lastSettledWave;  // 🌊 Wave Rider (v2.51.0)
   if (isMayhem() && !daily && wave > 1 && (wave - 1) % 5 === 0) shiftWorld();  // daily path is fixed
   rollWaveMod();
   spawners.push({ queue: buildWave(wave), timer: 0 });  // a parallel spawn stream for this wave

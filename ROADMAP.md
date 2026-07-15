@@ -150,12 +150,11 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Audit tests for draft-RNG flakiness** — the harness auto-picks draft card `[0]`; any test asserting
       a numeric gold/dmg bound *after* a draft can flake if a gold/power perk lands in slot 0. v1.20.2 fixed
       group [32] by asserting the pre-draft economy. Sweep other run-driving groups; pin to pre-draft/perk-neutral.
-- [ ] **Harden the vacuous fire-path perk tests** — the Finisher `[167]` & Point Blank `[174]` groups place a
-      mock enemy at a fixed x/y and fire a rail at it, but `update()` repositions the enemy onto the path start
-      (the known x/y gotcha), shoving it off the beam so the rail NEVER fires — base damage is 0 and the ×1.35 /
-      ×1.25 ratio checks pass trivially at 0 (no real coverage). The v2.50.0 Corrosive Rounds test `[188]` shows
-      the fix: place tower + a stationary (`spd:0`) enemy on the path via `pointAt`, and assert `railBestHit===1`
-      to guarantee the shot landed. Retrofit `[167]`/`[174]` (and audit Ambush `[93]` for the same shape).
+- [x] **Harden the vacuous fire-path perk tests** — DONE v2.51.0. Retrofitted `[93]` Ambush, `[167]` Finisher and
+      `[174]` Point Blank: they now place tower + a stationary (`spd:0`) enemy ON the path via `pointAt` and assert
+      `railBestHit===1` (a fire guard), so the rail actually lands and the ×1.3/×1.35/×1.25 ratios test real
+      damage (they used to hold trivially at 0 because `update()` shoved the mock enemy off the beam). Point Blank
+      varies the *tower's* geometric offset from a fixed on-path enemy. Mirrors the good `[188]` pattern.
 
 ## Shipped (condensed — do NOT re-implement; check CLAUDE.md for detail)
 
@@ -203,6 +202,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 💥 Carpet Bomb v2.48.0 [184] — kill 12+ enemies with a single Meteor;
   + 🥊 Heavy Hitter + 🧠 Polymath v2.49.0 [187] — deal 200k with one tower / win with 6+ tower types;
   + 🛸 Transcendent + 🧪 Plague Doctor v2.50.0 [189] — reach wave 200 / 150 kills on one Poison tower;
+  + 🪳 Exterminator + 🌊 Wave Rider v2.51.0 [192] — defeat 2,000 enemies in a run / stack 5+ waves at once;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -216,9 +216,10 @@ _None currently known._ (Add any here as found — top priority.)
   Finisher(+35% dmg to enemies below 40% HP — the closer bookend to Ambush's opener, v2.43.0 [167])/
   Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174])/
   Empowered Arsenal(Meteor/Freeze/Shockwave effects +40% — an ability-magnitude axis, v2.49.0 [185])/
-  Corrosive Rounds(+30% dmg to poisoned enemies — a poison-synergy axis, buffs the weak Poison archetype, v2.50.0 [188]);
+  Corrosive Rounds(+30% dmg to poisoned enemies — a poison-synergy axis, buffs the weak Poison archetype, v2.50.0 [188])/
+  Swarmbane(+1% tower dmg per live enemy, max +25% — a crowd-pressure/comeback axis, the mirror of Phalanx, v2.51.0 [191]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]
   + **📣 Amplify v2.48.0 [183]** — the first offensive-BUFF ability: +30% tower dmg & fire rate for 5s, cd 55, hotkey Y).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]

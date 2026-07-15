@@ -495,6 +495,18 @@ const PERKS = [
   // round-trips via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default
   // false). A RARE, so the legendary-only resolveWildcard() skips it. Test group [188].
   { id:'corrosive',rarity:'rare', icon:'🧪', name:'Corrosive Rounds',   desc:'+30% damage to poisoned enemies', apply:s=>s.corrosive = true },
+  // Swarmbane (rare, v2.51.0): a fresh CROWD-PRESSURE axis — every tower deals +1% damage per LIVE
+  // enemy on the field, capped +25% at 25 enemies. It's the mirror of 🏛️ Phalanx (which scales with
+  // YOUR towers): Swarmbane scales with the THREAT, so it's worth the most exactly when the board is
+  // swamped and worth nothing when it's clear — a soft comeback/anti-swarm reward that self-corrects
+  // (you get the boost when overrun, not when comfortably ahead). Deliberately "too easy"-safe: it's
+  // CONDITIONAL on being crowded and CAPPED at +25% (below the unconditional Diamond Core +30%), and
+  // it does NOT feed any watched snowball (it's independent of Frost/booster). Keyed to the live
+  // enemies.length in the FIRE path (cd-update.js), not effDmg (no upgrade-panel churn); applied
+  // before the proj branch so chain/rail/poison shots benefit too. `swarmbane` lives in perkState
+  // (save-safe default false; round-trips via loadRun's Object.assign(freshPerkState(), s.perkState)
+  // — old saves default false). A RARE, so the legendary-only resolveWildcard() skips it. Test [191].
+  { id:'swarmbane',rarity:'rare', icon:'🐝', name:'Swarmbane',          desc:'+1% tower damage per live enemy (max +25%)', apply:s=>s.swarmbane = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -667,7 +679,7 @@ function freshPerkState() {
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
-    corrosive:false };
+    corrosive:false, swarmbane:false };
 }
 function ascendTowers() {
   for (const t of towers) {

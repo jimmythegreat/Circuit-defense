@@ -51,6 +51,8 @@ const ACHIEVEMENTS = [
   { id:'polymath',      icon:'🧠', name:'Polymath',             desc:'Win a game using 6 or more tower types' },
   { id:'endless200',    icon:'🛸', name:'Transcendent',         desc:'Reach wave 200 in a single run' },
   { id:'plague',        icon:'🧪', name:'Plague Doctor',        desc:'Rack up 150 kills on a single Poison tower' },
+  { id:'exterminator',  icon:'🪳', name:'Exterminator',         desc:'Defeat 2,000 enemies in a single run' },
+  { id:'waverider',     icon:'🌊', name:'Wave Rider',            desc:'Have 5+ waves in flight at once' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -88,6 +90,14 @@ function grantAchievements(won) {
   if (railBestHit >= 5) give('railhit5');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
   if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board
+  // Exterminator (🪳 v2.51.0): a feat (no `won` gate) — defeat 2,000 enemies in a single run. Reads
+  // runKills (the sum of every tower's kills this run, already tallied above) — the per-run version of
+  // the lifetime Gravekeeper (100k) / per-tower Plague Doctor & Heavy Hitter feats. Natural deep in a run.
+  if (runKills >= 2000) give('exterminator');
+  // Wave Rider (🌊 v2.51.0): a feat (no `won` gate) — stack 5+ waves in flight at once (peak of
+  // wave - lastSettledWave, tracked in startWave). Celebrates the concurrent-wave system (cap 8) and
+  // the owner's "let me add as many waves as I want" request. Run-only peakConcurrentWaves (cd-state.js).
+  if (peakConcurrentWaves >= 5) give('waverider');
   // Heavy Hitter (🥊 v2.49.0): a feat (no `won` gate) — a SINGLE tower dealing 200,000 damage in one
   // run. Reads the final towers board's max t.dealt (a fresh per-tower axis, vs the lifetime dmg stat).
   // Most natural on a carry tower in a long/endless run.
