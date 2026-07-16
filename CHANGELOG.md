@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.52.0 — 2026-07-16 — Arc tower (12th), Pinball badge, wave-preview tooltips
+
+**Type:** Minor (feature/content). Suite green. FEEDBACK PENDING empty; picked from ROADMAP (the flagged "Arc/chain tower" run).
+
+- **⚛️ Arc tower (12th, cost 140):** the ROADMAP "travelling ricochet" design — a moving bolt (`proj:'ricochet'`, 420px/s) that after each strike hops to the **nearest unhit enemy within 150px** (vs Tesla's tight 90px instant chain), up to **5 hits/bolt** at **0.85 falloff/hop**; each foe struck once per bolt (bounded), retargets if its flight target dies mid-air. Low base dmg (9, DPS 10 single-target) → a spread-swarm sweeper, deliberately weak vs tanks/bosses; respects armor. Specs: **Ball Lightning** (+2 hops) / **Magnet Coil** (seek ×1.6); `mastery_arc` talent; `SFX.arc()` ping-zap. Sim (equal gold, 2 maps): lands mid-pack — w11–12 vs Tesla w10 / Cannon w13 / Pulsar w12–13 — a side-grade, not power creep. Fully additive (shop/save/codex/panel are data-driven; 12th tower has no number hotkey, like the Pulsar). Test group `[193]`.
+- **🪩 Pinball Wizard achievement (46th badge):** strike 6+ enemies with a single Arc bolt (run-only `arcBestChain`, mirrors railBestHit; no `won` gate — needs Ball Lightning or a dense line). Full Arsenal desc updated to "12 tower types" (condition was always `TYPE_KEYS.length`). Test group `[193]`.
+- **🔎 Wave-preview hover tooltips (ROADMAP polish):** hovering a kind disc in the bottom-left `Next:` strip pops that enemy's **Bestiary name + counter tip** (`drawKindTooltip`, data straight from `CODEX_ENEMIES` so it can't drift) — the strip doubles as a quick mid-run codex lookup. Render-only. Test group `[194]`.
+
 ## v2.51.0 — 2026-07-15 — Swarmbane perk, 2 badges, test hardening
 
 **Type:** Minor (feature/content). Suite green (1958/0). FEEDBACK PENDING empty; picked from ROADMAP + own ideas.

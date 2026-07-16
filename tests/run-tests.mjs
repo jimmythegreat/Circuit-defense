@@ -3095,7 +3095,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 45 badges', r.total === 45, `total=${r.total}`);
+    check('achievement roster grew to 46 badges', r.total === 46, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -6194,8 +6194,8 @@ async function main() {
     const r = await page.evaluate(() => {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.railhit5 && /Railgun/.test(ACH_BY_ID.railhit5.desc);
-      // stale-label fix: Full Arsenal now reads "11 tower types" (Pulsar added v2.23.0; desc fixed v2.34.0)
-      const arsenalOk = /11 tower types/.test(ACH_BY_ID.arsenal.desc);
+      // stale-label guard: Full Arsenal desc tracks TYPE_KEYS.length ("12 tower types" as of v2.52.0's Arc)
+      const arsenalOk = new RegExp(TYPE_KEYS.length + ' tower types').test(ACH_BY_ID.arsenal.desc);
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
       beginGame();
@@ -6230,7 +6230,7 @@ async function main() {
       return { badgeOk, arsenalOk, startsZero, tracked, grantedOnLoss, notUnder5 };
     });
     check('Sharpshooter badge defined (railhit5, Railgun desc)', r.badgeOk);
-    check('Full Arsenal desc updated to "11 tower types"', r.arsenalOk);
+    check('Full Arsenal desc matches the live tower count', r.arsenalOk);
     check('railBestHit resets to 0 on a new run', r.startsZero);
     check('fireRail tracks the peak single-beam rake (6 in a line)', r.tracked === 6, `tracked=${r.tracked}`);
     check('railBestHit>=5 grants Sharpshooter (win or loss)', r.grantedOnLoss);
@@ -8339,7 +8339,7 @@ async function main() {
       const specsOk = Array.isArray(SPECS.laser) && SPECS.laser.length === 2
         && SPECS.laser.some(s => s.id === 'focus') && SPECS.laser.some(s => s.id === 'rapidcoil');
       const masteryOk = !!TALENTS.mastery_laser && TALENTS.mastery_laser.sect === 'TOWER MASTERY';
-      const inShopKeys = TYPE_KEYS.includes('laser') && TYPE_KEYS.length === 11;
+      const inShopKeys = TYPE_KEYS.includes('laser') && TYPE_KEYS.length === 12;
       const sfxOk = typeof SFX.laser === 'function';
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
@@ -8440,7 +8440,7 @@ async function main() {
     check('Laser definition wired (proj=beam/range/dmg)', r.defOk);
     check('Laser has 2 specs (Focusing Array + Pulse Drive)', r.specsOk);
     check('Laser Mastery talent exists', r.masteryOk);
-    check('Laser is in the shop keys and there are now 11 towers', r.inShopKeys);
+    check('Laser is in the shop keys (12 towers as of v2.52.0)', r.inShopKeys);
     check('SFX.laser beam sound exists', r.sfxOk);
     check('Laser button rendered in the shop', r.shopHasLaser);
     check('Focusing Array spec = +35% damage', r.focusOk);
@@ -9030,7 +9030,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 45;   // +exterminator 🪳 + waverider 🌊 (v2.51.0)
+      const rosterOk = ACHIEVEMENTS.length === 46;   // +pinball 🪩 (v2.52.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9304,7 +9304,7 @@ async function main() {
       const specsOk = Array.isArray(SPECS.pulsar) && SPECS.pulsar.length === 2
         && SPECS.pulsar.some(s => s.id === 'pulsepower') && SPECS.pulsar.some(s => s.id === 'pulsewide');
       const masteryOk = !!TALENTS.mastery_pulsar && TALENTS.mastery_pulsar.sect === 'TOWER MASTERY';
-      const inShopKeys = TYPE_KEYS.includes('pulsar') && TYPE_KEYS.length === 11;
+      const inShopKeys = TYPE_KEYS.includes('pulsar') && TYPE_KEYS.length === 12;
       const sfxOk = typeof SFX.pulsar === 'function';
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
@@ -9385,7 +9385,7 @@ async function main() {
     check('Pulsar definition wired (proj=nova/range/dmg)', r.defOk);
     check('Pulsar has 2 specs (Overload + Resonance)', r.specsOk);
     check('Pulsar Mastery talent exists', r.masteryOk);
-    check('Pulsar is in the shop keys and there are now 11 towers', r.inShopKeys);
+    check('Pulsar is in the shop keys (12 towers as of v2.52.0)', r.inShopKeys);
     check('SFX.pulsar sound exists', r.sfxOk);
     check('Pulsar button rendered in the shop', r.shopHasPulsar);
     check('Overload spec = +40% damage', r.powerOk);
@@ -12738,6 +12738,212 @@ async function main() {
     check('Wave Rider withheld at 4 concurrent waves', r.wrWithheld === false);
     check('startWave() raises peakConcurrentWaves as waves stack', r.beforeStack === 0 && r.afterStack >= 3, `before=${r.beforeStack} after=${r.afterStack}`);
     check('no console errors during Exterminator/Wave Rider test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [193] Arc tower — the 12th: a TRAVELLING ricochet bolt that hops to the nearest unhit enemy
+  // (up to 5 hits/bolt, 0.85 falloff per hop; Ball Lightning +2 hops, Magnet Coil seek ×1.6) —
+  // plus the 🪩 Pinball Wizard achievement (6+ strikes with one bolt). v2.52.0.
+  console.log('\n[193] Arc tower (ricochet bolt) + Pinball Wizard');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // definitions present & wired
+      const def = TOWER_TYPES.arc;
+      const defOk = !!def && def.proj === 'ricochet' && def.range > 0 && def.dmg > 0;
+      const specsOk = Array.isArray(SPECS.arc) && SPECS.arc.length === 2
+        && SPECS.arc.some(s => s.id === 'arcbounce') && SPECS.arc.some(s => s.id === 'arcseek');
+      const masteryOk = !!TALENTS.mastery_arc && TALENTS.mastery_arc.sect === 'TOWER MASTERY';
+      const inShopKeys = TYPE_KEYS.includes('arc') && TYPE_KEYS.length === 12;
+      const sfxOk = typeof SFX.arc === 'function';
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; endless = false;
+      beginGame();
+      const shopHasArc = Array.prototype.some.call(document.querySelectorAll('.towerBtn'), b => /Arc/.test(b.textContent));
+
+      // --- ricochetNext unit checks (seek radius + spec geometry + consume semantics) ---
+      const mkE = (x, y, extra) => Object.assign({ x, y, r:12, hp:500, maxHp:500, armor:0, dead:false,
+        flash:0, kind:'norm', blinkInvuln:0, bounty:1, dist:0, spd:0, slow:0, slowF:0.6, frozen:0,
+        hasted:0, warded:0, adrenaline:false, ccImmune:false, poison:null }, extra || {});
+      enemies.length = 0; towers.length = 0; projectiles.length = 0;
+      const eNear = mkE(240, 100);   // 140px from (100,100) — inside base 150 seek
+      const eFar  = mkE(300, 100);   // 200px — outside base seek, inside Magnet Coil's 240
+      enemies.push(eNear, eFar);
+      let p = { x:100, y:100, kind:'ricochet', seek:150, hops:4, dmg:10, struck:[], target:null };
+      const baseSeekHit = ricochetNext(p, false) === true && p.target === eNear;
+      enemies.length = 0; enemies.push(eFar);
+      p = { x:100, y:100, kind:'ricochet', seek:150, hops:4, dmg:10, struck:[], target:null };
+      const baseSeekMiss = ricochetNext(p, false) === false;
+      p = { x:100, y:100, kind:'ricochet', seek:150*1.6, hops:4, dmg:10, struck:[], target:null };
+      const wideSeekHit = ricochetNext(p, false) === true && p.target === eFar;
+      // consume: records the victim, spends a hop, applies falloff; a struck enemy is never re-pinged
+      enemies.length = 0; enemies.push(eNear, eFar);
+      p = { x:240, y:100, kind:'ricochet', seek:150, hops:1, dmg:10, struck:[], target:eNear };
+      const hop1 = ricochetNext(p, true);   // strikes eNear → hops to eFar (60px away)
+      const consumeOk = hop1 === true && p.target === eFar && p.struck.includes(eNear)
+        && p.hops === 0 && Math.abs(p.dmg - 8.5) < 1e-9;
+      p.x = 300;
+      const hop2 = ricochetNext(p, true);   // strikes eFar → out of hops
+      const exhaustsOk = hop2 === false && p.struck.includes(eFar);
+
+      // --- one bolt through a line of 6 (real update loop): exactly 5 struck, falloff ladder ---
+      // Classic's [420,90]→[700,90] straight run starts at path-dist 820; 6 standing enemies
+      // spaced 50 apart sit fully on it, and the tower's short 70px range sees only the LAST one,
+      // so the bolt enters at the line's end and ricochets down it.
+      const line = (n, spacing) => {
+        enemies.length = 0; towers.length = 0; projectiles.length = 0;
+        autoStartTimer = -1; waveActive = false; paused = false;
+        const es = [];
+        for (let i = 0; i < n; i++) { const e = mkE(0, 0, { dist: 830 + i * spacing }); es.push(e); enemies.push(e); }
+        const last = pointAt(830 + (n - 1) * spacing);
+        return { es, tx: last.x, ty: last.y + 60 };
+      };
+      let L = line(6, 50);
+      arcBestChain = 0;
+      towers.push({ type:'arc', x:L.tx, y:L.ty, level:1, spec:null, dmg:10, rate:8, range:70,
+        dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 });
+      for (let i = 0; i < 240; i++) update(1/60);
+      const losses = L.es.map(e => 500 - e.hp).filter(v => v > 0).sort((a, b) => b - a);
+      const fiveStruck = losses.length === 5 && L.es.some(e => e.hp === 500);
+      const ladder = [10, 8.5, 7.225, 6.14125, 5.2200625];
+      const falloffOk = losses.length === 5 && losses.every((v, i) => Math.abs(v - ladder[i]) < 1e-6);
+      const chainTracked = arcBestChain === 5;
+
+      // --- Ball Lightning spec: 7 strikes from a line of 8 → also earns Pinball (≥6) ---
+      L = line(8, 35);
+      arcBestChain = 0;
+      towers.push({ type:'arc', x:L.tx, y:L.ty, level:5, spec:'arcbounce', dmg:10, rate:8, range:70,
+        dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 });
+      for (let i = 0; i < 240; i++) update(1/60);
+      const sevenStruck = L.es.filter(e => e.hp < 500).length === 7 && arcBestChain === 7;
+
+      // --- respects armor (a kinetic bolt, not an armor-ignorer) ---
+      enemies.length = 0; towers.length = 0; projectiles.length = 0;
+      const armored = mkE(0, 0, { hp:1000, maxHp:1000, armor:50, kind:'shield', dist:900 });
+      enemies.push(armored);
+      const ap = pointAt(900);
+      towers.push({ type:'arc', x:ap.x, y:ap.y + 60, level:1, spec:null, dmg:100, rate:8, range:80,
+        dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 });
+      for (let i = 0; i < 120; i++) update(1/60);
+      const respectsArmor = armored.hp < 1000 && (1000 - armored.hp) < 100;
+
+      // --- Pinball Wizard achievement wiring ---
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'pinball');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      towers.length = 0; enemies.length = 0;
+      arcBestChain = 6; fresh();
+      const pinGranted = grantAchievements(false).map(a => a.id).includes('pinball');
+      arcBestChain = 5; fresh();
+      const pinWithheld = grantAchievements(false).map(a => a.id).includes('pinball');
+      arcBestChain = 9;
+      beginGame();   // resetState zeroes the run-only tracker
+      const trackerResets = arcBestChain === 0;
+
+      // --- save/resume: an arc tower round-trips (rebuilt generically from base × level mults) ---
+      towers.length = 0; enemies.length = 0; projectiles.length = 0;
+      towers.push({ type:'arc', x:250, y:250, level:3, spec:'arcseek', mode:'strong',
+        invested:300, dealt:42, kills:2, range:def.range*Math.pow(1.08,2), dmg:def.dmg*Math.pow(1.45,2),
+        rate:def.rate*Math.pow(0.88,2), cd:0, baseCost:def.cost, angle:0, buffPower:0.25, flash:0 });
+      wave = 2; lives = 20; gold = 100; waveActive = false;
+      saveRun();
+      towers.length = 0;
+      const loaded = loadRun();
+      const art = towers.find(t => t.type === 'arc');
+      const roundTrips = loaded === true && !!art && art.level === 3 && art.spec === 'arcseek' && art.kills === 2;
+
+      localStorage.removeItem('cd_save');
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu();
+      return { defOk, specsOk, masteryOk, inShopKeys, sfxOk, shopHasArc,
+               baseSeekHit, baseSeekMiss, wideSeekHit, consumeOk, exhaustsOk,
+               fiveStruck, falloffOk, chainTracked, sevenStruck, respectsArmor,
+               inRoster, pinGranted, pinWithheld, trackerResets, roundTrips };
+    });
+    check('Arc definition wired (proj=ricochet/range/dmg)', r.defOk);
+    check('Arc has 2 specs (Ball Lightning + Magnet Coil)', r.specsOk);
+    check('Arc Mastery talent exists', r.masteryOk);
+    check('Arc is in the shop keys (12 towers as of v2.52.0)', r.inShopKeys);
+    check('SFX.arc sound exists', r.sfxOk);
+    check('Arc button rendered in the shop', r.shopHasArc);
+    check('bolt seeks the nearest fresh enemy within 150px', r.baseSeekHit);
+    check('bolt fizzles when nothing is within base seek range', r.baseSeekMiss);
+    check('Magnet Coil seek (×1.6) reaches a 200px hop', r.wideSeekHit);
+    check('a strike records the victim, spends a hop, applies ×0.85 falloff', r.consumeOk);
+    check('bolt dies when out of hops; struck enemies never re-pinged', r.exhaustsOk);
+    check('one bolt strikes exactly 5 of a line of 6 (real update loop)', r.fiveStruck);
+    check('per-hop damage falloff ladder is exact (10 → 5.22)', r.falloffOk);
+    check('arcBestChain tracks the 5-strike bolt', r.chainTracked);
+    check('Ball Lightning spec: 7 strikes from a line of 8', r.sevenStruck);
+    check('Arc respects armor', r.respectsArmor);
+    check('Pinball Wizard is in the achievement roster', r.inRoster);
+    check('Pinball Wizard granted at a 6-strike bolt', r.pinGranted);
+    check('Pinball Wizard withheld at 5 strikes', r.pinWithheld === false);
+    check('arcBestChain resets on a new run', r.trackerResets);
+    check('Arc save/resume round-trips', r.roundTrips);
+    check('no console errors during Arc test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [194] Wave-preview hover tooltip (v2.52.0): hovering a kind disc in the bottom-left Next:
+  // strip pops the enemy's Bestiary name + counter tip (data straight from CODEX_ENEMIES).
+  console.log('\n[194] Wave-preview hover tooltip');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const helperOk = typeof drawKindTooltip === 'function';
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; endless = false;
+      beginGame();   // started, wave 0, !waveActive → the Next: strip is visible
+
+      // spy on canvas text to see what the frame actually drew
+      const spy = () => {
+        const texts = [];
+        const orig = ctx.fillText.bind(ctx);
+        ctx.fillText = (s, x, y, w) => { texts.push(String(s)); return orig(s, x, y, w); };
+        draw();
+        ctx.fillText = orig;
+        return texts;
+      };
+
+      // first disc of the wave-1 preview is the 'norm' kind — compute its centre the same way
+      // the render block lays it out (12 + 'Next:' width + 9 + rad)
+      ctx.font = '12px sans-serif';
+      const discX = 12 + ctx.measureText('Next:').width + 9 + 6;
+      const codexName = CODEX_ENEMIES.find(c => c.kind === 'norm').name;   // 'Drone'
+
+      mouseX = -100; mouseY = -100;
+      const offTexts = spy();
+      const offClean = !offTexts.some(t => t.includes(codexName));
+
+      mouseX = discX; mouseY = H - 14;
+      const onTexts = spy();
+      const onShows = onTexts.some(t => t.includes(codexName));
+      const onShowsTag = onTexts.some(t => /Wave 1/.test(t));   // the codex first-wave tag
+
+      // unknown kind degrades gracefully (no throw, no draw)
+      let graceful = true;
+      try { drawKindTooltip(50, 'nosuchkind'); } catch (e) { graceful = false; }
+
+      // hidden while the upgrade panel shares the corner (the v2.29.0 gate still governs)
+      towers.push({ type:'gun', x:200, y:200, range:110, dmg:8, rate:0.35, cd:0, level:1,
+        baseCost:50, invested:50, angle:0, mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 });
+      selectedTower = towers[0]; showUpgrade(towers[0]);
+      const panelTexts = spy();
+      const hiddenWithPanel = !panelTexts.some(t => t.includes(codexName));
+      hideUpgrade(); selectedTower = null;
+
+      mouseX = 0; mouseY = 0;
+      towers.length = 0;
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { helperOk, offClean, onShows, onShowsTag, graceful, hiddenWithPanel };
+    });
+    check('drawKindTooltip helper exists', r.helperOk);
+    check('no tooltip when the cursor is elsewhere', r.offClean);
+    check('hovering the first kind disc draws its Bestiary name', r.onShows);
+    check('tooltip shows the codex first-wave tag', r.onShowsTag);
+    check('unknown kind degrades gracefully', r.graceful);
+    check('tooltip suppressed while the upgrade panel is open (strip hidden)', r.hiddenWithPanel);
+    check('no console errors during tooltip test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -59,6 +59,10 @@ let comboCount = 0, comboTimer = 0, comboBest = 0, comboFlash = 0;
 // this run. Run-only, never saved (enemies aren't persisted, and the feat is a momentary one
 // that can recur any time the rail fires — so a resumed run can still earn it; no force-on-load).
 let railBestHit = 0;
+// Pinball tracking (v2.52.0): the most enemies struck by a single Arc ricochet bolt this run.
+// Run-only, never saved — a momentary feat re-earnable any time an Arc fires (mirrors
+// railBestHit, no force-on-load). Grants the 🪩 Pinball achievement at 6.
+let arcBestChain = 0;
 // Hoarder tracking (v2.35.0): peak gold banked at any point this run. Run-only, never saved — the
 // feat is re-earnable (a resumed run re-accumulates from the restored gold on the first update frame),
 // so no force-on-load (mirrors railBestHit). Grants the 💰 Hoarder achievement at 10,000.
@@ -153,6 +157,7 @@ function resetState() {
   waveMod = null; meteorRainTimer = 0;
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   railBestHit = 0;
+  arcBestChain = 0;
   peakGold = 0;
   peakTowers = 0;
   bestFreeze = 0;

@@ -24,13 +24,12 @@ _None currently known._ (Add any here as found — top priority.)
       with a new Neon (hot-magenta) palette (7th map / 7th theme).
 - [x] **New tower (the 🔆 Laser)** — DONE v2.9.0 [121], a ramp-up beam (the 10th tower). The
       "charge up the longer it fires" mechanic now exists as a TOWER (was sketched as a Railgun spec idea).
-- [ ] **Arc/chain tower** — chain-lightning that *bounces* between nearby enemies (a swarm counter,
-      distinct from Tesla's fixed-target chain AND the Laser's single-target ramp). The remaining "new tower" idea.
-      ⚠ DESIGN NOTE (v2.40.0): Tesla's `fireChain` already *bounces* (nearest-unhit within 90px, falloff), so
-      the distinction is the hard part — to avoid a Tesla clone, make Arc a **travelling ricochet projectile**
-      (a `proj` kind in the projectile update loop, NOT an instant-fire fn): a moving bolt that hops to the
-      nearest unhit enemy across a *larger* reach with more bounces at low base dmg → a spread-swarm sweeper vs
-      Tesla's tight-cluster zap. Needs its own run (render + bounce logic + balance sim + tests).
+- [x] **Arc/chain tower** — DONE v2.52.0 [193], the ⚛️ Arc (12th tower): a **travelling ricochet bolt**
+      (`proj:'ricochet'`) exactly per the design note — hops to the nearest unhit enemy within 150px
+      (vs Tesla's 90px instant chain), 5 hits/bolt at 0.85 falloff, low base dmg → spread-swarm sweeper.
+      Specs Ball Lightning (+2 hops) / Magnet Coil (seek ×1.6); mastery_arc; 🪩 Pinball Wizard badge.
+      Sim: mid-pack at equal gold (w11–12 vs Tesla w10 / Cannon w13). Possible follow-up: a bolt-render
+      flourish (zigzag tracer between hops) — the generic orb+trail is used for now.
 - [ ] **Tower spec follow-ups** — (a *charge-up* mechanic now exists via the 🔆 Laser tower v2.9.0);
       ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
       version is still open if wanted); ~~a counter to blinkers (phantom/cloak/teleporter/veil)~~ (DONE as
@@ -111,8 +110,9 @@ _None currently known._ (Add any here as found — top priority.)
       Enter on the game-over overlay~~ DONE v2.37.0 [150] — Enter → Play Again when offered);
       ~~hide the faint between-wave `Next:` preview while the upgrade panel is open~~ (DONE v2.29.0 [138]);
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
-      a per-kind hover tooltip (~~DPS-relative read on the wave-threat number~~ DONE v2.29.0 [138] —
-      board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
+      ~~a per-kind hover tooltip~~ (DONE v2.52.0 [194] — hovering a Next:-strip kind disc pops its
+      Bestiary name + counter tip from CODEX_ENEMIES) (~~DPS-relative read on the wave-threat number~~
+      DONE v2.29.0 [138] — board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing);
       ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE) +
@@ -159,12 +159,14 @@ _None currently known._ (Add any here as found — top priority.)
 ## Shipped (condensed — do NOT re-implement; check CLAUDE.md for detail)
 
 ### Towers / specs / targeting
-- 11 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91] + Laser
-  v2.9.0 [121] + Pulsar v2.23.0 [133]); a new tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar
+- 12 towers (gun/sniper/frost/cannon/tesla/poison + Mortar v1.23.0 [42] + Railgun v1.83.0 [91] + Laser
+  v2.9.0 [121] + Pulsar v2.23.0 [133] + Arc v2.52.0 [193]); a new tower is mostly additive (`TOWER_TYPES`+`SPECS`+optional mastery talent). Mortar
   lobbed-arc render v1.79.0 [87]. Laser = a ramp-up beam (×1→×2.2 on a held target, resets on switch) —
   sustained boss/tank DPS, poor at swarms; specs Focusing Array/Pulse Drive; hotkey `0`; mastery_laser.
   Pulsar = a self-centred radial AoE pulse (`proj:'nova'`, hits ALL in range at once, low per-hit dmg →
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
+  Arc = a travelling ricochet bolt (`proj:'ricochet'`, hops to the nearest unhit enemy ≤150px, 5 hits/bolt,
+  0.85 falloff → spread-swarm sweeper, weak single-target); specs Ball Lightning/Magnet Coil; no number hotkey; mastery_arc.
 - 8 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
   + Boss v2.45.0 [173] — locks onto the boss, distinct from Strong); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
@@ -184,7 +186,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 + **uncapped deep ramp from w40 v2.31.0** [109] (deep-endless
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
-- 27 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0
+- 28 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176]);
   cost rework v1.38.0 [55]. 38 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
@@ -203,6 +205,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🥊 Heavy Hitter + 🧠 Polymath v2.49.0 [187] — deal 200k with one tower / win with 6+ tower types;
   + 🛸 Transcendent + 🧪 Plague Doctor v2.50.0 [189] — reach wave 200 / 150 kills on one Poison tower;
   + 🪳 Exterminator + 🌊 Wave Rider v2.51.0 [192] — defeat 2,000 enemies in a run / stack 5+ waves at once;
+  + 🪩 Pinball Wizard v2.52.0 [193] — strike 6+ enemies with a single Arc bolt;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,

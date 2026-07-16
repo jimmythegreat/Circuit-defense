@@ -22,7 +22,7 @@ const ACHIEVEMENTS = [
   { id:'minimalist',icon:'⚖️', name:'Minimalist',        desc:'Win with 5 or fewer towers' },
   { id:'daily20',   icon:'🗓️', name:'Daily Devotee',     desc:'Reach wave 20 in a Daily Challenge' },
   { id:'daily7',    icon:'📆', name:'Streak Keeper',     desc:'Reach a 7-day Daily Challenge streak' },
-  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 11 tower types on the board' },
+  { id:'arsenal',   icon:'🧰', name:'Full Arsenal',      desc:'Win with all 12 tower types on the board' },
   { id:'speedrun',  icon:'⏱️', name:'Speed Demon',        desc:'Win a Quick run in under 7 minutes' },
   { id:'railhit5',  icon:'🎯', name:'Sharpshooter',       desc:'Hit 5+ enemies with a single Railgun beam' },
   { id:'nightmare_win', icon:'🌑', name:'Nightmare Walker', desc:'Win a game on Nightmare difficulty' },
@@ -53,6 +53,7 @@ const ACHIEVEMENTS = [
   { id:'plague',        icon:'🧪', name:'Plague Doctor',        desc:'Rack up 150 kills on a single Poison tower' },
   { id:'exterminator',  icon:'🪳', name:'Exterminator',         desc:'Defeat 2,000 enemies in a single run' },
   { id:'waverider',     icon:'🌊', name:'Wave Rider',            desc:'Have 5+ waves in flight at once' },
+  { id:'pinball',       icon:'🪩', name:'Pinball Wizard',        desc:'Strike 6+ enemies with a single Arc bolt' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -88,6 +89,9 @@ function grantAchievements(won) {
   if (comboBest >= 50) give('combo50');   // 🌠 v2.36.0 — a feat (no `won` gate), pairs with the combo-tier "GODLIKE" word
   if (comboBest >= 100) give('combo100');   // 🎆 v2.40.0 — the next rung above Combo God (no `won` gate)
   if (railBestHit >= 5) give('railhit5');
+  // Pinball Wizard (🪩 v2.52.0): a feat (no `won` gate, like railhit5) — a single Arc bolt
+  // ricochets through 6+ enemies. Needs a spec (Ball Lightning's 7 hits) or a dense swarm.
+  if (arcBestChain >= 6) give('pinball');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
   if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board
   // Exterminator (🪳 v2.51.0): a feat (no `won` gate) — defeat 2,000 enemies in a single run. Reads
@@ -127,7 +131,7 @@ function grantAchievements(won) {
   if (won && !abilityUsedThisRun) give('pacifist');
   if (won && towers.length > 0 && new Set(towers.map(t => t.type)).size === 1) give('monotower');
   // Polymath (🧠 v2.49.0): win using 6+ distinct tower types — a build-DIVERSITY feat that sits
-  // between 🧩 Specialist (exactly 1 type) and 🧰 Full Arsenal (all 11), rewarding a varied board
+  // between 🧩 Specialist (exactly 1 type) and 🧰 Full Arsenal (all 12), rewarding a varied board
   // (thematically the lesson the 🦎 Chameleon boss teaches: mix your damage sources).
   if (won && new Set(towers.map(t => t.type)).size >= 6) give('polymath');
   if (won && towers.length > 0 && towers.length <= 5) give('minimalist');

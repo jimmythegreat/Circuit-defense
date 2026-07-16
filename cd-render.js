@@ -123,6 +123,54 @@ function drawPerkTooltip(iconX, p) {
   ctx.fillText(desc, bx + 10, by + 45);
   ctx.restore();
 }
+// Tooltip for a hovered wave-preview enemy icon (v2.52.0): the enemy's Bestiary name + counter
+// tip, so the bottom-left Next: strip doubles as a quick codex lookup mid-run. Data comes
+// straight from CODEX_ENEMIES (cd-endgame.js, loaded earlier), so it can never drift from the
+// 📖 Bestiary. Render-only; drawn just above the strip so it never covers the path exit.
+function drawKindTooltip(iconX, kind) {
+  const entry = (typeof CODEX_ENEMIES !== 'undefined') ? CODEX_ENEMIES.find(c => c.kind === kind) : null;
+  if (!entry) return;
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  // wrap the codex desc to the box width (2–3 short lines keeps it tidy)
+  ctx.font = '12px sans-serif';
+  const lines = [''];
+  for (const w of entry.desc.split(' ')) {
+    const cur = lines[lines.length - 1];
+    const cand = cur ? cur + ' ' + w : w;
+    if (cur && ctx.measureText(cand).width > 290) lines.push(w);
+    else lines[lines.length - 1] = cand;
+  }
+  const title = (entry.glyph ? entry.glyph + ' ' : '') + entry.name;
+  const tag = entry.wave;
+  ctx.font = 'bold 13px sans-serif';
+  const tw = ctx.measureText(title).width;
+  ctx.font = '10px sans-serif';
+  const gw = ctx.measureText(tag).width;
+  ctx.font = '12px sans-serif';
+  const dw = Math.max(...lines.map(l => ctx.measureText(l).width));
+  const boxW = Math.min(W - 16, Math.max(tw + gw + 14, dw) + 20);
+  const boxH = 28 + lines.length * 15;
+  const bx = Math.max(8, Math.min(iconX - 10, W - boxW - 8));
+  const by = H - 26 - boxH;   // sits just above the Next: strip
+  ctx.fillStyle = 'rgba(13,20,32,0.95)';
+  ctx.strokeStyle = PREVIEW_COLOR[kind] || '#30363d';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(bx, by, boxW, boxH, 6); else ctx.rect(bx, by, boxW, boxH);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = PREVIEW_COLOR[kind] || '#c9d1d9';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(title, bx + 10, by + 17);
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText(tag, bx + 10 + tw + 8, by + 17);
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#c9d1d9';
+  lines.forEach((l, i) => ctx.fillText(l, bx + 10, by + 33 + i * 15));
+  ctx.restore();
+}
 function draw() {
   ctx.save();
   if (shake > 0 && shakeEnabled && !reduceMotion()) {
@@ -921,6 +969,7 @@ function draw() {
     const comp = waveComposition(wave + 1);
     const py = H - 14;
     let px = 12;
+    const kindSlots = [];   // disc hit-areas for the hover tooltip (v2.52.0)
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     ctx.font = '12px sans-serif'; ctx.fillStyle = 'rgba(139,148,158,0.9)';
     ctx.fillText('Next:', px, py);
@@ -928,6 +977,7 @@ function draw() {
     for (const c of comp) {
       const isBoss = c.kind === 'boss';
       const rad = isBoss ? 8 : 6;
+      kindSlots.push({ x: px + rad, r: rad, kind: c.kind });
       ctx.beginPath(); ctx.arc(px + rad, py, rad, 0, Math.PI * 2);
       ctx.fillStyle = PREVIEW_COLOR[c.kind] || '#3fb950'; ctx.fill();
       const gl = enemyGlyph({ kind: c.kind, frozen: 0 });   // same single-source glyph as the sphere
@@ -960,6 +1010,12 @@ function draw() {
       ctx.fillText('🗡 ' + fmtNum(boardDps()) + ' DPS', px + 12, py);
     }
     ctx.textBaseline = 'alphabetic';
+    // hover a kind disc → its Bestiary name + counter tip pops up above the strip (v2.52.0)
+    let hovSlot = null;
+    if (mouseY >= py - 10 && mouseY <= py + 10) {
+      for (const s of kindSlots) if (Math.abs(mouseX - s.x) <= s.r + 4) hovSlot = s;
+    }
+    if (hovSlot) drawKindTooltip(hovSlot.x, hovSlot.kind);
     if (isMayhem() && !daily && wave > 0 && wave % 5 === 0) {
       ctx.fillStyle = 'rgba(210,168,255,0.9)'; ctx.font = '13px sans-serif';
       ctx.fillText('🌀 The world will shift when the next wave begins!', 12, H - 32);

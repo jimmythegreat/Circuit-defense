@@ -767,30 +767,49 @@ function update(dt) {
       // launch point (px/py) is recorded as x0/y0 so the arc helper can compute flight
       // progress; only the drawn orb/trail/shadow lift — hit math still uses p.x/p.y.
       const px = t.x + Math.cos(t.angle)*14, py = t.y + Math.sin(t.angle)*14;
-      projectiles.push({
+      const p = {
         x: px, y: py,
         target, dmg, kind: def.proj, src: t, crit,
         ignoreArmor: t.spec === 'ap' || t.type === 'mortar',  // mortar shells always ignore armor
-        color: def.color, spd: def.proj === 'bomb' ? 260 : def.proj === 'mortar' ? 200 : 480,
+        color: def.color, spd: def.proj === 'bomb' ? 260 : def.proj === 'mortar' ? 200 : def.proj === 'ricochet' ? 420 : 480,
         lob: def.proj === 'mortar', x0: px, y0: py
-      });
+      };
+      // Arc (v2.52.0): the bolt carries its remaining ricochets, the enemies it has already
+      // struck (each foe is hit once per bolt — bounded, no re-ping loops), and its hop seek
+      // radius. Ball Lightning spec adds 2 hops; Magnet Coil stretches the seek reach ×1.6.
+      if (def.proj === 'ricochet') {
+        p.hops = ARC_HOPS + (t.spec === 'arcbounce' ? 2 : 0);
+        p.seek = ARC_SEEK * (t.spec === 'arcseek' ? 1.6 : 1);
+        p.struck = [];
+      }
+      projectiles.push(p);
       if (t.type === 'sniper') SFX.snipe();
       else if (t.type === 'frost') SFX.frost();
       else if (t.type === 'poison') SFX.poison();
       else if (t.type === 'mortar') SFX.mortar();
+      else if (t.type === 'arc') SFX.arc();
       else SFX.shoot();
     }
   }
 
   // projectiles
   for (const p of projectiles) {
-    if (p.target.dead || p.target.hp <= 0) { p.dead = true; continue; }
+    if (p.target.dead || p.target.hp <= 0) {
+      // Arc bolt (v2.52.0): if its flight target dies mid-air (killed by another tower), the
+      // bolt RETARGETS the nearest fresh enemy instead of fizzling (a free hop — it hasn't
+      // delivered that hit yet). Every other projectile kind still fizzles as before.
+      if (!(p.kind === 'ricochet' && ricochetNext(p, false))) p.dead = true;
+      continue;
+    }
     const dx = p.target.x - p.x, dy = p.target.y - p.y;
     const d = Math.hypot(dx, dy);
     const step = p.spd * dt;
     if (d <= step + p.target.r) {
       hitEnemy(p);
-      p.dead = true;
+      // Arc bolt (v2.52.0): after a real strike, hop to the nearest unhit enemy (spends a
+      // ricochet + applies the damage falloff inside ricochetNext). Dies when out of hops
+      // or nothing fresh is in seek range.
+      if (!(p.kind === 'ricochet' && ricochetNext(p, true))) p.dead = true;
     } else {
       p.x += dx/d * step; p.y += dy/d * step;
     }
@@ -944,6 +963,16 @@ function fireRail(t, target, dmg) {
 // with the charge so the spin-up reads visually. The charge cap/step live here as the levers.
 const BEAM_CHARGE_CAP = 2.2;     // max damage multiplier from a fully spun-up beam
 const BEAM_CHARGE_STEP = 0.12;   // charge gained per shot held on the same target (~10 shots to cap)
+// Arc tower (v2.52.0) levers: a TRAVELLING ricochet bolt (kind 'ricochet') — after each strike it
+// hops to the nearest live enemy it hasn't already struck, out to ARC_SEEK px (much farther than
+// Tesla's tight 90px chain), losing a little damage per hop. Distinct from Tesla: the bolt takes
+// real flight time between targets (damage arrives over ~a second and the wave keeps advancing),
+// it seeks SPREAD-OUT stragglers rather than a packed cluster, and each foe is struck once per
+// bolt (bounded — struck[] can never re-ping, so no loops). Low base dmg → deliberately weak
+// single-target (the anti-swarm sweeper role, poor vs tanks/bosses). Respects armor.
+const ARC_HOPS = 4;              // ricochets after the first strike (5 hits/bolt; Ball Lightning spec +2)
+const ARC_SEEK = 150;            // px the bolt can leap to the nearest fresh enemy (Magnet Coil spec ×1.6)
+const ARC_FALLOFF = 0.85;        // damage retained per ricochet (full 5-hit volley totals ×3.71 base dmg)
 // Fortifier boss archetype (v2.10.0) levers: it ramps its own armor by FORTIFY_RATE/s up to a
 // FORTIFY_CAP bonus over its starting armor, so it hardens the longer it survives (a DPS race).
 const FORTIFY_RATE = 0.5;        // armor gained per second alive
@@ -1034,6 +1063,32 @@ function firePulse(t, dmg) {
   }
   addRing(t.x, t.y, def.color, range, { life: 0.4, w: 3 });
   shake = Math.max(shake, 0.8);
+}
+
+// Arc tower (v2.52.0): route the bolt to its next victim. Called from the projectile loop —
+// `consume` is true after a real strike (records the victim, spends a hop, applies the damage
+// falloff, and quiets the crit flair so it only fires on the first hit); false on a mid-flight
+// retarget (the flight target died to someone else — the bolt hasn't delivered that hit yet, so
+// the hop is free). Returns true if a fresh target was found; false → the caller kills the bolt.
+function ricochetNext(p, consume) {
+  if (consume) {
+    p.struck.push(p.target);
+    if (p.struck.length > arcBestChain) arcBestChain = p.struck.length;   // 🪩 Pinball achievement (v2.52.0)
+    if (p.hops <= 0) return false;
+    p.hops--;
+    p.dmg *= ARC_FALLOFF;
+    p.crit = false;   // one CRIT floater/sound per bolt (the multiplied dmg still carries through hops)
+  }
+  let next = null, nd = Infinity;
+  for (const e of enemies) {
+    if (e.x === undefined || e.dead || e.hp <= 0 || p.struck.includes(e)
+        || (e.blinkInvuln > 0 && !perkState.phaseSight)) continue;   // skip intangible unless Spectral Sight
+    const d = Math.hypot(e.x - p.x, e.y - p.y);
+    if (d < p.seek && d < nd) { nd = d; next = e; }
+  }
+  if (!next) return false;
+  p.target = next;
+  return true;
 }
 
 function hitEnemy(p) {

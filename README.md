@@ -19,7 +19,7 @@ The game started as a single HTML file written in one session and has been evolv
 
 ## The game itself
 
-A pseudo-3D canvas tower defense: 7 tower types with specializations, a talent tree fed by chips you earn each run, rarity-tiered perk drafts every 5 waves, active abilities, achievements, records, a 40-level campaign with randomly generated maps, and a Mayhem mode where the path itself shifts under your towers. All graphics are canvas-drawn and all audio is synthesized — no assets, no network, no dependencies.
+A pseudo-3D canvas tower defense: 12 tower types with specializations, a talent tree fed by chips you earn each run, rarity-tiered perk drafts every 5 waves, active abilities, achievements, records, a 40-level campaign with randomly generated maps, and a Mayhem mode where the path itself shifts under your towers. All graphics are canvas-drawn and all audio is synthesized — no assets, no network, no dependencies.
 
 **To play locally:** clone the repo and double-click `tower-defense.html`. That's it — there is deliberately no build step.
 
