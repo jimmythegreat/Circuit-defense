@@ -305,6 +305,7 @@ const CODEX_BOSSES = [
   { type: 'accelerator',glyph: '🏎', color: '#ffec5a', label: 'Accelerator',  wave: 'Wave 120', desc: 'Ramps its own speed the longer it lives (up to +80%). Burst it down early, or freeze to pause the acceleration.' },
   { type: 'cleanser',   glyph: '💧', color: '#e6fbff', label: 'Cleanser',     wave: 'Wave 125', desc: 'Purges poison & slow from itself and its escorts every few seconds. Bring direct DPS, or freeze it to stop the purge.' },
   { type: 'adaptive',   glyph: '🦎', color: '#ff5a8c', label: 'Chameleon',    wave: 'Wave 130', desc: 'Adapts to your fire — a second hit from the SAME tower type deals 50% less. Mix your damage sources, or freeze it to lift the adaptation.' },
+  { type: 'nullifier',  glyph: '🚫', color: '#c44a4a', label: 'Nullifier',    wave: 'Wave 135', desc: 'Dampens the DAMAGE of nearby towers (−25%) — softer shots are eaten harder by armor. Spread out, freeze it, or take Hardened Circuits.' },
 ];
 // The 📖 Bestiary opens from the start menu AND mid-run (in-game Codex button / 'C' hotkey,
 // v2.37.0). When opened during a live game it auto-pauses so the player can read counters

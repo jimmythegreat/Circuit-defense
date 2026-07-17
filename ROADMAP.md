@@ -36,12 +36,13 @@ _None currently known._ (Add any here as found — top priority.)
       the 👁️ Spectral Sight *perk* v2.41.0 [161] — towers see through intangibility; a per-tower *spec* or
       predictive lead-shot version is still open if wanted). Audit frost (Deep Freeze vs Shatter) & gun
       (Minigun vs AP) for a strictly-dominated option (quick take: both look like healthy axes).
-- [ ] **Boss/enemy follow-ups** — a 24th boss archetype (23rd = 🦎 Chameleon adaptive damage-resistance,
-      shipped v2.49.0 [186], first at w130 — a repeated same-tower-type hit deals −50%, rewards mixing,
-      freeze-pausable, rose ring; 22nd = 💧 Cleanser anti-debuff purge v2.42.0 [164]; 21st = 🏎 Accelerator
-      self-speed ramp v2.41.0 [162]); per-campaign-tier *fixed* archetypes (vs the wave-number cycle);
-      a Breacher variant that costs lives only if it *survives* a tower's range. (Color space for boss aura
-      rings is VERY crowded now — a 24th needs a clearly-distinct hue, or reuse a shape/glyph cue instead.)
+- [ ] **Boss/enemy follow-ups** — a 25th boss archetype (24th = 🚫 Nullifier tower-damage dampening aura,
+      shipped v2.53.0 [197], first at w135 — completes the debuff trio after Suppressor/Distorter, −25% dmg,
+      freeze-pausable/Hardened-Circuits-negated, brick-red ring; 23rd = 🦎 Chameleon adaptive damage-resistance
+      v2.49.0 [186]; 22nd = 💧 Cleanser anti-debuff purge v2.42.0 [164]); per-campaign-tier *fixed* archetypes
+      (vs the wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
+      (Color space for boss aura rings is VERY crowded now — a 25th needs a clearly-distinct hue, or reuse a
+      shape/glyph cue instead.)
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -121,6 +122,7 @@ _None currently known._ (Add any here as found — top priority.)
       ~~wave-start announcement banner~~ (DONE v2.44.0 [170] — centered "WAVE N" / "☠ BOSS WAVE N" flash);
       ~~sell-selected-tower hotkey~~ (DONE v2.44.0 [172] — press S, mirrors the U upgrade hotkey);
       ~~cycle-target-mode hotkey~~ (DONE v2.46.0 [178] — press D, mirrors U/S, non-buff only);
+      ~~speed-toggle hotkey~~ (DONE v2.53.0 [196] — press F, cycles 1×→2×→3×, mirrors the ⏩ button);
       ~~low-lives danger cue~~ (DONE v2.48.0 [184] — red screen-edge vignette pulsing as lives fall);
       per-achievement chip reward (needs a chip-economy pass first); toast/sound when a badge unlocks mid-menu.
       (Veterancy visual thread now COMPLETE: lifetime tower-kills stat + 🏵️ Living Legend badge v2.19.0 [129],
@@ -167,8 +169,8 @@ _None currently known._ (Add any here as found — top priority.)
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
   Arc = a travelling ricochet bolt (`proj:'ricochet'`, hops to the nearest unhit enemy ≤150px, 5 hits/bolt,
   0.85 falloff → spread-swarm sweeper, weak single-target); specs Ball Lightning/Magnet Coil; no number hotkey; mastery_arc.
-- 8 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
-  + Boss v2.45.0 [173] — locks onto the boss, distinct from Strong); default-mode
+- 9 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
+  + Boss v2.45.0 [173] + Cluster v2.53.0 [195] — aims at the densest knot for max AoE splash); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
@@ -177,8 +179,8 @@ _None currently known._ (Add any here as found — top priority.)
 - 13 enemy kinds (+boss): + heal/shield/split/molten(v1.77.0 [86])/phantom(v1.9.0 [14])/bastion(v1.90.0 [98])/
   warden(v1.35.0 [52])/jammer(v1.91.0 [99])/breacher(v1.63.0 [74], leak-cost 2→3 v2.0.0)/herald(v2.4.0 [116],
   haste-aura, Enrager's regular-enemy cousin). Concurrent waves (cap 3→8 v2.34.0 [20], FEEDBACK) v1.12.0.
-- 23 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
-  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator→cleanser→adaptive) v1.25.0–v2.49.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]/[164]/[186]; boss-bar mechanic badge v1.36.0 [53]. Chameleon (v2.49.0 [186], first w130) throttles a repeated same-tower-type hit −50% (a build-diversity axis; freeze lifts it, adds no HP). Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP). Cleanser (v2.42.0 [164], first w125) purges poison/slow from itself + cohort every ~2.5s (an anti-debuff axis; freeze pauses it, adds no HP).
+- 24 boss archetypes from w20+ (regen→summoner→bulwark→enrager→teleporter→berserker→disruptor→juggernaut→
+  siphon→hydra→revenant→conduit→warper→fortifier→warlord→suppressor→absorber→distorter→custodian→veil→accelerator→cleanser→adaptive→nullifier) v1.25.0–v2.53.0 [45]/[53]/[90]/[96]/[114]/[119]/[122]/[124]/[126]/[137]/[139]/[143]/[146]/[162]/[164]/[186]/[197]; boss-bar mechanic badge v1.36.0 [53]. Nullifier (v2.53.0 [197], first w135) dampens nearby tower DAMAGE −25% (the effDmg sibling of Suppressor's rate / Distorter's range; freeze-pausable, Hardened-Circuits-negated, adds no HP). Chameleon (v2.49.0 [186], first w130) throttles a repeated same-tower-type hit −50% (a build-diversity axis; freeze lifts it, adds no HP). Absorber (v2.27.0 [137]) caps per-hit damage at maxHp×5% (checks burst/crit builds; freeze lifts the cap). Distorter (v2.30.0 [139]) dampens nearby tower range −20% (the `fog` mod as a boss; freeze-counterable). Custodian (v2.35.0 [143]) shields its cohort −40% (the ◈ Warden's aura as a boss; freeze/focus-counterable). Veil (v2.36.0 [146], first w115) cloaks its cohort — nearby allies periodically phase out untargetable (the Cloaking Field mod / phantom as a boss; freeze/rapid-fire-counterable). Accelerator (v2.41.0 [162], first w120) ramps its own speed with time alive (up to +80%; a pure DPS-race lever, freeze pauses the ramp, adds no HP). Cleanser (v2.42.0 [164], first w125) purges poison/slow from itself + cohort every ~2.5s (an anti-debuff axis; freeze pauses it, adds no HP).
 - 23 Mayhem wave mods (frenzy/blitz/swarm/titans/goldrush/drought/surge/fog/armored/brownout/regen/emp/wardens/
   adrenaline/heatwave/cloak/fission/breachers/jammers/bastions/heralds/medics/meteors) [46]+ many; Herald Surge v2.35.0 [144]; Blitz (+60% speed, the "double-time" Frenzy variant) v2.36.0 [147]; Medic Surge (heal-aura escort surge) v2.47.0 [181].
 

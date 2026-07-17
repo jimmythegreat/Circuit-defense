@@ -547,6 +547,24 @@ function update(dt) {
         }
         e.distortCd = (e.distortCd == null ? 2.5 : e.distortCd) - dt;
         if (e.distortCd <= 0) { e.distortCd = 2.5; addExplosion(e.x, e.y, '#e879f9', 9, DISTORT_RANGE); SFX.bossSkill(); }
+      } else if (e.bossType === 'nullifier') {
+        // Nullifier (v2.53.0, the 24th archetype — a fresh axis: a continuous tower-DAMAGE dampening
+        // aura, completing the tower-debuff trio after the Suppressor's fire-rate (effRate) and the
+        // Distorter's range (effRange). Each frame it refreshes a short `dampened` timer on every
+        // non-buff tower within NULLIFY_RANGE; a dampened tower deals 25% less damage (effDmg reads
+        // `t.dampened` ×0.75). Distinct FELT effect from the Suppressor: softer shots are eaten harder
+        // by flat armor (armored/shield/fortifier), so it checks low-per-hit builds differently than a
+        // reload throttle. Bounded / "too easy"-safe: adds NO HP or speed, damage only SHRINKS (can't
+        // make a run easier), buff towers are immune (deal no damage), the tag decays the instant the
+        // boss leaves range or dies, freeze pauses the aura (gated block), and 🔰 Hardened Circuits
+        // negates it. A periodic pulse fires the SFX + a burst so the field reads at a glance.
+        // Run-only `dampened`/`nullifyCd`, never persisted.
+        for (const t of towers) {
+          if (t.type === 'buff') continue;
+          if (Math.hypot(t.x - e.x, t.y - e.y) < NULLIFY_RANGE) t.dampened = 0.3;
+        }
+        e.nullifyCd = (e.nullifyCd == null ? 2.5 : e.nullifyCd) - dt;
+        if (e.nullifyCd <= 0) { e.nullifyCd = 2.5; addExplosion(e.x, e.y, '#c44a4a', 9, NULLIFY_RANGE); SFX.bossSkill(); }
       } else if (e.bossType === 'custodian') {
         // Custodian (v2.35.0, the 19th archetype — a fresh axis: a continuous damage-SHIELD aura
         // projected to its COHORT. It is the ◈ Warden's protective aura as a BOSS, just as the
@@ -689,6 +707,7 @@ function update(dt) {
     if (t.empT > 0) t.empT = Math.max(0, t.empT - dt * perkState.empResist);   // tick down offline timer (all tower types); Surge Protector perk (empResist) recovers faster
     if (t.suppressed > 0) t.suppressed = Math.max(0, t.suppressed - dt);   // Suppressor boss aura: decays once out of range (effRate reads it, +25% reload while >0)
     if (t.distorted > 0) t.distorted = Math.max(0, t.distorted - dt);   // Distorter boss aura: decays once out of range (effRange reads it, −20% range while >0)
+    if (t.dampened > 0) t.dampened = Math.max(0, t.dampened - dt);   // Nullifier boss aura (v2.53.0): decays once out of range (effDmg reads it, −25% damage while >0)
     if (t.type === 'buff') continue;
     t.cd -= dt;
     if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire
@@ -856,6 +875,9 @@ function effSpeed(e) {
   if (e.kind === 'boss' && e.bossType === 'accelerator') sp *= (e.accelMul || 1);
   return sp;
 }
+// Neighbour radius for the 'cluster' targeting mode (v2.53.0) — matches the Cannon splash (55px),
+// so an AoE tower picks the enemy sitting in the densest knot and maximises splash coverage.
+const CLUSTER_RADIUS = 55;
 function pickTarget(t) {
   let target = null, bestVal = null;
   const range = effRange(t);
@@ -883,6 +905,20 @@ function pickTarget(t) {
       // CURRENT HP) — this locks the boss even when it's wounded, instead of switching to a
       // full-HP tank. With no boss in range it degrades to plain 'first' (mirrors 'support').
       case 'boss':    val = (e.kind === 'boss' ? 1e7 : 0) + e.dist; break;
+      // 'cluster' (v2.53.0): pick the enemy sitting in the densest knot (most neighbours within
+      // CLUSTER_RADIUS) so an AoE tower (Cannon/Mortar/Pulsar) maximises its splash coverage — a
+      // fresh axis beside position/HP/distance/speed/kind. The nested count runs only for a
+      // cluster-mode tower's candidates (bounded enemy count), so the common path is untouched.
+      // Tie-break toward the furthest-along enemy (leak priority), with dist << any 1-neighbour gap.
+      case 'cluster': {
+        let n = 0;
+        for (const o of enemies) {
+          if (o.x === undefined || o.dead) continue;
+          if (Math.hypot(o.x - e.x, o.y - e.y) <= CLUSTER_RADIUS) n++;
+        }
+        val = n * 1e4 + e.dist;
+        break;
+      }
       default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }
@@ -992,6 +1028,10 @@ const ABSORB_CAP = 0.05;         // single-hit damage ceiling = maxHp × this (�
 // non-buff tower within it has its firing range cut 20% (effRange's `t.distorted` factor — a localized
 // `fog`), opening a coverage gap near the boss. Distinct axis from the Suppressor (fire rate vs range).
 const DISTORT_RANGE = 130;       // px reach of the range-distortion aura (matches the suppressor aura reach)
+// Nullifier boss archetype (v2.53.0, the 24th) lever: the radius of its tower-DAMAGE dampening aura. A
+// non-buff tower within it deals 25% less damage (effDmg's `t.dampened` factor ×0.75). Completes the
+// tower-debuff trio after the Suppressor (fire rate) and Distorter (range); 🔰 Hardened Circuits negates it.
+const NULLIFY_RANGE = 130;       // px reach of the damage-dampening aura (matches the suppressor/distorter reach)
 // Custodian boss archetype (v2.35.0) lever: it refreshes the warden damage-shield (warded → ×0.6 / −40%)
 // on every nearby non-boss ally within this reach (×enemyMechScale, so it widens with wave depth like the
 // warden/herald/enrager auras). The shield itself reuses the warden factor in damage(); only the radius lives here.

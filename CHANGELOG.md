@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.53.0 — 2026-07-17 — Cluster targeting mode, Nullifier boss (24th), F speed hotkey
+
+**Type:** Minor (feature/content). Suite green. FEEDBACK PENDING empty; picked from ROADMAP + own ideas (targeting/enemy/QoL). Baseline confirmed green (1987/0) on the clean pull before any edit. 5 versions since the last health check (v2.47.1) — a normal run.
+
+- **💠 Cluster targeting mode (9th mode):** a new per-tower target priority — aims at the enemy sitting in the densest knot (most neighbours within `CLUSTER_RADIUS` 55px), so AoE towers (Cannon/Mortar/Pulsar) maximise their splash coverage. A pure priority axis (raises no stat), auto-wired into the shop/cycle/settings/save via `MODES`/`MODE_ICON`. Tie-breaks toward the furthest-along enemy. Test group `[195]`.
+- **🚫 Nullifier boss archetype (24th, first at w135):** completes the tower-debuff **trio** — a continuous DAMAGE-dampening aura (−25% via `effDmg`'s `t.dampened`), the `effDmg` sibling of the Suppressor (`effRate`) and Distorter (`effRange`). Distinct felt effect: softer shots are eaten harder by flat armor, so it checks low-per-hit builds. Bounded/"too easy"-safe: adds no HP/speed, damage only shrinks, buff towers immune, decays off, freeze pauses it, and 🔰 Hardened Circuits (desc updated) negates all three dampening auras. Brick-red aura + tower ring, `NULLIFYING` badge, 🚫 Bestiary entry. Test group `[197]`.
+- **⌨️ F speed hotkey (QoL):** press F to cycle game speed 1×→2×→3×→1× (mirrors the ⏩ button; joins the U/S/D/A hotkey family). `.hint` updated. Test group `[196]`.
+
 ## v2.52.0 — 2026-07-16 — Arc tower (12th), Pinball badge, wave-preview tooltips
 
 **Type:** Minor (feature/content). Suite green. FEEDBACK PENDING empty; picked from ROADMAP (the flagged "Arc/chain tower" run).

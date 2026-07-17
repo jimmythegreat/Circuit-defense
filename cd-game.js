@@ -218,7 +218,7 @@ function enemyTemplate(w) {
 // (w120 → accelerator, w125 → cleanser, w130 → adaptive, w135 wraps to regen). The cycle length reads
 // BOSS_ARCHETYPES.length below, so a new archetype only needs adding here plus its handlers. KEEP IN
 // SYNC with the update()/render() and damage() handlers (cd-update.js / cd-render.js) and the wave-preview note below.
-const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian', 'veil', 'accelerator', 'cleanser', 'adaptive'];
+const BOSS_ARCHETYPES = ['regen', 'summoner', 'bulwark', 'enrager', 'teleporter', 'berserker', 'disruptor', 'juggernaut', 'siphon', 'hydra', 'revenant', 'conduit', 'warper', 'fortifier', 'warlord', 'suppressor', 'absorber', 'distorter', 'custodian', 'veil', 'accelerator', 'cleanser', 'adaptive', 'nullifier'];
 // Enemy COUNT for a wave (v2.33.0, owner FEEDBACK "make the game way harder as the levels
 // progress, especially endless" — the body-count slice that follows the v2.31.0 HP ramp and
 // v2.32.0 ability/aura scaling). Base grows the same unbounded linear line it always has; the
@@ -791,6 +791,10 @@ function effDmg(t) {
   if (t.spec === 'focus') d *= 1.35;     // Laser Focusing Array
   if (t.spec === 'pulsepower') d *= 1.4; // Pulsar Overload
   if (modIs('surge')) d *= 1.3;
+  // Nullifier boss aura (v2.53.0): −25% damage while in its field (the effDmg sibling of the
+  // Suppressor's rate throttle and the Distorter's range cut). 🔰 Hardened Circuits negates it
+  // (gated on !auraImmune), like the other two dampening auras. Run-only `dampened`, never persisted.
+  if (t.dampened > 0 && !perkState.auraImmune) d *= 0.75;
   // Last Stand legendary (v1.22.0): comeback damage scaling with lives lost this run.
   if (perkState.lastStand) d *= 1 + Math.min(0.6, 0.03 * perkState.livesLost);
   // Glass Cannon legendary (v1.32.0): +50% damage (paired with a −30% range cut in effRange).
@@ -966,6 +970,10 @@ document.addEventListener('keydown', e => {
   // 'A' toggles auto-wave (v2.50.0 QoL — mirrors the 🔁 Auto-wave button; no tower selection needed).
   // toggleAuto() self-manages the button label/timer, so this is a safe standalone toggle in-game.
   if (e.key === 'a' || e.key === 'A') { toggleAuto(); return; }
+  // 'F' cycles game speed 1×→2×→3×→1× (v2.53.0 QoL — mirrors the ⏩ speed button; no selection
+  // needed). toggleSpeed() persists cd_speed + syncs the button label, so it's a safe standalone
+  // toggle. F isn't an ability (q/w/e/r/t/y) or tower (1-0) or other hotkey, so no clash.
+  if (e.key === 'f' || e.key === 'F') { toggleSpeed(); return; }
   if (e.key === 'q' || e.key === 'Q') triggerAbility('meteor');
   if (e.key === 'w' || e.key === 'W') triggerAbility('freeze');
   if (e.key === 'e' || e.key === 'E') triggerAbility('rush');

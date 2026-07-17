@@ -6541,7 +6541,7 @@ async function main() {
                diedSecond, revivesWhileFrozen, controlDiesOnce, badgeOk,
                archCount: BOSS_ARCHETYPES.length };
     });
-    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 23);
+    check('revenant is the 11th archetype (w70)', r.inRotation && r.archCount === 24);
     check('conduit follows revenant (w75 → conduit)', r.wrapsAt75);
     check('revenant survives the first lethal hit', r.survivedFirst);
     check('revenant reboots at exactly 35% max HP', r.revivedAt35);
@@ -7906,7 +7906,7 @@ async function main() {
       return { inRotation, wrapsAt80, archCount, mathOk, guardCounts3, guardCaps5,
                guardClears, frozenDropsShield, frozenTakesFull, cappedReduction };
     });
-    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 23);
+    check('conduit is the 12th archetype (w75)', r.inRotation && r.archCount === 24);
     check('warper follows conduit (w80), fortifier at w85', r.wrapsAt80);
     check('damage reduction is −14% per escort (guard 0/3/5 → 1000/580/300)', r.mathOk);
     check('update() tick counts nearby escorts as the shield (3 near, 1 far → 3)', r.guardCounts3);
@@ -8250,7 +8250,7 @@ async function main() {
       return { inRotation, wrapsAt85, archCount, nearPulled, farUntouched, bossUnchanged,
                noEarlyPull, frozenNoPull, badgeOk };
     });
-    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 23);
+    check('warper is the 13th archetype (w80)', r.inRotation && r.archCount === 24);
     check('fortifier follows warper (w85), warlord at w90', r.wrapsAt85);
     check('a primed pulse yanks a near ally +30px forward', r.nearPulled, JSON.stringify(r));
     check('a far ally (out of range) is untouched', r.farUntouched);
@@ -8521,7 +8521,7 @@ async function main() {
       return { inRotation, wrapsAt90, archCount, capSnapped, ramped, noHpOrSpeed,
                capped, frozenHolds, armorBlunts, corrosionPersists, badgeOk };
     });
-    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 23);
+    check('fortifier is the 14th archetype (w85)', r.inRotation && r.archCount === 24);
     check('warlord follows fortifier (w90)', r.wrapsAt90);
     check('fortifier snapshots an absolute armor cap (start + FORTIFY_CAP = 50)', r.capSnapped);
     check('fortifier ramps its armor while alive (+0.5/s)', r.ramped, JSON.stringify(r));
@@ -8684,7 +8684,7 @@ async function main() {
       return { inRotation, wrapsAt95, archCount, ralliesGlobally, noHpOrSpeed, armorAdds,
                piercesRally, lapsesWithoutWarlord, frozenStopsRally, badgeOk };
     });
-    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 23);
+    check('warlord is the 15th archetype (w90)', r.inRotation && r.archCount === 24);
     check('suppressor follows warlord (w95)', r.wrapsAt95);
     check('warlord rallies the WHOLE wave globally (near + far)', r.ralliesGlobally);
     check('warlord adds no HP or speed of its own', r.noHpOrSpeed);
@@ -8843,7 +8843,7 @@ async function main() {
       return { inRotation, wrapsAt100, archCount, tagsNear, skipsFar, buffImmune, throttle,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 23);
+    check('suppressor is the 16th archetype (w95)', r.inRotation && r.archCount === 24);
     check('w100 boss is the 17th archetype (absorber)', r.wrapsAt100);
     check('a living suppressor tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not suppressed', r.skipsFar);
@@ -9723,7 +9723,7 @@ async function main() {
       return { inRotation, wrapsAt105, archCount, capLever, bigHitCapped, smallHitFull,
                freezeLiftsCap, controlUncapped, sustainedKills, noHpOrSpeed, badgeOk };
     });
-    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 23);
+    check('absorber is the 17th archetype (w100)', r.inRotation && r.archCount === 24);
     check('distorter follows absorber (w105 → distorter)', r.wrapsAt105);
     check('ABSORB_CAP lever exists (0 < cap < 1)', r.capLever);
     check('a huge single hit is capped to maxHp × ABSORB_CAP', r.bigHitCapped);
@@ -9811,7 +9811,7 @@ async function main() {
       return { inRotation, wrapsAt110, archCount, tagsNear, skipsFar, buffImmune, shrinks,
                rangeLever, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk };
     });
-    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 23);
+    check('distorter is the 18th archetype (w105)', r.inRotation && r.archCount === 24);
     check('distorter is followed by custodian (w110)', r.wrapsAt110);
     check('a living distorter tags nearby non-buff towers', r.tagsNear);
     check('out-of-range towers are not distorted', r.skipsFar);
@@ -10151,7 +10151,7 @@ async function main() {
       return { inRotation, wrapsAt115, archCount, allyWarded, farUnwarded, bossPeerFree, selfFree,
                wardedTook, cleanTook, noHpOrSpeed, lapses, frozenStops, badgeOk, rangeLever };
     });
-    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 23);
+    check('custodian is the 19th archetype (w110)', r.inRotation && r.archCount === 24);
     check('veil follows custodian (w115 → veil)', r.wrapsAt115);
     check('a living custodian wards a nearby ally', r.allyWarded);
     check('an ally outside the aura is not warded', r.farUnwarded);
@@ -10324,7 +10324,7 @@ async function main() {
       return { inRotation, wrapsAt120, archCount, allyCloaked, farUntagged, bossPeerFree, selfFree,
                sawInvuln, noHpOrSpeed, frozenStops, badgeOk, rangeLever, codexOk };
     });
-    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 23);
+    check('veil is the 20th archetype (w115)', r.inRotation && r.archCount === 24);
     check('accelerator follows veil (w120)', r.wrapsAt120);
     check('a living veil cloaks a nearby ally', r.allyCloaked);
     check('a cloaked ally periodically phases out (untargetable)', r.sawInvuln);
@@ -11093,7 +11093,7 @@ async function main() {
       return { inRotation, wrapsAt125, archCount, rampsUp, caps, movesFaster, frozenStops, noHp,
                badgeOk, codexOk, leversOk };
     });
-    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 23);
+    check('accelerator is the 21st archetype (w120)', r.inRotation && r.archCount === 24);
     check('rotation wraps after accelerator (w125 → cleanser)', r.wrapsAt125);
     check('the accelerator ramps its speed over time', r.rampsUp);
     check('the speed ramp caps at +80%', r.caps);
@@ -11227,7 +11227,7 @@ async function main() {
       return { inRotation, nextAt130, archCount, periodic, purgesSelf, purgesNear, sparesFar,
                frozenStops, noHp, badgeOk, codexOk, leverOk };
     });
-    check('cleanser is the 22nd archetype (w125)', r.inRotation && r.archCount === 23);
+    check('cleanser is the 22nd archetype (w125)', r.inRotation && r.archCount === 24);
     check('cleanser is followed by the Chameleon (w130 → adaptive)', r.nextAt130);
     check('the purge is periodic (poison persists between pulses)', r.periodic);
     check('a cleanser purges poison from itself', r.purgesSelf);
@@ -12358,7 +12358,7 @@ async function main() {
 
       const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
       const inRotation = bt(130) === 'adaptive';
-      const wrapsAt135 = bt(135) === 'regen';
+      const wrapsAt135 = bt(135) === 'nullifier';   // nullifier (24th) inserted at w135; wrap moved to w140 (v2.53.0)
       const archCount = BOSS_ARCHETYPES.length;
 
       const p0 = pointAt(0);
@@ -12394,8 +12394,8 @@ async function main() {
       backToMenu(); localStorage.removeItem('cd_save');
       return { inRotation, wrapsAt135, archCount, repeatReduced, mixFull, frozenLifts, noHp, badgeOk, codexOk, leverOk, firstHit, secondHit, mixHit };
     });
-    check('adaptive is the 23rd archetype (w130)', r.inRotation && r.archCount === 23);
-    check('rotation wraps after adaptive (w135 → regen)', r.wrapsAt135);
+    check('adaptive is the 23rd archetype (w130)', r.inRotation && r.archCount === 24);
+    check('adaptive (w130) is followed by nullifier (w135)', r.wrapsAt135);
     check('a repeated same-type hit is throttled −50%', r.repeatReduced, JSON.stringify(r));
     check('a different tower type resets to full damage', r.mixFull, JSON.stringify(r));
     check('a frozen Chameleon takes full damage (freeze lifts adaptation)', r.frozenLifts);
@@ -12944,6 +12944,177 @@ async function main() {
     check('unknown kind degrades gracefully', r.graceful);
     check('tooltip suppressed while the upgrade panel is open (strip hidden)', r.hiddenWithPanel);
     check('no console errors during tooltip test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [195] Cluster targeting mode (v2.53.0) — pick the enemy in the densest knot (most neighbours
+  // within CLUSTER_RADIUS) so an AoE tower maximises its splash coverage. A pure priority (no stat).
+  console.log('\n[195] Cluster targeting mode (densest-knot priority)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const inModes = MODES.includes('cluster');
+      const hasIcon = typeof MODE_ICON.cluster === 'string' && MODE_ICON.cluster.length > 0;
+
+      const t = { type:'gun', x: 100, y: 100, range: 9999, dmg: 10, rate: 0.5, cd: 0,
+        level: 1, baseCost: 50, invested: 50, angle: 0, mode: 'first', spec: null,
+        dealt: 0, kills: 0, buffPower: 0, flash: 0 };
+      towers = [t];
+
+      // (a) cycleMode eventually reaches 'cluster' (auto-wired from MODES).
+      selectedTower = t; t.mode = 'first';
+      let reachedCluster = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (t.mode === 'cluster') reachedCluster = true; }
+      hideUpgrade(); selectedTower = null;
+
+      // (b) pickTarget picks a member of the dense 4-knot over a lone straggler that's FURTHER along
+      //     (so plain 'first' would grab the lone one — proving cluster is a distinct axis).
+      const mk = (x, y, dist) => ({ kind:'norm', x, y, dist, hp:10, maxHp:10, dead:false, blinkInvuln:0, armor:0, frozen:0, r:10 });
+      const lone = mk(100, 500, 900);
+      const knot = [ mk(300, 100, 100), mk(320, 100, 110), mk(300, 120, 120), mk(320, 120, 130) ];
+      enemies = [lone, ...knot];
+      t.mode = 'cluster';
+      const picked = pickTarget(t);
+      const picksCluster = !!picked && knot.includes(picked);
+      t.mode = 'first';
+      const firstPicksLone = pickTarget(t) === lone;
+      const differsFromFirst = picksCluster && firstPicksLone;
+
+      const radiusLever = typeof CLUSTER_RADIUS === 'number' && CLUSTER_RADIUS > 0;
+
+      enemies = []; towers = []; backToMenu(); localStorage.removeItem('cd_save');
+      return { inModes, hasIcon, reachedCluster, picksCluster, differsFromFirst, radiusLever };
+    });
+    check("'cluster' is a registered targeting mode", r.inModes);
+    check('cluster mode has a MODE_ICON label', r.hasIcon);
+    check('cycleMode reaches cluster (auto-wired from MODES)', r.reachedCluster);
+    check('cluster targets the enemy in the densest knot', r.picksCluster);
+    check('cluster differs from first (which grabs the lone leader)', r.differsFromFirst);
+    check('CLUSTER_RADIUS lever exists', r.radiusLever);
+    check('no console errors during cluster-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [196] 'F' hotkey cycles game speed 1×→2×→3×→1× (v2.53.0 QoL — mirrors the ⏩ speed button).
+  // Only fires in-game (the keydown handler early-returns when !started).
+  console.log('\n[196] F hotkey cycles game speed');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      speed = 1;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+      const to2 = speed === 2;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true }));  // uppercase also cycles
+      const to3 = speed === 3;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+      const wrapsTo1 = speed === 1;
+      const persisted = localStorage.getItem('cd_speed') === '1';
+
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_speed'); speed = 1; backToMenu();
+      return { to2, to3, wrapsTo1, persisted };
+    });
+    check("'F' steps speed 1×→2×", r.to2);
+    check("'F' (uppercase) steps speed 2×→3×", r.to3);
+    check("'F' wraps 3×→1×", r.wrapsTo1);
+    check("'F' persists the speed pref (cd_speed)", r.persisted);
+    check('no console errors during F-hotkey test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [197] Nullifier boss (v2.53.0, the 24th archetype) — a continuous tower-DAMAGE dampening aura
+  // (−25% via effDmg's t.dampened), completing the debuff trio after the Suppressor (rate) and
+  // Distorter (range). Bounded: adds no HP/speed, buff towers immune, decays off, freeze pauses it,
+  // 🔰 Hardened Circuits negates it. Mirrors the Suppressor [126] / Distorter [139] tests.
+  console.log('\n[197] Nullifier boss (damage-dampening archetype)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+
+      // 24th archetype: appears at w135 (after adaptive at w130); the cycle wraps to regen at w135's
+      // successor — verify it's in the rotation and the archetype count grew to 24.
+      const bt = w => (buildWave(w).find(e => e.kind === 'boss') || {}).bossType;
+      const inRotation = bt(135) === 'nullifier';
+      const archCount = BOSS_ARCHETYPES.length;
+
+      const sp = pointAt(60);
+      const mkBoss = (over = {}) => Object.assign({ kind:'boss', bossType:'nullifier', hp:5000, maxHp:5000,
+        spd:0, r:24, bounty:100, color:'#f85149', armor:0, gap:1.5, dist:60, x:sp.x, y:sp.y, px:sp.x, py:sp.y,
+        slow:0, slowF:0.8, frozen:0, poison:null, flash:0 }, over);
+      const mkTower = (over = {}) => Object.assign({ type:'gun', x:sp.x, y:sp.y, dmg:TOWER_TYPES.gun.dmg,
+        rate:TOWER_TYPES.gun.rate, spec:null, level:1, kills:0, cd:0, flash:0, rankFlash:0, empT:0,
+        dampened:0, angle:0, invested:0, dealt:0, mode:'first' }, over);
+
+      // (B)+(D) the aura tags every NON-buff tower within range each frame, but never a buff tower
+      //   and never one out of range.
+      enemies.length = 0; projectiles.length = 0; towers.length = 0;
+      const near = mkTower();
+      const far  = mkTower({ x: sp.x + 400, y: sp.y });
+      const buff = mkTower({ type:'buff', x: sp.x, y: sp.y });
+      towers.push(near, far, buff);
+      enemies.push(mkBoss());
+      for (let i = 0; i < 10; i++) update(1/60);
+      const tagsNear = near.dampened > 0;
+      const skipsFar = !(far.dampened > 0);
+      const buffImmune = !(buff.dampened > 0);
+
+      // (C) a dampened tower's effDmg is exactly −25% (×0.75) vs an identical clean one.
+      const a = mkTower({ dampened: 0.3 }); const b = mkTower({ dampened: 0 });
+      const throttle = Math.abs(effDmg(a) / effDmg(b) - 0.75) < 1e-6;
+      const rangeLever = typeof NULLIFY_RANGE === 'number' && NULLIFY_RANGE > 0;
+
+      // (H) 🔰 Hardened Circuits (auraImmune) negates the dampening — full damage restored.
+      perkState.auraImmune = true;
+      const hardenedNegates = Math.abs(effDmg(a) / effDmg(b) - 1) < 1e-6;
+      perkState.auraImmune = false;
+
+      // (G) adds no HP/speed of its own (no towers present, so nothing shoots it).
+      enemies.length = 0; towers.length = 0;
+      const boss = mkBoss();
+      enemies.push(boss);
+      for (let i = 0; i < 6; i++) update(1/60);
+      const noHpOrSpeed = boss.hp === 5000 && boss.spd === 0;
+
+      // (E) the tag LAPSES once the nullifier is gone (no refresher → decays to 0).
+      enemies.length = 0; towers.length = 0;
+      const orphan = mkTower({ dampened: 0.3 });
+      towers.push(orphan);
+      for (let i = 0; i < 40; i++) update(1/60);
+      const lapsesWithoutBoss = orphan.dampened === 0;
+
+      // (F) a FROZEN nullifier stops dampening (gated block; freeze counters it).
+      enemies.length = 0; towers.length = 0;
+      const fb = mkBoss({ frozen: 5 }); const ft = mkTower();
+      towers.push(ft); enemies.push(fb);
+      for (let i = 0; i < 10; i++) update(1/60);
+      const frozenStops = ft.dampened === 0;
+
+      // badge + codex
+      const badge = bossMechanicBadge({ kind:'boss', bossType:'nullifier' });
+      const badgeOk = !!badge && badge.label === 'NULLIFYING';
+      const codexOk = CODEX_BOSSES.some(b => b.type === 'nullifier');
+
+      enemies.length = 0; pendingSpawns.length = 0; towers.length = 0;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRotation, archCount, tagsNear, skipsFar, buffImmune, throttle, rangeLever,
+               hardenedNegates, noHpOrSpeed, lapsesWithoutBoss, frozenStops, badgeOk, codexOk };
+    });
+    check('nullifier is the 24th archetype (w135)', r.inRotation && r.archCount === 24);
+    check('a living nullifier tags nearby non-buff towers', r.tagsNear);
+    check('out-of-range towers are not dampened', r.skipsFar);
+    check('buff/support towers are immune to dampening', r.buffImmune);
+    check('a dampened tower deals −25% damage (effDmg ×0.75)', r.throttle);
+    check('NULLIFY_RANGE lever exists', r.rangeLever);
+    check('Hardened Circuits negates the dampening (full damage)', r.hardenedNegates);
+    check('nullifier adds no HP or speed of its own', r.noHpOrSpeed);
+    check('dampening lapses the instant the nullifier is gone', r.lapsesWithoutBoss);
+    check('a frozen nullifier stops dampening (freeze counters it)', r.frozenStops);
+    check('boss-bar badge reads NULLIFYING', r.badgeOk);
+    check('nullifier has a Bestiary/codex entry', r.codexOk);
+    check('no console errors during Nullifier test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -158,8 +158,8 @@ const TOWER_TYPES = {
   arc:    { name:'Arc',    icon:'⚛️', cost:140, range:125, dmg:9,   rate:0.9,  color:'#b8e34b', proj:'ricochet', desc:'Bolt ricochets between foes', tip:'Fires a TRAVELLING energy bolt that ricochets to the nearest fresh enemy after each strike — up to 5 hits per bolt, leaping much farther between targets than a Tesla chain (a spread-swarm sweeper vs Tesla\'s tight-cluster zap). Damage fades a little with each hop and each foe is struck once per bolt, so it is deliberately WEAK against single tanks/bosses. Respects armor.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss', 'cluster'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss', cluster:'💠 Cluster' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
@@ -449,11 +449,12 @@ const PERKS = [
   // it just keeps the AoE strategy viable against the content built to check it. `aoePen` lives in
   // perkState (save-safe default false); a RARE, so the legendary-only resolveWildcard() skips it.
   { id:'shaped',  rarity:'rare', icon:'💣', name:'Shaped Charges',   desc:'Explosive towers pierce ⬢ Bastion blast-shells', apply:s=>s.aoePen = true },
-  // Hardened Circuits (v2.40.0): the perk pool's counter to the deep-Endless bosses that DAMPEN
-  // your defenses — the 🔵 Suppressor (v2.16.0, a fire-rate aura → +25% reload via t.suppressed in
-  // effRate) and the 🔮 Distorter (v2.30.0, a range aura → ×0.8 range via t.distorted in effRange).
-  // It makes towers IMMUNE to both auras: the two `eff*` factors are gated on `!perkState.auraImmune`,
-  // so a tower keeps its full fire rate and range even while standing in the boss's field. A fresh
+  // Hardened Circuits (v2.40.0; extended v2.53.0): the perk pool's counter to the deep-Endless bosses
+  // that DAMPEN your defenses — the 🔵 Suppressor (v2.16.0, a fire-rate aura → +25% reload via
+  // t.suppressed in effRate), the 🔮 Distorter (v2.30.0, a range aura → ×0.8 range via t.distorted in
+  // effRange) and the 🚫 Nullifier (v2.53.0, a damage aura → ×0.75 dmg via t.dampened in effDmg).
+  // It makes towers IMMUNE to all three: each `eff*` factor is gated on `!perkState.auraImmune`,
+  // so a tower keeps its full fire rate, range and damage even while standing in the boss's field. A fresh
   // COUNTER-CONTENT axis (the sibling of 🔌 Surge Protector vs jamming and 💣 Shaped Charges vs the
   // Bastion shell) and a meaningful situational pick — it does nothing in a run without those bosses
   // (both first appear deep in Endless, w95/w105). Deliberately "too easy"-safe: it adds ZERO
@@ -463,7 +464,7 @@ const PERKS = [
   // Object.assign(freshPerkState(), s.perkState) — old saves default false). A RARE, so the
   // legendary-only resolveWildcard() skips it. upgradeKey() hashes effRate/effRange so the panel
   // live-updates. Test group [158].
-  { id:'hardened',rarity:'rare', icon:'🔰', name:'Hardened Circuits', desc:'Towers ignore boss fire-rate & range dampening auras', apply:s=>s.auraImmune = true },
+  { id:'hardened',rarity:'rare', icon:'🔰', name:'Hardened Circuits', desc:'Towers ignore boss fire-rate, range & damage dampening auras', apply:s=>s.auraImmune = true },
   // Spectral Sight (v2.41.0): the perk pool's counter to the whole INTANGIBILITY axis — the 👻 phantom
   // enemy, the 🫥 Cloaking Field mod, the ✦ Teleporter boss, and the 🫥 Veil boss's cohort-cloak all
   // use the same `blinkInvuln` "briefly untargetable + immune" window. This makes your towers see
