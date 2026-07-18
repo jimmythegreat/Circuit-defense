@@ -15,6 +15,17 @@ _None currently known._ (Add any here as found — top priority.)
 
 ## OPEN — pick from here (not in priority order; FEEDBACK.md overrides)
 
+### [refactor] — do this in a NORMAL run soon (raised by health check v2.53.1)
+- [ ] **Split `cd-update.js` → `cd-combat.js`** — now **1371 lines**, i.e. "nearing ~1400" — the trigger this
+      file's own watch item set (it was 1235 at the v2.47.1 health check: **+136 lines in 6 runs**, ~23/run,
+      driven by each new boss archetype's tick block + fire-path perk lines). At that rate it breaches the
+      ~1500 cap in ~5 runs. Move the **combat helpers** (`pickTarget`/`effSpeed`/`fireChain`/`fireRail`/
+      `fireBeam`/`firePulse`/`ricochetNext`/`hitEnemy`/`damage`) into a new `cd-combat.js` loaded **after**
+      cd-update.js and **before** cd-endgame.js, leaving cd-update.js as just the per-frame `update()` sim.
+      Same domain-split pattern that produced cd-endgame.js (v2.15.2). **Its own run, ZERO behaviour change**
+      per the guardrail: identical suite green before/after, plus HTML script tag, `sw.js` precache list,
+      the test harness's file list, and CLAUDE.md's load-order map updated in the same run.
+
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger
       lift: needs multi-path enemy distribution + targeting/`distToPath` over >1 path. Its own run.
@@ -55,7 +66,7 @@ _None currently known._ (Add any here as found — top priority.)
       after ⚕️ Medic Surge v2.47.0 [181] — heal-aura escort surge; ⏩ Blitz v2.36.0 [147]; ⚑ Herald Surge
       v2.35.0 [144]; most axes covered, so prefer the path-swap idea over another stat-scaler/escort-surge.)
 - [x] **In-game Bestiary / Codex** — DONE v2.26.0 [136] (enemies + boss powers) + **v2.28.0** (🛡 Towers
-      section: all 11 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
+      section: all 12 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
       start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
       per tower. **Mid-run access DONE v2.37.0 [150]** — a 📖 Codex button in the in-game controls + a `C`
       hotkey open it during a run (auto-pauses; closing resumes). A boss-bar / upgrade-panel deep-link to the
@@ -135,13 +146,12 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **~12,165 lines (182 groups, 1869
-      assertions)**, by far the largest file in the repo, growing ~55 lines/run. Could split per-group into
-      `tests/groups/*.mjs` with a small runner. Dev-only, suite green ~35s. Worth doing before it doubles.
-- [ ] **Watch: `cd-update.js` size** — largest game file at **1235 lines** (vs the ~1500 cap), growing
-      ~15-25 lines per new boss archetype (its per-frame tick block). Comfortable headroom (~10+ more
-      archetypes), but if it nears ~1400, split the combat helpers (pickTarget/fire*/hitEnemy/damage) into
-      a `cd-combat.js` — the same domain-split pattern that produced cd-endgame.js (v2.15.2).
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **13,134 lines (193 groups, 2012
+      assertions)** (health check v2.53.1; was ~12,165/182/1869 at v2.47.1 → ~160 lines/run). By far the
+      largest file in the repo. Could split per-group into `tests/groups/*.mjs` with a small runner.
+      Dev-only, suite green in ~70s, no flakiness observed. Worth doing before it doubles.
+- [x] **Watch: `cd-update.js` size** — trigger REACHED at health check v2.53.1 (1371 lines). Promoted to the
+      `[refactor]` section at the top of this file; do it in a normal run.
 - [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
       ~~spec selection at L5~~ DONE v2.39.0 [157]; ~~mayhem path-shift on resume~~ DONE v2.40.0 [160]
       (resumed Mayhem run regenerates the path, relocates towers, restores wave/towers, drives a wave).
@@ -191,7 +201,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 28 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176]);
-  cost rework v1.38.0 [55]. 38 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 46 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -200,7 +210,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🪐 Astral v2.42.0 [166] — reach wave 150 in a run (the rung above Eternity);
   + 😰 Clutch + 🎗️ Old Guard v2.43.0 [168] — win with ≤3 lives / hold 3 Legend-rank towers at once;
   + 🎰 Jackpot + 🧊 Absolute Zero v2.44.0 [171] — collect 3 legendary perks / freeze 12+ in one cast;
-  + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast all 5 abilities in a run;
+  + 🐺 Lone Wolf + 🎴 Full House v2.45.0 [175] — win with ≤3 towers / cast every ability in a run (6 since v2.48.0);
   + 🛡️ Ironclad v2.46.0 [177] — block 5+ leaks with Barrier in a single run;
   + 🌋 Annihilator + 🦣 Big Game Hunter v2.47.0 [182] — deal 10M lifetime damage / defeat 5 bosses in a run;
   + 💥 Carpet Bomb v2.48.0 [184] — kill 12+ enemies with a single Meteor;
@@ -247,7 +257,16 @@ touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.4
 (v1.19.0 [37]) + draft (v1.20.0 [38]) · colorblind aid (v1.18.0 [36]) · reduced-motion (v1.10.0) · volume slider
 (v1.13.2 [25]) · high-DPI scaling (v1.17.0 [35]) · high-contrast mode (v2.38.0 [151]) · settings persistence
 (shake/particles/grid/colorblind/high-contrast/vol/speed/default-mode/auto-wave [v2.38.0 153]).
-_New table-stakes can be added here as the bar rises._
+**Re-audited v2.53.1** — every item above still present and working; `sw.js` cache version tracks
+`GAME_VERSION` (test [49]); all five `JSON.parse` storage reads are try/catch-guarded, so a corrupted
+`cd_save`/`cd_meta`/`cd_daily_streak` degrades to defaults instead of a white screen.
+_New table-stakes can be added here as the bar rises:_
+- [ ] **Screen-reader announcements** — the only a11y gap left. Menus/draft have keyboard nav + focus
+      traps, but in-game events (wave start, life lost, boss spawn, badge unlock) are canvas-only and
+      silent to assistive tech. A tiny `aria-live="polite"` div fed from the existing `addFloater`
+      call sites would cover it. Low effort, no gameplay/save impact.
+- [ ] **Key rebinding** — the hotkey set is now large (1–0, Q/W/E/R/T/Y, U/S/D/A/F/C, Space, Esc, Enter)
+      and entirely fixed. A Settings remap row (persisted `cd_keys`, additive) is the natural follow-up.
 
 ### Tech / tooling (done)
 - Domain-split into 7 `cd-*.js` classic scripts v1.8.1/v1.8.2 [12] (NEVER ES modules). GitHub Actions CI v1.71.1

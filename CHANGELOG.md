@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.53.1 — 2026-07-18 — 🩺 Health check — all green (2012/0, docs coherent, one refactor queued)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.47.1: v2.48.0, v2.49.0, v2.50.0, v2.51.0, v2.52.0, v2.53.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)
+
+- **Suite:** green on the clean pull, 2012/0 across 193 groups, exit 0, zero console errors.
+- **Refactor audit:** all 8 game files under the ~1500 cap, but **`cd-update.js` reached 1371 lines** (1235 at v2.47.1 → ~23 lines/run, breaching the cap in ~5 runs). Its own watch item said to split once it "nears ~1400" — that threshold is now met, so it's **promoted to a `[refactor]` entry at the top of ROADMAP** (move the combat helpers to a new `cd-combat.js`; its own run, zero behaviour change). `tests/run-tests.mjs` now 13,134 lines / 193 groups / 2012 assertions (~160 lines/run); split still open. No dead code, debug logging or TODOs found.
+- **Docs coherence:** fixed 7 stale figures — CLAUDE.md's Codex note (21→24 archetypes) and Full House gloss (5→every ability); ROADMAP's Codex towers (11→12), achievements (38→46), Full House, and both size-watch entries. Every headline number re-verified against the code: 12 towers, 6 abilities, 28 talents, 46 badges, 23 wave mods, 24 archetypes, 9 targeting modes, 14 enemy kinds, 4 difficulties, 8 maps. `GAME_VERSION` / `sw.js` cache / CHANGELOG all consistent.
+- **Integrity:** live-verified `file://` double-click play (0 console errors) and that an ancient minimal `cd_save`/`cd_meta` (no perkState/gameTime/endless/mapTheme/achievements/stats/newer abilities) migrates to defaults, resumes at the right wave with correct tower stats, and drives a wave clean. All 5 `JSON.parse` storage reads confirmed try/catch-guarded.
+- **Table-stakes:** re-audited — all previously-complete items intact. Two new gaps logged to ROADMAP: screen-reader `aria-live` announcements for in-game events (the last a11y hole), and key rebinding (the hotkey set has outgrown being fixed).
+
 ## v2.53.0 — 2026-07-17 — Cluster targeting mode, Nullifier boss (24th), F speed hotkey
 
 **Type:** Minor (feature/content). Suite green. FEEDBACK PENDING empty; picked from ROADMAP + own ideas (targeting/enemy/QoL). Baseline confirmed green (1987/0) on the clean pull before any edit. 5 versions since the last health check (v2.47.1) — a normal run.
