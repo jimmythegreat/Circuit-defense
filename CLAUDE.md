@@ -1,6 +1,6 @@
 # Circuit Defense
 
-A browser tower defense game. **The game is `tower-defense.html` (markup) + `tower-defense.css` (styles) + eight domain-split JS files (v1.8.2; cd-endgame.js split off cd-update.js v2.15.2).** Everything is wired with classic `<link rel="stylesheet">` and `<script src>` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
+A browser tower defense game. **The game is `tower-defense.html` (markup) + `tower-defense.css` (styles) + nine domain-split JS files (v1.8.2; cd-endgame.js split off cd-update.js v2.15.2; cd-combat.js split off cd-update.js v2.53.2).** Everything is wired with classic `<link rel="stylesheet">` and `<script src>` tags — **NEVER ES modules** (`type="module"` breaks `file://`). No build step, no dependencies, no assets, no network: double-click `tower-defense.html` to play offline. All graphics are canvas-drawn, all sound is synthesized via WebAudio (oscillators + filtered white noise).
 
 ## Design pillars (north-star — what the game should always FEEL like)
 
@@ -26,16 +26,17 @@ These describe *feel*, not theme (the visual/narrative theme may drift). When in
 3. `cd-defs.js` — `TALENTS`/`loadMeta`/meta, `TOWER_TYPES`/`MODES`/`SPECS`, `ABILITIES`, `PERKS`/`REPEATABLE`/`openDraft`
 4. `cd-state.js` — run state globals, kill-combo vars, `saveRun`/`loadRun`/`resetState`
 5. `cd-game.js` — start screen/`beginGame`, enemies/`startWave`, shop, upgrade panel, `eff*` stats, input listeners
-6. `cd-update.js` — `update()` (the per-frame sim: enemy AI, spawners, abilities) + combat (`pickTarget`/`fireChain`/`fireRail`/`fireBeam`/`hitEnemy`/`damage`)
-7. `cd-endgame.js` — end-of-run + meta UI (split from cd-update.js v2.15.2): `ACHIEVEMENTS`/`grantAchievements`, daily streak, `recordBest`/`applyRecordFlourish`/`recordScores`, Settings panel, `computeScore`/`scoreGrade`/`renderEndScreen`, `endGame`/`winGame`/`nextLevel`/`quitRun`/`continueEndless`
-8. `cd-render.js` — `draw()`, the rAF `loop`, and the startup init calls (`loadMeta`/`buildPath`/`renderStartScreen`/`resetState`/`setActiveUI`/`initWhatsNew`/`requestAnimationFrame(loop)`)
+6. `cd-update.js` — `update()` (the per-frame sim: enemy AI, boss-archetype ticks, spawners, abilities, the tower-fire loop) + the boss-archetype tick levers those blocks read (`FORTIFY_*`/`SUPPRESS_RANGE`/`DISTORT_RANGE`/`NULLIFY_RANGE`/`CUSTODIAN_RANGE`/`VEIL_RANGE`/`ACCEL_*`/`CLEANSE_RANGE`)
+7. `cd-combat.js` — targeting + every damage-resolution path (split from cd-update.js v2.53.2, which had reached 1371 lines): `effSpeed`/`pickTarget`, `fireChain`/`fireRail`/`fireBeam`/`firePulse`/`ricochetNext`, `hitEnemy`, `damage`, plus the levers `damage()` reads (`WARLORD_ARMOR`/`ABSORB_CAP`/`ADAPT_REDUCTION`) and `CLUSTER_RADIUS`/`BEAM_CHARGE_*`/`ARC_*`. **`update()` only calls these at frame time, so loading after cd-update.js is safe.**
+8. `cd-endgame.js` — end-of-run + meta UI (split from cd-update.js v2.15.2): `ACHIEVEMENTS`/`grantAchievements`, daily streak, `recordBest`/`applyRecordFlourish`/`recordScores`, Settings panel, `computeScore`/`scoreGrade`/`renderEndScreen`, `endGame`/`winGame`/`nextLevel`/`quitRun`/`continueEndless`
+9. `cd-render.js` — `draw()`, the rAF `loop`, and the startup init calls (`loadMeta`/`buildPath`/`renderStartScreen`/`resetState`/`setActiveUI`/`initWhatsNew`/`requestAnimationFrame(loop)`)
 
 When adding code, drop it in the file whose domain it matches; new globals are visible everywhere as long as the file defining them loads before any top-level code that runs them (function bodies are fine anywhere — they resolve at call time).
 
 ## Running / testing
 
 - Dev server: `.claude/launch.json` defines a `game` config (`python -m http.server 8123`). Use the preview tools and navigate to `/tower-defense.html`. (Note: `preview_screenshot` tends to time out because the rAF render loop keeps the page busy — verify state with `preview_eval`/`preview_snapshot` instead.)
-- **Automated test harness lives in `tests/`** (Node + Playwright, dev-only — the shipped game is just the raw files: `tower-defense.html` + `tower-defense.css` + the eight `cd-*.js` files + the PWA trio, no build step). Run with `cd tests && npm install && npx playwright install chromium && npm test`; exit code 0 = green. It drives the real `tower-defense.html` headlessly via an injected in-page driver: `__cdGodTowers(n)` pushes near-invincible towers, `__cdDrive({maxWave, cap})` runs the sim with `update(1/60)` to a wave boundary or game end, auto-picking drafts. Use the `check(...)` helper for assertions; add one whenever you add behavior. Before committing, spawn a subagent to run `npm test`.
+- **Automated test harness lives in `tests/`** (Node + Playwright, dev-only — the shipped game is just the raw files: `tower-defense.html` + `tower-defense.css` + the nine `cd-*.js` files + the PWA trio, no build step). Run with `cd tests && npm install && npx playwright install chromium && npm test`; exit code 0 = green. It drives the real `tower-defense.html` headlessly via an injected in-page driver: `__cdGodTowers(n)` pushes near-invincible towers, `__cdDrive({maxWave, cap})` runs the sim with `update(1/60)` to a wave boundary or game end, auto-picking drafts. Use the `check(...)` helper for assertions; add one whenever you add behavior. Before committing, spawn a subagent to run `npm test`.
 - **The game loop runs on `requestAnimationFrame`, so it pauses when the tab is hidden.** Headless testing through preview_eval must drive the simulation manually: call `update(1/60)` in a loop instead of waiting wall-clock time.
 - Standard test recipe (via preview_eval):
   1. `beginGame()` (set `gameMode`/`mapKey`/`diffKey` first), give `gold`, push tower objects directly into `towers`
@@ -45,7 +46,14 @@ When adding code, drop it in the file whose domain it matches; new globals are v
 - Synthetic canvas clicks must set real `clientX/clientY` relative to `cv.getBoundingClientRect()` — the click handler recomputes coords from the event.
 - **Always clean up test data afterwards**: remove localStorage keys `cd_save`, `cd_meta`, `cd_campaign`, `cd_best_easy/normal/hard`, reset `meta = {chips:0, talents:{}}; loadMeta()`, and call `backToMenu()` so the user starts fresh.
 
-## Architecture (code split across the eight `cd-*.js` files above)
+## Architecture (code split across the nine `cd-*.js` files above)
+
+> **Note (v2.53.2):** many notes below still say a combat helper "lives in cd-update.js" — since the
+> v2.53.2 split, **`pickTarget`/`effSpeed`/`fireChain`/`fireRail`/`fireBeam`/`firePulse`/`ricochetNext`/
+> `hitEnemy`/`damage` (and anything described as being "in `damage()`" or "in the kill block") live in
+> `cd-combat.js`**. Everything described as being in `update()`'s enemy loop, the tower-fire loop, or a
+> boss-archetype tick block is still in `cd-update.js`. Both share one global scope, so behaviour is
+> unchanged; only the file name in those parentheticals is stale.
 
 Rough section order in the file:
 

@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.53.2 — 2026-07-19 — 🧹 Refactor: split the combat helpers out of `cd-update.js`
+
+**Type:** Refactor run (patch bump). **ZERO behaviour change** per the guardrail — no balance, feature or save edits smuggled in. Suite confirmed green on the clean pull (2012/0) *before* any edit and green again after (2017/0, +5 new split guards). FEEDBACK PENDING empty; this is the `[refactor]` item the v2.53.1 health check promoted to the top of ROADMAP.
+
+- **New `cd-combat.js` (9th game file, loads after `cd-update.js`, before `cd-endgame.js`):** `cd-update.js` had reached 1371 lines (~23/run, breaching the ~1500 cap in ~5 runs). Its combat half moved verbatim — `effSpeed`/`pickTarget` (targeting), `fireChain`/`fireRail`/`fireBeam`/`firePulse`/`ricochetNext` (the instant-resolve + ricochet fire paths), `hitEnemy` (projectile impact) and `damage` (the single armor/shield/kill-credit/bounty resolution) — leaving `cd-update.js` as just the per-frame `update()` sim. Same domain-split pattern as `cd-endgame.js` (v2.15.2). **cd-update.js 1371 → 907, cd-combat.js 478.**
+- **Levers filed with their consumer:** the boss-archetype tick levers read only by `update()`'s enemy loop (`FORTIFY_*`, `SUPPRESS_RANGE`, `DISTORT_RANGE`, `NULLIFY_RANGE`, `CUSTODIAN_RANGE`, `VEIL_RANGE`, `ACCEL_*`, `CLEANSE_RANGE`) moved up into `cd-update.js`; the ones read by `damage()` (`WARLORD_ARMOR`, `ABSORB_CAP`, `ADAPT_REDUCTION`) stayed with it in `cd-combat.js`. Classic scripts share one global scope and `update()` only calls these at frame time, so load order stays safe.
+- **Wiring updated in the same run:** the HTML `<script src>` list, `sw.js`'s precache array + cache version, the test harness's `JS_FILES`, and CLAUDE.md's load-order map. The Pages workflow copies `cd-*.js` by glob, so it needed no change.
+- **New guards (group `[12]`):** `cd-combat.js` executed (all 9 combat globals present), the helpers are defined there, and `cd-update.js` no longer defines them — so a future run can't silently slide them back and re-grow the file.
+
 ## v2.53.1 — 2026-07-18 — 🩺 Health check — all green (2012/0, docs coherent, one refactor queued)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 entries since the last health check v2.47.1: v2.48.0, v2.49.0, v2.50.0, v2.51.0, v2.52.0, v2.53.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)

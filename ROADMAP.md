@@ -15,16 +15,15 @@ _None currently known._ (Add any here as found — top priority.)
 
 ## OPEN — pick from here (not in priority order; FEEDBACK.md overrides)
 
-### [refactor] — do this in a NORMAL run soon (raised by health check v2.53.1)
-- [ ] **Split `cd-update.js` → `cd-combat.js`** — now **1371 lines**, i.e. "nearing ~1400" — the trigger this
-      file's own watch item set (it was 1235 at the v2.47.1 health check: **+136 lines in 6 runs**, ~23/run,
-      driven by each new boss archetype's tick block + fire-path perk lines). At that rate it breaches the
-      ~1500 cap in ~5 runs. Move the **combat helpers** (`pickTarget`/`effSpeed`/`fireChain`/`fireRail`/
-      `fireBeam`/`firePulse`/`ricochetNext`/`hitEnemy`/`damage`) into a new `cd-combat.js` loaded **after**
-      cd-update.js and **before** cd-endgame.js, leaving cd-update.js as just the per-frame `update()` sim.
-      Same domain-split pattern that produced cd-endgame.js (v2.15.2). **Its own run, ZERO behaviour change**
-      per the guardrail: identical suite green before/after, plus HTML script tag, `sw.js` precache list,
-      the test harness's file list, and CLAUDE.md's load-order map updated in the same run.
+### [refactor]
+- [x] **Split `cd-update.js` → `cd-combat.js`** — DONE v2.53.2 [12]. The combat helpers (`effSpeed`/
+      `pickTarget`/`fireChain`/`fireRail`/`fireBeam`/`firePulse`/`ricochetNext`/`hitEnemy`/`damage`) moved
+      verbatim into a new `cd-combat.js` (9th game file, loads after cd-update.js / before cd-endgame.js),
+      leaving cd-update.js as just the per-frame `update()` sim: **1371 → 907 lines**, cd-combat.js 478.
+      Zero behaviour change (2012/0 green before, 2017/0 after with 5 new anti-regression guards).
+      **New size watch:** cd-update.js now has ~590 lines of headroom (~25 runs at the historic ~23/run,
+      though the fire-path perk lines now land in cd-combat.js instead). `cd-render.js` (1191) is now the
+      largest game file — next split candidate if it nears ~1400.
 
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger

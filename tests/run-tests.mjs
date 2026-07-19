@@ -710,7 +710,7 @@ async function main() {
     const html = readFileSync(resolve(ROOT, 'tower-defense.html'), 'utf8');
     // The ordered JS domain files (load order is dependency order — do not reorder).
     const JS_FILES = ['cd-core.js', 'cd-maps.js', 'cd-defs.js', 'cd-state.js',
-                      'cd-game.js', 'cd-update.js', 'cd-endgame.js', 'cd-render.js'];
+                      'cd-game.js', 'cd-update.js', 'cd-combat.js', 'cd-endgame.js', 'cd-render.js'];
     check('tower-defense.css file exists', existsSync(resolve(ROOT, 'tower-defense.css')));
     check('old monolithic tower-defense.js is gone', !existsSync(resolve(ROOT, 'tower-defense.js')));
     for (const f of JS_FILES) {
@@ -753,6 +753,22 @@ async function main() {
       typeof endGame === 'function' && typeof grantAchievements === 'function' &&
       typeof renderEndScreen === 'function' && Array.isArray(ACHIEVEMENTS));
     check('cd-endgame.js executed (end-of-run + meta-UI globals present)', endgameRan);
+    // cd-combat.js (split off cd-update.js v2.53.2) executed — its targeting + damage-resolution
+    // globals are present. Same guard as above: a dropped/misordered tag would break every shot.
+    const combatRan = await page.evaluate(() => typeof pickTarget === 'function' &&
+      typeof damage === 'function' && typeof hitEnemy === 'function' &&
+      typeof fireChain === 'function' && typeof fireRail === 'function' &&
+      typeof fireBeam === 'function' && typeof firePulse === 'function' &&
+      typeof ricochetNext === 'function' && typeof effSpeed === 'function');
+    check('cd-combat.js executed (targeting + damage globals present)', combatRan);
+    // The combat helpers must live in cd-combat.js, not back in cd-update.js — this is what
+    // keeps cd-update.js under the ~1500-line cap as new archetypes/perks land.
+    const combatSrc = readFileSync(resolve(ROOT, 'cd-combat.js'), 'utf8');
+    const updateSrc = readFileSync(resolve(ROOT, 'cd-update.js'), 'utf8');
+    check('combat helpers defined in cd-combat.js',
+      /function damage\(/.test(combatSrc) && /function pickTarget\(/.test(combatSrc));
+    check('cd-update.js no longer defines the combat helpers',
+      !/function damage\(/.test(updateSrc) && !/function pickTarget\(/.test(updateSrc));
     check('no console errors with split files', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
