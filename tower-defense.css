@@ -149,6 +149,9 @@
   #codexPanel .cdxNote { color: #8b949e; font-size: 12px; margin: 3px 0 0; text-align: left; }
   .cdxList { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; }
   .cdxRow { display: flex; align-items: flex-start; gap: 11px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 7px 11px; }
+  /* Deep-linked row (v2.54.0): the boss archetype you are facing right now, when the codex is
+     opened mid-run. Gold rail + tint, matching the Records "latest PB" spotlight language. */
+  .cdxRow.cdxHere { border-color: #e3b341; background: #1d1a11; box-shadow: 0 0 0 1px rgba(227,179,65,.35), 0 0 14px rgba(227,179,65,.18); }
   .cdxDisc { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; color: #0d1117; font-weight: bold; }
   .cdxText { display: flex; flex-direction: column; gap: 1px; }
   .cdxText b { color: #e6edf3; font-size: 14px; }
@@ -658,3 +661,9 @@
     button.ctl { padding: 6px 10px; font-size: 12px; flex: 0 0 auto; }
     .hint { display: none; }
   }
+
+/* Visually-hidden live region for screen-reader announcements (v2.54.0). Off-screen but
+   still rendered, so assistive tech reads it; `display:none` / `visibility:hidden` would
+   silence it. Nothing else in the game uses this class. */
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+          overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

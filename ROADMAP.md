@@ -38,8 +38,9 @@ _None currently known._ (Add any here as found — top priority.)
       (`proj:'ricochet'`) exactly per the design note — hops to the nearest unhit enemy within 150px
       (vs Tesla's 90px instant chain), 5 hits/bolt at 0.85 falloff, low base dmg → spread-swarm sweeper.
       Specs Ball Lightning (+2 hops) / Magnet Coil (seek ×1.6); mastery_arc; 🪩 Pinball Wizard badge.
-      Sim: mid-pack at equal gold (w11–12 vs Tesla w10 / Cannon w13). Possible follow-up: a bolt-render
-      flourish (zigzag tracer between hops) — the generic orb+trail is used for now.
+      Sim: mid-pack at equal gold (w11–12 vs Tesla w10 / Cannon w13). ~~Follow-up: a bolt-render flourish
+      (zigzag tracer between hops)~~ DONE v2.54.0 [200] — each hop draws a jagged bolt from the struck enemy
+      to the next, reusing the tesla beam render path (render-only, never serialized).
 - [ ] **Tower spec follow-ups** — (a *charge-up* mechanic now exists via the 🔆 Laser tower v2.9.0);
       ~~explosion-penetration vs ⬢ Bastion~~ (DONE as the 💣 Shaped Charges *perk* v2.8.0 [120]; a *spec*
       version is still open if wanted); ~~a counter to blinkers (phantom/cloak/teleporter/veil)~~ (DONE as
@@ -60,7 +61,10 @@ _None currently known._ (Add any here as found — top priority.)
       ability; a meta talent version of Capacitor (ability-cooldown — note: ⚡ Surge talent
       already does −6%/rank ability cd, so this would overlap); ~~a Barrier *cooldown*-shortening talent (the
       other Barrier lever, distinct from Aegis's charges)~~ (DONE as 🏯 Rampart talent v2.46.0 [176] — −10%
-      Barrier cooldown/rank, max 3); a hidden unlock condition for a secret legendary.
+      Barrier cooldown/rank, max 3); ~~a hidden unlock condition for a secret legendary~~ (DONE as 💠 **Second
+      Wind** v2.54.0 [198] — hidden from the draft AND from Wildcard until the 💎 Flawless badge is earned;
+      restores 1 life per wave cleared, capped at the run's starting lives. The generic `perkUnlocked()` /
+      `secret()` gate is reusable, so further secret perks are now cheap to add).
 - [ ] **Mayhem wave-mod follow-ups** — a genuinely new *path swap* (direction reverses). (Pool is 23 mods
       after ⚕️ Medic Surge v2.47.0 [181] — heal-aura escort surge; ⏩ Blitz v2.36.0 [147]; ⚑ Herald Surge
       v2.35.0 [144]; most axes covered, so prefer the path-swap idea over another stat-scaler/escort-surge.)
@@ -68,8 +72,9 @@ _None currently known._ (Add any here as found — top priority.)
       section: all 12 towers + both specs each, built live from TOWER_TYPES/SPECS so it can't drift). A
       start-menu panel with glyph/colour/first-wave + a one-line counter tip per enemy/boss + role+specs
       per tower. **Mid-run access DONE v2.37.0 [150]** — a 📖 Codex button in the in-game controls + a `C`
-      hotkey open it during a run (auto-pauses; closing resumes). A boss-bar / upgrade-panel deep-link to the
-      specific entry you're facing is a possible further follow-up.
+      hotkey open it during a run (auto-pauses; closing resumes). **Boss deep-link DONE v2.54.0 [199]** —
+      opening it while a mechanic boss is alive tints + scrolls to that archetype's row. An upgrade-panel
+      deep-link (jump to the selected tower's entry) is a possible further follow-up.
 - [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
 
 ### Balance (simulate before/after, ≤25% per number per run)
@@ -260,10 +265,10 @@ touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.4
 `GAME_VERSION` (test [49]); all five `JSON.parse` storage reads are try/catch-guarded, so a corrupted
 `cd_save`/`cd_meta`/`cd_daily_streak` degrades to defaults instead of a white screen.
 _New table-stakes can be added here as the bar rises:_
-- [ ] **Screen-reader announcements** — the only a11y gap left. Menus/draft have keyboard nav + focus
-      traps, but in-game events (wave start, life lost, boss spawn, badge unlock) are canvas-only and
-      silent to assistive tech. A tiny `aria-live="polite"` div fed from the existing `addFloater`
-      call sites would cover it. Low effort, no gameplay/save impact.
+- [x] **Screen-reader announcements** — DONE v2.54.0 [201]. A visually-hidden `aria-live="polite"`
+      `#srLive` region + an `announce()` helper (cd-core.js) narrate wave starts, leaked lives and the
+      run ending. Deliberately sparse (no per-kill chatter). *Possible follow-ups:* announce a badge
+      unlock, a boss spawn, and the perk you drafted.
 - [ ] **Key rebinding** — the hotkey set is now large (1–0, Q/W/E/R/T/Y, U/S/D/A/F/C, Space, Esc, Enter)
       and entirely fixed. A Settings remap row (persisted `cd_keys`, additive) is the natural follow-up.
 

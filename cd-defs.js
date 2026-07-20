@@ -675,7 +675,22 @@ const PERKS = [
   // loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default false). A legendary, so
   // resolveWildcard() rolls it automatically. Test group [180].
   { id:'warpath',  rarity:'legendary', icon:'🐗', name:'Warpath',          desc:'+2% tower damage per wave reached (max +40%)', apply:s=>s.warpath = true },
+  // 💠 SECOND WIND (v2.54.0) — the pool's first SECRET perk. It stays out of the draft (and out of
+  // Wildcard's roll) until the player has earned the 🛡️ Flawless achievement; `secret()` is the gate,
+  // read live from meta so it unlocks the moment that badge lands. The first perk to RESTORE lives:
+  // clearing a wave gives 1 life back, hard-capped at the run's STARTING life total (`startLives`),
+  // so it can never push you above where you began. "Too easy"-safe on the Last Stand / Phoenix
+  // rationale: a run you're already winning never lost a life, so it heals nothing — it only softens
+  // a run that is bleeding. ONE life per field clear (not per bundled wave — see endWave's note).
+  // Additive perkState field (old saves default false).
+  { id:'secondwind', rarity:'legendary', icon:'💠', name:'Second Wind',
+    desc:'Clearing the field restores 1 life (never above your starting lives)',
+    secret: () => !!(meta && meta.achievements && meta.achievements.flawless),
+    apply:s=>s.secondWind = true },
 ];
+// A perk is draftable unless it declares a `secret()` unlock gate that is not yet satisfied.
+// Used by BOTH the draft pool and resolveWildcard, so a locked perk can never leak in either way.
+function perkUnlocked(p) { return !p.secret || !!p.secret(); }
 const RARITY_LABEL = { common:'COMMON', rare:'◆ RARE', legendary:'★ LEGENDARY' };
 let perkState, runPerks, draftOpen = false;
 function freshPerkState() {
@@ -686,7 +701,7 @@ function freshPerkState() {
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
-    corrosive:false, swarmbane:false };
+    corrosive:false, swarmbane:false, secondWind:false };
 }
 function ascendTowers() {
   for (const t of towers) {
@@ -708,7 +723,7 @@ function openDraft() {
   draftOpen = true;
   document.getElementById('draftWave').textContent = wave;
   const taken = new Set(runPerks.map(p => p.id));
-  const avail = PERKS.filter(p => !taken.has(p.id) || REPEATABLE.includes(p.id));
+  const avail = PERKS.filter(p => perkUnlocked(p) && (!taken.has(p.id) || REPEATABLE.includes(p.id)));
   const opts = [];
   for (let slot = 0; slot < 3 && avail.length; slot++) {
     let rar = rollRarity();
@@ -747,7 +762,7 @@ function openDraft() {
 // legendary is already held it falls back to ANY eligible perk so a Wildcard is never a dud.
 function resolveWildcard() {
   const taken = new Set(runPerks.map(p => p.id));
-  const eligible = p => p.id !== 'wildcard' && (!taken.has(p.id) || REPEATABLE.includes(p.id));
+  const eligible = p => p.id !== 'wildcard' && perkUnlocked(p) && (!taken.has(p.id) || REPEATABLE.includes(p.id));
   let pool = PERKS.filter(p => p.rarity === 'legendary' && eligible(p));
   if (!pool.length) pool = PERKS.filter(eligible);
   if (!pool.length) return null;

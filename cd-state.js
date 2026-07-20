@@ -5,6 +5,13 @@ let gold, lives, wave, kills, towers, enemies, projectiles, particles, floaters,
 // cast / Meteor impact. Run-only, never saved; gated by particle-density + reduced-motion at source.
 let rings = [];
 let livesLostThisRun = false;
+// The life total the run STARTED with (difficulty base + Fortitude talent). Set in resetState()
+// beside `lives`; the 💠 Second Wind perk (v2.54.0) uses it as the ceiling it can regenerate to,
+// so a run can never end up with more lives than it began with. Derived, so it is NOT serialized —
+// loadRun() calls resetState() after restoring diffKey, which recomputes it from the CURRENT
+// difficulty + Fortitude rank. (Buying Fortitude ranks between quitting and resuming therefore
+// raises the ceiling slightly; player-favourable, bounded by the talent, and not worth a save field.)
+let startLives = 20;
 // Mid-run Bestiary (v2.37.0): true while the 📖 Codex panel auto-paused a live game, so
 // closeCodex() resumes only the pause IT created (never clobbers a manual pause). Pure UI
 // state, never saved; harmless if stale (closeCodex clears it).
@@ -141,6 +148,7 @@ function resetState() {
   runPerks = [];
   gold = d.gold + 25 * tRank('funding');
   lives = d.lives + 2 * tRank('fortitude');
+  startLives = lives;   // ceiling for the 💠 Second Wind perk's per-wave life regen (v2.54.0)
   wave = 0; kills = 0; gameTime = 0;
   towers = []; enemies = []; projectiles = []; particles = []; floaters = []; beams = []; rings = []; pendingSpawns = [];
   waveActive = false; spawners = []; lastSettledWave = 0; pendingDrafts = 0;

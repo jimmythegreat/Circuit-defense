@@ -158,6 +158,11 @@
 </aside>
 </div><!-- /appRow -->
 
+<!-- Screen-reader announcements (v2.54.0). The whole run happens on a canvas, which is silent
+     to assistive tech; announce() (cd-core.js) narrates wave starts, leaked lives and the run
+     ending into this visually-hidden polite live region. Purely additive — no visual change. -->
+<div id="srLive" class="srOnly" role="status" aria-live="polite" aria-atomic="true"></div>
+
 <!-- Game code, split by domain. Classic scripts (NOT modules) loaded in
      dependency order — they share global scope, so order matters. -->
 <script src="cd-core.js"></script>

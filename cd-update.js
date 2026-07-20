@@ -719,6 +719,7 @@ function update(dt) {
         shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
         addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
         SFX.life();
+        announce(`Life lost. ${Math.max(0, lives)} remaining.`);   // a11y (v2.54.0) — the leak is canvas-only otherwise
         if (lives <= 0) {
           if (perkState.phoenix && !perkState.phoenixUsed) {
             // 🌅 Phoenix (v2.15.0): cheat death once — revive and hurl the whole field back to the

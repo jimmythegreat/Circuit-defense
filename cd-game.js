@@ -519,7 +519,8 @@ function startWave() {
   rollWaveMod();
   spawners.push({ queue: buildWave(wave), timer: 0 });  // a parallel spawn stream for this wave
   waveActive = true;
-  { const wb = waveBannerFor(wave); waveBanner = { text: wb.text, color: wb.color, boss: wb.boss, t: 1 }; }  // v2.44.0 announcement
+  // v2.44.0 on-screen banner + v2.54.0 screen-reader announcement (same wording, one source).
+  { const wb = waveBannerFor(wave); waveBanner = { text: wb.text, color: wb.color, boss: wb.boss, t: 1 }; announce(wb.text); }
   autoStartTimer = -1;
   document.getElementById('startBtn').disabled = (wave - lastSettledWave >= MAX_CONCURRENT_WAVES);
   document.getElementById('startBtn').textContent =
@@ -553,6 +554,17 @@ function endWave() {
     if (w % 5 === 0 && (endless || w < victoryWave())) drafts++;
   }
   gold += totalBonus;
+  // 💠 Second Wind (v2.54.0): a field clear gives ONE life back, hard-capped at the run's STARTING
+  // life total — so it can only ever undo damage, never bank a surplus, and a full-health run heals
+  // nothing at all (the perk is dead weight until you actually start leaking). Deliberately ONE per
+  // settle, NOT one per bundled wave: endWave() settles every in-flight wave at once (up to
+  // MAX_CONCURRENT_WAVES = 8), so per-wave healing would pay 8× for the rush play pattern and erase
+  // slow attrition as a way to lose — the exact deep-Endless failure mode the uncapped lateScale
+  // (v2.31.0) exists to create. One per clear keeps it a comeback cushion, not a loss-condition removal.
+  if (perkState.secondWind && lives < startLives) {
+    lives += 1;
+    addFloater(W/2, 150, '💠 Second Wind +1❤️', '#7ee787', 16);
+  }
   const label = to > from ? `${to - from + 1} waves clear!` : 'Wave clear!';
   addFloater(W/2, 50, `${label} +${totalBonus}💰`, '#ffd866', 18);
   document.getElementById('startBtn').disabled = false;

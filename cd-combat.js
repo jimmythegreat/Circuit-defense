@@ -234,6 +234,12 @@ function ricochetNext(p, consume) {
     if (d < p.seek && d < nd) { nd = d; next = e; }
   }
   if (!next) return false;
+  // Render flourish (v2.54.0): draw a short jagged arc between the enemy just struck and the one
+  // the bolt leaps to, so a ricochet chain READS as a chain instead of an orb silently changing
+  // course. Reuses the existing non-`straight` beam path (the tesla lightning look) — no new
+  // render code, no new state. Only on a real strike (`consume`); a mid-flight free retarget has
+  // no strike point to arc from. Beams are run-only and never serialized.
+  if (consume) beams.push({ x1: p.x, y1: p.y, x2: next.x, y2: next.y, life: 0.12, color: TOWER_TYPES.arc.color });
   p.target = next;
   return true;
 }

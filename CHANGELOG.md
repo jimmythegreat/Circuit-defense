@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.54.0 — 2026-07-20 — Second Wind (secret perk), Bestiary deep-link, Arc hop tracer, screen-reader support
+
+**Type:** Minor (feature/content). Suite green (2053/0; baseline 2017/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (secret legendary, codex deep-link, Arc bolt flourish, screen-reader announcements). 2 versions since the last health check (v2.53.1) — a normal run.
+
+- **💠 Second Wind — the perk pool's first SECRET perk (legendary):** stays out of the draft *and* out of Wildcard's roll until the player has earned the 💎 Flawless achievement, then appears like any other legendary (`perkUnlocked()` gates any perk declaring a `secret()` predicate — read live from `meta`, so it unlocks the moment the badge lands). Effect: clearing the field restores **1 life**, hard-capped at the run's **starting** life total (new derived `startLives`). Deliberately one per *clear*, not per bundled wave — `endWave()` settles up to 8 in-flight waves at once, and per-wave healing would pay 8× for the rush pattern and remove slow attrition as a way to lose. "Too easy"-safe on the Last Stand / Phoenix rationale — a run you're winning never lost a life, so it heals nothing; it only softens one that's bleeding. Additive `perkState.secondWind` (old saves → false). Test group `[198]`.
+- **🔎 Bestiary deep-link to the boss you're facing:** opening the codex mid-run (📖 button / `C`) while a boss with a mechanic is alive tints its row gold and scrolls it into view, instead of dumping you at the top of 24 archetypes. Read-only; no deep-link on the menu or against a vanilla (pre-w20) boss. Test group `[199]`.
+- **⚛️ Arc ricochet hop tracer:** a strike that leaps to a fresh target now draws a jagged bolt between the two, reusing the existing tesla-lightning beam path — a ricochet chain finally *reads* as a chain rather than an orb quietly changing course. Render-only, never serialized; a free mid-flight retarget (no strike point) draws nothing. Test group `[200]`.
+- **🔊 Screen-reader announcements (the last a11y gap):** a visually-hidden `aria-live="polite"` region (`#srLive`) narrated by a new `announce()` helper covers wave starts, leaked lives and the run ending — previously all canvas-only and completely silent to assistive tech. Deliberately sparse (no per-kill chatter) and polite (queues, never interrupts); identical repeats re-announce via a toggled zero-width space. DOM-only, no gameplay/economy/save impact. Test group `[201]`.
+
 ## v2.53.2 — 2026-07-19 — 🧹 Refactor: split the combat helpers out of `cd-update.js`
 
 **Type:** Refactor run (patch bump). **ZERO behaviour change** per the guardrail — no balance, feature or save edits smuggled in. Suite confirmed green on the clean pull (2012/0) *before* any edit and green again after (2017/0, +5 new split guards). FEEDBACK PENDING empty; this is the `[refactor]` item the v2.53.1 health check promoted to the top of ROADMAP.

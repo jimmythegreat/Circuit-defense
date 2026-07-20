@@ -13134,6 +13134,211 @@ async function main() {
     await page.close();
   }
 
+  // [198] 💠 Second Wind (v2.54.0) — the pool's first SECRET perk: hidden from the draft AND from
+  // Wildcard's roll until the 💎 Flawless achievement is earned. Restores 1 life per settled wave,
+  // hard-capped at the run's STARTING life total (so it can never bank a surplus).
+  console.log('\n[198] Second Wind secret legendary (hidden unlock + capped life regen)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = PERKS.find(p => p.id === 'secondwind');
+      const exists = !!def;
+      const isLegendary = !!def && def.rarity === 'legendary';
+      const hasGate = !!def && typeof def.secret === 'function';
+      const stateDefault = freshPerkState().secondWind === false;
+
+      // Locked while the Flawless badge is missing — neither the draft pool nor Wildcard sees it.
+      meta.achievements = meta.achievements || {};
+      delete meta.achievements.flawless;
+      const lockedOut = !perkUnlocked(def);
+      const lockedPool = !PERKS.filter(perkUnlocked).some(p => p.id === 'secondwind');
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      runPerks = [];
+      let wildcardLeak = false;
+      for (let i = 0; i < 300; i++) { const g = resolveWildcard(); if (g && g.id === 'secondwind') wildcardLeak = true; }
+
+      // Unlocks the moment the badge lands (read live from meta — no reload needed).
+      meta.achievements.flawless = true;
+      const unlocks = perkUnlocked(def) && PERKS.filter(perkUnlocked).some(p => p.id === 'secondwind');
+
+      // Regen: a wounded run gets exactly 1 life back per settled wave...
+      perkState = freshPerkState();
+      def.apply(perkState);
+      const applied = perkState.secondWind === true;
+      lives = startLives - 3; wave = 3; lastSettledWave = 2;
+      endWave();
+      const healedOne = lives === startLives - 2;
+
+      // ...and it stays ONE per field clear even when several bundled waves settle at once
+      // (endWave settles lastSettledWave+1..wave; per-wave healing would pay up to 8× on a rush).
+      // (wave ranges below deliberately avoid a multiple of 5, so no draft modal opens mid-test)
+      lives = startLives - 5; wave = 9; lastSettledWave = 6;
+      endWave();
+      const oncePerSettle = lives === startLives - 4;
+
+      // ...but a full-health run heals nothing (hard cap at the STARTING total).
+      lives = startLives; wave = 12; lastSettledWave = 11;
+      endWave();
+      const cappedAtStart = lives === startLives;
+
+      // ...and without the perk nothing is restored at all.
+      perkState = freshPerkState();
+      lives = startLives - 3; wave = 14; lastSettledWave = 13;
+      endWave();
+      const inertWithoutPerk = lives === startLives - 3;
+
+      delete meta.achievements.flawless;
+      enemies = []; towers = []; backToMenu();
+      localStorage.removeItem('cd_save');
+      return { exists, isLegendary, hasGate, stateDefault, lockedOut, lockedPool, wildcardLeak,
+               unlocks, applied, healedOne, oncePerSettle, cappedAtStart, inertWithoutPerk };
+    });
+    check('Second Wind exists as a legendary perk', r.exists && r.isLegendary);
+    check('it declares a secret() unlock gate', r.hasGate);
+    check('perkState.secondWind defaults false (save-safe)', r.stateDefault);
+    check('locked while the Flawless badge is missing', r.lockedOut && r.lockedPool);
+    check('a locked secret perk never leaks through Wildcard', !r.wildcardLeak);
+    check('unlocks live once the Flawless badge is earned', r.unlocks);
+    check('apply() sets perkState.secondWind', r.applied);
+    check('clearing a wave restores 1 life when wounded', r.healedOne);
+    check('heals once per field clear, not once per bundled wave', r.oncePerSettle);
+    check('never heals above the starting life total', r.cappedAtStart);
+    check('no life is restored without the perk', r.inertWithoutPerk);
+    check('no console errors during Second Wind test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [199] Bestiary deep-link (v2.54.0) — opening the codex mid-run while a boss with a mechanic is
+  // alive highlights + scrolls to that archetype's row instead of opening at the top of 24 entries.
+  console.log('\n[199] Bestiary deep-link to the boss you are facing');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // On the start menu there is no run, so nothing is deep-linked.
+      renderCodex();
+      const menuNoHighlight = !document.getElementById('cdxHere');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const sp = pointAt(0);
+      enemies = [{ kind:'boss', bossType:'fortifier', x:sp.x, y:sp.y, dist:10, hp:500, maxHp:500,
+        dead:false, blinkInvuln:0, armor:0, frozen:0, r:24, spd:0, slow:0, poison:null, bounty:10 }];
+      openCodex();
+      const row = document.getElementById('cdxHere');
+      const highlighted = !!row && row.classList.contains('cdxHere');
+      const entry = CODEX_BOSSES.find(b => b.type === 'fortifier');
+      const namesTheBoss = !!row && !!entry && row.textContent.indexOf(entry.label) >= 0;
+      const onlyOne = document.querySelectorAll('.cdxHere').length === 1;
+      closeCodex();
+
+      // A vanilla (pre-w20) boss carries no bossType → no deep-link, panel opens at the top.
+      enemies = [{ kind:'boss', x:sp.x, y:sp.y, dist:10, hp:500, maxHp:500, dead:false,
+        blinkInvuln:0, armor:0, frozen:0, r:24, spd:0, slow:0, poison:null, bounty:10 }];
+      renderCodex();
+      const vanillaNoHighlight = !document.getElementById('cdxHere');
+
+      enemies = []; towers = []; backToMenu(); localStorage.removeItem('cd_save');
+      return { menuNoHighlight, highlighted, namesTheBoss, onlyOne, vanillaNoHighlight };
+    });
+    check('no deep-link on the start menu (no live run)', r.menuNoHighlight);
+    check('a live mechanic boss highlights its codex row', r.highlighted);
+    check('the highlighted row is the archetype being faced', r.namesTheBoss);
+    check('exactly one row is deep-linked', r.onlyOne);
+    check('a vanilla boss (no archetype) deep-links nothing', r.vanillaNoHighlight);
+    check('no console errors during codex deep-link test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [200] Arc ricochet hop tracer (v2.54.0) — a real strike that leaps to a fresh target draws a
+  // jagged beam between the two, so a ricochet chain reads as a chain. Render-only, never saved.
+  console.log('\n[200] Arc ricochet draws a bolt between hops');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const mk = (x, y) => ({ kind:'norm', x, y, dist:10, hp:100, maxHp:100, dead:false,
+        blinkInvuln:0, armor:0, frozen:0, r:10 });
+      const a = mk(200, 200), b = mk(260, 200);
+      enemies = [a, b]; beams = [];
+      const p = { x:200, y:200, target:a, struck:[], hops:2, dmg:10, seek:ARC_SEEK, crit:true, kind:'ricochet' };
+      const hopped = ricochetNext(p, true);
+      const drewBolt = beams.length === 1;
+      const bolt = beams[0] || {};
+      const spansTheHop = bolt.x1 === 200 && bolt.x2 === b.x && bolt.y2 === b.y;
+      const arcColored = bolt.color === TOWER_TYPES.arc.color;
+      const jagged = !bolt.straight;   // uses the tesla lightning render path, not the rail tracer
+
+      // A free mid-flight RETARGET (consume=false) has no strike point, so it draws nothing.
+      beams = [];
+      const q = { x:200, y:200, target:a, struck:[], hops:2, dmg:10, seek:ARC_SEEK, crit:false, kind:'ricochet' };
+      q.struck.push(a);
+      const retargeted = ricochetNext(q, false);
+      const silentRetarget = beams.length === 0;
+
+      // No fresh target in seek range → no bolt, bolt dies.
+      beams = []; enemies = [a];
+      const dead = { x:200, y:200, target:a, struck:[a], hops:2, dmg:10, seek:ARC_SEEK, crit:false, kind:'ricochet' };
+      const noHop = ricochetNext(dead, false) === false && beams.length === 0;
+
+      enemies = []; beams = []; towers = []; backToMenu(); localStorage.removeItem('cd_save');
+      return { hopped, drewBolt, spansTheHop, arcColored, jagged, retargeted, silentRetarget, noHop };
+    });
+    check('a consumed ricochet finds its next target', r.hopped);
+    check('the hop draws exactly one bolt', r.drewBolt);
+    check('the bolt spans strike point → next target', r.spansTheHop);
+    check('the bolt uses the Arc tower colour', r.arcColored);
+    check('the bolt uses the jagged (non-straight) render path', r.jagged);
+    check('a free mid-flight retarget still finds a target', r.retargeted);
+    check('a free retarget draws no bolt (no strike point)', r.silentRetarget);
+    check('no fresh target in range → no hop and no bolt', r.noHop);
+    check('no console errors during Arc tracer test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [201] Screen-reader announcements (v2.54.0) — the canvas is silent to assistive tech, so
+  // wave starts / leaked lives / the run ending are narrated into a visually-hidden live region.
+  console.log('\n[201] Screen-reader live-region announcements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const el = document.getElementById('srLive');
+      const exists = !!el;
+      const polite = !!el && el.getAttribute('aria-live') === 'polite';
+      const status = !!el && el.getAttribute('role') === 'status';
+      const box = el ? el.getBoundingClientRect() : { width: 999, height: 999 };
+      const hidden = box.width <= 2 && box.height <= 2;   // off-screen but still RENDERED (not display:none)
+      const stillRendered = !!el && getComputedStyle(el).display !== 'none';
+
+      announce('Hello tester');
+      const speaks = el.textContent.indexOf('Hello tester') >= 0;
+      // An identical repeat must still mutate textContent, or a screen reader ignores it.
+      const before = el.textContent;
+      announce('Hello tester');
+      const repeatsAudibly = el.textContent !== before && el.textContent.indexOf('Hello tester') >= 0;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      startWave();
+      const announcesWave = el.textContent.indexOf('WAVE 1') >= 0;
+      // Boss waves are announced with their own banner wording.
+      wave = 4; lastSettledWave = 4; spawners = []; enemies = []; waveActive = false;
+      startWave();
+      const announcesBoss = el.textContent.indexOf('BOSS') >= 0;
+
+      enemies = []; spawners = []; towers = []; backToMenu(); localStorage.removeItem('cd_save');
+      return { exists, polite, status, hidden, stillRendered, speaks, repeatsAudibly, announcesWave, announcesBoss };
+    });
+    check('a #srLive live region exists', r.exists);
+    check('it is aria-live="polite" (queues, never interrupts)', r.polite);
+    check('it is role="status"', r.status);
+    check('it is visually hidden', r.hidden);
+    check('it is still rendered (not display:none, or SRs skip it)', r.stillRendered);
+    check('announce() writes the message', r.speaks);
+    check('an identical repeat still changes textContent', r.repeatsAudibly);
+    check('starting a wave announces it', r.announcesWave);
+    check('a boss wave is announced as a boss wave', r.announcesBoss);
+    check('no console errors during announcement test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
   await browser.close();
 
   console.log(`\n${'='.repeat(48)}`);

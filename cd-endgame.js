@@ -334,17 +334,24 @@ function closeCodex() {
   }
 }
 function renderCodex() {
-  const row = (color, glyph, name, tag, desc, extra) =>
-    `<div class="cdxRow"><span class="cdxDisc" style="background:${color}">${glyph || ''}</span>`
+  const row = (color, glyph, name, tag, desc, extra, cls) =>
+    `<div class="cdxRow${cls ? ' ' + cls : ''}"${cls ? ' id="cdxHere"' : ''}><span class="cdxDisc" style="background:${color}">${glyph || ''}</span>`
     + `<div class="cdxText"><b>${name}</b>${tag ? `<span class="cdxTag">${tag}</span>` : ''}`
     + `<small>${desc}</small>${extra || ''}</div></div>`;
   let html = '<h4 class="bestSub">👾 Enemies</h4><div class="cdxList">';
   for (const e of CODEX_ENEMIES) html += row((typeof PREVIEW_COLOR !== 'undefined' && PREVIEW_COLOR[e.kind]) || '#3fb950', e.glyph, e.name, e.wave, e.desc);
   html += '</div>';
+  // Deep-link (v2.54.0): if a boss with a mechanic is alive right now, its Bestiary row is
+  // tinted + scrolled into view when the codex opens mid-run — so the in-game 📖 button (or C)
+  // answers "what is this thing doing to me?" in one press instead of a manual scroll through
+  // 24 archetypes. Read-only; null on the start menu or against a vanilla (pre-w20) boss.
+  const liveBoss = (typeof enemies !== 'undefined' && started && !gameOver)
+    ? (enemies.find(e => e.kind === 'boss' && !e.dead && e.bossType) || null) : null;
+  const hi = liveBoss ? liveBoss.bossType : null;
   html += '<h4 class="bestSub">☠ Boss powers</h4>'
     + '<p class="cdxNote">From wave 20, every boss also carries one of these mechanics, cycling deeper as you go.</p>'
     + '<div class="cdxList">';
-  for (const b of CODEX_BOSSES) html += row(b.color, b.glyph, b.label, b.wave, b.desc);
+  for (const b of CODEX_BOSSES) html += row(b.color, b.glyph, b.label, b.wave, b.desc, '', b.type === hi ? 'cdxHere' : '');
   html += '</div>';
   // Towers — built live from TOWER_TYPES/SPECS so a new tower auto-appears (can't drift).
   html += '<h4 class="bestSub">🛡 Towers</h4>'
@@ -358,6 +365,11 @@ function renderCodex() {
   }
   html += '</div>';
   document.getElementById('codexBody').innerHTML = html;
+  // Scroll the deep-linked row into view (the codex body is the scroll container). Guarded —
+  // scrollIntoView is absent in some headless/older environments, and there is no row when
+  // no mechanic boss is alive, so the panel opens at the top exactly as before.
+  const here = document.getElementById('cdxHere');
+  if (here && here.scrollIntoView) { try { here.scrollIntoView({ block: 'center' }); } catch(e) {} }
 }
 
 // ----- Settings panel (performance / accessibility prefs, persisted on device) -----
@@ -625,6 +637,7 @@ function renderEndScreen(won, earned, newAch) {
 function endGame() {
   gameOver = true;
   SFX.over();
+  announce(`Game over on wave ${wave}.`);   // a11y (v2.54.0) — the end screen is DOM, but the transition isn't
   if (!daily) clearRun();  // daily never persists; don't wipe the player's normal saved run
   const earned = chipsForRun();
   meta.chips += earned;
@@ -645,6 +658,7 @@ function endGame() {
 }
 function winGame() {
   victory = true;
+  announce(`Victory on wave ${wave}.`);   // a11y (v2.54.0) — fires for the endless bank-the-win crossing too
   // Endless mode (v2.17.0): bank the wave-victoryWave() win ONCE, then KEEP PLAYING — no victory
   // wall, no gameOver, no overlay. The reward path (chips/achievement/best) is identical to a Quick
   // win; we just skip the end screen and celebrate with a floater so the run flows on. The `!victory`
