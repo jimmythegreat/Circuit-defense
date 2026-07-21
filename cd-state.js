@@ -78,6 +78,10 @@ let peakGold = 0;
 // never saved — re-earnable on resume (towers reload and the count re-accumulates on the first
 // update frame), so no force-on-load (mirrors peakGold/railBestHit). Grants 🗼 Overlord at 12.
 let peakTowers = 0;
+// Jack of All Trades tracking (v2.55.0): the most DISTINCT tower types fielded at once this run.
+// Run-only, never saved — re-earnable on resume (towers reload, the count re-accumulates next frame),
+// so no force-on-load (mirrors peakTowers). Grants 🎭 Jack of All Trades at 8 distinct types.
+let peakTowerTypes = 0;
 // Absolute Zero tracking (v2.44.0): the most enemies caught by a single 🧊 Time Freeze cast this
 // run. Run-only, never saved — the feat is a momentary one re-earnable any time Freeze is cast (like
 // railBestHit), so no force-on-load. Grants the 🧊 Absolute Zero achievement at 12.
@@ -168,6 +172,7 @@ function resetState() {
   arcBestChain = 0;
   peakGold = 0;
   peakTowers = 0;
+  peakTowerTypes = 0;
   bestFreeze = 0;
   bossKills = 0;
   peakConcurrentWaves = 0;

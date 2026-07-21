@@ -675,6 +675,17 @@ const PERKS = [
   // loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default false). A legendary, so
   // resolveWildcard() rolls it automatically. Test group [180].
   { id:'warpath',  rarity:'legendary', icon:'🐗', name:'Warpath',          desc:'+2% tower damage per wave reached (max +40%)', apply:s=>s.warpath = true },
+  // Overwhelm (legendary, v2.55.0): a fresh BUILD-DIVERSITY axis — tower damage grows +8% per DISTINCT
+  // tower type on the board, capped +40% at 5 types. The inverse of 💠 Glass Cannon (few heavy hitters)
+  // and 🏛️ Phalanx (many towers of any type): Overwhelm rewards a VARIED board. Non-dominated vs Phalanx —
+  // a mono-type spam board (the common optimum) gets only +8% here but +20% from Phalanx, so they favour
+  // opposite strategies. To BEAT the flat 💎 Diamond Core (+30%) you need 4+ different tower types, which
+  // splits your gold/upgrades across them (each tower weaker than a mono-focused board) — a real trade-off,
+  // "too easy"-safe. Reinforces the "every strategy viable" pillar and pairs with 🧠 Polymath / 🎭 Jack of
+  // All Trades / 🧰 Full Arsenal. Wired in effDmg via a distinct-type count over `towers` (upgradeKey hashes
+  // effDmg, so the panel live-updates as you place/sell types). `overwhelm` lives in perkState (save-safe
+  // default false; round-trips via loadRun's Object.assign). A legendary, so resolveWildcard rolls it. [202]
+  { id:'overwhelm', rarity:'legendary', icon:'🌈', name:'Overwhelm',        desc:'+8% tower damage per distinct tower type on the board (max +40%)', apply:s=>s.overwhelm = true },
   // 💠 SECOND WIND (v2.54.0) — the pool's first SECRET perk. It stays out of the draft (and out of
   // Wildcard's roll) until the player has earned the 🛡️ Flawless achievement; `secret()` is the gate,
   // read live from meta so it unlocks the moment that badge lands. The first perk to RESTORE lives:
@@ -701,7 +712,7 @@ function freshPerkState() {
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
-    corrosive:false, swarmbane:false, secondWind:false };
+    corrosive:false, swarmbane:false, secondWind:false, overwhelm:false };
 }
 function ascendTowers() {
   for (const t of towers) {

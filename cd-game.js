@@ -826,6 +826,11 @@ function effDmg(t) {
   // back-loaded scaling pick (weak early, edges past Diamond Core late). Reads the live `wave` global;
   // upgradeKey() hashes effDmg, so the panel steps up each wave. Capped → "too easy"-safe.
   if (perkState.warpath) d *= 1 + Math.min(0.4, wave * 0.02);
+  // Overwhelm legendary (v2.55.0): +8% damage per DISTINCT tower type on the board, capped +40% at 5
+  // types — a build-DIVERSITY axis (the inverse of Phalanx's per-tower-count bonus). The distinct-type
+  // count changes only on place/sell, so the per-frame Set is cheap (bounded tower count); upgradeKey
+  // hashes effDmg so the panel updates as you diversify. Conditional + capped → "too easy"-safe.
+  if (perkState.overwhelm) d *= 1 + 0.08 * Math.min(5, new Set(towers.map(o => o.type)).size);
   // 📣 Amplify ability (v2.48.0): +30% damage while the tower-overdrive burst is active.
   // Run-only `overdriveT` (set on cast, decayed in update()); effDmg is hashed by upgradeKey,
   // so the upgrade panel's dmg line steps up/down with the buff.

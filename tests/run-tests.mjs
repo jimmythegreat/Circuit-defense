@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 46 badges', r.total === 46, `total=${r.total}`);
+    check('achievement roster grew to 48 badges', r.total === 48, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 46;   // +pinball 🪩 (v2.52.0)
+      const rosterOk = ACHIEVEMENTS.length === 48;   // +jack 🎭 +cartographer 🗺️ (v2.55.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13336,6 +13336,155 @@ async function main() {
     check('starting a wave announces it', r.announcesWave);
     check('a boss wave is announced as a boss wave', r.announcesBoss);
     check('no console errors during announcement test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [202] Overwhelm perk (legendary, v2.55.0): +8% tower damage per DISTINCT tower type on the board,
+  // capped +40% at 5 types — a build-diversity axis (the inverse of Phalanx's per-tower-COUNT bonus).
+  console.log('\n[202] Overwhelm perk (build-diversity damage)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'overwhelm');
+      const inRoster = !!def && def.rarity === 'legendary';
+      const defaultsOk = freshPerkState().overwhelm === false;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.overwhelm === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0;
+      const mkT = (type, i) => { const p = pointAt(60 + i*30); return { type, x:p.x, y:p.y, range:120,
+        dmg:10, rate:0.5, cd:0, level:1, kills:0, dealt:0, mode:'first', invested:0, spec:null,
+        buffPower:0.25, flash:0 }; };
+      const T = mkT('gun', 0); towers.push(T);
+
+      perkState.overwhelm = false;
+      const base = effDmg(T);
+      perkState.overwhelm = true;
+      const oneOk = Math.abs(effDmg(T) / base - 1.08) < 1e-6;    // 1 type → +8%
+      towers.push(mkT('sniper', 1));                             // 2 types → +16%
+      const twoOk = Math.abs(effDmg(T) / base - 1.16) < 1e-6;
+      towers.push(mkT('frost', 2), mkT('cannon', 3), mkT('tesla', 4));  // 5 types → +40%
+      const fiveOk = Math.abs(effDmg(T) / base - 1.40) < 1e-6;
+      towers.push(mkT('poison', 5));                             // 6 types → still capped +40%
+      const cappedOk = Math.abs(effDmg(T) / base - 1.40) < 1e-6;
+      // duplicate types don't stack: two guns count as ONE distinct type (+8%).
+      towers.length = 0; towers.push(T, mkT('gun', 1));
+      const dupNoStack = Math.abs(effDmg(T) / base - 1.08) < 1e-6;
+
+      const wildcardEligible = PERKS.filter(p => p.rarity === 'legendary' && perkUnlocked(p)).some(p => p.id === 'overwhelm');
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, oneOk, twoOk, fiveOk, cappedOk, dupNoStack, wildcardEligible };
+    });
+    check('Overwhelm is a legendary perk in the roster', r.inRoster);
+    check('freshPerkState defaults overwhelm:false', r.defaultsOk);
+    check('apply() sets the overwhelm flag', r.appliesFlag);
+    check('Overwhelm gives +8% for a single tower type', r.oneOk);
+    check('Overwhelm scales with distinct types (2 → +16%)', r.twoOk);
+    check('Overwhelm reaches +40% at 5 distinct types', r.fiveOk);
+    check('Overwhelm caps at +40% (6+ types)', r.cappedOk);
+    check('duplicate tower types do not stack (2 guns → +8%)', r.dupNoStack);
+    check('Overwhelm is eligible for Wildcard (legendary, not secret)', r.wildcardEligible);
+    check('no console errors during Overwhelm test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [203] Jack of All Trades (🎭) + Cartographer (🗺️) achievements (v2.55.0). Jack: field 8+ distinct
+  // tower types at once (peakTowerTypes tracker). Cartographer: reach wave 30 on all 7 static Quick
+  // maps (reads cd_best_<map>_<diff> keys + the current run inline, since recordBest runs after grant).
+  console.log('\n[203] Jack of All Trades + Cartographer achievements');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const MAP7 = ['classic','spiral','serpent','gauntlet','cascade','nexus','vortex'];
+      MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
+      const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
+      const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
+      const rosterOk = ACHIEVEMENTS.length === 48;
+      // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
+      const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; wave = 1; comboBest = 0; peakGold = 0; peakTowers = 0; peakConcurrentWaves = 0;
+      gameTime = 0; railBestHit = 0; arcBestChain = 0; bossKills = 0; bestFreeze = 0; meteorBestKills = 0;
+
+      // Jack: withheld at 7 distinct types, granted at 8.
+      freshMeta(); peakTowerTypes = 7;
+      const jackAt7 = grantAchievements(false).map(a => a.id).includes('jack');
+      freshMeta(); peakTowerTypes = 8;
+      const jackAt8 = grantAchievements(false).map(a => a.id).includes('jack');
+      peakTowerTypes = 0;
+
+      // Cartographer: 6 of 7 maps conquered → withheld (current map 'classic' at wave 1 doesn't count).
+      MAP7.filter(m => m !== 'vortex').forEach(m => localStorage.setItem('cd_best_' + m + '_normal', '30'));
+      freshMeta(); mapKey = 'classic'; wave = 1;
+      const cartoAt6 = grantAchievements(false).map(a => a.id).includes('cartographer');
+      // all 7 keys → granted.
+      localStorage.setItem('cd_best_vortex_normal', '30');
+      freshMeta(); wave = 1;
+      const cartoAt7 = grantAchievements(false).map(a => a.id).includes('cartographer');
+      // inline: drop the vortex key but finish a Quick run on vortex at wave 30 → the current run counts.
+      localStorage.removeItem('cd_best_vortex_normal');
+      freshMeta(); gameMode = 'quick'; mapKey = 'vortex'; wave = 30;
+      const cartoInline = grantAchievements(false).map(a => a.id).includes('cartographer');
+
+      MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
+      towers.length = 0; wave = 1; mapKey = 'classic';
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { jackInRoster, cartoInRoster, rosterOk, jackAt7, jackAt8, cartoAt6, cartoAt7, cartoInline };
+    });
+    check('Jack of All Trades is in the achievement roster', r.jackInRoster);
+    check('Cartographer is in the achievement roster', r.cartoInRoster);
+    check('achievement roster grew to 48', r.rosterOk);
+    check('Jack withheld at 7 distinct tower types', !r.jackAt7);
+    check('Jack granted at 8 distinct tower types', r.jackAt8);
+    check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
+    check('Cartographer granted with all 7 maps conquered', r.cartoAt7);
+    check('Cartographer counts the current run inline (win on the 7th map)', r.cartoInline);
+    check('no console errors during new-achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [204] Achievement-unlock chime (v2.55.0) — SFX.badge() fires whenever a finished run unlocks a
+  // NEW achievement (win or loss), and stays silent when nothing new is earned. The audio is
+  // fire-and-forget via setTimeout, so we spy on SFX.badge and await the timer.
+  console.log('\n[204] Achievement-unlock chime');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(async () => {
+      const isFn = typeof SFX.badge === 'function';
+      const orig = SFX.badge; let calls = 0; SFX.badge = () => { calls++; };
+
+      // A loss that unlocks a fresh feat badge (🎭 Jack, no `won` gate) should chime.
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; peakTowerTypes = 8; wave = 3; lives = 0;
+      endGame();
+      await new Promise(res => setTimeout(res, 700));
+      const firedOnUnlock = calls >= 1;
+
+      // A second identical loss unlocks nothing new (Jack already earned) → no chime.
+      calls = 0;
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; peakTowerTypes = 8; wave = 3; lives = 0;
+      endGame();
+      await new Promise(res => setTimeout(res, 700));
+      const silentWhenNothingNew = calls === 0;
+
+      SFX.badge = orig; peakTowerTypes = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { isFn, firedOnUnlock, silentWhenNothingNew };
+    });
+    check('SFX.badge is a function', r.isFn);
+    check('badge chime fires when a run unlocks a new achievement', r.firedOnUnlock);
+    check('badge chime stays silent when nothing new is unlocked', r.silentWhenNothingNew);
+    check('no console errors during badge-chime test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

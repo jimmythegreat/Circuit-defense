@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.55.0 — 2026-07-21 — Overwhelm perk, 2 diversity/completion badges, badge-unlock chime
+
+**Type:** Minor (feature/content). Suite green (2065/0; baseline 2054/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (perk/achievement follow-ups + game-feel polish), themed around **build diversity**. 2 versions since the last health check (v2.53.1) — a normal run.
+
+- **🌈 Overwhelm — a new legendary perk (build-diversity axis):** towers deal **+8% damage per DISTINCT tower type on the board, capped +40% at 5 types**. The inverse of 🔮 Glass Cannon (few heavy hitters) and 🏛️ Phalanx (many towers of *any* type) — Overwhelm rewards a *varied* board, so it's non-dominated (a mono-type spam board gets +8% here but +20% from Phalanx; they favour opposite strategies). To beat the flat 💎 Diamond Core (+30%) you must field 4+ different types, splitting gold/upgrades across them — a genuine trade-off, "too easy"-safe. Wired in `effDmg` via a distinct-type count over `towers`; `perkState.overwhelm` (old saves → false); resolveWildcard rolls it. Reinforces the "every strategy viable" pillar. Test group `[202]`.
+- **🎭 Jack of All Trades + 🗺️ Cartographer — two new achievements (roster 46 → 48).** Jack: field **8+ distinct tower types at once** in a run (run-only `peakTowerTypes` tracker, no `won` gate) — a diversity feat sitting between 🧠 Polymath (6+, win) and 🧰 Full Arsenal (all 12, win). Cartographer: reach the final wave (30) on **all 7 static Quick maps** — a cross-run completionist goal that reads the per-map `cd_best_<map>_<diff>` keys (data-driven over `MAPS`, excludes random-path Mayhem) and folds the current run in inline (since `recordBest` runs after `grantAchievements`). Both additive/save-safe. Test group `[203]`.
+- **🔊 Badge-unlock chime (chunky-feel polish):** unlocking a new achievement now plays a distinct bright `SFX.badge()` three-note chime (layered after the win/over sound), in every end path — win, loss and the endless bank-the-win crossing. Rewards the achievement grind audibly; silent when nothing new is earned. Audio-only, no gameplay/save impact. Test group `[204]`.
+
 ## v2.54.0 — 2026-07-20 — Second Wind (secret perk), Bestiary deep-link, Arc hop tracer, screen-reader support
 
 **Type:** Minor (feature/content). Suite green (2053/0; baseline 2017/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (secret legendary, codex deep-link, Arc bolt flourish, screen-reader announcements). 2 versions since the last health check (v2.53.1) — a normal run.

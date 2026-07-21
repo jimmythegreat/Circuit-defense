@@ -70,6 +70,8 @@ function update(dt) {
   gameTime += dt;
   if (gold > peakGold) peakGold = gold;   // 💰 Hoarder feat tracking (v2.35.0)
   if (towers.length > peakTowers) peakTowers = towers.length;   // 🗼 Overlord feat tracking (v2.39.0)
+  // 🎭 Jack of All Trades tracking (v2.55.0): peak distinct tower types on the board this run.
+  if (towers.length) { const nt = new Set(towers.map(t => t.type)).size; if (nt > peakTowerTypes) peakTowerTypes = nt; }
 
   // ability cooldowns
   for (const k of Object.keys(abilityCd)) abilityCd[k] = Math.max(0, abilityCd[k] - dt);

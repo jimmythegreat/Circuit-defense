@@ -222,11 +222,13 @@ _None currently known._ (Add any here as found — top priority.)
   + 🛸 Transcendent + 🧪 Plague Doctor v2.50.0 [189] — reach wave 200 / 150 kills on one Poison tower;
   + 🪳 Exterminator + 🌊 Wave Rider v2.51.0 [192] — defeat 2,000 enemies in a run / stack 5+ waves at once;
   + 🪩 Pinball Wizard v2.52.0 [193] — strike 6+ enemies with a single Arc bolt;
-  lifetime tower-kills stat in Records); roster data-driven [48]/[92].
+  + 🎭 Jack of All Trades + 🗺️ Cartographer v2.55.0 [203] — field 8+ distinct tower types at once / reach the final wave on all 7 static Quick maps (cross-run completion);
+  lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125])/
-  Warpath(+2% dmg per wave reached, max +40% — a back-loaded scaling axis, v2.47.0 [180]); rares Targeting
+  Warpath(+2% dmg per wave reached, max +40% — a back-loaded scaling axis, v2.47.0 [180])/
+  Overwhelm(+8% dmg per DISTINCT tower type on the board, max +40% at 5 — a build-DIVERSITY axis, the inverse of Phalanx, v2.55.0 [202]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/

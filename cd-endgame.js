@@ -54,6 +54,8 @@ const ACHIEVEMENTS = [
   { id:'exterminator',  icon:'🪳', name:'Exterminator',         desc:'Defeat 2,000 enemies in a single run' },
   { id:'waverider',     icon:'🌊', name:'Wave Rider',            desc:'Have 5+ waves in flight at once' },
   { id:'pinball',       icon:'🪩', name:'Pinball Wizard',        desc:'Strike 6+ enemies with a single Arc bolt' },
+  { id:'jack',          icon:'🎭', name:'Jack of All Trades',    desc:'Field 8+ distinct tower types at once' },
+  { id:'cartographer',  icon:'🗺️', name:'Cartographer',          desc:'Reach the final wave on all Quick maps' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -158,6 +160,22 @@ function grantAchievements(won) {
   // (endGame/winGame record the streak before calling grantAchievements), so currentDailyStreak()
   // already reflects this run.
   if (daily && currentDailyStreak() >= 7) give('daily7');
+  // Jack of All Trades (🎭 v2.55.0): a feat (no `won` gate) — field 8+ distinct tower types at once
+  // in a single run. Reads the run-only peakTowerTypes tracker (cd-state.js, updated in update()).
+  // A build-diversity goal between 🧠 Polymath (6+, win) and 🧰 Full Arsenal (all 12, win); pairs
+  // with the 🌈 Overwhelm perk. Most natural in a long/rich run where you can afford a varied board.
+  if (peakTowerTypes >= 8) give('jack');
+  // Cartographer (🗺️ v2.55.0): a cross-run completionist feat (no `won` gate) — reach the final
+  // wave (30) on EVERY static Quick map, in any difficulty. Data-driven: iterates the MAPS keys
+  // (excluding random-path mayhem) and reads the per-map best-wave keys (cd_best_<map>_<diff>).
+  // recordBest() runs AFTER grantAchievements(), so the current run's map isn't written yet — fold
+  // it in inline (a quick run that reached wave 30 conquers its map). Save-safe: missing keys read 0.
+  {
+    const diffKeys = Object.keys(DIFFS);
+    const conquered = m => (gameMode === 'quick' && mapKey === m && wave >= 30) ||
+      diffKeys.some(d => +(localStorage.getItem('cd_best_' + m + '_' + d) || 0) >= 30);
+    if (Object.keys(MAPS).filter(m => m !== 'mayhem').every(conquered)) give('cartographer');
+  }
   saveMeta();
   return newly;
 }
@@ -644,6 +662,7 @@ function endGame() {
   saveMeta();
   if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(false);
+  if (newAch.length) setTimeout(() => SFX.badge(), 500);   // badge chime after the over() sound (v2.55.0)
   const rec = recordBest();
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   renderEndScreen(false, earned, newAch);
@@ -674,7 +693,7 @@ function winGame() {
     shake = Math.max(shake, 12);
     addFloater(W/2, 80, `♾️ WAVE ${wave} CLEARED — ENDLESS!`, '#ffd866', 22);
     addFloater(W/2, 108, `🪙 +${earned} chips · keep going`, '#7ee787', 15);
-    if (newAch.length) addFloater(W/2, 132, `🏅 +${newAch.length} achievement${newAch.length>1?'s':''}!`, '#d2a8ff', 15);
+    if (newAch.length) { addFloater(W/2, 132, `🏅 +${newAch.length} achievement${newAch.length>1?'s':''}!`, '#d2a8ff', 15); setTimeout(() => SFX.badge(), 400); }
     updateHud();
     return;
   }
@@ -688,6 +707,7 @@ function winGame() {
   saveMeta();
   if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(true);
+  if (newAch.length) setTimeout(() => SFX.badge(), 550);   // badge chime after the win() fanfare (v2.55.0)
   const rec = recordBest();
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   renderEndScreen(true, earned, newAch);
