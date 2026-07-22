@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.56.0 — 2026-07-22 — Aftershock perk, Maxed Out badge, Codex tower deep-link, a11y announce follow-ups
+
+**Type:** Minor (feature/content). Suite green (2103/0; baseline 2077/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (perk/ability follow-ups, achievement, Codex deep-link follow-up, screen-reader follow-ups). 3 versions since the last health check (v2.53.1) — a normal run.
+
+- **🌊 Aftershock — a new rare perk (defensive comeback axis):** when an enemy leaks (you lose a life), every remaining enemy is knocked backward along the path — a free, automatic mini-Shockwave (40px, boss 18px). Pure repositioning: **no damage, no bounty**, and it can only fire when you're being overrun → "too easy"-safe (buys a couple seconds, never makes a winning run easier). The defensive sibling of 🗯️ Retaliation on the leak axis; reuses the Shockwave knockback and skips CC-immune / juggernaut enemies. `perkState.aftershock` (old saves → false); a RARE, so resolveWildcard skips it. Test group `[205]`.
+- **🏗️ Maxed Out — a new achievement (roster 48 → 49):** win a run with **3+ towers at max level** (`maxTowerLevel()` = 5 + overdrive rank). Reads the final board like Specialist/Minimalist/Arsenal; celebrates a heavily-invested core. Win-gated, additive/save-safe. Test group `[208]`.
+- **📖 Codex deep-link to the selected tower:** opening the Bestiary mid-run with a tower selected now scrolls to + highlights that tower's row (its role + both specs), taking priority over a live boss (exactly one deep-link target). The natural companion to the v2.54.0 boss deep-link; fills the only in-game way to read a tower's specs. Render/read-only. Test group `[207]`.
+- **🔊 Screen-reader announce follow-ups (a11y):** the polite `#srLive` live region now also narrates a **boss entering the field** (with its archetype, e.g. "Nullifying boss on the field"), the **perk you just drafted**, and any **achievement unlocked** on a finished run (via a new `announceAchievements()` helper, wired into every end path). Extends the v2.54.0 sparse-narration set; DOM-only, no gameplay/save impact. Test group `[206]`.
+
 ## v2.55.0 — 2026-07-21 — Overwhelm perk, 2 diversity/completion badges, badge-unlock chime
 
 **Type:** Minor (feature/content). Suite green (2065/0; baseline 2054/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (perk/achievement follow-ups + game-feel polish), themed around **build diversity**. 2 versions since the last health check (v2.53.1) — a normal run.

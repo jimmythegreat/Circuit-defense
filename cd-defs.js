@@ -627,6 +627,18 @@ const PERKS = [
   // (save-safe defaults; round-trip via loadRun's Object.assign(freshPerkState(), s.perkState) — old
   // saves default false/0). A RARE, so the legendary-only resolveWildcard() does NOT roll it. Test [154].
   { id:'retaliation', rarity:'rare', icon:'🗯️', name:'Retaliation',        desc:'After a leak: +25% tower damage for 4s', apply:s=>s.retaliation = true },
+  // Aftershock (rare, v2.56.0): the DEFENSIVE sibling of 🗯️ Retaliation on the leak axis — when an
+  // enemy LEAKS (you lose a life), every remaining enemy is knocked backward along the path (a free,
+  // automatic mini-Shockwave). Pure repositioning: it deals NO damage and pays NO bounty, and it can
+  // ONLY fire when you're being overrun, so a clean run gets nothing → "too easy"-safe by the Last
+  // Stand / Retaliation / Phoenix rationale (it buys a couple seconds to recover, never makes a
+  // winning run easier). Distinct from the comeback siblings by EFFECT — Last Stand/Retaliation buff
+  // damage, Phoenix revives, Second Wind heals; Aftershock REPOSITIONS. Reuses the 🌀 Shockwave
+  // knockback (softer: 40px, boss 18px) and respects CC-immune / juggernaut enemies exactly like the
+  // ability, wired at the single leak site in cd-update.js. `aftershock` lives in perkState (save-safe
+  // default false; round-trips via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves
+  // default false). A RARE, so the legendary-only resolveWildcard() does NOT roll it. Test group [205].
+  { id:'aftershock', rarity:'rare', icon:'🌊', name:'Aftershock',          desc:'When an enemy leaks, knock the whole field backward', apply:s=>s.aftershock = true },
   // Phalanx (rare, v2.42.0): a "wide-build" damage perk on a fresh axis — every tower deals +2%
   // damage per tower on the board (capped +20% at 10 towers). It rewards a broad, well-spread
   // defensive line (the inverse of 🔮 Glass Cannon's few-heavy-hitters trade-off and ⚖️ Minimalist),
@@ -712,7 +724,7 @@ function freshPerkState() {
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
-    corrosive:false, swarmbane:false, secondWind:false, overwhelm:false };
+    corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false };
 }
 function ascendTowers() {
   for (const t of towers) {
@@ -795,6 +807,9 @@ function pickPerk(p) {
   draftOpen = false;
   document.getElementById('draftModal').style.display = 'none';
   addFloater(W/2, 90, `${p.icon} ${p.name}!`, '#ffd866', 20);
+  // a11y (v2.56.0): the draft is DOM, but the pick's outcome (and a Wildcard resolve) is canvas-only.
+  { const g = (p.id === 'wildcard' && runPerks.length) ? runPerks[runPerks.length - 1] : p;
+    announce(`Perk chosen: ${g.name}.`); }
   SFX.perk();
   if (pendingDrafts > 0) pendingDrafts--;
   if (pendingDrafts > 0) { openDraft(); return; }  // rush bundled several drafts — show the next

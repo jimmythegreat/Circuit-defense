@@ -150,6 +150,10 @@ function update(dt) {
       if (sp.timer <= 0) {
         const e = sp.queue.shift();
         enemies.push({...e, dist: 0, slow: 0, slowF: 0.6, frozen: 0, poison: null, flash: 0, px: 0, py: 0});
+        if (e.kind === 'boss') {   // a11y (v2.56.0): the boss enters last in the queue, often well after the wave banner
+          const b = (typeof bossMechanicBadge === 'function') ? bossMechanicBadge(e) : null;
+          announce(b && b.label ? `${b.label} boss on the field.` : 'Boss on the field.');
+        }
         sp.timer = e.gap;
       }
     }
@@ -718,6 +722,21 @@ function update(dt) {
         livesLostThisRun = true;
         perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)
         if (perkState.retaliation) perkState.retaliateT = RETALIATE_DUR;   // 🗯️ Retaliation: arm the comeback buff (v2.39.0)
+        if (perkState.aftershock) {
+          // 🌊 Aftershock (v2.56.0): a free field-wide knockback on every leak — pure repositioning,
+          // no damage/bounty. Softer than the Shockwave ability (40px / boss 18px) and, like it, skips
+          // CC-immune / juggernaut enemies. Mutating other enemies' dist mid-iteration is safe (pushing
+          // them back can't make them newly leak this frame). Fires whether or not the leak is fatal.
+          for (const o of enemies) {
+            if (o.dead || o === e || o.x === undefined) continue;
+            if (o.ccImmune || (o.kind === 'boss' && o.bossType === 'juggernaut')) continue;
+            o.dist = Math.max(0, o.dist - (o.kind === 'boss' ? 18 : 40));
+            o.frozen = Math.max(o.frozen, 0.25);
+            o.flash = 0.2;
+          }
+          addRing(W/2, H/2, '#58e0ff', 260, { life: 0.45, w: 4 });
+          SFX.shock();
+        }
         shake = Math.max(shake, e.kind === 'boss' ? 14 : 6);
         addFloater(W-60, waypoints[waypoints.length-1][1] - 20, `-${dmgLives}❤️`, '#f85149', 18);
         SFX.life();

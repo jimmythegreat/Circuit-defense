@@ -56,9 +56,16 @@ const ACHIEVEMENTS = [
   { id:'pinball',       icon:'🪩', name:'Pinball Wizard',        desc:'Strike 6+ enemies with a single Arc bolt' },
   { id:'jack',          icon:'🎭', name:'Jack of All Trades',    desc:'Field 8+ distinct tower types at once' },
   { id:'cartographer',  icon:'🗺️', name:'Cartographer',          desc:'Reach the final wave on all Quick maps' },
+  { id:'maxlevel',      icon:'🏗️', name:'Maxed Out',             desc:'Win with 3+ towers at max level' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
+// a11y (v2.56.0): narrate freshly-unlocked badges to a screen reader — the badge chime + overlay
+// line are otherwise silent to assistive tech. Names only, comma-joined; a no-op on an empty list.
+function announceAchievements(newAch) {
+  if (!newAch || !newAch.length) return;
+  announce(`Achievement${newAch.length > 1 ? 's' : ''} unlocked: ${newAch.map(a => a.name).join(', ')}.`);
+}
 // Tally a finished run and grant any newly-earned achievements. Returns the new ones.
 function grantAchievements(won) {
   const runDmg = towers.reduce((s, t) => s + (t.dealt || 0), 0);
@@ -150,6 +157,9 @@ function grantAchievements(won) {
   // Barrier meta upgrades; most natural vs heavy leak-pressure content (Breacher Surge / bosses).
   if (barrierBlocks >= 5) give('ironclad');
   if (won && new Set(towers.map(t => t.type)).size === TYPE_KEYS.length) give('arsenal');
+  // Maxed Out (🏗️ v2.56.0): win with 3+ towers at max level (maxTowerLevel() = 5 + overdrive rank).
+  // Reads the final board like Specialist/Minimalist/Arsenal; celebrates a heavily-invested core.
+  if (won && towers.filter(t => t.level >= maxTowerLevel()).length >= 3) give('maxlevel');
   // Speed Demon (v1.74.0): win a Quick run (always 30 waves → comparable target) in under 7
   // minutes of play time. The standard sequential clear takes ~13 min even rushing, so this
   // demands deliberate concurrent-wave rushing — a skill goal, not an accident. Quick-only:
@@ -363,7 +373,12 @@ function renderCodex() {
   // tinted + scrolled into view when the codex opens mid-run — so the in-game 📖 button (or C)
   // answers "what is this thing doing to me?" in one press instead of a manual scroll through
   // 24 archetypes. Read-only; null on the start menu or against a vanilla (pre-w20) boss.
-  const liveBoss = (typeof enemies !== 'undefined' && started && !gameOver)
+  // A SELECTED tower (mid-run) takes deep-link priority over a live boss — selecting it is an
+  // explicit action right before opening the codex, and it's the only way to read a tower's specs.
+  // Skipping the boss highlight in that case keeps exactly one #cdxHere target (v2.56.0).
+  const selType = (typeof selectedTower !== 'undefined' && selectedTower && started && !gameOver)
+    ? selectedTower.type : null;
+  const liveBoss = (!selType && typeof enemies !== 'undefined' && started && !gameOver)
     ? (enemies.find(e => e.kind === 'boss' && !e.dead && e.bossType) || null) : null;
   const hi = liveBoss ? liveBoss.bossType : null;
   html += '<h4 class="bestSub">☠ Boss powers</h4>'
@@ -379,7 +394,7 @@ function renderCodex() {
     const t = TOWER_TYPES[k];
     const specs = (SPECS[k] || []).map(s => `<b>${s.name}</b> — ${s.desc}`).join(' · ');
     const extra = specs ? `<small class="cdxSpec">Specs: ${specs}</small>` : '';
-    html += row(t.color, t.icon, t.name, `${t.cost}g`, t.tip || t.desc, extra);
+    html += row(t.color, t.icon, t.name, `${t.cost}g`, t.tip || t.desc, extra, k === selType ? 'cdxHere' : '');
   }
   html += '</div>';
   document.getElementById('codexBody').innerHTML = html;
@@ -662,7 +677,7 @@ function endGame() {
   saveMeta();
   if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(false);
-  if (newAch.length) setTimeout(() => SFX.badge(), 500);   // badge chime after the over() sound (v2.55.0)
+  if (newAch.length) { setTimeout(() => SFX.badge(), 500); announceAchievements(newAch); }   // chime + a11y (v2.55.0/v2.56.0)
   const rec = recordBest();
   document.getElementById('ovTitle').textContent = '💀 GAME OVER';
   renderEndScreen(false, earned, newAch);
@@ -693,7 +708,7 @@ function winGame() {
     shake = Math.max(shake, 12);
     addFloater(W/2, 80, `♾️ WAVE ${wave} CLEARED — ENDLESS!`, '#ffd866', 22);
     addFloater(W/2, 108, `🪙 +${earned} chips · keep going`, '#7ee787', 15);
-    if (newAch.length) { addFloater(W/2, 132, `🏅 +${newAch.length} achievement${newAch.length>1?'s':''}!`, '#d2a8ff', 15); setTimeout(() => SFX.badge(), 400); }
+    if (newAch.length) { addFloater(W/2, 132, `🏅 +${newAch.length} achievement${newAch.length>1?'s':''}!`, '#d2a8ff', 15); setTimeout(() => SFX.badge(), 400); announceAchievements(newAch); }
     updateHud();
     return;
   }
@@ -707,7 +722,7 @@ function winGame() {
   saveMeta();
   if (daily) recordDailyStreak();   // record FIRST so the streak achievement sees today's finish
   const newAch = grantAchievements(true);
-  if (newAch.length) setTimeout(() => SFX.badge(), 550);   // badge chime after the win() fanfare (v2.55.0)
+  if (newAch.length) { setTimeout(() => SFX.badge(), 550); announceAchievements(newAch); }   // chime + a11y (v2.55.0/v2.56.0)
   const rec = recordBest();
   document.getElementById('ovTitle').textContent = gameMode === 'campaign' ? `🏆 LEVEL ${campLevel} CLEARED!` : '🏆 VICTORY!';
   renderEndScreen(true, earned, newAch);

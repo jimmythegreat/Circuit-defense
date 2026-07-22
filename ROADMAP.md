@@ -127,7 +127,9 @@ _None currently known._ (Add any here as found — top priority.)
       ~~hide the faint between-wave `Next:` preview while the upgrade panel is open~~ (DONE v2.29.0 [138]);
       ~~highlight the beaten Records cell when next opened~~ (DONE v2.22.0 [132] — latest-PB cell tinted gold + ★);
       ~~a per-kind hover tooltip~~ (DONE v2.52.0 [194] — hovering a Next:-strip kind disc pops its
-      Bestiary name + counter tip from CODEX_ENEMIES) (~~DPS-relative read on the wave-threat number~~
+      Bestiary name + counter tip from CODEX_ENEMIES) (~~an upgrade-panel Codex deep-link~~ DONE v2.56.0 [207]
+      — opening the Bestiary with a tower selected scrolls to that tower's row, priority over a live boss)
+      (~~DPS-relative read on the wave-threat number~~
       DONE v2.29.0 [138] — board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing);
@@ -223,6 +225,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🪳 Exterminator + 🌊 Wave Rider v2.51.0 [192] — defeat 2,000 enemies in a run / stack 5+ waves at once;
   + 🪩 Pinball Wizard v2.52.0 [193] — strike 6+ enemies with a single Arc bolt;
   + 🎭 Jack of All Trades + 🗺️ Cartographer v2.55.0 [203] — field 8+ distinct tower types at once / reach the final wave on all 7 static Quick maps (cross-run completion);
+  + 🏗️ Maxed Out v2.56.0 [208] — win with 3+ towers at max level;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -238,9 +241,10 @@ _None currently known._ (Add any here as found — top priority.)
   Point Blank(+25% dmg to enemies within half a tower's range — a positional axis, v2.45.0 [174])/
   Empowered Arsenal(Meteor/Freeze/Shockwave effects +40% — an ability-magnitude axis, v2.49.0 [185])/
   Corrosive Rounds(+30% dmg to poisoned enemies — a poison-synergy axis, buffs the weak Poison archetype, v2.50.0 [188])/
-  Swarmbane(+1% tower dmg per live enemy, max +25% — a crowd-pressure/comeback axis, the mirror of Phalanx, v2.51.0 [191]);
+  Swarmbane(+1% tower dmg per live enemy, max +25% — a crowd-pressure/comeback axis, the mirror of Phalanx, v2.51.0 [191])/
+  Aftershock(on a leak, knock the whole field backward — a defensive repositioning comeback, the sibling of Retaliation, v2.56.0 [205]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
-  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191].
+  [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]
   + **📣 Amplify v2.48.0 [183]** — the first offensive-BUFF ability: +30% tower dmg & fire rate for 5s, cd 55, hotkey Y).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
@@ -269,8 +273,10 @@ touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.4
 _New table-stakes can be added here as the bar rises:_
 - [x] **Screen-reader announcements** — DONE v2.54.0 [201]. A visually-hidden `aria-live="polite"`
       `#srLive` region + an `announce()` helper (cd-core.js) narrate wave starts, leaked lives and the
-      run ending. Deliberately sparse (no per-kill chatter). *Possible follow-ups:* announce a badge
-      unlock, a boss spawn, and the perk you drafted.
+      run ending. Deliberately sparse (no per-kill chatter). ~~*Possible follow-ups:* announce a badge
+      unlock, a boss spawn, and the perk you drafted.~~ DONE v2.56.0 [206] — a boss entering the field
+      (with its archetype), the drafted perk, and any achievement unlock (`announceAchievements()`) are
+      now narrated too.
 - [ ] **Key rebinding** — the hotkey set is now large (1–0, Q/W/E/R/T/Y, U/S/D/A/F/C, Space, Esc, Enter)
       and entirely fixed. A Settings remap row (persisted `cd_keys`, additive) is the natural follow-up.
 

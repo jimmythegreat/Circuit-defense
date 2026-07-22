@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 48 badges', r.total === 48, `total=${r.total}`);
+    check('achievement roster grew to 49 badges', r.total === 49, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 48;   // +jack 🎭 +cartographer 🗺️ (v2.55.0)
+      const rosterOk = ACHIEVEMENTS.length === 49;   // +maxlevel 🏗️ (v2.56.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 48;
+      const rosterOk = ACHIEVEMENTS.length === 49;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13440,7 +13440,7 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 48', r.rosterOk);
+    check('achievement roster grew to 49', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
     check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
@@ -13485,6 +13485,200 @@ async function main() {
     check('badge chime fires when a run unlocks a new achievement', r.firedOnUnlock);
     check('badge chime stays silent when nothing new is unlocked', r.silentWhenNothingNew);
     check('no console errors during badge-chime test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [205] Aftershock perk (rare, v2.56.0) — a DEFENSIVE comeback: an enemy leaking knocks the whole
+  // remaining field backward (a free mini-Shockwave). Pure repositioning — no damage, no bounty; only
+  // fires when you're being overrun. Softer than the ability (40px norm / 18px boss) and skips CC-immune.
+  console.log('\n[205] Aftershock perk (leak → field knockback)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'aftershock');
+      const inRoster = !!def && def.rarity === 'rare';
+      const defaultsOk = freshPerkState().aftershock === false;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.aftershock === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      lives = 50;
+      const exit = pointAt(pathLen);
+      const pa = pointAt(pathLen * 0.5), pb = pointAt(pathLen * 0.6), pc = pointAt(pathLen * 0.55);
+      const mkLeaker = () => ({ kind:'norm', hp:10, maxHp:10, spd:0, r:10, bounty:1, color:'#fff',
+        armor:0, dist: pathLen + 5, x: exit.x, y: exit.y, slow:0, frozen:0, poison:null, flash:0 });
+      const mkA = () => ({ kind:'norm', hp:1e6, maxHp:1e6, spd:0, r:10, bounty:1, color:'#fff',
+        armor:0, dist: pathLen * 0.5, x: pa.x, y: pa.y, slow:0, frozen:0, poison:null, flash:0 });
+      const mkB = () => ({ kind:'boss', bossType:'regen', hp:1e6, maxHp:1e6, spd:0, r:14, bounty:1,
+        color:'#fff', armor:0, dist: pathLen * 0.6, x: pb.x, y: pb.y, slow:0, frozen:0, poison:null, flash:0 });
+      const mkCC = () => ({ kind:'norm', ccImmune:true, hp:1e6, maxHp:1e6, spd:0, r:10, bounty:1,
+        color:'#fff', armor:0, dist: pathLen * 0.55, x: pc.x, y: pc.y, slow:0, frozen:0, poison:null, flash:0 });
+
+      // With the perk: a leak knocks bystanders back (norm 40px, boss 18px), CC-immune shrugs it off, no damage dealt.
+      perkState.aftershock = true;
+      enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+      const A = mkA(), B = mkB(), C = mkCC(); enemies.push(mkLeaker(), A, B, C);
+      const aBefore = A.dist, bBefore = B.dist, cBefore = C.dist, livesBefore = lives;
+      update(1/60);
+      const leaked = lives < livesBefore;
+      const normKnocked = Math.abs((aBefore - A.dist) - 40) < 1;
+      const bossKnocked = Math.abs((bBefore - B.dist) - 18) < 1;
+      const ccUnmoved = Math.abs(cBefore - C.dist) < 0.001;
+      const noDamage = A.hp === 1e6 && B.hp === 1e6;   // knockback deals nothing
+
+      // Without the perk: a leak does NOT reposition the field (control).
+      perkState.aftershock = false; lives = 50;
+      enemies.length = 0;
+      const A2 = mkA(); enemies.push(mkLeaker(), A2);
+      const a2Before = A2.dist;
+      update(1/60);
+      const noKnockWithout = Math.abs(a2Before - A2.dist) < 0.001;
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'aftershock';
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, leaked, normKnocked, bossKnocked, ccUnmoved, noDamage, noKnockWithout, wildcardSkips };
+    });
+    check('Aftershock is a rare perk in the roster', r.inRoster);
+    check('freshPerkState defaults aftershock:false', r.defaultsOk);
+    check('apply() sets the aftershock flag', r.appliesFlag);
+    check('a leak costs a life (the trigger)', r.leaked);
+    check('a leak knocks a normal enemy back 40px', r.normKnocked);
+    check('a leak knocks a boss back the softer 18px', r.bossKnocked);
+    check('CC-immune enemies shrug off the aftershock', r.ccUnmoved);
+    check('the knockback deals no damage', r.noDamage);
+    check('without the perk, a leak does not reposition the field', r.noKnockWithout);
+    check('legendary-only Wildcard never rolls this rare', r.wildcardSkips);
+    check('no console errors during aftershock test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [206] Screen-reader announce follow-ups (v2.56.0) — narrate a boss entering the field, the perk you
+  // just drafted, and any freshly-unlocked achievement into the #srLive polite live region.
+  console.log('\n[206] Screen-reader announce follow-ups (boss / perk / badge)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const el = document.getElementById('srLive');
+
+      // Boss enters the field (spawned from a spawner queue, not the wave banner).
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      enemies.length = 0; spawners.length = 0; waveActive = true;
+      spawners.push({ queue: [{ kind:'boss', bossType:'nullifier', hp:100, maxHp:100, spd:0, r:14,
+        bounty:10, color:'#f00', armor:0, gap:1 }], timer: 0 });
+      el.textContent = '';
+      update(1/60);
+      const announcesBossSpawn = /boss on the field/i.test(el.textContent);
+
+      // Drafting a perk announces the pick.
+      backToMenu(); localStorage.removeItem('cd_save');
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      openDraft();
+      el.textContent = '';
+      const card = document.getElementById('draftCards').children[0];
+      const hadCard = !!card;
+      if (card) card.click();
+      const announcesPerk = /Perk chosen/i.test(el.textContent);
+
+      // Unlocking a badge on a finished run announces it (🎭 Jack — no `won` gate).
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; peakTowerTypes = 8; wave = 3; lives = 0;
+      el.textContent = '';
+      endGame();
+      const announcesBadge = /Achievement/i.test(el.textContent);
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; spawners.length = 0; towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { announcesBossSpawn, hadCard, announcesPerk, announcesBadge };
+    });
+    check('a boss entering the field is announced', r.announcesBossSpawn);
+    check('the draft offered at least one card', r.hadCard);
+    check('drafting a perk announces the pick', r.announcesPerk);
+    check('unlocking an achievement announces it', r.announcesBadge);
+    check('no console errors during announce follow-up test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [207] Codex deep-link to the SELECTED tower (v2.56.0) — opening the codex mid-run with a tower
+  // selected scrolls to that tower's row, taking priority over a live boss (only one #cdxHere target).
+  console.log('\n[207] Codex deep-link to the selected tower');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const tp = pointAt(pathLen * 0.3);
+      const T = { type:'sniper', x:tp.x, y:tp.y, range:240, dmg:50, rate:1.6, cd:0, level:1, kills:0,
+        dealt:0, mode:'first', invested:0, spec:null, flash:0 };
+      towers.length = 0; towers.push(T); selectedTower = T;
+
+      renderCodex();
+      const row = document.getElementById('cdxHere');
+      const linksTower = !!row && row.textContent.indexOf(TOWER_TYPES.sniper.name) >= 0;
+      const onlyOneSel = document.querySelectorAll('.cdxHere').length === 1;
+
+      // Priority: a selected tower wins even when a mechanic boss is on the field.
+      const bp = pointAt(pathLen * 0.5);
+      enemies.length = 0;
+      enemies.push({ kind:'boss', bossType:'regen', x:bp.x, y:bp.y, dist: pathLen * 0.5, hp:500,
+        maxHp:500, dead:false, blinkInvuln:0, armor:0, frozen:0, r:24, spd:0, slow:0, poison:null, bounty:10 });
+      renderCodex();
+      const rowP = document.getElementById('cdxHere');
+      const towerWinsOverBoss = !!rowP && rowP.textContent.indexOf(TOWER_TYPES.sniper.name) >= 0
+        && document.querySelectorAll('.cdxHere').length === 1;
+
+      // With NO tower selected, the boss deep-link still works (regression guard for v2.54.0).
+      selectedTower = null;
+      renderCodex();
+      const rowB = document.getElementById('cdxHere');
+      const bossEntry = CODEX_BOSSES.find(b => b.type === 'regen');
+      const bossStillLinks = !!rowB && !!bossEntry && rowB.textContent.indexOf(bossEntry.label) >= 0;
+
+      enemies.length = 0; towers.length = 0; selectedTower = null; backToMenu(); localStorage.removeItem('cd_save');
+      return { linksTower, onlyOneSel, towerWinsOverBoss, bossStillLinks };
+    });
+    check('a selected tower deep-links its codex row', r.linksTower);
+    check('exactly one row is deep-linked for the tower', r.onlyOneSel);
+    check('a selected tower takes priority over a live boss', r.towerWinsOverBoss);
+    check('with no tower selected, the boss deep-link still works', r.bossStillLinks);
+    check('no console errors during tower deep-link test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [208] Maxed Out achievement (🏗️ v2.56.0) — win with 3+ towers at max level (maxTowerLevel()).
+  console.log('\n[208] Maxed Out achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'maxlevel');
+      const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const ml = maxTowerLevel();
+      const mk = lvl => ({ type:'gun', level:lvl, dealt:0, kills:0 });
+
+      // 2 max-level towers → withheld (needs 3).
+      freshMeta(); towers.length = 0; towers.push(mk(ml), mk(ml), mk(ml - 1));
+      const withheldAt2 = grantAchievements(true).map(a => a.id).includes('maxlevel');
+
+      // 3 max-level towers → granted.
+      freshMeta(); towers.length = 0; towers.push(mk(ml), mk(ml), mk(ml));
+      const grantedAt3 = grantAchievements(true).map(a => a.id).includes('maxlevel');
+
+      // A LOSS with 3 max-level towers → withheld (win-gated).
+      freshMeta(); towers.length = 0; towers.push(mk(ml), mk(ml), mk(ml));
+      const withheldOnLoss = grantAchievements(false).map(a => a.id).includes('maxlevel');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, withheldAt2, grantedAt3, withheldOnLoss };
+    });
+    check('Maxed Out is in the achievement roster', r.inRoster);
+    check('Maxed Out withheld with only 2 max-level towers', !r.withheldAt2);
+    check('Maxed Out granted with 3 max-level towers on a win', r.grantedAt3);
+    check('Maxed Out withheld on a loss (win-gated)', !r.withheldOnLoss);
+    check('no console errors during Maxed Out test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
