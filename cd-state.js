@@ -40,6 +40,14 @@ let overdriveT = 0;
 // meteorBestKills (v2.48.0): most enemies slain by a single Meteor cast this run — feeds the
 // 💥 Carpet Bomb achievement (12+ in one blast). Run-only, never saved, re-earnable on resume.
 let meteorBestKills = 0;
+// 💰 Gold Rush bank (v2.57.0, owner FEEDBACK "Gold button should increase as you kill. Late game
+// it becomes useless"): every kill banks a share of its bounty toward the NEXT Gold Rush cast, so
+// the payout tracks the run's own income curve instead of the flat 50 + wave*5. `rushBank` accrues
+// in damage()'s kill block and is emptied by the cast; `rushBest` is the biggest single payout this
+// run (feeds the 💸 Windfall achievement). autoRushTimer drives the ⛏️ Prospector talent's auto-cast.
+// All three are run-only and NEVER serialized (like abilityCd/barrierCharges) — a resumed run simply
+// starts with an empty bank, consistent with every other transient ability state.
+let rushBank = 0, rushBest = 0, autoRushTimer = 0;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -162,6 +170,12 @@ function resetState() {
   armedAbility = null;
   barrierCharges = 0; barrierTimer = 0; barrierBlocks = 0;
   overdriveT = 0; meteorBestKills = 0;
+  rushBank = 0; rushBest = 0;
+  // Seed the ⛏️ Prospector auto-cast timer to a FULL interval so the first auto-cast waits out the
+  // rank's delay like every later one (leaving it at 0 handed rank 1 a free instant cast the moment
+  // wave 1 started, contradicting its 144s advertised interval). Rank 0/5 both seed 0 — harmless
+  // for rank 0 (the tick is rank-gated) and correct for rank 5 ("the instant it recharges").
+  autoRushTimer = autoRushInterval(tRank('prospector'));
   livesLostThisRun = false;
   abilityUsedThisRun = false;
   abilitiesCastThisRun = new Set();

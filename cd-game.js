@@ -831,6 +831,11 @@ function effDmg(t) {
   // count changes only on place/sell, so the per-frame Set is cheap (bounded tower count); upgradeKey
   // hashes effDmg so the panel updates as you diversify. Conditional + capped → "too easy"-safe.
   if (perkState.overwhelm) d *= 1 + 0.08 * Math.min(5, new Set(towers.map(o => o.type)).size);
+  // War Chest legendary (v2.57.0): +1% damage per 1,000 gold currently BANKED, capped +25% at 25k —
+  // idle late-game gold finally buys something. Floored to 1,000-gold notches so upgradeKey's effDmg
+  // hash only churns the panel per notch, not on every bounty. Capped below Diamond Core (+30%), and
+  // spending the gold spends the bonus, so hoarding is a real trade-off rather than free damage.
+  if (perkState.warChest) d *= 1 + Math.min(0.25, Math.floor(gold / 1000) * 0.01);
   // 📣 Amplify ability (v2.48.0): +30% damage while the tower-overdrive burst is active.
   // Run-only `overdriveT` (set on cast, decayed in update()); effDmg is hashed by upgradeKey,
   // so the upgrade panel's dmg line steps up/down with the buff.

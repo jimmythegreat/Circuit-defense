@@ -92,6 +92,20 @@ function update(dt) {
     overdriveT = Math.max(0, overdriveT - dt);
     if (overdriveT <= 0) addFloater(W/2, H/2, '📣 Amplify faded', '#8b949e', 18);
   }
+  // ⛏️ Prospector talent (v2.57.0, owner FEEDBACK): auto-press the 💰 Gold Rush button on a
+  // rank-shortened interval. Rank 1 waits 144s so it skips most ready-windows on the ~60s
+  // cooldown; rank 5's interval is 0, so the check runs every frame and fires the moment the
+  // ability recharges. Sits past update()'s pause/draft/gameOver early-return, so it can't tick
+  // on a paused or finished run, and the `wave >= 1` guard mirrors triggerAbility's own pre-wave
+  // lock (without it the locked-out cast would spam its hint floater every frame).
+  const prospectRank = tRank('prospector');
+  if (prospectRank > 0 && wave >= 1) {
+    autoRushTimer -= dt;
+    if (autoRushTimer <= 0) {
+      autoRushTimer = autoRushInterval(prospectRank);
+      if (abilityCd.rush <= 0) triggerAbility('rush');
+    }
+  }
   abilityUiAcc += dt;
   if (abilityUiAcc > 0.25) {
     abilityUiAcc = 0; refreshAbilityBar();

@@ -46,6 +46,19 @@ const TALENTS = {
   // so it can't power-creep the "too easy" feedback — it just gives the panic wall more uptime vs
   // leak-pressure content. Save-safe: loadMeta auto-migrates the new key to 0 for old saves.
   rampart:    { sect:'CORE', name:'Rampart',     icon:'🏯', max:3,  cost: r => 12 + r*10,  desc: r => `Barrier recharges ${10*r}% faster` },
+  // Prospector (v2.57.0, owner FEEDBACK "add a talent that allows gold to be automatically clicked
+  // … each level decreases the interval of the click … up to 5 levels where it auto clicks every
+  // time. Make this sort of expensive"): auto-casts 💰 Gold Rush on an interval that shortens with
+  // rank (autoRushInterval: 144s → 0s), so rank 1 skips most ready-windows and rank 5 fires the
+  // instant the ability recharges. Deliberately the 2nd-priciest talent after Overdrive (36+32r →
+  // 500 chips to max) because it automates an economy ability rather than adding a stat. It grants
+  // NO gold of its own — it only presses a button you could already press — so it can't outrun the
+  // economy; note it does set abilityUsedThisRun, so a Prospector run can't earn 🕊 Pacifist.
+  // Save-safe: loadMeta auto-migrates the new key to 0 for old saves via the Object.keys loop.
+  prospector: { sect:'CORE', name:'Prospector',  icon:'⛏️', max:5,  cost: r => 36 + r*32,
+                desc: r => (r >= 5 ? 'auto-casts Gold Rush the instant it recharges'
+                                   : `auto-casts Gold Rush every ${autoRushInterval(r)}s`)
+                           + ' (counts as an ability cast)' },
   overdrive:  { sect:'CORE', name:'Overdrive',   icon:'🌟', max:2,  cost: r => 120 + r*180, desc: r => `tower max level +${r}` },
   // — tower mastery: upgrade your towers permanently — (cheapest big-damage talents pre-v1.38.0;
   //   doubled in cost so stacking +30% dmg across eight tower types is a real grind, not a freebie)
@@ -221,7 +234,7 @@ function towerBarrelTint(t) {
 const ABILITIES = {
   meteor: { name:'Meteor',    icon:'☄️', key:'Q', cd:30, desc:'Click map: massive AoE damage' },
   freeze: { name:'Time Freeze',icon:'🧊', key:'W', cd:45, desc:'Freeze ALL enemies for 4s' },
-  rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection' },
+  rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection — the payout grows with every kill you bank' },
   shock:  { name:'Shockwave', icon:'🌀', key:'R', cd:50, desc:'Blast ALL enemies backward along the path' },
   barrier:{ name:'Barrier',   icon:'🛡️', key:'T', cd:60, desc:'Vaporize the next 3 enemies that reach the exit — no lives lost' },
   amp:    { name:'Amplify',   icon:'📣', key:'Y', cd:55, desc:'All towers +30% damage & fire rate for 5s' },
@@ -231,9 +244,28 @@ const BARRIER_DURATION = 20;  // seconds unused barrier charges last before fadi
 const PHOENIX_LIVES = 12;     // lives restored when 🌅 Phoenix cheats death once per run (v2.15.0)
 const OVERDRIVE_DUR = 5;      // seconds the 📣 Amplify tower-overdrive buff lasts (v2.48.0)
 const OVERDRIVE_MULT = 1.30;  // Amplify: ×dmg and ÷reload while overdriveT>0 (+30% dmg & fire rate)
+// 💰 Gold Rush kill-bank (v2.57.0): fraction of every bounty banked toward the next cast.
+const RUSH_BANK_SHARE = 0.25;
+// What a Gold Rush cast is currently worth: the flat base plus everything banked from kills since
+// the last cast. ONE definition shared by the cast site and the ability-button caption, so the
+// number the button advertises can never drift from the number the cast actually pays.
+function rushPayout() { return 50 + wave * 5 + Math.floor(rushBank); }
+// ⛏️ Prospector (v2.57.0): seconds between auto-cast attempts at each talent rank — 180 − 36/rank,
+// so rank 1 waits 144s (skipping most ready-windows on a 60s cooldown), rank 2 108s … and rank 5
+// hits 0 = "fire the instant it's ready", exactly the owner's "up to 5 levels where it auto clicks
+// every time". A pure function of rank so the talent desc and update() can't drift apart.
+const autoRushInterval = r => Math.max(0, 180 - r * 36);
 let abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0, amp: 0 };
 let armedAbility = null;
 
+// Ability-button caption: the cooldown countdown while recharging, else the ability's short name —
+// except 💰 Gold Rush, whose ready-state caption becomes the pending payout once kills have banked
+// something (v2.57.0), so the growing number is visible at a glance without opening any panel.
+function abilityLabel(k) {
+  if (abilityCd[k] > 0) return Math.ceil(abilityCd[k]) + 's';
+  if (k === 'rush' && rushBank >= 1) return '+' + fmtNum(rushPayout());
+  return ABILITIES[k].name.split(' ')[0];
+}
 function renderAbilityBar() {
   const bar = document.getElementById('abilityBar');
   bar.innerHTML = '';
@@ -243,7 +275,7 @@ function renderAbilityBar() {
     btn.className = 'abilityBtn' + (abilityCd[k] > 0 ? ' cooling' : '') + (armedAbility === k ? ' armed' : '');
     btn.id = 'ab_' + k;
     btn.title = `${a.name} — ${a.desc}`;
-    btn.innerHTML = `<span class="keytip">${a.key}</span><span class="aicon">${a.icon}</span><span class="cdText">${abilityCd[k] > 0 ? Math.ceil(abilityCd[k]) + 's' : a.name.split(' ')[0]}</span><div class="cdshade" style="height:${Math.min(100, abilityCd[k] / (a.cd * metaCdMult()) * 100)}%"></div>`;
+    btn.innerHTML = `<span class="keytip">${a.key}</span><span class="aicon">${a.icon}</span><span class="cdText">${abilityLabel(k)}</span><div class="cdshade" style="height:${Math.min(100, abilityCd[k] / (a.cd * metaCdMult()) * 100)}%"></div>`;
     btn.onclick = () => triggerAbility(k);
     bar.appendChild(btn);
   }
@@ -254,7 +286,7 @@ function refreshAbilityBar() {
     if (!el) continue;
     el.classList.toggle('cooling', abilityCd[k] > 0);
     el.classList.toggle('armed', armedAbility === k);
-    el.querySelector('.cdText').textContent = abilityCd[k] > 0 ? Math.ceil(abilityCd[k]) + 's' : ABILITIES[k].name.split(' ')[0];
+    el.querySelector('.cdText').textContent = abilityLabel(k);
     el.querySelector('.cdshade').style.height = Math.min(100, abilityCd[k] / (ABILITIES[k].cd * metaCdMult()) * 100) + '%';
   }
 }
@@ -285,7 +317,11 @@ function triggerAbility(k) {
     if (wave < 1) { addFloater(W/2, H/2, '⏳ Start a wave first', '#8b949e', 18); return; }
     abilityCd.rush = ABILITIES.rush.cd * metaCdMult() * perkState.abilityCdMult;
     abilityUsedThisRun = true;
-    const amount = 50 + wave * 5;
+    // The payout is the flat base PLUS everything banked from kills since the last cast (v2.57.0,
+    // owner FEEDBACK) — emptied here, so the ability rewards holding it through a busy stretch.
+    const amount = rushPayout();
+    rushBank = 0;
+    rushBest = Math.max(rushBest, amount);   // 💸 Windfall achievement (v2.57.0)
     gold += amount;
     addFloater(W/2, H/2, `💰 +${amount} GOLD`, '#ffd866', 24);
     SFX.perk();
@@ -698,6 +734,18 @@ const PERKS = [
   // effDmg, so the panel live-updates as you place/sell types). `overwhelm` lives in perkState (save-safe
   // default false; round-trips via loadRun's Object.assign). A legendary, so resolveWildcard rolls it. [202]
   { id:'overwhelm', rarity:'legendary', icon:'🌈', name:'Overwhelm',        desc:'+8% tower damage per distinct tower type on the board (max +40%)', apply:s=>s.overwhelm = true },
+  // War Chest (legendary, v2.57.0): the pool's first perk that converts BANKED GOLD into power —
+  // +1% tower damage per 1,000 gold you are holding, capped +25% at 25,000. A fresh axis (every other
+  // damage perk keys off enemy HP, tower count/type, wave, or is flat), and a direct answer to the
+  // documented late-game gold pile-up (the owner's "1.5m unused gold at w140") — idle gold finally
+  // does something. A genuine TRADE-OFF, not a freebie: the bonus evaporates the moment you spend,
+  // so hoarding for damage means skipping the upgrades that same gold would buy. "Too easy"-safe —
+  // capped +25%, strictly BELOW the unconditional 💎 Diamond Core (+30%), and worth ~nothing early
+  // when gold is scarce. Wired in effDmg on floor(gold/1000) so it steps in 1,000-gold notches
+  // (upgradeKey hashes effDmg → the panel refreshes per notch, not per kill). `warChest` lives in
+  // perkState (save-safe default false; round-trips via loadRun's Object.assign). resolveWildcard
+  // rolls it automatically (a legendary). Test group [211].
+  { id:'warchest', rarity:'legendary', icon:'🏦', name:'War Chest',        desc:'+1% tower damage per 1,000 gold banked (max +25%)', apply:s=>s.warChest = true },
   // 💠 SECOND WIND (v2.54.0) — the pool's first SECRET perk. It stays out of the draft (and out of
   // Wildcard's roll) until the player has earned the 🛡️ Flawless achievement; `secret()` is the gate,
   // read live from meta so it unlocks the moment that badge lands. The first perk to RESTORE lives:
@@ -724,7 +772,8 @@ function freshPerkState() {
     ambush:false, abilityCdMult:1, empResist:1, aoePen:false, veteranBonus:false,
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
-    corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false };
+    corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
+    warChest:false };
 }
 function ascendTowers() {
   for (const t of towers) {

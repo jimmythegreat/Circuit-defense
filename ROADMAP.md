@@ -54,6 +54,14 @@ _None currently known._ (Add any here as found — top priority.)
       (vs the wave-number cycle); a Breacher variant that costs lives only if it *survives* a tower's range.
       (Color space for boss aura rings is VERY crowded now — a 25th needs a clearly-distinct hue, or reuse a
       shape/glyph cue instead.)
+- [ ] **Economy follow-ups** — (💰 Gold Rush kill-bank DONE v2.57.0 [209] — 25% of every bounty banks
+      toward the next cast, so the ability scales with the run; ⛏️ Prospector talent DONE v2.57.0 [210] —
+      auto-casts it on a rank-shortened interval, 144s → instant; 🏦 War Chest legendary DONE v2.57.0 [211] —
+      +1% dmg per 1,000 gold *held*, cap +25%, the first gold→power conversion). **Still open:** other
+      abilities go stale late the same way Gold Rush did — ☄️ Meteor's damage is flat while enemy HP runs
+      away past w40 (a wave-scaled or %-max-HP component would keep it honest; must respect the "too easy"
+      guardrail); a *sink* for the deep-Endless gold pile (a mid-run gold→chips converter, or an escalating
+      "reinforce" purchase) so the 1.5m-gold endgame has something to spend on.
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -204,10 +212,10 @@ _None currently known._ (Add any here as found — top priority.)
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 + **uncapped deep ramp from w40 v2.31.0** [109] (deep-endless
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
-- 28 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
+- 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
-  + Rampart Barrier-cooldown v2.46.0 [176]);
-  cost rework v1.38.0 [55]. 46 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
+  cost rework v1.38.0 [55]. 50 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -226,12 +234,14 @@ _None currently known._ (Add any here as found — top priority.)
   + 🪩 Pinball Wizard v2.52.0 [193] — strike 6+ enemies with a single Arc bolt;
   + 🎭 Jack of All Trades + 🗺️ Cartographer v2.55.0 [203] — field 8+ distinct tower types at once / reach the final wave on all 7 static Quick maps (cross-run completion);
   + 🏗️ Maxed Out v2.56.0 [208] — win with 3+ towers at max level;
+  + 💸 Windfall v2.57.0 [209] — land a single Gold Rush worth 2,500+ gold;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125])/
   Warpath(+2% dmg per wave reached, max +40% — a back-loaded scaling axis, v2.47.0 [180])/
-  Overwhelm(+8% dmg per DISTINCT tower type on the board, max +40% at 5 — a build-DIVERSITY axis, the inverse of Phalanx, v2.55.0 [202]); rares Targeting
+  Overwhelm(+8% dmg per DISTINCT tower type on the board, max +40% at 5 — a build-DIVERSITY axis, the inverse of Phalanx, v2.55.0 [202])/
+  War Chest(+1% dmg per 1,000 gold HELD, max +25% at 25k — the first gold→power conversion; spending spends the bonus, v2.57.0 [211]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/
@@ -247,6 +257,8 @@ _None currently known._ (Add any here as found — top priority.)
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]
   + **📣 Amplify v2.48.0 [183]** — the first offensive-BUFF ability: +30% tower dmg & fire rate for 5s, cd 55, hotkey Y).
+  💰 Gold Rush **banks 25% of every bounty** toward its next cast (v2.57.0 [209]) and can be auto-cast by the
+  ⛏️ Prospector talent (v2.57.0 [210]).
 - 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
   + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].

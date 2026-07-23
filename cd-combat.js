@@ -404,6 +404,13 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
       addFloater(e.x, e.y - 40, '👑 MIDAS ×5!', '#ffd866', 16);
     }
     gold += bounty;
+    // 💰 Gold Rush bank (v2.57.0, owner FEEDBACK "Gold button should increase as you kill. Late
+    // game it becomes useless"): bank a share of every bounty toward the next Gold Rush cast, so
+    // the ability rides the run's own income curve instead of the flat 50 + wave*5 (worth ~1% of a
+    // late bank). It's a SHARE of gold you already earned, so it can't outrun the economy: casting
+    // perfectly on cooldown is at most +RUSH_BANK_SHARE income — below the 🎲 Fortune talent's
+    // maxed +48% double-bounty chance, the established ceiling for an economy multiplier.
+    rushBank += bounty * RUSH_BANK_SHARE;
     // bounty pops fire on every kill — merge nearby ones so AoE/combo bursts read as
     // a single growing +N instead of a confetti of overlapping numbers
     addFloater(e.x, e.y - 14, `+${bounty}`, '#ffd866', 14,

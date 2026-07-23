@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.57.0 — 2026-07-23 — Gold Rush kill-bank + ⛏️ Prospector talent (FEEDBACK) + 🏦 War Chest perk + 💸 Windfall badge
+
+**Type:** Minor (feature/content). Suite green (2136/0; baseline 2103/0 confirmed green on the clean pull before any edit). Both FEEDBACK PENDING items shipped; the extra two picked from ROADMAP (perk follow-ups, achievement). 4 versions since the last health check (v2.53.1) — a normal run.
+
+- **💰 Gold Rush now banks as you kill (FEEDBACK — "gold button should increase as you kill; late game it becomes useless"):** 25% of every bounty accrues into a run-only `rushBank`, and the cast pays `50 + wave*5 + bank` then empties it — so the payout tracks the run's own income curve instead of a flat base. The ability button's ready-state caption shows the pending payout live. **Sim: +20.4% total run income at wave 20** when cast perfectly on cooldown (inside the ≤25% guardrail; below 🎲 Fortune's maxed +48%). Bank/best are run-only, never serialized. Test group `[209]`.
+- **⛏️ Prospector — a new CORE talent (FEEDBACK — "a talent that auto-clicks gold … 5 levels … sort of expensive"):** auto-casts Gold Rush every `180 − 36×rank` seconds — rank 1 = 144s (longer than the cooldown, so it skips most windows), stepping down to rank 5 = 0s (fires the instant it recharges). 2nd-priciest talent after Overdrive (500 chips to max). Grants no gold of its own — it only presses a button you could already press. Save-safe via `loadMeta`'s migration loop. Test group `[210]`.
+- **🏦 War Chest — a new legendary perk:** +1% tower damage per 1,000 gold **banked**, capped +25% at 25k. The first perk that turns idle gold into power (answers the documented late-game gold pile-up), and a real trade-off — spending the gold spends the bonus. Capped below the flat 💎 Diamond Core (+30%) and worth ~nothing early → "too easy"-safe. Steps in 1,000-gold notches so the upgrade panel doesn't churn per kill. Test group `[211]`.
+- **💸 Windfall — a new achievement (roster 49 → 50):** land a single Gold Rush worth **2,500+ gold** — only reachable via the new kill-bank, so it rewards holding the ability through a heavy stretch. No win gate. Test group `[209]`.
+
 ## v2.56.0 — 2026-07-22 — Aftershock perk, Maxed Out badge, Codex tower deep-link, a11y announce follow-ups
 
 **Type:** Minor (feature/content). Suite green (2103/0; baseline 2077/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; picked from ROADMAP (perk/ability follow-ups, achievement, Codex deep-link follow-up, screen-reader follow-ups). 3 versions since the last health check (v2.53.1) — a normal run.

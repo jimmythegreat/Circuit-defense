@@ -57,6 +57,7 @@ const ACHIEVEMENTS = [
   { id:'jack',          icon:'🎭', name:'Jack of All Trades',    desc:'Field 8+ distinct tower types at once' },
   { id:'cartographer',  icon:'🗺️', name:'Cartographer',          desc:'Reach the final wave on all Quick maps' },
   { id:'maxlevel',      icon:'🏗️', name:'Maxed Out',             desc:'Win with 3+ towers at max level' },
+  { id:'windfall',      icon:'💸', name:'Windfall',              desc:'Land a single Gold Rush worth 2,500+ gold' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -175,6 +176,11 @@ function grantAchievements(won) {
   // A build-diversity goal between 🧠 Polymath (6+, win) and 🧰 Full Arsenal (all 12, win); pairs
   // with the 🌈 Overwhelm perk. Most natural in a long/rich run where you can afford a varied board.
   if (peakTowerTypes >= 8) give('jack');
+  // Windfall (💸 v2.57.0): a feat (no `won` gate) — cash in a single 💰 Gold Rush worth 2,500+ gold.
+  // Reads the run-only rushBest tracker (cd-state.js), set at the cast site in triggerAbility. Only
+  // reachable via the v2.57.0 kill-bank (the flat base is 50 + wave*5), so it rewards holding the
+  // ability through a heavy stretch — or letting the ⛏️ Prospector talent bank a deep-Endless wave.
+  if (rushBest >= 2500) give('windfall');
   // Cartographer (🗺️ v2.55.0): a cross-run completionist feat (no `won` gate) — reach the final
   // wave (30) on EVERY static Quick map, in any difficulty. Data-driven: iterates the MAPS keys
   // (excluding random-path mayhem) and reads the per-map best-wave keys (cd_best_<map>_<diff>).

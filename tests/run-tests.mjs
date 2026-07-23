@@ -1701,7 +1701,7 @@ async function main() {
       //       perk is picked). This is RNG-free: god towers collect every (deterministic) bounty,
       //       and no random draft perk has applied yet — so it's the true economy-trim signal.
       //       (Old pre-v1.16.1 economy ≈ 1003 here; trimmed to 875 — the documented ~−13%.)
-      //     • warChest — gold after wave 10. Used only as a loose sanity floor: it includes the
+      //     • chestGold — gold after wave 10. Used only as a loose sanity floor: it includes the
       //       wave-5/10 auto-picked draft perks (card[0]), which can be gold perks, so its exact
       //       value is non-deterministic — do NOT assert a tight upper bound on it (that flaked).
       beginGame();
@@ -1730,9 +1730,9 @@ async function main() {
         }
         if (draftOpen) pickFirstCard();
       }
-      const warChest = Math.floor(gold);
+      const chestGold = Math.floor(gold);
       backToMenu();
-      return { bountySamples, warChest, preDraftChest };
+      return { bountySamples, chestGold, preDraftChest };
     });
     for (const s of r.bountySamples)
       check(`wave ${s.w} bounty uses the trimmed (3 + w*0.6) flat term`, s.ok, `got=${s.got} exp=${s.exp}`);
@@ -1749,7 +1749,7 @@ async function main() {
     check('pre-draft economy trimmed below the old baseline', r.preDraftChest < 950, String(r.preDraftChest));
     check('pre-draft economy stays a meaningful bank (>700)', r.preDraftChest > 700, String(r.preDraftChest));
     // 10-wave total still completes and stays a real bank — loose floor only (no flaky upper bound).
-    check('10-wave war chest stays a meaningful bank (>1500)', r.warChest > 1500, String(r.warChest));
+    check('10-wave war chest stays a meaningful bank (>1500)', r.chestGold > 1500, String(r.chestGold));
     check('no console errors during economy-trim test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 49 badges', r.total === 49, `total=${r.total}`);
+    check('achievement roster grew to 50 badges', r.total === 50, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 49;   // +maxlevel 🏗️ (v2.56.0)
+      const rosterOk = ACHIEVEMENTS.length === 50;   // +windfall 💸 (v2.57.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 49;
+      const rosterOk = ACHIEVEMENTS.length === 50;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13440,7 +13440,7 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 49', r.rosterOk);
+    check('achievement roster grew to 50', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
     check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
@@ -13679,6 +13679,190 @@ async function main() {
     check('Maxed Out granted with 3 max-level towers on a win', r.grantedAt3);
     check('Maxed Out withheld on a loss (win-gated)', !r.withheldOnLoss);
     check('no console errors during Maxed Out test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [209] Gold Rush kill-bank + 💸 Windfall badge (v2.57.0, owner FEEDBACK "Gold button should
+  // increase as you kill. Late game it becomes useless"). A share of every bounty banks toward the
+  // next cast; the cast pays base + bank and empties it. Run-only — never serialized.
+  console.log('\n[209] Gold Rush kill-bank');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const shareIs25 = RUSH_BANK_SHARE === 0.25;
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      meta.talents.fortune = 0;   // keep the bounty deterministic (no LUCKY ×2 roll)
+      beginGame();
+      const freshAfterReset = rushBank === 0 && rushBest === 0;
+
+      // a kill banks RUSH_BANK_SHARE of its bounty
+      const mk = () => ({ kind:'norm', hp:10, maxHp:10, bounty:20, armor:0, x:120, y:120, r:8,
+        dist:0, spd:0, dead:false, flash:0, slow:0, frozen:0, poison:null, px:0, py:0 });
+      enemies.length = 0;
+      const foe = mk(); enemies.push(foe);
+      rushBank = 0;
+      damage(foe, 999, null);
+      const banksOnKill = Math.abs(rushBank - 20 * RUSH_BANK_SHARE) < 1e-9;
+
+      // the cast pays base + bank, then empties the bank
+      wave = 5; gold = 0; abilityCd.rush = 0; rushBank = 1000; rushBest = 0;
+      triggerAbility('rush');
+      const paidBasePlusBank = gold === 50 + 5 * 5 + 1000;
+      const bankEmptied = rushBank === 0;
+      const bestTracked = rushBest === 1075;
+      const wentOnCooldown = abilityCd.rush > 0;
+
+      // the ability-bar caption surfaces the pending payout once something is banked
+      abilityCd.rush = 0; rushBank = 0;
+      const labelIdleIsName = abilityLabel('rush') === 'Gold';
+      rushBank = 900;
+      const labelShowsBank = abilityLabel('rush').startsWith('+');
+
+      // never serialized (transient like abilityCd/barrierCharges)
+      rushBank = 777; rushBest = 4242;
+      saveRun();
+      const raw = localStorage.getItem('cd_save') || '';
+      const notSaved = !raw.includes('rushBank') && !raw.includes('rushBest');
+
+      // 💸 Windfall: granted at a 2,500+ single payout, withheld below, no `won` gate
+      const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'windfall');
+      towers.length = 0; enemies.length = 0;
+      freshMeta(); rushBest = 2499;
+      const withheldBelow = grantAchievements(false).map(a => a.id).includes('windfall');
+      freshMeta(); rushBest = 2500;
+      const grantedAt = grantAchievements(false).map(a => a.id).includes('windfall');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { shareIs25, freshAfterReset, banksOnKill, paidBasePlusBank, bankEmptied, bestTracked,
+        wentOnCooldown, labelIdleIsName, labelShowsBank, notSaved, inRoster, withheldBelow, grantedAt };
+    });
+    check('RUSH_BANK_SHARE is 25% of bounty', r.shareIs25);
+    check('resetState clears the rush bank + best', r.freshAfterReset);
+    check('a kill banks its share of the bounty', r.banksOnKill);
+    check('Gold Rush pays base + banked', r.paidBasePlusBank);
+    check('casting empties the bank', r.bankEmptied);
+    check('rushBest records the payout', r.bestTracked);
+    check('casting puts Gold Rush on cooldown', r.wentOnCooldown);
+    check('ready Gold Rush shows its name with an empty bank', r.labelIdleIsName);
+    check('ready Gold Rush shows the pending payout once banked', r.labelShowsBank);
+    check('the bank is never serialized into cd_save', r.notSaved);
+    check('Windfall is in the achievement roster', r.inRoster);
+    check('Windfall withheld below a 2,500 payout', !r.withheldBelow);
+    check('Windfall granted at a 2,500 payout (no win gate)', r.grantedAt);
+    check('no console errors during rush-bank test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [210] ⛏️ Prospector talent (v2.57.0, owner FEEDBACK "a talent that allows gold to be
+  // automatically clicked … each level decreases the interval … up to 5 levels where it auto
+  // clicks every time"). Auto-casts Gold Rush on a rank-shortened interval; rank 5 = instantly.
+  console.log('\n[210] Prospector auto-Gold-Rush talent');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inTree = !!TALENTS.prospector && TALENTS.prospector.max === 5;
+      // intervals shorten every rank and reach 0 ("every time") at rank 5
+      const ivs = [1,2,3,4,5].map(autoRushInterval);
+      const shortens = ivs.every((v, i) => i === 0 || v < ivs[i-1]);
+      const rank5Instant = autoRushInterval(5) === 0;
+      const rank1Skips = autoRushInterval(1) > ABILITIES.rush.cd;   // longer than the cooldown → skips windows
+      const expensive = TALENTS.prospector.cost(0) === 36 && TALENTS.prospector.cost(4) === 164;
+
+      // save-safe: an old meta with no prospector key migrates to rank 0
+      localStorage.setItem('cd_meta', JSON.stringify({ chips: 5, talents: { funding: 1 } }));
+      loadMeta();
+      const migrated = meta.talents.prospector === 0 && meta.talents.funding === 1;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      const run = (rank, w, frames) => {
+        beginGame();
+        meta.talents.prospector = rank;
+        wave = w; gold = 0; abilityCd.rush = 0; rushBank = 0; autoRushTimer = 0;
+        enemies.length = 0; towers.length = 0;
+        for (let i = 0; i < frames; i++) update(1/60);
+        return gold;
+      };
+      const rank5Fires = run(5, 3, 2) >= 50;             // fires within a couple of frames
+      const rank0Silent = run(0, 3, 120) === 0;          // no talent → never auto-casts
+      const preWaveSilent = run(5, 0, 120) === 0;        // pre-wave lock respected (no floater spam)
+
+      // rank 1 waits out its long interval instead of firing every ready-window — and the timer is
+      // seeded to a FULL interval by resetState(), so there is no free instant cast on wave 1
+      meta.talents.prospector = 1;
+      beginGame();                                       // resetState seeds autoRushTimer from the rank
+      const seededFromRank = autoRushTimer === autoRushInterval(1);
+      wave = 3; gold = 0; abilityCd.rush = 0; rushBank = 0;
+      enemies.length = 0; towers.length = 0;
+      for (let i = 0; i < 300; i++) update(1/60);        // 5s — far short of the 144s interval
+      const rank1Waits = gold === 0;
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inTree, shortens, rank5Instant, rank1Skips, expensive, migrated,
+        rank5Fires, rank0Silent, preWaveSilent, rank1Waits, seededFromRank };
+    });
+    check('Prospector is a 5-rank CORE talent', r.inTree);
+    check('each rank shortens the auto-cast interval', r.shortens);
+    check('rank 5 fires the instant Gold Rush is ready', r.rank5Instant);
+    check('rank 1 interval exceeds the cooldown (it skips windows)', r.rank1Skips);
+    check('Prospector is priced expensively', r.expensive);
+    check('an old meta without the talent migrates to rank 0', r.migrated);
+    check('rank 5 auto-casts Gold Rush in-run', r.rank5Fires);
+    check('rank 0 never auto-casts', r.rank0Silent);
+    check('the pre-wave lock is respected', r.preWaveSilent);
+    check('resetState seeds the timer to a full interval (no free first cast)', r.seededFromRank);
+    check('rank 1 waits out its interval', r.rank1Waits);
+    check('no console errors during Prospector test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [211] 🏦 War Chest legendary perk (v2.57.0) — +1% tower damage per 1,000 gold banked, cap +25%.
+  console.log('\n[211] War Chest perk');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const def = PERKS.find(p => p.id === 'warchest');
+      const isLegendary = !!def && def.rarity === 'legendary';
+      const notSecret = !!def && !def.secret;           // draftable straight away (no unlock gate)
+      const defaultsFalse = freshPerkState().warChest === false;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const t = { type:'gun', dmg:10, level:1, spec:null, kills:0, dealt:0, x:100, y:100 };
+      towers.length = 0; towers.push(t);
+
+      perkState = freshPerkState(); gold = 5000;
+      const base = effDmg(t);
+      perkState = freshPerkState(); def.apply(perkState);
+      gold = 0;      const at0 = effDmg(t);
+      gold = 5000;   const at5k = effDmg(t);
+      gold = 25000;  const at25k = effDmg(t);
+      gold = 900000; const atHuge = effDmg(t);
+
+      const noBonusBroke = Math.abs(at0 - base) < 1e-9;
+      const scales = Math.abs(at5k / base - 1.05) < 1e-9;
+      const caps = Math.abs(at25k / base - 1.25) < 1e-9 && Math.abs(atHuge - at25k) < 1e-9;
+      const notchedNotPerGold = (() => { gold = 5000; const a = effDmg(t); gold = 5999; return Math.abs(effDmg(t) - a) < 1e-9; })();
+
+      // save round-trip: the flag lives in perkState, which loadRun restores wholesale
+      gold = 500; wave = 3; saveRun();
+      perkState = freshPerkState();
+      const loaded = loadRun() !== false;
+      const survivesSave = loaded && perkState.warChest === true;
+
+      towers.length = 0; enemies.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { isLegendary, notSecret, defaultsFalse, noBonusBroke, scales, caps, notchedNotPerGold, survivesSave };
+    });
+    check('War Chest is a legendary perk', r.isLegendary);
+    check('War Chest has no secret unlock gate', r.notSecret);
+    check('warChest defaults false in a fresh perkState', r.defaultsFalse);
+    check('no bonus at zero gold', r.noBonusBroke);
+    check('+1% damage per 1,000 gold banked', r.scales);
+    check('bonus caps at +25%', r.caps);
+    check('bonus steps in 1,000-gold notches', r.notchedNotPerGold);
+    check('War Chest survives a save/resume round-trip', r.survivesSave);
+    check('no console errors during War Chest test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
