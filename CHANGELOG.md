@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.58.0 — 2026-07-24 — 🩹 Repair gold sink + ☄️ Meteor %-HP scaling + per-theme path textures
+
+**Type:** Minor (feature/content). Suite green (2141/0; baseline 2138/0 confirmed green on the clean pull before any edit). FEEDBACK is empty — all items picked from ROADMAP (economy follow-up "a sink for the deep-Endless gold pile", ability follow-up "Meteor's damage is flat while enemy HP runs away", game-feel "path fills are still solid-colour"). 5 version bumps since the last health check (v2.53.1) at the start of this run — a normal run; after this (the 6th) the NEXT run is a health check.
+
+- **🩹 Repair — a run gold SINK (ROADMAP — "a sink for the deep-Endless gold pile; 1.5m unused gold at w140"):** a new in-game button spends gold for +1 life, any time. The price **doubles** with each repair this run (400, 800, 1,600…), so it's a real trade early and a huge Endless bank only ever buys ~11 total — it can't launder gold into an unlosable run. The exponential ladder is serialized (`cd_save.repairs`, additive; old saves default 0) so a resume can't reset the price. New 🔧 **Overhaul** achievement (buy 5 Repairs in one run; roster 50 → 51). Test group `[212]`.
+- **☄️ Meteor now scales with target HP (ROADMAP — "Meteor's damage is flat while enemy HP runs away past w40"):** each hit deals its flat `120 + wave·14` **plus 5% of the target's max HP** (2% for bosses), so the blast stays relevant deep in Endless where flat damage was dwarfed. A deliberate content fix to a stale player tool (like the deep-wave `lateScale` ramp, the ≤25% balance rule doesn't apply to a new scaling term) — bounded/"too easy"-safe instead by being a fraction of HP the enemy *already has* (never a one-shot), on a 30s cooldown, a 95px radius, and the **2% boss slice** so it can never become a boss-melter (a 500k boss takes 10k/cast). Test group `[213]`.
+- **🎨 Per-theme path textures (ROADMAP — "path fills are still solid-colour"):** each map theme now paints a faint tiled surface pattern over the path (circuit traces / frost crystals / neon scanlines / chevrons / dots…), so maps read apart by material as well as hue. Purely cosmetic — one cached `CanvasPattern` per theme, gated by particle density like other detail; no gameplay/economy/save impact. Test group `[214]`.
+
 ## v2.57.0 — 2026-07-23 — Gold Rush kill-bank + ⛏️ Prospector talent (FEEDBACK) + 🏦 War Chest perk + 💸 Windfall badge
 
 **Type:** Minor (feature/content). Suite green (2136/0; baseline 2103/0 confirmed green on the clean pull before any edit). Both FEEDBACK PENDING items shipped; the extra two picked from ROADMAP (perk follow-ups, achievement). 4 versions since the last health check (v2.53.1) — a normal run.

@@ -590,6 +590,7 @@ function updateHud() {
   document.getElementById('chips').textContent = meta.chips;
   document.getElementById('best').textContent = best;
   renderShop();
+  refreshRepairBtn();
   maybeRefreshUpgrade();
 }
 function addFloater(x, y, text, color, size=14, opts=null) {
@@ -1073,6 +1074,36 @@ function gpCycleTower() {
     const key = TYPE_KEYS[(start + n) % TYPE_KEYS.length];
     if (gold >= costOf(key)) { selectedShop = key; hideUpgrade(); renderShop(); return; }
   }
+}
+
+// ================= 🩹 Repair — the run's gold SINK (v2.58.0) =================
+// ROADMAP/owner context: deep runs pile up gold with nothing to buy ("at wave 140 I had 1.5m gold
+// and sold towers to end it"). Repair converts that dead bank into survival: +1 life, at a price
+// that DOUBLES with every purchase this run. The exponential is the whole safety net — 400 gold
+// buys the first, but 1.5m only ever buys ~11 in total, so a huge bank can't be laundered into an
+// unlosable run. Early/mid it's a genuine trade (a life costs about a tower), which is the point.
+const REPAIR_BASE = 400, REPAIR_GROWTH = 2;
+function repairCost() { return Math.round(REPAIR_BASE * Math.pow(REPAIR_GROWTH, repairsBought)); }
+function buyRepair() {
+  if (!started || gameOver) return;
+  const cost = repairCost();
+  if (gold < cost) { addFloater(W/2, H/2, 'Not enough gold', '#f85149', 16); return; }
+  gold -= cost;
+  lives += 1;
+  repairsBought++;
+  addFloater(W/2, H/2 - 20, '🩹 +1 LIFE', '#3fb950', 22);
+  addExplosion(W/2, H/2, '#3fb950', 14, 110);
+  SFX.upgrade();
+  updateHud();
+}
+// Keep the controls-row button's price/affordability in sync (called from updateHud).
+function refreshRepairBtn() {
+  const btn = document.getElementById('repairBtn');
+  if (!btn) return;
+  const cost = repairCost();
+  btn.textContent = `🩹 Repair ${fmtNum(cost)}`;
+  btn.disabled = !started || gameOver || gold < cost;
+  btn.title = `Buy +1 life for ${cost} gold — the price doubles with each repair this run`;
 }
 
 function toggleSpeed() {

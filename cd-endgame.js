@@ -58,6 +58,7 @@ const ACHIEVEMENTS = [
   { id:'cartographer',  icon:'🗺️', name:'Cartographer',          desc:'Reach the final wave on all Quick maps' },
   { id:'maxlevel',      icon:'🏗️', name:'Maxed Out',             desc:'Win with 3+ towers at max level' },
   { id:'windfall',      icon:'💸', name:'Windfall',              desc:'Land a single Gold Rush worth 2,500+ gold' },
+  { id:'overhaul',      icon:'🔧', name:'Overhaul',              desc:'Buy 5 🩹 Repairs in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -181,6 +182,10 @@ function grantAchievements(won) {
   // reachable via the v2.57.0 kill-bank (the flat base is 50 + wave*5), so it rewards holding the
   // ability through a heavy stretch — or letting the ⛏️ Prospector talent bank a deep-Endless wave.
   if (rushBest >= 2500) give('windfall');
+  // Overhaul (🔧 v2.58.0): a feat (no `won` gate) — buy five 🩹 Repairs in one run. The price
+  // doubles each time (400 → 6,400 for the fifth, 12,400 total), so it's a genuine deep-run /
+  // rich-economy goal that celebrates actually SPENDING the late-game gold pile.
+  if (repairsBought >= 5) give('overhaul');
   // Cartographer (🗺️ v2.55.0): a cross-run completionist feat (no `won` gate) — reach the final
   // wave (30) on EVERY static Quick map, in any difficulty. Data-driven: iterates the MAPS keys
   // (excluding random-path mayhem) and reads the per-map best-wave keys (cd_best_<map>_<diff>).

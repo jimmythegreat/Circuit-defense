@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 50 badges', r.total === 50, `total=${r.total}`);
+    check('achievement roster grew to 51 badges', r.total === 51, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 50;   // +windfall 💸 (v2.57.0)
+      const rosterOk = ACHIEVEMENTS.length === 51;   // +overhaul 🔧 (v2.58.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9085,7 +9085,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 43 badges', r.rosterOk);
+    check('achievement roster is 51 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 50;
+      const rosterOk = ACHIEVEMENTS.length === 51;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13440,7 +13440,7 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 50', r.rosterOk);
+    check('achievement roster grew to 51', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
     check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
@@ -13863,6 +13863,102 @@ async function main() {
     check('bonus steps in 1,000-gold notches', r.notchedNotPerGold);
     check('War Chest survives a save/resume round-trip', r.survivesSave);
     check('no console errors during War Chest test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [212] 🩹 Repair gold sink (v2.58.0)
+  console.log('\n[212] Repair gold sink');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const cost0 = repairCost();                 // fresh run — no repairs bought
+      const startLivesN = lives;
+      gold = 100000;
+      buyRepair();                                 // 1st: cost 400
+      const afterFirst = { gold: gold, lives: lives, bought: repairsBought, nextCost: repairCost() };
+      buyRepair();                                 // 2nd: cost 800
+      buyRepair();                                 // 3rd: cost 1600
+      const after3 = { bought: repairsBought, nextCost: repairCost() };
+      // Price doubles each time: 400,800,1600 → total 2800 spent, next 3200
+      const spent = 100000 - gold;
+      // Cannot buy when broke
+      gold = 10; const buyGuard = repairsBought; buyRepair(); const noBuyWhenPoor = repairsBought === buyGuard;
+      // Save round-trip preserves the price ladder (repairsBought is serialized)
+      gold = 5000; wave = 3; saveRun();
+      repairsBought = 0;
+      const loaded = loadRun() !== false;
+      const ladderSurvives = loaded && repairsBought === 3;
+      const badgeDef = ACHIEVEMENTS.find(a => a.id === 'overhaul');
+      towers.length = 0; enemies.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { cost0, startLivesN, afterFirst, after3, spent, noBuyWhenPoor, ladderSurvives, badge: !!badgeDef };
+    });
+    check('first Repair costs 400', r.cost0 === 400);
+    check('Repair grants +1 life', r.afterFirst.lives === r.startLivesN + 1);
+    check('Repair price doubles (2nd = 800)', r.afterFirst.nextCost === 800);
+    check('Repair price ladder (3 bought → next 3200)', r.after3.bought === 3 && r.after3.nextCost === 3200);
+    check('three Repairs cost 400+800+1600 = 2800', r.spent === 2800);
+    check('cannot Repair when gold is short', r.noBuyWhenPoor);
+    check('Repair price ladder survives a save/resume round-trip', r.ladderSurvives);
+    check('🔧 Overhaul achievement is defined', r.badge);
+    check('no console errors during Repair test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [213] ☄️ Meteor deep-wave %-HP scaling (v2.58.0)
+  console.log('\n[213] Meteor %-max-HP scaling');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      wave = 30; perkState = freshPerkState();
+      abilityCd.meteor = 0; armedAbility = 'meteor';
+      // Place a big-HP dummy at the blast centre and a boss beside it.
+      const bx = 300, by = 300;
+      const grunt = { kind:'norm', x:bx, y:by, dist:100, hp:100000, maxHp:100000, dead:false, r:10, armor:0, spd:1, frozen:0 };
+      const boss  = { kind:'boss', x:bx+10, y:by, dist:100, hp:1000000, maxHp:1000000, dead:false, r:20, armor:0, spd:0.4, frozen:0 };
+      enemies.length = 0; enemies.push(grunt, boss);
+      const flat = 120 + wave * 14;               // 540 flat portion
+      castMeteor(bx, by);
+      // grunt took flat + 5% of its maxHp; boss took flat + 2% of its maxHp
+      const gruntDmg = 100000 - grunt.hp;
+      const bossDmg  = 1000000 - boss.hp;
+      const gruntOk = Math.abs(gruntDmg - (flat + 100000 * 0.05)) < 1;
+      const bossOk  = Math.abs(bossDmg  - (flat + 1000000 * 0.02)) < 1;
+      // Boss slice (2%) is a smaller FRACTION than the grunt slice (5%)
+      const bossSmallerFraction = (bossDmg / boss.maxHp) < (gruntDmg / grunt.maxHp);
+      enemies.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { gruntOk, bossOk, bossSmallerFraction };
+    });
+    check('Meteor deals flat + 5% of a grunt max HP', r.gruntOk);
+    check('Meteor deals flat + only 2% of a boss max HP', r.bossOk);
+    check('boss %-HP slice is a smaller fraction than a grunt', r.bossSmallerFraction);
+    check('no console errors during Meteor scaling test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [214] Per-theme path texture (v2.58.0)
+  console.log('\n[214] Per-theme path texture');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      // Every static theme has a PATH_TEX entry with a kind + color; chaos too.
+      const themeKeys = Object.keys(THEMES).concat('chaos');
+      const everyThemeHasTex = themeKeys.every(k => PATH_TEX[k] && PATH_TEX[k].kind && PATH_TEX[k].color);
+      // buildTexTile returns a CanvasPattern for each kind (render-only, cached).
+      const kinds = [...new Set(Object.values(PATH_TEX).map(t => t.kind))];
+      const allBuild = kinds.every(k => { try { return !!buildTexTile(k, 'rgba(1,1,1,0.1)'); } catch (e) { return false; } });
+      // Drawing a run with a textured theme throws no error.
+      gameMode = 'quick'; mapKey = 'cascade'; diffKey = 'normal'; campLevel = 1; beginGame();
+      let drewOk = true;
+      try { draw(); draw(); } catch (e) { drewOk = false; }
+      backToMenu();
+      return { everyThemeHasTex, allBuild, drewOk };
+    });
+    check('every theme (incl. chaos) has a PATH_TEX entry', r.everyThemeHasTex);
+    check('buildTexTile returns a pattern for every texture kind', r.allBuild);
+    check('drawing a textured map throws no error', r.drewOk);
+    check('no console errors during path-texture test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

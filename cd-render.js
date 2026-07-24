@@ -172,6 +172,51 @@ function drawKindTooltip(iconX, kind) {
   lines.forEach((l, i) => ctx.fillText(l, bx + 10, by + 33 + i * 15));
   ctx.restore();
 }
+// ================= Per-theme path texture (v2.58.0) =================
+// A tiny offscreen tile per (kind,color) → a cached CanvasPattern, so we tile a faint material
+// pattern over the path body once per frame. Purely cosmetic; keyed by the theme's PATH_TEX entry.
+const _texCache = {};
+function buildTexTile(kind, color) {
+  const s = 20;
+  const c = document.createElement('canvas'); c.width = s; c.height = s;
+  const g = c.getContext('2d');
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 1.5; g.lineCap = 'round';
+  if (kind === 'circuit') {            // PCB traces + a via node
+    g.beginPath(); g.moveTo(2,4); g.lineTo(11,4); g.lineTo(11,15); g.lineTo(18,15); g.stroke();
+    g.beginPath(); g.moveTo(4,18); g.lineTo(4,10); g.stroke();
+    g.beginPath(); g.arc(11,4,2,0,7); g.fill();
+  } else if (kind === 'hatch') {       // diagonal blades
+    g.beginPath(); g.moveTo(-2,6); g.lineTo(6,-2); g.moveTo(4,22); g.lineTo(22,4); g.moveTo(8,20); g.lineTo(20,8); g.stroke();
+  } else if (kind === 'cross') {       // + weave
+    g.beginPath(); g.moveTo(10,4); g.lineTo(10,16); g.moveTo(4,10); g.lineTo(16,10); g.stroke();
+  } else if (kind === 'dots') {        // stipple
+    g.beginPath(); g.arc(6,6,1.6,0,7); g.arc(15,14,1.6,0,7); g.fill();
+  } else if (kind === 'crystal') {     // frost shards (radiating lines)
+    g.beginPath(); g.moveTo(10,10); g.lineTo(10,2); g.moveTo(10,10); g.lineTo(17,14); g.moveTo(10,10); g.lineTo(3,15); g.stroke();
+  } else if (kind === 'chevron') {     // >>> arrows
+    g.beginPath(); g.moveTo(3,4); g.lineTo(9,10); g.lineTo(3,16); g.moveTo(11,4); g.lineTo(17,10); g.lineTo(11,16); g.stroke();
+  } else if (kind === 'scan') {        // horizontal scanlines
+    g.beginPath(); g.moveTo(0,6); g.lineTo(20,6); g.moveTo(0,14); g.lineTo(20,14); g.stroke();
+  }
+  return ctx.createPattern(c, 'repeat');
+}
+function drawPathTexture() {
+  const tex = (typeof PATH_TEX !== 'undefined') && PATH_TEX[mapTheme];
+  if (!tex) return;
+  const key = tex.kind + '|' + tex.color;
+  const pat = _texCache[key] || (_texCache[key] = buildTexTile(tex.kind, tex.color));
+  if (!pat) return;
+  // Stroking the path with the pattern as strokeStyle paints the tiled pattern ONLY within the
+  // stroked band — the path surface — so no explicit clip is needed. Width 32 ≈ the lit body.
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 32;
+  ctx.strokeStyle = pat;
+  ctx.beginPath();
+  ctx.moveTo(waypoints[0][0], waypoints[0][1]);
+  for (const [x,y] of waypoints) ctx.lineTo(x, y);
+  ctx.stroke();
+  ctx.restore();
+}
 function draw() {
   ctx.save();
   if (shake > 0 && shakeEnabled && !reduceMotion()) {
@@ -218,6 +263,10 @@ function draw() {
   ctx.shadowBlur = 0;
   ctx.strokeStyle = pal.pLite; ctx.lineWidth = 34;
   ctx.stroke();
+  // Per-theme surface texture (v2.58.0): clip to the path body (the 34px lit stroke) and tile a
+  // faint pattern over it, so each map's surface reads distinct beyond hue. Cosmetic + cheap
+  // (one cached CanvasPattern per theme; skipped under low particle density like other detail).
+  if (particleDensity > 0) drawPathTexture();
   ctx.strokeStyle = pal.dash;
   ctx.lineWidth = 3;
   ctx.setLineDash([8, 20]);

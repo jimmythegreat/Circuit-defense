@@ -57,11 +57,13 @@ _None currently known._ (Add any here as found — top priority.)
 - [ ] **Economy follow-ups** — (💰 Gold Rush kill-bank DONE v2.57.0 [209] — 25% of every bounty banks
       toward the next cast, so the ability scales with the run; ⛏️ Prospector talent DONE v2.57.0 [210] —
       auto-casts it on a rank-shortened interval, 144s → instant; 🏦 War Chest legendary DONE v2.57.0 [211] —
-      +1% dmg per 1,000 gold *held*, cap +25%, the first gold→power conversion). **Still open:** other
-      abilities go stale late the same way Gold Rush did — ☄️ Meteor's damage is flat while enemy HP runs
-      away past w40 (a wave-scaled or %-max-HP component would keep it honest; must respect the "too easy"
-      guardrail); a *sink* for the deep-Endless gold pile (a mid-run gold→chips converter, or an escalating
-      "reinforce" purchase) so the 1.5m-gold endgame has something to spend on.
+      +1% dmg per 1,000 gold *held*, cap +25%, the first gold→power conversion; **🩹 Repair gold sink DONE
+      v2.58.0 [212]** — an in-game button, +1 life for gold at an EXPONENTIALLY-doubling price (400/800/1600…),
+      so a 1.5m Endless bank only buys ~11 total → the deep-gold sink; serialized price ladder; 🔧 Overhaul badge;
+      **☄️ Meteor %-HP scaling DONE v2.58.0 [213]** — the blast now also deals 5% of each target's max HP
+      (2% boss) on top of the flat number, so it keeps biting past w40). **Still open:** the OTHER combat
+      abilities (Freeze/Shockwave are utility, so fine) are now honest; a mid-run gold→chips converter is a
+      possible further sink if Repair's exponential proves too easily outrun.
 - [ ] **Perk/ability follow-ups** — (revival/comeback legendary 🌅 Phoenix DONE v2.15.0 [125] — cheat death
       once, revive + field-knockback; legendary +40% range 🦅 Eagle Eye DONE v2.3.0 [115]; expanding shock-ring
       render DONE v2.5.0 [117], now also reused on Meteor impact; Barrier-charges talent 🧱 Aegis DONE v2.6.0
@@ -83,7 +85,10 @@ _None currently known._ (Add any here as found — top priority.)
       hotkey open it during a run (auto-pauses; closing resumes). **Boss deep-link DONE v2.54.0 [199]** —
       opening it while a mechanic boss is alive tints + scrolls to that archetype's row. An upgrade-panel
       deep-link (jump to the selected tower's entry) is a possible further follow-up.
-- [ ] **Per-theme ground textures** — path fills are still solid-colour; add patterns/parallax per theme.
+- [x] **Per-theme ground textures** — DONE v2.58.0 [214]. Each theme paints a faint tiled surface pattern
+      over the path (circuit traces/frost crystals/neon scanlines/chevrons/dots/hatch/cross) via a cached
+      `CanvasPattern` (`PATH_TEX` in cd-maps.js + `buildTexTile`/`drawPathTexture` in cd-render.js), gated by
+      particle density. Cosmetic. *Follow-up still open:* animated parallax scroll on the texture per theme.
 
 ### Balance (simulate before/after, ≤25% per number per run)
 - [~] **"Too easy" (recurring owner FEEDBACK)** — raised iteratively. **v2.0.0 added 🌑 Nightmare
@@ -235,6 +240,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🎭 Jack of All Trades + 🗺️ Cartographer v2.55.0 [203] — field 8+ distinct tower types at once / reach the final wave on all 7 static Quick maps (cross-run completion);
   + 🏗️ Maxed Out v2.56.0 [208] — win with 3+ towers at max level;
   + 💸 Windfall v2.57.0 [209] — land a single Gold Rush worth 2,500+ gold;
+  + 🔧 Overhaul v2.58.0 [212] — buy 5 🩹 Repairs in a single run;
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,

@@ -232,7 +232,7 @@ function towerBarrelTint(t) {
 
 // ================= Abilities =================
 const ABILITIES = {
-  meteor: { name:'Meteor',    icon:'☄️', key:'Q', cd:30, desc:'Click map: massive AoE damage' },
+  meteor: { name:'Meteor',    icon:'☄️', key:'Q', cd:30, desc:'Click map: massive AoE damage + 5% of each target’s max HP' },
   freeze: { name:'Time Freeze',icon:'🧊', key:'W', cd:45, desc:'Freeze ALL enemies for 4s' },
   rush:   { name:'Gold Rush', icon:'💰', key:'E', cd:60, desc:'Instant gold injection — the payout grows with every kill you bank' },
   shock:  { name:'Shockwave', icon:'🌀', key:'R', cd:50, desc:'Blast ALL enemies backward along the path' },
@@ -389,12 +389,25 @@ function triggerAbility(k) {
   abilitiesCastThisRun.add(k);
   refreshAbilityBar();
 }
+// ☄️ Meteor deep-wave scaling (v2.58.0, ROADMAP "abilities go stale late"): the blast used to be a
+// purely FLAT number (120 + wave·14), which the enemy-HP curve outruns badly — past w40 the uncapped
+// deep `lateScale` means a normal enemy carries 100× the meteor's damage, so the ability quietly
+// became decoration in exactly the Endless runs it was needed in. Each hit now also deals a slice of
+// the target's OWN max HP, so the blast tracks whatever HP the wave is carrying, at every depth.
+// A deliberate content fix to a stale player tool (like the deep-wave lateScale ramp, the ≤25%
+// balance rule doesn't cleanly apply to a NEW scaling term — the per-hit swing exceeds 25% on
+// high-HP enemies deep in a run, which is the point). "Too easy"-safe instead by being a fraction
+// of HP the enemy ALREADY has (never a one-shot), on a 30s cooldown in a 95px radius (~5% of a
+// wave's HP/cast — a dent in a 250-body wave, not a wipe), and BOSSES take the smaller 2% slice so
+// it can never become a boss-melter (a 500k boss takes 10k/cast, negligible on a 30s cooldown).
+const METEOR_HP_FRAC = 0.05, METEOR_HP_FRAC_BOSS = 0.02;
 function castMeteor(x, y) {
   abilityCd.meteor = ABILITIES.meteor.cd * metaCdMult() * perkState.meteorCdMult * perkState.abilityCdMult;
   armedAbility = null;
   abilityUsedThisRun = true;
   abilitiesCastThisRun.add('meteor');   // Full House (v2.45.0): count the actual meteor cast, not the arm
-  const dmg = (120 + wave * 14) * perkState.meteorMult * perkState.abilityPower;   // 🎛️ Empowered Arsenal (v2.49.0)
+  const mult = perkState.meteorMult * perkState.abilityPower;   // 🕳️ Singularity × 🎛️ Empowered Arsenal
+  const dmg = (120 + wave * 14) * mult;
   shake = Math.max(shake, 18);
   SFX.meteor();
   addExplosion(x, y, '#ff7b42', 40, 260);
@@ -403,7 +416,8 @@ function castMeteor(x, y) {
   const killsBefore = kills;   // 💥 Carpet Bomb feat: count how many this single blast slays (v2.48.0)
   for (const e of enemies) {
     if (e.x === undefined || e.dead) continue;
-    if (Math.hypot(e.x - x, e.y - y) < 95) damage(e, dmg, null);
+    if (Math.hypot(e.x - x, e.y - y) < 95)
+      damage(e, dmg + e.maxHp * (e.kind === 'boss' ? METEOR_HP_FRAC_BOSS : METEOR_HP_FRAC) * mult, null);
   }
   meteorBestKills = Math.max(meteorBestKills, kills - killsBefore);
   addFloater(x, y - 30, 'METEOR!', '#ff7b42', 22);

@@ -302,6 +302,22 @@ const THEMES = {
   crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
   neon:    { name:'Neon',    bgIn:'#1a0a18', bgOut:'#0b040a', star:'#ffb3ec', grid:'rgba(255,90,210,0.05)', pDark:'#0a0308', pMid:'#321630', pLite:'#481f44', glow:'rgba(255,90,210,0.4)',  dash:'rgba(255,140,230,0.25)' },
 };
+// Per-theme PATH TEXTURE (v2.58.0, ROADMAP "path fills are still solid-colour"): each theme gets a
+// distinct tiled pattern painted faintly over the path surface, so the maps read apart by SURFACE as
+// well as hue (circuit traces vs frost crystals vs neon scanlines…). `kind` selects the tile drawing
+// in cd-render.js's pathTexture(); `color` is the ink (alpha baked in — keep it low, this is a hint of
+// material, not a wallpaper). Purely cosmetic: one cached CanvasPattern per theme, no per-frame work
+// beyond one extra stroke of the path that is already in the context.
+const PATH_TEX = {
+  circuit: { kind:'circuit', color:'rgba(88,166,255,0.10)' },
+  verdant: { kind:'hatch',   color:'rgba(120,240,170,0.09)' },
+  ember:   { kind:'cross',   color:'rgba(255,180,110,0.08)' },
+  violet:  { kind:'dots',    color:'rgba(200,160,255,0.11)' },
+  ice:     { kind:'crystal', color:'rgba(170,230,255,0.10)' },
+  crimson: { kind:'chevron', color:'rgba(255,130,150,0.09)' },
+  neon:    { kind:'scan',    color:'rgba(255,140,230,0.10)' },
+  chaos:   { kind:'cross',   color:'rgba(255,210,150,0.09)' },
+};
 // Fixed identity per named quick-map; campaign draws from the tame set below.
 const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet', vortex:'neon' };
 const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson', 'neon'];

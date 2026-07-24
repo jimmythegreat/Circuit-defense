@@ -48,6 +48,12 @@ let meteorBestKills = 0;
 // All three are run-only and NEVER serialized (like abilityCd/barrierCharges) — a resumed run simply
 // starts with an empty bank, consistent with every other transient ability state.
 let rushBank = 0, rushBest = 0, autoRushTimer = 0;
+// 🩹 Repair (v2.58.0, ROADMAP "a sink for the deep-Endless gold pile"): how many +1-life repairs
+// have been bought THIS run. Drives the exponential price (repairCost() in cd-game.js), so the
+// sink can never be outrun by a big bank. Unlike the other run counters this one IS serialized
+// (cd_save.repairs, additive — old saves default 0), because resetting it on resume would reset
+// the price ladder to 400 and hand out cheap lives to anyone who quits and continues.
+let repairsBought = 0;
 let waveActive, selectedShop, selectedTower, gameOver, victory, started;
 // Concurrent waves (v1.12.0): several waves can run at once. Each in-flight wave is a
 // parallel spawner {queue,timer}; they spawn simultaneously. `waveActive` = ≥1 spawner
@@ -190,6 +196,7 @@ function resetState() {
   bestFreeze = 0;
   bossKills = 0;
   peakConcurrentWaves = 0;
+  repairsBought = 0;
   waveBanner = null;
   if (isMayhem() && !daily) MAPS.mayhem.pts = genMayhemPath();  // daily keeps its seeded fixed path
   mapTheme = pickMapTheme();   // resolve the run's visual palette (cosmetic; loadRun overrides from save)
@@ -213,7 +220,7 @@ function saveRun() {
   try {
     localStorage.setItem('cd_save', JSON.stringify({
       mapKey, diffKey, gameMode, campLevel, mapTheme, endless,
-      gold: Math.floor(gold), lives, kills, gameTime,
+      gold: Math.floor(gold), lives, kills, gameTime, repairs: repairsBought,
       // resume from the last fully-settled wave: quitting mid-wave (or mid-rush with
       // several waves in flight) replays the unsettled wave(s), never double-paying
       wave: waveActive ? lastSettledWave : wave,
@@ -276,6 +283,8 @@ function loadRun() {
   // Keeping it honest across resume also stops a Speed Demon (speedrun) earn by quitting near the
   // end and resuming — the timer keeps counting from where it was.
   if (typeof s.gameTime === 'number') gameTime = s.gameTime;
+  // Restore the 🩹 Repair price ladder (additive field; old saves lack it → stays 0 from resetState)
+  if (typeof s.repairs === 'number') repairsBought = Math.max(0, Math.floor(s.repairs));
   // A resumed run already past its victory wave is an endless-continue save (winGame now
   // clears the save, so this only happens after Continue Endless re-saved). Mark victory so
   // update() doesn't instantly re-fire winGame() on the first tick. Normal mid-run saves have
