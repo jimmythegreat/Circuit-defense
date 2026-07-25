@@ -3,6 +3,16 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.58.1 — 2026-07-25 — 🩺 Health check — all green (2155/0, docs coherent)
+
+**Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 version bumps since the last health check v2.53.1: v2.53.2, v2.54.0, v2.55.0, v2.56.0, v2.57.0, v2.58.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)
+
+- **Suite:** green on the clean pull, **2155/0** across 214 groups, exit 0, zero console errors.
+- **Refactor audit:** all 9 game files under the ~1500 cap. Largest are **cd-render.js 1240** (now the biggest game file; ~1191 at v2.53.1 → ~8 lines/run, ~20 runs of headroom to 1400) and cd-game.js 1131. `tests/run-tests.mjs` is **13,978 lines / 214 groups / 2155 assertions** (was 13,134/193/2012 at v2.53.1, ~140 lines/run) — still by far the largest file and the top split candidate. No dead code, debug logging or TODOs found.
+- **Docs coherence:** every headline number re-verified against the code and consistent with CLAUDE.md/ROADMAP — 12 towers, 6 abilities, 29 talents, 51 badges, 23 wave mods, 24 archetypes, 9 targeting modes, 14 enemy kinds (incl. boss), 4 difficulties, 8 maps. `GAME_VERSION` / `sw.js` cache / CHANGELOG all consistent (v2.58.1). Refreshed the ROADMAP size-watch figures (cd-render largest at 1240; harness 13,978/214/2155).
+- **Integrity:** live-verified `file://` double-click play (0 console errors) and that an ancient minimal `cd_save`/`cd_meta` (no perkState/gameTime/endless/mapTheme/repairs/achievements/stats/newer abilities/talents) migrates to defaults, resumes at the right wave with correct tower stats, and drives a wave clean. The new v2.58.0 `repairsBought` field defaults to 0 on old saves.
+- **Table-stakes:** re-audited — every item intact and present in code (favicon/meta/OG, PWA install+offline, responsive/mobile, touch/pointer, 44px tap targets, gamepad, keyboard a11y menus+draft, colorblind aid, reduced-motion, volume slider, high-DPI, high-contrast, settings persistence, screen-reader announcements). Two open items remain queued in ROADMAP: **key rebinding** and the **test-harness split**.
+
 ## v2.58.0 — 2026-07-24 — 🩹 Repair gold sink + ☄️ Meteor %-HP scaling + per-theme path textures
 
 **Type:** Minor (feature/content). Suite green (2141/0; baseline 2138/0 confirmed green on the clean pull before any edit). FEEDBACK is empty — all items picked from ROADMAP (economy follow-up "a sink for the deep-Endless gold pile", ability follow-up "Meteor's damage is flat while enemy HP runs away", game-feel "path fills are still solid-colour"). 5 version bumps since the last health check (v2.53.1) at the start of this run — a normal run; after this (the 6th) the NEXT run is a health check.

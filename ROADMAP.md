@@ -21,9 +21,9 @@ _None currently known._ (Add any here as found — top priority.)
       verbatim into a new `cd-combat.js` (9th game file, loads after cd-update.js / before cd-endgame.js),
       leaving cd-update.js as just the per-frame `update()` sim: **1371 → 907 lines**, cd-combat.js 478.
       Zero behaviour change (2012/0 green before, 2017/0 after with 5 new anti-regression guards).
-      **New size watch:** cd-update.js now has ~590 lines of headroom (~25 runs at the historic ~23/run,
-      though the fire-path perk lines now land in cd-combat.js instead). `cd-render.js` (1191) is now the
-      largest game file — next split candidate if it nears ~1400.
+      **Size watch (health check v2.58.1):** `cd-render.js` (**1240**, was 1191 at v2.53.1, ~8 lines/run) is
+      the largest game file — next split candidate if it nears ~1400 (~20 runs of headroom). cd-game.js is
+      1131; cd-update.js dropped to 943 after this split so it has ample room.
 
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger
@@ -165,8 +165,8 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **13,134 lines (193 groups, 2012
-      assertions)** (health check v2.53.1; was ~12,165/182/1869 at v2.47.1 → ~160 lines/run). By far the
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **13,978 lines (214 groups, 2155
+      assertions)** (health check v2.58.1; was 13,134/193/2012 at v2.53.1 → ~140 lines/run). By far the
       largest file in the repo. Could split per-group into `tests/groups/*.mjs` with a small runner.
       Dev-only, suite green in ~70s, no flakiness observed. Worth doing before it doubles.
 - [x] **Watch: `cd-update.js` size** — trigger REACHED at health check v2.53.1 (1371 lines). Promoted to the
@@ -285,9 +285,10 @@ touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.4
 (v1.19.0 [37]) + draft (v1.20.0 [38]) · colorblind aid (v1.18.0 [36]) · reduced-motion (v1.10.0) · volume slider
 (v1.13.2 [25]) · high-DPI scaling (v1.17.0 [35]) · high-contrast mode (v2.38.0 [151]) · settings persistence
 (shake/particles/grid/colorblind/high-contrast/vol/speed/default-mode/auto-wave [v2.38.0 153]).
-**Re-audited v2.53.1** — every item above still present and working; `sw.js` cache version tracks
-`GAME_VERSION` (test [49]); all five `JSON.parse` storage reads are try/catch-guarded, so a corrupted
-`cd_save`/`cd_meta`/`cd_daily_streak` degrades to defaults instead of a white screen.
+**Re-audited v2.58.1** — every item above still present and working (all table-stakes helper functions
+resolve in code); `sw.js` cache version tracks `GAME_VERSION` (test [49]); all five `JSON.parse` storage
+reads are try/catch-guarded, so a corrupted `cd_save`/`cd_meta`/`cd_daily_streak` degrades to defaults
+instead of a white screen.
 _New table-stakes can be added here as the bar rises:_
 - [x] **Screen-reader announcements** — DONE v2.54.0 [201]. A visually-hidden `aria-live="polite"`
       `#srLive` region + an `announce()` helper (cd-core.js) narrate wave starts, leaked lives and the
