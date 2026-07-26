@@ -564,6 +564,19 @@ const PERKS = [
   // (save-safe default false; round-trips via loadRun's Object.assign(freshPerkState(), s.perkState)
   // — old saves default false). A RARE, so the legendary-only resolveWildcard() skips it. Test [191].
   { id:'swarmbane',rarity:'rare', icon:'🐝', name:'Swarmbane',          desc:'+1% tower damage per live enemy (max +25%)', apply:s=>s.swarmbane = true },
+  // Cold Snap (rare, v2.59.0): a fresh CC-SYNERGY axis — every tower deals +30% damage to any enemy
+  // that is currently FROZEN or SLOWED (e.frozen>0 || e.slow>0). The cold-damage sibling of 🧪
+  // Corrosive Rounds (poisoned) — it anchors a Frost/Time-Freeze build: a Frost tower or the 🧊 Freeze
+  // ability softens the crowd and every other tower then hits it 30% harder. Keyed to the primary
+  // target's live CC state → implemented in the FIRE path (cd-update.js), not effDmg (no upgrade-panel
+  // churn); applied before the proj branch so chain/rail/poison shots benefit too. CONDITIONAL (does
+  // nothing until a slow/freeze lands), so it's a modest rare in the Ambush/Finisher/Corrosive bracket
+  // — NOT power creep. Note it does NOT itself feed the Frost snowball (it's a damage boost gated on a
+  // slow already existing, not more slow). (Distinct from the COMMON 🧊 Frostbite perk above, which
+  // just buffs Frost-tower damage.) `coldsnap` lives in perkState (save-safe default false; round-trips
+  // via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default false). A RARE, so
+  // the legendary-only resolveWildcard() skips it. Test group [215].
+  { id:'coldsnap',rarity:'rare', icon:'🥶', name:'Cold Snap',           desc:'+30% damage to frozen or slowed enemies', apply:s=>s.coldsnap = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -787,7 +800,7 @@ function freshPerkState() {
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
-    warChest:false };
+    warChest:false, coldsnap:false };
 }
 function ascendTowers() {
   for (const t of towers) {

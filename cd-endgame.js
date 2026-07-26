@@ -59,6 +59,7 @@ const ACHIEVEMENTS = [
   { id:'maxlevel',      icon:'🏗️', name:'Maxed Out',             desc:'Win with 3+ towers at max level' },
   { id:'windfall',      icon:'💸', name:'Windfall',              desc:'Land a single Gold Rush worth 2,500+ gold' },
   { id:'overhaul',      icon:'🔧', name:'Overhaul',              desc:'Buy 5 🩹 Repairs in a single run' },
+  { id:'endless250',    icon:'🌟', name:'Ascendant',             desc:'Reach wave 250 in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -89,6 +90,7 @@ function grantAchievements(won) {
   if (wave >= 100) give('endless100');   // 🌌 v2.34.0 — deep-endless milestone (no `won` gate, a feat)
   if (wave >= 150) give('endless150');   // 🪐 v2.42.0 — the next deep-endless rung above Eternity (no `won` gate)
   if (wave >= 200) give('endless200');   // 🛸 v2.50.0 — the next deep-endless rung above Astral (no `won` gate)
+  if (wave >= 250) give('endless250');   // 🌟 v2.59.0 — the next deep-endless rung above Transcendent (no `won` gate)
   if (meta.stats.dmg >= 1e6) give('million');
   if (meta.stats.dmg >= 1e7) give('annihilator');   // 🌋 v2.47.0 — the next lifetime-damage rung above Megadamage (reads the stat just tallied)
   if (bossKills >= 5) give('bosshunter');   // 🦣 v2.47.0 — a feat (no `won` gate): defeat 5 bosses in one run (run-only bossKills, cd-state.js)

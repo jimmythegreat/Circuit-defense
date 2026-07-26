@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 51 badges', r.total === 51, `total=${r.total}`);
+    check('achievement roster grew to 52 badges', r.total === 52, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 51;   // +overhaul 🔧 (v2.58.0)
+      const rosterOk = ACHIEVEMENTS.length === 52;   // +endless250 🌟 (v2.59.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 51;
+      const rosterOk = ACHIEVEMENTS.length === 52;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13959,6 +13959,148 @@ async function main() {
     check('buildTexTile returns a pattern for every texture kind', r.allBuild);
     check('drawing a textured map throws no error', r.drewOk);
     check('no console errors during path-texture test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [215] Cold Snap rare perk (v2.59.0): +30% damage to a FROZEN or SLOWED enemy — a cold-CC
+  // synergy (the sibling of Corrosive's poison synergy). Fire-path (live-CC-keyed), NOT effDmg.
+  // Mirrors the non-vacuous [188] pattern: tower + a stationary on-path enemy so the rail actually fires.
+  console.log('\n[215] Cold Snap perk (frozen/slowed-target damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the comparison
+
+      const def = PERKS.find(p => p.id === 'coldsnap');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // coldsnap is keyed to the target's live CC state in the fire loop → must NOT be in effDmg
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.coldsnap = false;
+      const effBefore = effDmg(probe);
+      perkState.coldsnap = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // Fire one instant rail shot at a stationary on-path enemy in various CC states.
+      const tp = pointAt(120), ep = pointAt(180);
+      function shot(fbOn, cc) { // cc: 'none' | 'slow' | 'freeze'
+        perkState.coldsnap = fbOn;
+        perkState.critChance = 0;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:tp.x, y:tp.y, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp: maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180,
+                    frozen: cc === 'freeze' ? 5 : 0, slow: cc === 'slow' ? 5 : 0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return { dealt: before - e.hp, hits: railBestHit };
+      }
+      const clean0 = shot(false, 'none');   // clean, no perk  → R
+      const clean1 = shot(true,  'none');   // clean, perk     → R (needs CC)
+      const slow0  = shot(false, 'slow');   // slowed, no perk → R
+      const slow1  = shot(true,  'slow');   // slowed, perk    → 1.3R
+      const froz1  = shot(true,  'freeze'); // frozen, perk    → 1.3R
+      const fired  = [clean0, clean1, slow0, slow1, froz1].every(s => s.hits === 1);
+      const railR  = clean0.dealt;
+      const slowBonusOk   = Math.abs((slow1.dealt - slow0.dealt) - 0.3 * railR) < 1e-4;   // +30% vs slowed
+      const freezeBonusOk = Math.abs(froz1.dealt - 1.3 * railR) < 1e-4;                   // +30% vs frozen
+      const noBonusClean  = Math.abs(clean1.dealt - clean0.dealt) < 1e-4;                 // nothing vs clean
+
+      // freshPerkState default + save/reload round-trip + old-save migration
+      const defaultsOk = freshPerkState().coldsnap === false;
+      perkState.coldsnap = true;
+      saveRun();
+      perkState.coldsnap = false;
+      const loaded = loadRun();
+      const restored = perkState.coldsnap === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.coldsnap;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.coldsnap === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'coldsnap';
+      backToMenu();
+      return { inPool, notInEffDmg, railR, fired, slowBonusOk, freezeBonusOk, noBonusClean, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Cold Snap is a rare perk in the pool', r.inPool);
+    check('Cold Snap is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Cold Snap test actually fires the rail (non-vacuous)', r.fired, `railR=${r.railR}`);
+    check('Cold Snap gives +30% damage to a slowed enemy', r.slowBonusOk, `railR=${r.railR}`);
+    check('Cold Snap gives +30% damage to a frozen enemy', r.freezeBonusOk, `railR=${r.railR}`);
+    check('Cold Snap gives no bonus to an un-CC\'d enemy', r.noBonusClean);
+    check('freshPerkState defaults coldsnap:false', r.defaultsOk);
+    check('save/reload round-trips the coldsnap flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing coldsnap migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Cold Snap', r.wildcardSkips);
+    check('no console errors during Cold Snap test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [216] Ascendant achievement (v2.59.0): reach wave 250 in a single run — the deep-endless rung
+  // above Transcendent (w200). No `won` gate; reads the live wave in grantAchievements().
+  console.log('\n[216] Ascendant achievement (wave 250)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'endless250') && /wave 250/.test(ACH_BY_ID.endless250.desc);
+      const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      towers.length = 0; comboBest = 0; peakGold = 0; peakTowers = 0; peakConcurrentWaves = 0;
+      gameTime = 0; railBestHit = 0; arcBestChain = 0; bossKills = 0; bestFreeze = 0; meteorBestKills = 0;
+
+      // wave 249 → NOT granted; wave 250 → granted (no `won` gate)
+      freshMeta(); wave = 249;
+      const at249 = grantAchievements(false).map(a => a.id).includes('endless250');
+      freshMeta(); wave = 250;
+      const at250 = grantAchievements(false).map(a => a.id).includes('endless250');
+      // it does not re-grant once already held
+      const dup = grantAchievements(false).map(a => a.id).includes('endless250');
+
+      backToMenu();
+      meta = { chips: 0, talents: {}, achievements: {}, stats: { dmg:0, runs:0, bestCombo:0 } };
+      localStorage.removeItem('cd_save'); localStorage.removeItem('cd_meta');
+      return { inRoster, at249, at250, dup };
+    });
+    check('Ascendant is in the achievement roster (wave 250)', r.inRoster);
+    check('Ascendant withheld below wave 250', !r.at249);
+    check('Ascendant granted at wave 250 (no win gate)', r.at250);
+    check('Ascendant does not re-grant once held', !r.dup);
+    check('no console errors during Ascendant test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [217] Path-texture parallax drift (v2.59.0): the surface pattern slowly translates within its
+  // tile (setTransform on the pattern, NOT the band). Render-only, reduce-motion → static. Just
+  // assert it draws cleanly with motion allowed (the reduce-motion path is exercised elsewhere).
+  console.log('\n[217] Path-texture parallax drift');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'vortex'; diffKey = 'normal'; campLevel = 1; beginGame();
+      // Draw several frames — the drift reads performance.now(), so consecutive frames differ but
+      // must not throw. drawPathTexture is gated behind particleDensity>0 (default), so it runs.
+      let drewOk = true;
+      try { for (let i = 0; i < 4; i++) draw(); } catch (e) { drewOk = false; }
+      // The cached pattern exposes setTransform in this env (guards the feature).
+      const hasSetTransform = typeof (ctx.createPattern(document.createElement('canvas'), 'repeat').setTransform) === 'function';
+      backToMenu();
+      return { drewOk, hasSetTransform };
+    });
+    check('textured map with parallax drift draws without error', r.drewOk);
+    check('CanvasPattern.setTransform is available (drift active)', r.hasSetTransform);
+    check('no console errors during parallax-drift test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

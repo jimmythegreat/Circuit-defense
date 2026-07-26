@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.59.0 — 2026-07-26 — Cold Snap perk, Ascendant badge (w250), path-texture parallax drift
+
+**Type:** Minor (feature/content). Suite green (2173/0; baseline 2155/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (perk follow-up on a fresh CC-synergy axis, deep-endless achievement rung, per-theme-texture animation follow-up). 1st normal run after the v2.58.1 health check.
+
+- **🥶 Cold Snap — a new rare perk (cold-CC synergy axis):** towers deal **+30% damage to any FROZEN or SLOWED enemy** (`e.frozen>0 || e.slow>0`). The cold-damage sibling of 🧪 Corrosive Rounds (poisoned) — it anchors a Frost/Time-Freeze build: chill the crowd, then everything else hits 30% harder. (Distinct from the existing COMMON 🧊 Frostbite perk, which just buffs Frost-tower damage.) Keyed to the target's live CC state → implemented in the **fire path** (cd-update.js), not `effDmg` (no panel churn); applied before the proj branch so chain/rail/poison shots benefit. **CONDITIONAL** (does nothing until a slow/freeze lands) → a modest rare in the Ambush/Finisher/Corrosive bracket, not power creep; note it does **not** itself add slow, so it can't feed the Frost snowball. `perkState.coldsnap` (old saves → false); a RARE, so `resolveWildcard` skips it. Test group `[215]`.
+- **🌟 Ascendant — a new achievement (roster 51 → 52):** reach **wave 250** in a single run — the next deep-Endless rung above 🛸 Transcendent (w200). No `won` gate (a feat); reads the live `wave`. Additive/save-safe. Test group `[216]`.
+- **🎨 Path-texture parallax drift (game-feel polish, ROADMAP follow-up):** the per-theme path surface pattern now **slowly translates within its tile** (`CanvasPattern.setTransform` moves only the pattern, not the stroked band, so it stays inside the path), giving the lane a subtle sense of energy flowing underneath. Reduce-motion → static (identity transform), matching every other juice effect; guarded for envs without `setTransform`. Purely cosmetic — no gameplay/economy/save impact. Test group `[217]`.
+
 ## v2.58.1 — 2026-07-25 — 🩺 Health check — all green (2155/0, docs coherent)
 
 **Type:** Health check (every-6th-run maintenance pass — no new feature). Patch bump. (6 version bumps since the last health check v2.53.1: v2.53.2, v2.54.0, v2.55.0, v2.56.0, v2.57.0, v2.58.0 — at the 6-run trigger. FEEDBACK PENDING empty; no owner vetoes in git log.)

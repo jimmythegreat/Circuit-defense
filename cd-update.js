@@ -828,6 +828,10 @@ function update(dt) {
     // poison-anchored synergy. Keyed to the primary target's live poison state, so it lives here
     // (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
     if (perkState.corrosive && target.poison && target.poison.t > 0) dmg *= 1.3;
+    // Cold Snap rare (v2.59.0): +30% damage to a FROZEN or SLOWED target — a cold-CC synergy (the
+    // sibling of Corrosive's poison synergy). Keyed to the primary target's live CC state, so it
+    // lives here (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
+    if (perkState.coldsnap && (target.frozen > 0 || target.slow > 0)) dmg *= 1.3;
     // Swarmbane rare (v2.51.0): +1% damage per LIVE enemy on the field (cap +25% at 25), so towers
     // hit hardest exactly when the board is swamped — a self-correcting anti-swarm/comeback reward
     // (the mirror of Phalanx's per-tower scaling). Keyed to the live enemies.length, so it lives

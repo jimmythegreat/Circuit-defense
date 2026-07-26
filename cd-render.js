@@ -206,6 +206,17 @@ function drawPathTexture() {
   const key = tex.kind + '|' + tex.color;
   const pat = _texCache[key] || (_texCache[key] = buildTexTile(tex.kind, tex.color));
   if (!pat) return;
+  // Parallax drift (v2.59.0): slowly translate the tile within its 20px period so the surface
+  // material appears to flow (a subtle sense of energy under the path). setTransform moves only the
+  // pattern, NOT the stroked band, so the texture stays inside the path. Reduce-motion → identity
+  // (static), matching every other juice effect; guarded for envs without CanvasPattern.setTransform.
+  if (pat.setTransform) {
+    let ox = 0;
+    if (!reduceMotion() && typeof performance !== 'undefined') {
+      ox = -((performance.now() * 0.006) % 20); // ~0.12px/frame leftward, wraps at the 20px tile
+    }
+    try { pat.setTransform(new DOMMatrix([1, 0, 0, 1, ox, 0])); } catch (e) {}
+  }
   // Stroking the path with the pattern as strokeStyle paints the tiled pattern ONLY within the
   // stroked band — the path surface — so no explicit clip is needed. Width 32 ≈ the lit body.
   ctx.save();

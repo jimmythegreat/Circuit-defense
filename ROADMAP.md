@@ -88,7 +88,8 @@ _None currently known._ (Add any here as found — top priority.)
 - [x] **Per-theme ground textures** — DONE v2.58.0 [214]. Each theme paints a faint tiled surface pattern
       over the path (circuit traces/frost crystals/neon scanlines/chevrons/dots/hatch/cross) via a cached
       `CanvasPattern` (`PATH_TEX` in cd-maps.js + `buildTexTile`/`drawPathTexture` in cd-render.js), gated by
-      particle density. Cosmetic. *Follow-up still open:* animated parallax scroll on the texture per theme.
+      particle density. Cosmetic. **Parallax drift DONE v2.59.0 [217]** — the tile slowly translates within its
+      20px period via `CanvasPattern.setTransform` (moves the pattern, not the band), reduce-motion → static.
 
 ### Balance (simulate before/after, ≤25% per number per run)
 - [~] **"Too easy" (recurring owner FEEDBACK)** — raised iteratively. **v2.0.0 added 🌑 Nightmare
@@ -220,7 +221,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
-  cost rework v1.38.0 [55]. 50 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 52 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -241,6 +242,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🏗️ Maxed Out v2.56.0 [208] — win with 3+ towers at max level;
   + 💸 Windfall v2.57.0 [209] — land a single Gold Rush worth 2,500+ gold;
   + 🔧 Overhaul v2.58.0 [212] — buy 5 🩹 Repairs in a single run;
+  + 🌟 Ascendant v2.59.0 [216] — reach wave 250 in a single run (the deep-endless rung above Transcendent);
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -258,7 +260,8 @@ _None currently known._ (Add any here as found — top priority.)
   Empowered Arsenal(Meteor/Freeze/Shockwave effects +40% — an ability-magnitude axis, v2.49.0 [185])/
   Corrosive Rounds(+30% dmg to poisoned enemies — a poison-synergy axis, buffs the weak Poison archetype, v2.50.0 [188])/
   Swarmbane(+1% tower dmg per live enemy, max +25% — a crowd-pressure/comeback axis, the mirror of Phalanx, v2.51.0 [191])/
-  Aftershock(on a leak, knock the whole field backward — a defensive repositioning comeback, the sibling of Retaliation, v2.56.0 [205]);
+  Aftershock(on a leak, knock the whole field backward — a defensive repositioning comeback, the sibling of Retaliation, v2.56.0 [205])/
+  Cold Snap(+30% dmg to frozen/slowed enemies — a cold-CC synergy, the sibling of Corrosive's poison, v2.59.0 [215]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]
