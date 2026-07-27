@@ -824,6 +824,10 @@ function update(dt) {
     // only computed when the perk is held (flag-gated), so no per-shot cost otherwise. Applied here
     // (not effDmg) before the proj branch so chain/rail/poison close-range shots benefit too.
     if (perkState.pointBlank && Math.hypot(target.x - t.x, target.y - t.y) <= effRange(t) * 0.5) dmg *= 1.25;
+    // Overwatch rare (v2.60.0): the POSITIONAL MIRROR of Point Blank — +25% damage to a target
+    // BEYOND half the tower's effective range (rewards a spread / long-reach placement). Keyed to
+    // the primary target's distance, so it lives here (not effDmg); effRange gated behind the flag.
+    if (perkState.overwatch && Math.hypot(target.x - t.x, target.y - t.y) > effRange(t) * 0.5) dmg *= 1.25;
     // Corrosive Rounds rare (v2.50.0): +30% damage to a target with an active poison DoT — a
     // poison-anchored synergy. Keyed to the primary target's live poison state, so it lives here
     // (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.

@@ -171,8 +171,8 @@ const TOWER_TYPES = {
   arc:    { name:'Arc',    icon:'⚛️', cost:140, range:125, dmg:9,   rate:0.9,  color:'#b8e34b', proj:'ricochet', desc:'Bolt ricochets between foes', tip:'Fires a TRAVELLING energy bolt that ricochets to the nearest fresh enemy after each strike — up to 5 hits per bolt, leaping much farther between targets than a Tesla chain (a spread-swarm sweeper vs Tesla\'s tight-cluster zap). Damage fades a little with each hop and each foe is struck once per bolt, so it is deliberately WEAK against single tanks/bosses. Respects armor.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss', 'cluster'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss', cluster:'💠 Cluster' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss', 'cluster', 'armored'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss', cluster:'💠 Cluster', armored:'🪨 Armored' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
@@ -737,6 +737,19 @@ const PERKS = [
   // round-trips via loadRun's Object.assign(freshPerkState(), s.perkState)). A RARE, so the
   // legendary-only resolveWildcard() skips it. Test group [174].
   { id:'pointblank', rarity:'rare', icon:'🎯', name:'Point Blank',        desc:'+25% damage to enemies within half a tower’s range', apply:s=>s.pointBlank = true },
+  // Overwatch (rare, v2.60.0): the POSITIONAL MIRROR of Point Blank — +25% damage to any enemy
+  // BEYOND half a tower's effective range. Point Blank rewards clustering right on the path;
+  // Overwatch rewards a spread, long-reach placement (Sniper/Mortar/Rail covering distant path).
+  // The two are non-dominated (opposite strategies, mutually-exclusive bands for a single target),
+  // like the Ambush/Finisher opener/closer or Phalanx/Overwhelm count/diversity pairs. Applied in
+  // the FIRE path, keyed to the primary target's distance vs effRange(t) (can't live in effDmg,
+  // like Point Blank); the effRange call is gated behind the flag so it costs nothing unless held.
+  // Deliberately "too easy"-safe: it's CONDITIONAL on the target sitting in the far band — a tower
+  // engaging enemies point-blank gets +0%, so it's a build/placement choice, not a flat board buff.
+  // `overwatch` lives in perkState (save-safe default false; round-trips via loadRun's
+  // Object.assign(freshPerkState(), s.perkState)). A RARE, so the legendary-only resolveWildcard()
+  // skips it. Test group [218].
+  { id:'overwatch', rarity:'rare', icon:'📡', name:'Overwatch',          desc:'+25% damage to enemies beyond half a tower’s range', apply:s=>s.overwatch = true },
   // Warpath (legendary, v2.47.0): a fresh SCALING axis — tower damage grows +2% per wave you've
   // reached this run, capped +40% (at wave 20). A "scale into the late game" pick: drafted early it
   // starts weak (+10% at wave 5), CROSSES the flat 💎 Diamond Core (+30%) around wave 15, and edges
@@ -800,7 +813,7 @@ function freshPerkState() {
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
-    warChest:false, coldsnap:false };
+    warChest:false, coldsnap:false, overwatch:false };
 }
 function ascendTowers() {
   for (const t of towers) {

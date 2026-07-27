@@ -66,6 +66,12 @@ function pickTarget(t) {
         val = n * 1e4 + e.dist;
         break;
       }
+      // 'armored' (v2.60.0): prioritise the enemy carrying the most flat armor (shield/armored/
+      // bastion/breacher/boss/fortifier), tie-break toward the furthest-along — lets an armor-
+      // ignoring tower (Mortar/AP gun) or Poison (armor-corrosion) focus the hard-shelled units
+      // that the rest of the board struggles with. A fresh axis beside HP/position/speed/kind;
+      // degrades to 'first' when nothing is armored (all armor 0 → dist decides). Raises no stat.
+      case 'armored': val = (e.armor || 0) * 1e4 + e.dist; break;
       default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }

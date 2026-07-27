@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 52 badges', r.total === 52, `total=${r.total}`);
+    check('achievement roster grew to 53 badges', r.total === 53, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 52;   // +endless250 🌟 (v2.59.0)
+      const rosterOk = ACHIEVEMENTS.length === 53;   // +leviathan 🐋 (v2.60.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 52;
+      const rosterOk = ACHIEVEMENTS.length === 53;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -14101,6 +14101,178 @@ async function main() {
     check('textured map with parallax drift draws without error', r.drewOk);
     check('CanvasPattern.setTransform is available (drift active)', r.hasSetTransform);
     check('no console errors during parallax-drift test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [218] Overwatch rare perk (v2.60.0): the POSITIONAL MIRROR of Point Blank — +25% damage to
+  // enemies BEYOND half a tower's effective range. Fire-path (distance-keyed), so NOT in effDmg.
+  // Mirrors [174] exactly with the band flipped (far gets the bonus, close does not).
+  console.log('\n[218] Overwatch perk (long-range damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const def = PERKS.find(p => p.id === 'overwatch');
+      const inPool = !!def && def.rarity === 'rare';
+
+      // distance-keyed in the fire loop, so it must NOT be in effDmg (no panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.overwatch = false;
+      const effBefore = effDmg(probe);
+      perkState.overwatch = true;
+      const effAfter = effDmg(probe);
+      const notInEffDmg = Math.abs(effAfter - effBefore) < 1e-9;
+
+      // fire one instant rail shot at a controlled geometric distance (range 300 → half = 150). The
+      // enemy sits ON the path (via pointAt) and is stationary (spd:0) so update() can't shove it off
+      // the beam; vary the geometric distance by OFFSETTING THE TOWER in y (towers aren't repositioned).
+      const ep = pointAt(180);
+      function shot(owOn, geomDist) {
+        perkState.overwatch = owOn;
+        perkState.critChance = 0; perkState.rangeMult = 1;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const rg = { type:'rail', x:ep.x, y:ep.y + geomDist, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:180, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return { dealt: before - e.hp, hits: railBestHit };
+      }
+      const base    = shot(false, 260);   // far, no perk — the raw damage baseline
+      const far      = shot(true,  260);  // beyond half-range (260 > 150), perk → +25%
+      const close    = shot(true,  60);   // within half-range (60 ≤ 150) but in range, perk → no bonus
+      const fired  = base.hits === 1 && far.hits === 1 && close.hits === 1;
+      const bonusOk = Math.abs(far.dealt - base.dealt * 1.25) < 1e-4;
+      const noBonusClose = Math.abs(close.dealt - base.dealt) < 1e-4;
+
+      // freshPerkState default + save/reload round-trip (boolean via Object.assign)
+      const defaultsOk = freshPerkState().overwatch === false;
+      perkState.overwatch = true;
+      saveRun();
+      perkState.overwatch = false;
+      const loaded = loadRun();
+      const restored = perkState.overwatch === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.overwatch;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.overwatch === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'overwatch';
+      backToMenu();
+      return { inPool, notInEffDmg, base: base.dealt, far: far.dealt, close: close.dealt, fired, bonusOk, noBonusClose, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Overwatch is a rare perk in the pool', r.inPool);
+    check('Overwatch is NOT applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('Overwatch test actually fires the rail (non-vacuous)', r.fired, `base=${r.base}`);
+    check('Overwatch gives +25% damage beyond half range', r.bonusOk, `base=${r.base} far=${r.far}`);
+    check('Overwatch gives no bonus within half range', r.noBonusClose, `base=${r.base} close=${r.close}`);
+    check('freshPerkState defaults overwatch:false', r.defaultsOk);
+    check('save/reload round-trips the overwatch flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing overwatch migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Overwatch', r.wildcardSkips);
+    check('no console errors during Overwatch test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [219] Armored targeting mode (v2.60.0): a 10th per-tower targeting mode that prioritises the
+  // enemy carrying the most flat armor — lets an armor-ignoring / Poison tower focus hard-shelled
+  // units. Distinct from 'strong' (highest HP): a low-HP-but-armored shell outranks a full-HP tank.
+  // Degrades to 'first' with nothing armored. Mirrors the 'boss'/'cluster' mode patterns ([173]/[195]).
+  console.log('\n[219] Armored targeting mode (highest-armor priority)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const inModes = MODES.includes('armored');
+      const hasIcon = typeof MODE_ICON.armored === 'string' && MODE_ICON.armored.length > 0;
+
+      const p = pointAt(pathLen * 0.5);
+      const mkT = () => { towers.length = 0; const T = { type:'gun', x:p.x, y:p.y, range:400, dmg:1,
+        rate:1, cd:99, level:1, kills:0, dealt:0, mode:'armored', invested:0, spec:null, buffPower:0.25, flash:0 };
+        towers.push(T); return T; };
+      const mkE = (extra = {}) => ({ kind:'norm', hp:100, maxHp:100, spd:1, r:12, bounty:1, color:'#fff',
+        armor:0, dist:pathLen*0.5, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0,
+        px:0, py:0, dead:false, blinkInvuln:0, ...extra });
+
+      // a low-HP but heavily-ARMORED shell outranks a full-HP unarmored tank (distinct from 'strong')
+      const T = mkT();
+      enemies.length = 0;
+      const tank  = mkE({ kind:'tank', hp:9999, maxHp:9999, armor:0 });
+      const shell = mkE({ kind:'shield', hp:80, maxHp:100, armor:40 });
+      enemies.push(tank, shell);
+      const picksArmored = pickTarget(T) === shell;
+
+      // with nothing armored, degrades to 'first' (furthest-along enemy wins)
+      enemies.length = 0;
+      const back  = mkE({ dist: 100, armor: 0 });
+      const front = mkE({ dist: 400, armor: 0 });
+      enemies.push(back, front);
+      const degradesToFirst = pickTarget(T) === front;
+
+      // cycleMode eventually reaches 'armored'
+      selectedTower = T; T.mode = 'first';
+      let reachedArmored = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (T.mode === 'armored') reachedArmored = true; }
+      hideUpgrade();
+
+      // save/resume round-trips the armored mode (loadRun validates against MODES)
+      T.mode = 'armored'; enemies.length = 0; projectiles.length = 0;
+      saveRun();
+      const rt = loadRun();
+      const restored = rt === true && towers.length === 1 && towers[0].mode === 'armored';
+
+      enemies.length = 0; towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { inModes, hasIcon, picksArmored, degradesToFirst, reachedArmored, restored };
+    });
+    check('armored is in the MODES list', r.inModes);
+    check('armored has a MODE_ICON label', r.hasIcon);
+    check('armored mode picks a low-HP armored shell over a full-HP tank', r.picksArmored);
+    check('armored mode degrades to first-along with nothing armored', r.degradesToFirst);
+    check('cycleMode reaches the armored mode', r.reachedArmored);
+    check('save/resume round-trips the armored mode', r.restored);
+    check('no console errors during armored-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [220] Leviathan achievement (v2.60.0): a feat (no `won` gate) — defeat 10 bosses in a single
+  // run (run-only bossKills). The deeper rung above 🦣 Big Game Hunter (5). Mirrors [182].
+  console.log('\n[220] Leviathan achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'leviathan');
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      towers.length = 0;   // so grantAchievements adds 0 run damage (isolate the boss-kill gate)
+
+      // grant gate: 10 bosses in a run (no `won` gate)
+      meta.achievements = {}; bossKills = 9;
+      const lvBelow = grantAchievements(false).map(a => a.id).includes('leviathan');
+      meta.achievements = {}; bossKills = 10;
+      const lvAt10 = grantAchievements(false).map(a => a.id).includes('leviathan');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, lvBelow, lvAt10 };
+    });
+    check('Leviathan is in the roster', r.inRoster);
+    check('Leviathan withheld below 10 boss kills', !r.lvBelow);
+    check('Leviathan granted at 10 boss kills', r.lvAt10);
+    check('no console errors during Leviathan test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

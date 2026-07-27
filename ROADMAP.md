@@ -199,8 +199,9 @@ _None currently known._ (Add any here as found — top priority.)
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
   Arc = a travelling ricochet bolt (`proj:'ricochet'`, hops to the nearest unhit enemy ≤150px, 5 hits/bolt,
   0.85 falloff → spread-swarm sweeper, weak single-target); specs Ball Lightning/Magnet Coil; no number hotkey; mastery_arc.
-- 9 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
-  + Boss v2.45.0 [173] + Cluster v2.53.0 [195] — aims at the densest knot for max AoE splash); default-mode
+- 10 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
+  + Boss v2.45.0 [173] + Cluster v2.53.0 [195] — densest knot for max AoE splash + Armored v2.60.0 [219] — highest
+  flat armor, for armor-ignoring/Poison towers to focus hard-shelled units); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
@@ -221,7 +222,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
-  cost rework v1.38.0 [55]. 52 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 53 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -243,6 +244,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 💸 Windfall v2.57.0 [209] — land a single Gold Rush worth 2,500+ gold;
   + 🔧 Overhaul v2.58.0 [212] — buy 5 🩹 Repairs in a single run;
   + 🌟 Ascendant v2.59.0 [216] — reach wave 250 in a single run (the deep-endless rung above Transcendent);
+  + 🐋 Leviathan v2.60.0 [220] — defeat 10 bosses in a single run (the rung above Big Game Hunter);
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -261,7 +263,8 @@ _None currently known._ (Add any here as found — top priority.)
   Corrosive Rounds(+30% dmg to poisoned enemies — a poison-synergy axis, buffs the weak Poison archetype, v2.50.0 [188])/
   Swarmbane(+1% tower dmg per live enemy, max +25% — a crowd-pressure/comeback axis, the mirror of Phalanx, v2.51.0 [191])/
   Aftershock(on a leak, knock the whole field backward — a defensive repositioning comeback, the sibling of Retaliation, v2.56.0 [205])/
-  Cold Snap(+30% dmg to frozen/slowed enemies — a cold-CC synergy, the sibling of Corrosive's poison, v2.59.0 [215]);
+  Cold Snap(+30% dmg to frozen/slowed enemies — a cold-CC synergy, the sibling of Corrosive's poison, v2.59.0 [215])/
+  Overwatch(+25% dmg to enemies BEYOND half a tower's range — the positional MIRROR of Point Blank, v2.60.0 [218]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]

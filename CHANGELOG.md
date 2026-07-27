@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.60.0 — 2026-07-27 — Overwatch perk, Armored targeting mode, Leviathan badge
+
+**Type:** Minor (feature/content). Suite green (2195/0; baseline 2174/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (perk follow-up on a fresh positional axis, a new targeting mode, a deeper boss-kill achievement). 2nd normal run after the v2.58.1 health check.
+
+- **📡 Overwatch — a new rare perk (positional axis):** towers deal **+25% damage to enemies BEYOND half their effective range** — the exact MIRROR of 🎯 Point Blank (which rewards enemies within half range). The two are non-dominated (mutually-exclusive distance bands, opposite placement strategies), so together they let a player pick a placement identity: hug the path for Point Blank, or spread long-reach Snipers/Mortars/Rails wide for Overwatch. Keyed to the target's live distance → implemented in the **fire path** (cd-update.js), not `effDmg` (no panel churn), before the proj branch so chain/rail/poison shots benefit. **CONDITIONAL** on the far band (does nothing point-blank) → a modest rare, not power creep. `perkState.overwatch` (old saves → false); a RARE, so `resolveWildcard` skips it. Test group `[218]`.
+- **🪨 Armored — a new targeting mode (10th):** a tower set to Armored aims at the enemy carrying the **most flat armor** (shield/armored/bastion/breacher/boss/fortifier), tie-break furthest-along, degrading to First when nothing is armored. Lets an armor-IGNORING tower (Mortar/AP gun) or Poison (armor corrosion) focus the hard-shelled units the rest of the board struggles with — a fresh axis distinct from Strong (highest HP). Raises no stat (pure priority); `MODES`/`MODE_ICON.armored` auto-wire the shop/cycle/settings; `loadRun`'s `MODES.includes` guard validates it. Cycle via the target button or the `D` hotkey. Test group `[219]`.
+- **🐋 Leviathan — a new achievement (roster 52 → 53):** defeat **10 bosses in a single run** — the next boss-kill rung above 🦣 Big Game Hunter (5). ~10 bosses ≈ wave 50, so most natural deep in Endless. No `won` gate (a feat); reads the run-only `bossKills`. Additive/save-safe. Test group `[220]`.
+
 ## v2.59.0 — 2026-07-26 — Cold Snap perk, Ascendant badge (w250), path-texture parallax drift
 
 **Type:** Minor (feature/content). Suite green (2173/0; baseline 2155/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (perk follow-up on a fresh CC-synergy axis, deep-endless achievement rung, per-theme-texture animation follow-up). 1st normal run after the v2.58.1 health check.
