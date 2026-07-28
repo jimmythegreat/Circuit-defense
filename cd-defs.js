@@ -31,6 +31,15 @@ const TALENTS = {
   // documented booster-coverage snowball. +2%/rank → +10% at rank 5. Save-safe (loadMeta auto-migrates
   // a new talent key to 0 for old saves via the Object.keys(TALENTS) loop).
   farsight:   { sect:'CORE', name:'Farsight',    icon:'🔭', max:5,  cost: r => 9 + r*7,    desc: r => `+${2*r}% tower range` },
+  // Munitions (v2.61.0): the CORE tree's first AoE-RADIUS talent. The masteries give per-type +dmg
+  // and Big Bang / Mega / Saturation widen the blast, but nothing in the META tree touched splash
+  // radius — so AoE builds (Cannon/Mortar) had a damage-only meta axis. +3%/rank → +15% at rank 5,
+  // multiplied via metaSplashMult() into the two explosive-splash sites in cd-combat.js ONLY (the
+  // Cannon bomb + Mortar shell). Deliberately NOT the Pulsar pulse (its radius is effRange, already
+  // covered by Farsight/Targeting Array — no double-dip). Radius is the gentlest AoE lever (it helps
+  // you HIT more, not hit harder) and is bounded (+15%), so it's "too easy"-safe. Save-safe (loadMeta
+  // auto-migrates the new key to 0 for old saves via the Object.keys(TALENTS) loop).
+  munitions:  { sect:'CORE', name:'Munitions',   icon:'🧨', max:5,  cost: r => 9 + r*7,    desc: r => `+${3*r}% explosive splash radius` },
   // Aegis (v2.6.0): the first META upgrade to the 🛡️ Barrier ability — +1 banked leak-block per
   // rank (3 base → up to 5). Surge/Capacitor already shorten ability cooldowns, so charges is the
   // distinct Barrier lever. Purely DEFENSIVE (Barrier vaporizes a leak for zero lives, pays no
@@ -102,6 +111,7 @@ function metaDmgMult() { return 1 + 0.03 * tRank('firepower'); }
 function metaCostMult() { return 1 - 0.03 * tRank('engineering'); }
 function metaCdMult() { return 1 - 0.06 * tRank('surge'); }
 function metaRangeMult() { return 1 + 0.02 * tRank('farsight'); }
+function metaSplashMult() { return 1 + 0.03 * tRank('munitions'); }  // 🧨 Munitions: +3%/rank explosive splash radius (Cannon/Mortar), max +15% (v2.61.0)
 function barrierMax() { return BARRIER_CHARGES + tRank('aegis'); }  // 🧱 Aegis: +1 leak-block/rank (v2.6.0)
 function barrierCdMult() { return 1 - 0.1 * tRank('rampart'); }  // 🏯 Rampart: −10% Barrier cooldown/rank (v2.46.0)
 function sellRatio() { return Math.min(0.95, 0.6 + 0.05 * tRank('salvage') + (perkState ? perkState.sellBonus : 0)); }

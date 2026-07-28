@@ -61,6 +61,7 @@ const ACHIEVEMENTS = [
   { id:'overhaul',      icon:'🔧', name:'Overhaul',              desc:'Buy 5 🩹 Repairs in a single run' },
   { id:'endless250',    icon:'🌟', name:'Ascendant',             desc:'Reach wave 250 in a single run' },
   { id:'leviathan',     icon:'🐋', name:'Leviathan',             desc:'Defeat 10 bosses in a single run' },
+  { id:'shockawe',      icon:'💥', name:'Shock and Awe',         desc:'Kill 8+ enemies with a single explosive blast' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -97,6 +98,7 @@ function grantAchievements(won) {
   if (bossKills >= 5) give('bosshunter');   // 🦣 v2.47.0 — a feat (no `won` gate): defeat 5 bosses in one run (run-only bossKills, cd-state.js)
   if (bossKills >= 10) give('leviathan');   // 🐋 v2.60.0 — the deeper boss-kill rung above Big Game Hunter (10 bosses ≈ wave 50, most natural in Endless)
   if (meteorBestKills >= 12) give('carpetbomb');   // 💥 v2.48.0 — a feat (no `won` gate): 12+ kills in one Meteor blast (run-only meteorBestKills, cd-defs.js)
+  if (splashBestKills >= 8) give('shockawe');   // 💥 v2.61.0 — a feat (no `won` gate): 8+ kills in one Cannon/Mortar explosive detonation (run-only splashBestKills, cd-combat.js)
   if (meta.stats.runs >= 25) give('veteran');
   if (meta.stats.runs >= 100) give('centurion');   // 💯 v2.38.0 — a grind/dedication feat (pairs with Veteran@25)
   if ((meta.stats.towerKills || 0) >= 100000) give('gravekeeper');   // ⚰️ v2.38.0 — lifetime enemy-defeat grind (reads the towerKills stat just tallied)

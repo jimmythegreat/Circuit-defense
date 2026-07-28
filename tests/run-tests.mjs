@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 53 badges', r.total === 53, `total=${r.total}`);
+    check('achievement roster grew to 54 badges', r.total === 54, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 53;   // +leviathan 🐋 (v2.60.0)
+      const rosterOk = ACHIEVEMENTS.length === 54;   // +shockawe 💥 (v2.61.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 53;
+      const rosterOk = ACHIEVEMENTS.length === 54;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -14273,6 +14273,117 @@ async function main() {
     check('Leviathan withheld below 10 boss kills', !r.lvBelow);
     check('Leviathan granted at 10 boss kills', r.lvAt10);
     check('no console errors during Leviathan test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [221] Munitions talent (v2.61.0): a CORE meta talent that widens explosive splash radius via
+  // metaSplashMult() (Cannon bomb + Mortar shell), +3%/rank, max +15%. Save-safe (loadMeta migrates).
+  console.log('\n[221] Munitions talent (explosive splash radius)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      const inTree = !!TALENTS.munitions && TALENTS.munitions.sect === 'CORE';
+      const migrated0 = (meta.talents.munitions === 0);   // old saves default to rank 0
+      meta.talents.munitions = 0; const m0 = metaSplashMult();
+      meta.talents.munitions = 3; const m3 = metaSplashMult();
+      meta.talents.munitions = 5; const m5 = metaSplashMult();
+
+      // functional: the widened radius reaches an enemy just OUTSIDE the base 55px blast
+      gameMode='quick'; mapKey='classic'; diffKey='normal'; campLevel=1; beginGame();
+      towers.length = 0; enemies.length = 0; spawners.length = 0; autoStartTimer = -1; waveActive = false;
+      const cx = 300, cy = 300;
+      const mk = () => ({ kind:'norm', hp:5, maxHp:5, x:cx+60, y:cy, dist:100, r:5, armor:0, dead:false, slow:0, frozen:0 });
+      // rank 0 → base radius 55, an enemy at 60px is untouched
+      meta.talents.munitions = 0; const e0 = mk(); enemies.length = 0; enemies.push(e0);
+      hitEnemy({ kind:'bomb', target:{x:cx,y:cy}, dmg:100, src:null });
+      const missBase = e0.hp === 5;
+      // rank 5 → radius 55*1.15=63.25, the same enemy is now caught
+      meta.talents.munitions = 5; const e5 = mk(); enemies.length = 0; enemies.push(e5);
+      hitEnemy({ kind:'bomb', target:{x:cx,y:cy}, dmg:100, src:null });
+      const hitWide = e5.hp < 5;
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inTree, migrated0, m0, m3, m5, missBase, hitWide };
+    });
+    check('Munitions is a CORE talent', r.inTree);
+    check('Munitions defaults to rank 0 for old saves', r.migrated0);
+    check('metaSplashMult() is 1.0 at rank 0', Math.abs(r.m0 - 1) < 1e-9, `m0=${r.m0}`);
+    check('metaSplashMult() is 1.09 at rank 3', Math.abs(r.m3 - 1.09) < 1e-9, `m3=${r.m3}`);
+    check('metaSplashMult() is 1.15 at rank 5', Math.abs(r.m5 - 1.15) < 1e-9, `m5=${r.m5}`);
+    check('base blast misses an enemy at 60px', r.missBase, JSON.stringify(r));
+    check('maxed Munitions widens the blast to reach it', r.hitWide, JSON.stringify(r));
+    check('no console errors during Munitions test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [222] Shock and Awe achievement (v2.61.0): a feat (no `won` gate) — 8+ kills in a single
+  // explosive TOWER detonation (run-only splashBestKills, set in cd-combat.js's two splash loops).
+  console.log('\n[222] Shock and Awe achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode='quick'; mapKey='classic'; diffKey='normal'; campLevel=1; beginGame();
+      towers.length = 0; enemies.length = 0; spawners.length = 0; autoStartTimer = -1; waveActive = false;
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'shockawe');
+
+      // functional: one Cannon bomb into a tight 10-enemy cluster tracks 8+ kills
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();   // munitions rank 0
+      splashBestKills = 0; kills = 0;
+      const cx = 300, cy = 300; enemies.length = 0;
+      for (let i = 0; i < 10; i++) enemies.push({ kind:'norm', hp:1, maxHp:1, x:cx+(i%3), y:cy+(i%3), dist:100, r:5, armor:0, dead:false, slow:0, frozen:0 });
+      hitEnemy({ kind:'bomb', target:{x:cx,y:cy}, dmg:50, src:null });
+      const tracked = splashBestKills >= 8;
+
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+      splashBestKills = 10; fresh();
+      const granted = grantAchievements(false).map(a => a.id).includes('shockawe');
+      splashBestKills = 7; fresh();
+      const withheld = grantAchievements(false).map(a => a.id).includes('shockawe');
+
+      enemies.length = 0; splashBestKills = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, tracked, granted, withheld };
+    });
+    check('Shock and Awe is in the achievement roster', r.inRoster);
+    check('a Cannon detonation tracks 8+ kills into splashBestKills', r.tracked, JSON.stringify(r));
+    check('Shock and Awe granted at 8+ splash kills', r.granted, JSON.stringify(r));
+    check('Shock and Awe withheld below 8 splash kills', !r.withheld, JSON.stringify(r));
+    check('no console errors during Shock and Awe test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [223] Selected-tower aim line (v2.61.0): draw() draws a dashed gold tether from the selected
+  // non-buff tower to its live pickTarget(). Render-only — verify the data source + a clean draw().
+  console.log('\n[223] Selected-tower aim line');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode='quick'; mapKey='classic'; diffKey='normal'; campLevel=1; beginGame();
+      enemies.length = 0; spawners.length = 0; autoStartTimer = -1; waveActive = false; towers.length = 0;
+      const p0 = pointAt(120);
+      const t = { type:'gun', x:p0.x, y:p0.y, range: TOWER_TYPES.gun.range, dmg: TOWER_TYPES.gun.dmg,
+                  rate: TOWER_TYPES.gun.rate, cd:0, level:1, baseCost:50, invested:50, angle:0,
+                  mode:'first', spec:null, dealt:0, kills:0, buffPower:0.25, flash:0 };
+      towers.push(t);
+      const e = { kind:'norm', hp:20, maxHp:20, x:p0.x+20, y:p0.y, dist:120, r:10, armor:0, dead:false, slow:0, frozen:0, flash:0, color:'#f0f6fc' };
+      enemies.push(e);
+      selectedTower = t;
+      const aimsEnemy = pickTarget(t) === e;   // the aim-line data source
+      let drew = true; try { draw(); } catch (err) { drew = 'ERR:' + err.message; }
+      selectedTower = null;
+      let drewNoSel = true; try { draw(); } catch (err) { drewNoSel = 'ERR:' + err.message; }
+
+      enemies.length = 0; towers.length = 0; selectedTower = null;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { aimsEnemy, drew, drewNoSel };
+    });
+    check('selected tower locks onto the in-range enemy (aim-line data)', r.aimsEnemy);
+    check('draw() renders cleanly with an aim line', r.drew === true, `${r.drew}`);
+    check('draw() renders cleanly with nothing selected', r.drewNoSel === true, `${r.drewNoSel}`);
+    check('no console errors during aim-line test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

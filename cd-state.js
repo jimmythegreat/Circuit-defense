@@ -40,6 +40,10 @@ let overdriveT = 0;
 // meteorBestKills (v2.48.0): most enemies slain by a single Meteor cast this run — feeds the
 // 💥 Carpet Bomb achievement (12+ in one blast). Run-only, never saved, re-earnable on resume.
 let meteorBestKills = 0;
+// splashBestKills (v2.61.0): most enemies slain by a single explosive TOWER detonation (Cannon
+// bomb / Mortar shell) this run — feeds the 💥 Shock and Awe achievement (8+ in one blast). Set
+// in cd-combat.js's two splash loops. Run-only, never saved, re-earnable on resume.
+let splashBestKills = 0;
 // 💰 Gold Rush bank (v2.57.0, owner FEEDBACK "Gold button should increase as you kill. Late game
 // it becomes useless"): every kill banks a share of its bounty toward the NEXT Gold Rush cast, so
 // the payout tracks the run's own income curve instead of the flat 50 + wave*5. `rushBank` accrues
@@ -175,7 +179,7 @@ function resetState() {
   abilityCd = { meteor: 0, freeze: 0, rush: 0, shock: 0, barrier: 0, amp: 0 };
   armedAbility = null;
   barrierCharges = 0; barrierTimer = 0; barrierBlocks = 0;
-  overdriveT = 0; meteorBestKills = 0;
+  overdriveT = 0; meteorBestKills = 0; splashBestKills = 0;
   rushBank = 0; rushBest = 0;
   // Seed the ⛏️ Prospector auto-cast timer to a FULL interval so the first auto-cast waits out the
   // rank's delay like every later one (leaving it at 0 handed rank 1 a free instant cast the moment

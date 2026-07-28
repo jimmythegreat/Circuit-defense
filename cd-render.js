@@ -445,6 +445,29 @@ function draw() {
       ctx.fill();
       ctx.strokeStyle = 'rgba(88,166,255,0.35)';
       ctx.stroke();
+      // Aim line (v2.61.0): a faint gold dashed tether from the selected non-buff tower to the
+      // enemy it's currently locked onto (its pickTarget()) + a ring on that target — so you can
+      // read at a glance WHAT the tower is shooting (readability pillar). Render-only; pickTarget()
+      // is pure (no side effects). Self-gating: null when nothing's in range → the line just vanishes.
+      if (t.type !== 'buff' && !gameOver) {
+        const aim = pickTarget(t);
+        if (aim && aim.x !== undefined) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,214,102,0.5)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(t.x, t.y);
+          ctx.lineTo(aim.x, aim.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.strokeStyle = 'rgba(255,214,102,0.7)';
+          ctx.beginPath();
+          ctx.arc(aim.x, aim.y, (aim.r || 10) + 3, 0, Math.PI*2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
     }
     if (t.type === 'buff') {
       ctx.beginPath();

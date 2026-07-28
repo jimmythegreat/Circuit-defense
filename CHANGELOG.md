@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.61.0 — 2026-07-28 — Munitions talent, Shock and Awe badge, selected-tower aim line
+
+**Type:** Minor (feature/content). Suite green (2207/0; baseline 2195/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (a missing meta AoE axis, an explosive feat badge, a readability polish). 3rd normal run after the v2.58.1 health check.
+
+- **🧨 Munitions — a new CORE talent (tree 29 → 30):** `+3%/rank` explosive splash radius (max **+15%** at rank 5), the meta tree's first **AoE-radius** axis. Applied via a new `metaSplashMult()` helper (cd-defs.js, `1 + 0.03·rank`) multiplied into the **two explosive-splash sites** in cd-combat.js ONLY — the Cannon bomb (55px) and Mortar shell (46px). Deliberately NOT the Pulsar pulse (its radius IS `effRange`, already covered by Farsight/Targeting Array — no double-dip). Radius is the gentlest AoE lever (helps you HIT more, not hit harder) and is bounded, so it's "too easy"-safe; stacks with Big Bang/Mega/Saturation. Priced like Farsight (`9 + r*7`). Save-safe via the `loadMeta` `Object.keys(TALENTS)` migration loop (old saves → rank 0). Test group `[221]`.
+- **💥 Shock and Awe — a new achievement (roster 53 → 54):** kill **8+ enemies with a single explosive tower detonation** (one Cannon bomb / Mortar shell into a tight pack). No `won` gate (a feat, like 💥 Carpet Bomb). Tracked by a run-only `splashBestKills` (cd-state.js, reset in `resetState()`, set in cd-combat.js's two splash loops via the `kills - kb` delta pattern — **never serialized**, re-earnable on resume). Additive/save-safe. Test group `[222]`.
+- **Selected-tower aim line (readability):** selecting a non-buff tower now draws a faint gold dashed tether from the tower to the enemy it's currently locked onto (its `pickTarget()`), plus a ring on that target — so you can read at a glance WHAT each tower is shooting (the *readable at a glance* pillar). Render-only in `draw()` (cd-render.js), self-gating (null → no line); `pickTarget()` is pure. No gameplay/economy/save impact. Test group `[223]`.
+
 ## v2.60.0 — 2026-07-27 — Overwatch perk, Armored targeting mode, Leviathan badge
 
 **Type:** Minor (feature/content). Suite green (2195/0; baseline 2174/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (perk follow-up on a fresh positional axis, a new targeting mode, a deeper boss-kill achievement). 2nd normal run after the v2.58.1 health check.

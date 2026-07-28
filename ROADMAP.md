@@ -128,7 +128,14 @@ _None currently known._ (Add any here as found — top priority.)
       rich: early interest cap 30→~25, or start gold normal 120→100 (each ≤25%, sim). Test [32].
 - [ ] **Late-campaign audit (L30–40)** — confirm hard-but-beatable with a maxed meta.
 
+### Meta / talents
+- [x] **AoE-radius talent (🧨 Munitions)** — DONE v2.61.0 [221]. The meta tree's first splash-radius axis:
+      +3%/rank (max +15%) explosive splash radius (Cannon bomb + Mortar shell) via `metaSplashMult()`.
+      NOT the Pulsar pulse (its radius is `effRange`, already covered by Farsight). Save-safe.
+
 ### Game feel / polish
+- [x] **Selected-tower aim line** — DONE v2.61.0 [223]. Selecting a non-buff tower draws a faint gold
+      dashed tether to its live `pickTarget()` + a ring on that target (readability). Render-only.
 - [x] **Start-menu revamp (FEEDBACK [high])** — DONE v2.1.0 [113]. The "full revamp" landed: a desktop
       two-column dashboard (config card left + a right rail stacking play actions over a vertical utility
       panel) so the menu fits the board with ▶ PLAY on-screen (it was below the fold). Nine slices total

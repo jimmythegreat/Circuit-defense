@@ -260,8 +260,9 @@ function hitEnemy(p) {
   if (p.kind === 'bomb') {
     SFX.bomb();
     shake = Math.max(shake, 3);
-    const radius = 55 * perkState.splashMult * (p.src && p.src.spec === 'mega' ? 1.6 : 1);
+    const radius = 55 * perkState.splashMult * metaSplashMult() * (p.src && p.src.spec === 'mega' ? 1.6 : 1);
     addExplosion(p.target.x, p.target.y, '#ffd866', 14, 140);
+    const kb = kills;   // 💥 Shock and Awe feat: count how many this single detonation slays (v2.61.0)
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
       // Bastion (v1.90.0) resists explosive splash: the blast-shell takes half damage from
@@ -269,21 +270,24 @@ function hitEnemy(p) {
       // unless Shaped Charges (v2.8.0, perkState.aoePen) is held, which pierces the shell.
       if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist && !perkState.aoePen ? 0.5 : 1), p.src, false, p.ignoreArmor);
     }
+    splashBestKills = Math.max(splashBestKills, kills - kb);
   } else if (p.kind === 'mortar') {
     // Lobbed siege shell: an armor-ignoring blast (p.ignoreArmor is forced true at
     // launch). Saturation spec widens the radius; damage already includes the
     // Demolisher spec via effDmg(). Distinct sandy burst + a heavier boom + shake.
     SFX.bomb();
     shake = Math.max(shake, 4);
-    const radius = 46 * perkState.splashMult * (p.src && p.src.spec === 'saturate' ? 1.55 : 1);
+    const radius = 46 * perkState.splashMult * metaSplashMult() * (p.src && p.src.spec === 'saturate' ? 1.55 : 1);
     addExplosion(p.target.x, p.target.y, p.color, 16, 150);
     addExplosion(p.target.x, p.target.y, '#ffd866', 8, 90);
+    const kb = kills;   // 💥 Shock and Awe feat: count how many this single shell slays (v2.61.0)
     for (const e of enemies) {
       if (e.x === undefined || e.dead) continue;
       // Bastion (v1.90.0) resists explosive splash: half damage from the Mortar shell too —
       // unless Shaped Charges (v2.8.0, perkState.aoePen) is held, which pierces the shell.
       if (Math.hypot(e.x-p.target.x, e.y-p.target.y) < radius) damage(e, p.dmg * (e.aoeResist && !perkState.aoePen ? 0.5 : 1), p.src, false, true);
     }
+    splashBestKills = Math.max(splashBestKills, kills - kb);
   } else if (p.kind === 'poison') {
     let dur = perkState.poisonDur;
     let dps = p.dmg * 2.6;
