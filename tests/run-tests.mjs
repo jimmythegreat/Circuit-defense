@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 54 badges', r.total === 54, `total=${r.total}`);
+    check('achievement roster grew to 56 badges', r.total === 56, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 54;   // +shockawe 💥 (v2.61.0)
+      const rosterOk = ACHIEVEMENTS.length === 56;   // +gridlock 🚦 +chainreaction ⚡ (v2.62.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 54;
+      const rosterOk = ACHIEVEMENTS.length === 56;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13440,7 +13440,7 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 51', r.rosterOk);
+    check('achievement roster grew to 56', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
     check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
@@ -14384,6 +14384,137 @@ async function main() {
     check('draw() renders cleanly with an aim line', r.drew === true, `${r.drew}`);
     check('draw() renders cleanly with nothing selected', r.drewNoSel === true, `${r.drewNoSel}`);
     check('no console errors during aim-line test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [224] Failsafe perk (rare, v2.62.0) — the leak-cost counter: every leak costs 1 fewer life
+  // (floored at 1). Softens the boss leak (5→4), the Breacher (3→2) and leaves a norm leak at 1
+  // (the min-1 floor). Only ever helps when you're leaking (a loss-state) → "too easy"-safe.
+  // (Named Failsafe, not Bulwark, to avoid clashing with the Bulwark boss archetype.)
+  console.log('\n[224] Failsafe perk (leak-cost -1)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0 } }; loadMeta();
+      const def = PERKS.find(p => p.id === 'failsafe');
+      const inRoster = !!def && def.rarity === 'rare';
+      const defaultsOk = freshPerkState().failsafe === false;
+      const st = freshPerkState(); def.apply(st);
+      const appliesFlag = st.failsafe === true;
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const exit = pointAt(pathLen);
+      const mkLeak = (extra) => Object.assign({ kind:'norm', hp:10, maxHp:10, spd:0, r:10, bounty:1,
+        color:'#fff', armor:0, dist: pathLen + 5, x: exit.x, y: exit.y, slow:0, frozen:0, poison:null, flash:0 }, extra);
+      const leakDelta = (extra) => {
+        enemies.length = 0; spawners.length = 0; pendingSpawns.length = 0; projectiles.length = 0;
+        barrierCharges = 0; lives = 50;
+        enemies.push(mkLeak(extra));
+        const before = lives; update(1/60); return before - lives;
+      };
+
+      // With Failsafe: boss 5→4, breacher 3→2, norm 1→1 (the min-1 floor).
+      perkState.failsafe = true;
+      const bossWith = leakDelta({ kind:'boss', bossType:'regen', r:14 });
+      const breacherWith = leakDelta({ lifeCost:3 });
+      const normWith = leakDelta({});
+
+      // Without Failsafe (control): full cost.
+      perkState.failsafe = false;
+      const bossWithout = leakDelta({ kind:'boss', bossType:'regen', r:14 });
+      const normWithout = leakDelta({});
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'failsafe';
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      enemies.length = 0; towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, defaultsOk, appliesFlag, bossWith, breacherWith, normWith, bossWithout, normWithout, wildcardSkips };
+    });
+    check('Failsafe is a rare perk in the roster', r.inRoster);
+    check('freshPerkState defaults failsafe:false', r.defaultsOk);
+    check('apply() sets the failsafe flag', r.appliesFlag);
+    check('with Failsafe a boss leak costs 4 (was 5)', r.bossWith === 4, `delta=${r.bossWith}`);
+    check('with Failsafe a Breacher leak costs 2 (was 3)', r.breacherWith === 2, `delta=${r.breacherWith}`);
+    check('with Failsafe a normal leak still costs 1 (min-1 floor)', r.normWith === 1, `delta=${r.normWith}`);
+    check('without Failsafe a boss leak costs the full 5', r.bossWithout === 5, `delta=${r.bossWithout}`);
+    check('without Failsafe a normal leak costs the full 1', r.normWithout === 1, `delta=${r.normWithout}`);
+    check('legendary-only Wildcard never rolls this rare', r.wildcardSkips);
+    check('no console errors during failsafe test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [225] Gridlock achievement (v2.62.0): a feat (no `won` gate) — stack the maximum 8 waves in flight
+  // at once (peakConcurrentWaves >= 8), the rung above 🌊 Wave Rider (5). MAX_CONCURRENT_WAVES caps it at 8.
+  console.log('\n[225] Gridlock achievement (8 concurrent waves)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'gridlock');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      peakConcurrentWaves = 8; fresh();
+      const granted = grantAchievements(false).map(a => a.id).includes('gridlock');
+      peakConcurrentWaves = 7; fresh();
+      const withheld = grantAchievements(false).map(a => a.id).includes('gridlock');
+
+      // Integration: pouring on waves reaches the 8 cap (further startWave calls are refused).
+      beginGame();   // resets peakConcurrentWaves to 0
+      for (let i = 0; i < 12; i++) startWave();
+      const capped = peakConcurrentWaves;
+
+      towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, granted, withheld, capped };
+    });
+    check('Gridlock is in the achievement roster', r.inRoster);
+    check('Gridlock granted at 8 concurrent waves', r.granted);
+    check('Gridlock withheld at 7 concurrent waves', r.withheld === false);
+    check('startWave() stacks up to the 8-wave cap', r.capped === 8, `peak=${r.capped}`);
+    check('no console errors during Gridlock test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [226] Chain Reaction achievement (v2.62.0): a feat (no `won` gate) — strike 5+ enemies with a single
+  // Tesla chain (teslaBestChain, set in fireChain). Base chain hits 3, so 5 needs Superconductor (+2) or
+  // Conductor (+1) plus a tight cluster — the Tesla counterpart to Sharpshooter (Rail 5) / Pinball (Arc 6).
+  console.log('\n[226] Chain Reaction achievement (Tesla chain)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'chainreaction');
+      const fresh = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, bestCombo:0, towerKills:0 } }; loadMeta(); };
+
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+
+      // Grant logic: 5+ grants, 4 withholds.
+      teslaBestChain = 5; fresh();
+      const granted = grantAchievements(false).map(a => a.id).includes('chainreaction');
+      teslaBestChain = 4; fresh();
+      const withheld = grantAchievements(false).map(a => a.id).includes('chainreaction');
+
+      // Integration: a Superconductor Tesla (maxChain 5) into a 5-enemy cluster records teslaBestChain 5.
+      teslaBestChain = 0; perkState.chainExtra = 0;
+      enemies.length = 0;
+      const t = { type:'tesla', x:100, y:100, range: 300, dmg: 20, rate: 1, cd:0, level:1,
+                  baseCost:120, invested:120, angle:0, mode:'first', spec:'super', dealt:0, kills:0, flash:0 };
+      for (let i = 0; i < 5; i++) enemies.push({ kind:'norm', hp:1e6, maxHp:1e6, x:100 + i*50, y:100,
+        dist:100, r:10, armor:0, dead:false, slow:0, frozen:0, flash:0, color:'#fff' });
+      fireChain(t, enemies[0], 20);
+      const chained = teslaBestChain;
+
+      teslaBestChain = 0; enemies.length = 0; towers.length = 0;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, granted, withheld, chained };
+    });
+    check('Chain Reaction is in the achievement roster', r.inRoster);
+    check('Chain Reaction granted at a 5-enemy chain', r.granted);
+    check('Chain Reaction withheld at a 4-enemy chain', r.withheld === false);
+    check('a Superconductor Tesla chains all 5 clustered enemies', r.chained === 5, `chain=${r.chained}`);
+    check('no console errors during Chain Reaction test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

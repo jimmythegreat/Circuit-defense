@@ -62,6 +62,8 @@ const ACHIEVEMENTS = [
   { id:'endless250',    icon:'🌟', name:'Ascendant',             desc:'Reach wave 250 in a single run' },
   { id:'leviathan',     icon:'🐋', name:'Leviathan',             desc:'Defeat 10 bosses in a single run' },
   { id:'shockawe',      icon:'💥', name:'Shock and Awe',         desc:'Kill 8+ enemies with a single explosive blast' },
+  { id:'gridlock',      icon:'🚦', name:'Gridlock',              desc:'Have 8 waves in flight at once' },
+  { id:'chainreaction', icon:'⚡', name:'Chain Reaction',        desc:'Strike 5+ enemies with a single Tesla chain' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -119,6 +121,14 @@ function grantAchievements(won) {
   // wave - lastSettledWave, tracked in startWave). Celebrates the concurrent-wave system (cap 8) and
   // the owner's "let me add as many waves as I want" request. Run-only peakConcurrentWaves (cd-state.js).
   if (peakConcurrentWaves >= 5) give('waverider');
+  // Gridlock (🚦 v2.62.0): the deeper concurrent-wave rung above Wave Rider — stack the MAXIMUM 8 waves
+  // in flight at once (MAX_CONCURRENT_WAVES). A feat (no `won` gate); reads the same run-only tracker.
+  if (peakConcurrentWaves >= 8) give('gridlock');
+  // Chain Reaction (⚡ v2.62.0): a feat (no `won` gate) — strike 5+ enemies with a single Tesla chain.
+  // Reads the run-only teslaBestChain (set in fireChain, cd-combat.js). A genuine Tesla-build mastery
+  // chase: the base chain hits 3, so 5 needs Superconductor (+2) or Conductor (+1) plus a tight cluster —
+  // the Tesla counterpart to 🎯 Sharpshooter (Railgun 5) / 🪩 Pinball Wizard (Arc 6).
+  if (teslaBestChain >= 5) give('chainreaction');
   // Heavy Hitter (🥊 v2.49.0): a feat (no `won` gate) — a SINGLE tower dealing 200,000 damage in one
   // run. Reads the final towers board's max t.dealt (a fresh per-tower axis, vs the lifetime dmg stat).
   // Most natural on a carry tower in a long/endless run.

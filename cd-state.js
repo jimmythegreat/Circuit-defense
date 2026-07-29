@@ -88,6 +88,10 @@ let railBestHit = 0;
 // Run-only, never saved — a momentary feat re-earnable any time an Arc fires (mirrors
 // railBestHit, no force-on-load). Grants the 🪩 Pinball achievement at 6.
 let arcBestChain = 0;
+// Chain Reaction tracking (v2.62.0): the most enemies struck by a single Tesla chain this run.
+// Run-only, never saved — a momentary feat re-earnable any time a Tesla fires (mirrors
+// railBestHit/arcBestChain, no force-on-load). Grants the ⚡ Chain Reaction achievement at 5.
+let teslaBestChain = 0;
 // Hoarder tracking (v2.35.0): peak gold banked at any point this run. Run-only, never saved — the
 // feat is re-earnable (a resumed run re-accumulates from the restored gold on the first update frame),
 // so no force-on-load (mirrors railBestHit). Grants the 💰 Hoarder achievement at 10,000.
@@ -194,6 +198,7 @@ function resetState() {
   comboCount = 0; comboTimer = 0; comboBest = 0; comboFlash = 0;
   railBestHit = 0;
   arcBestChain = 0;
+  teslaBestChain = 0;
   peakGold = 0;
   peakTowers = 0;
   peakTowerTypes = 0;

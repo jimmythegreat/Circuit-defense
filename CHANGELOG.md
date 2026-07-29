@@ -3,6 +3,14 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.62.0 — 2026-07-29 — Failsafe perk, Gridlock + Chain Reaction badges
+
+**Type:** Minor (feature/content). Suite green (baseline 2212/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (a missing counter-content perk axis, two feat badges — one for the concurrent-wave system, one giving Tesla its first feat). 4th normal run after the v2.58.1 health check.
+
+- **🛟 Failsafe — a new rare perk (the leak-cost counter):** every enemy that leaks past you costs **1 fewer life** (floored at 1) — softening the ‼ Breacher (3→2), the Breacher Surge mod and boss leaks (5→4). It completes the counter-content rare family (🔌 Surge Protector / 💣 Shaped Charges / 🔰 Hardened Circuits / 👁️ Spectral Sight): leak-cost was the one pressure axis with no draftable answer. Wired at the single leak site in cd-update.js (the `dmgLives` computation), so the reduced number flows through `lives`, `perkState.livesLost` (Last Stand) and the `-N❤️` floater consistently. Deliberately **"too easy"-safe** by the Last Stand / Aftershock / Phoenix rationale — a leak is always a loss-state, so it only softens a run you're already bleeding, and every leak still costs ≥1 life. Named **Failsafe** (not "Bulwark") to avoid clashing with the 🛡 Bulwark boss archetype. `failsafe` lives in `perkState` (default false; round-trips via `Object.assign(freshPerkState(), s.perkState)` — old saves default false). A rare, so the legendary-only Wildcard never rolls it. Test group `[224]`.
+- **🚦 Gridlock — a new achievement (roster 54 → 55):** stack the **maximum 8 waves in flight at once** (`peakConcurrentWaves >= 8`, `MAX_CONCURRENT_WAVES`), the rung above 🌊 Wave Rider (5). No `won` gate (a feat); reads the existing run-only tracker. Additive/save-safe. Test group `[225]`.
+- **⚡ Chain Reaction — a new achievement (roster 55 → 56):** strike **5+ enemies with a single Tesla chain** — Tesla's first feat badge, the counterpart to 🎯 Sharpshooter (Railgun 5) / 🪩 Pinball Wizard (Arc 6). A genuine Tesla-build mastery chase (the base chain hits 3, so 5 needs Superconductor +2 or Conductor +1 plus a tight cluster). Tracked by a new run-only `teslaBestChain` (cd-state.js, reset in `resetState()`, set in `fireChain` — **never serialized**, re-earnable on resume like `arcBestChain`/`railBestHit`). Additive/save-safe. Test group `[226]`.
+
 ## v2.61.0 — 2026-07-28 — Munitions talent, Shock and Awe badge, selected-tower aim line
 
 **Type:** Minor (feature/content). Suite green (2207/0; baseline 2195/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all three picked from ROADMAP (a missing meta AoE axis, an explosive feat badge, a readability polish). 3rd normal run after the v2.58.1 health check.

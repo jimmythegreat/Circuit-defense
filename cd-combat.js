@@ -101,6 +101,7 @@ function fireChain(t, first, dmg) {
     hitSet.push(next);
     cur = next;
   }
+  if (hitSet.length > teslaBestChain) teslaBestChain = hitSet.length;   // ⚡ Chain Reaction achievement (v2.62.0)
   let px = t.x, py = t.y;
   let chainDmg = dmg;
   for (const e of hitSet) {

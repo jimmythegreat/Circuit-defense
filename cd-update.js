@@ -731,7 +731,8 @@ function update(dt) {
         shake = Math.max(shake, 6);
         updateHud();
       } else {
-        const dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks lifeCost (3 as of v2.0.0); boss 5
+        let dmgLives = e.lifeCost || (e.kind === 'boss' ? 5 : 1);   // breacher (v1.63.0) leaks lifeCost (3 as of v2.0.0); boss 5
+        if (perkState.failsafe) dmgLives = Math.max(1, dmgLives - 1);   // 🛟 Failsafe perk (v2.62.0): soften every leak by 1 life (min 1)
         lives -= dmgLives;
         livesLostThisRun = true;
         perkState.livesLost += dmgLives;   // feeds the Last Stand comeback perk (v1.22.0)

@@ -712,6 +712,21 @@ const PERKS = [
   // default false; round-trips via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves
   // default false). A RARE, so the legendary-only resolveWildcard() does NOT roll it. Test group [205].
   { id:'aftershock', rarity:'rare', icon:'🌊', name:'Aftershock',          desc:'When an enemy leaks, knock the whole field backward', apply:s=>s.aftershock = true },
+  // Failsafe (rare, v2.62.0): the last un-countered content axis gets a counter perk — LEAK COST.
+  // Every leak now costs 1 fewer life (floored at 1), directly softening the ‼ Breacher (leak-cost 3),
+  // the Breacher Surge mod, and boss leaks (5 → 4). It completes the counter-content rare family
+  // alongside 🔌 Surge Protector (jamming), 💣 Shaped Charges (Bastion shells), 🔰 Hardened Circuits
+  // (dampening auras) and 👁️ Spectral Sight (blinkers) — each neutralises one pressure axis that had
+  // no draftable answer. Deliberately "too easy"-safe by the Last Stand / Aftershock / Phoenix
+  // rationale: a leak is ALWAYS a loss-state, so it only ever softens a run you're already bleeding —
+  // a clean, non-leaking run gets nothing, and every leak still costs at least 1 life so the game can
+  // still end. Wired at the SINGLE leak site in cd-update.js (the dmgLives computation), so the
+  // reduced number flows through lives, perkState.livesLost (Last Stand) and the -N❤️ floater
+  // consistently. (Named "Failsafe" not "Bulwark" to avoid a clash with the 🛡 Bulwark BOSS archetype.)
+  // `failsafe` lives in perkState (save-safe default false; round-trips via loadRun's
+  // Object.assign(freshPerkState(), s.perkState) — old saves default false). A RARE, so the
+  // legendary-only resolveWildcard() does NOT roll it. Test group [224].
+  { id:'failsafe', rarity:'rare', icon:'🛟', name:'Failsafe',            desc:'Leaks cost 1 fewer life (minimum 1)', apply:s=>s.failsafe = true },
   // Phalanx (rare, v2.42.0): a "wide-build" damage perk on a fresh axis — every tower deals +2%
   // damage per tower on the board (capped +20% at 10 towers). It rewards a broad, well-spread
   // defensive line (the inverse of 🔮 Glass Cannon's few-heavy-hitters trade-off and ⚖️ Minimalist),
@@ -823,7 +838,7 @@ function freshPerkState() {
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
-    warChest:false, coldsnap:false, overwatch:false };
+    warChest:false, coldsnap:false, overwatch:false, failsafe:false };
 }
 function ascendTowers() {
   for (const t of towers) {
