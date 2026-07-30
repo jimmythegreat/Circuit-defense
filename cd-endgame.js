@@ -64,6 +64,7 @@ const ACHIEVEMENTS = [
   { id:'shockawe',      icon:'💥', name:'Shock and Awe',         desc:'Kill 8+ enemies with a single explosive blast' },
   { id:'gridlock',      icon:'🚦', name:'Gridlock',              desc:'Have 8 waves in flight at once' },
   { id:'chainreaction', icon:'⚡', name:'Chain Reaction',        desc:'Strike 5+ enemies with a single Tesla chain' },
+  { id:'peakperf',      icon:'⚙️', name:'Peak Performance',      desc:'Win with 6+ towers at max level' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -178,6 +179,10 @@ function grantAchievements(won) {
   // Maxed Out (🏗️ v2.56.0): win with 3+ towers at max level (maxTowerLevel() = 5 + overdrive rank).
   // Reads the final board like Specialist/Minimalist/Arsenal; celebrates a heavily-invested core.
   if (won && towers.filter(t => t.level >= maxTowerLevel()).length >= 3) give('maxlevel');
+  // Peak Performance (⚙️ v2.63.0): win with 6+ towers at max level — the deeper rung above 🏗️ Maxed
+  // Out (3+). Reads the final board like Maxed Out; rewards a heavily-invested "tall" board (pairs
+  // with the 🔩 Overengineered perk's per-level damage). maxTowerLevel() = 5 + overdrive rank.
+  if (won && towers.filter(t => t.level >= maxTowerLevel()).length >= 6) give('peakperf');
   // Speed Demon (v1.74.0): win a Quick run (always 30 waves → comparable target) in under 7
   // minutes of play time. The standard sequential clear takes ~13 min even rushing, so this
   // demands deliberate concurrent-wave rushing — a skill goal, not an accident. Quick-only:

@@ -72,6 +72,12 @@ function pickTarget(t) {
       // that the rest of the board struggles with. A fresh axis beside HP/position/speed/kind;
       // degrades to 'first' when nothing is armored (all armor 0 → dist decides). Raises no stat.
       case 'armored': val = (e.armor || 0) * 1e4 + e.dist; break;
+      // 'bounty' (v2.63.0): prioritise the enemy worth the most gold (its bounty), tie-break toward
+      // the furthest-along — an ECONOMY/value targeting axis: pop the high-value escorts (warden 2.4×,
+      // breacher 2.5×, bastion 2.2×, herald 2.2× / tanks / bosses) first to bank gold + feed the combo
+      // meter. Distinct from 'strong' (highest CURRENT HP) — a low-HP high-bounty warden outranks a
+      // full-HP plain tank here. Trades leak-safety (it ignores the leader) for income. Raises no stat.
+      case 'bounty':  val = (e.bounty || 0) * 1e4 + e.dist; break;
       default:        val = e.dist;
     }
     if (bestVal === null || val > bestVal) { bestVal = val; target = e; }

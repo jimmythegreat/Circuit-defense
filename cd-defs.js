@@ -181,8 +181,8 @@ const TOWER_TYPES = {
   arc:    { name:'Arc',    icon:'⚛️', cost:140, range:125, dmg:9,   rate:0.9,  color:'#b8e34b', proj:'ricochet', desc:'Bolt ricochets between foes', tip:'Fires a TRAVELLING energy bolt that ricochets to the nearest fresh enemy after each strike — up to 5 hits per bolt, leaping much farther between targets than a Tesla chain (a spread-swarm sweeper vs Tesla\'s tight-cluster zap). Damage fades a little with each hop and each foe is struck once per bolt, so it is deliberately WEAK against single tanks/bosses. Respects armor.' },
 };
 const TYPE_KEYS = Object.keys(TOWER_TYPES);
-const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss', 'cluster', 'armored'];
-const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss', cluster:'💠 Cluster', armored:'🪨 Armored' };
+const MODES = ['first', 'last', 'strong', 'close', 'weak', 'support', 'fastest', 'boss', 'cluster', 'armored', 'bounty'];
+const MODE_ICON = { first:'⏩ First', last:'⏪ Last', strong:'💪 Strong', close:'📍 Close', weak:'🩸 Weak', support:'🛡 Support', fastest:'🏎 Fastest', boss:'👑 Boss', cluster:'💠 Cluster', armored:'🪨 Armored', bounty:'💰 Bounty' };
 // Enemy kinds the 'support' targeting mode prioritises (they project auras: heal / damage-shield)
 const SUPPORT_KINDS = { heal: true, warden: true, herald: true };
 
@@ -587,6 +587,16 @@ const PERKS = [
   // via loadRun's Object.assign(freshPerkState(), s.perkState) — old saves default false). A RARE, so
   // the legendary-only resolveWildcard() skips it. Test group [215].
   { id:'coldsnap',rarity:'rare', icon:'🥶', name:'Cold Snap',           desc:'+30% damage to frozen or slowed enemies', apply:s=>s.coldsnap = true },
+  // Overengineered (rare, v2.63.0): a fresh "TALL build" damage axis — no other perk keys off a
+  // tower's UPGRADE LEVEL. Each tower deals +4% damage per level above 1, so a freshly-placed L1
+  // tower gets +0% and a fully-invested tower hits +16% at L5 (+24% at L7 with 🌟 Overdrive). Rewards
+  // sinking gold into a few high-level towers rather than spreading it thin — the strategic INVERSE of
+  // the wide-build 🏛️ Phalanx (per tower COUNT) and 🌈 Overwhelm (per distinct TYPE), so the three form
+  // a non-dominated tall/wide/diverse trio. Wired in effDmg via (t.level-1); upgradeKey() already hashes
+  // t.level, so the panel steps up on each upgrade (not every frame). "Too easy"-safe: CONDITIONAL on a
+  // real gold investment and bounded by the max-level cap — below the flat Diamond Core (+30%).
+  // `overengineered` lives in perkState (save-safe default false). A RARE, so resolveWildcard() skips it.
+  { id:'overengineered',rarity:'rare', icon:'🔩', name:'Overengineered', desc:'+4% damage per tower upgrade level', apply:s=>s.overengineered = true },
   // ——— legendary: SUPER GRADES ———
   { id:'diamond', rarity:'legendary', icon:'💎', name:'Diamond Core',    desc:'ALL damage +30%',                          apply:s=>s.dmgMult *= 1.3 },
   { id:'midas',   rarity:'legendary', icon:'👑', name:'Midas Touch',     desc:'15% chance kills drop ×5 gold',            apply:s=>s.midas += 0.15 },
@@ -630,6 +640,16 @@ const PERKS = [
   // A genuine choice, not a free upgrade. Wired in effDmg (×0.75) + effRate (÷1.55); both are hashed
   // by upgradeKey() so the panel live-updates. `resolveWildcard()` can roll it.
   { id:'hairtrigger',rarity:'legendary',icon:'⏱️', name:'Hair Trigger',   desc:'+55% fire rate, but −25% damage per shot', apply:s=>s.hairTrigger = true },
+  // Heavy Ordnance (legendary, v2.63.0): the INVERSE sibling of Hair Trigger and a fresh TRADE-OFF axis
+  // (Glass Cannon trades range for damage; Hair Trigger trades damage for rate; this trades RATE for
+  // damage). Towers hit far harder but reload slower: +60% damage per shot, −25% fire rate. Net DPS is
+  // only ~+20% (1.6 × 0.75), so it's NOT pure power creep (re: "too easy") — well below the flat Diamond
+  // Core (+30%). It favours slow BURST towers (Sniper/Cannon/Mortar/Rail, whose big per-shot hits punch
+  // through flat armor) while blunting rapid/swarm towers (Gun/Tesla/Pulsar lose uptime) — a genuine
+  // build choice, not a free upgrade. Wired in effDmg (×1.6) + effRate (×1.3333 = slower reload); both
+  // are hashed by upgradeKey() so the panel live-updates. `heavyOrd` lives in perkState (save-safe
+  // default false; round-trips via loadRun's Object.assign). resolveWildcard() can roll it (a legendary).
+  { id:'heavyord',rarity:'legendary',icon:'🏋️', name:'Heavy Ordnance',    desc:'+60% damage per shot, but −25% fire rate', apply:s=>s.heavyOrd = true },
   // Killing Spree (v1.73.0): the FIRST perk to tie into the kill-combo meter (until now a purely
   // cosmetic system). While a combo is hot, ALL towers hit harder, scaling +1% damage per combo,
   // capped +25% at a 25× streak (see comboDmgMult() in cd-state.js). Conditional & self-limiting —
@@ -838,7 +858,8 @@ function freshPerkState() {
     phoenix:false, phoenixUsed:false, retaliation:false, retaliateT:0, auraImmune:false,
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
-    warChest:false, coldsnap:false, overwatch:false, failsafe:false };
+    warChest:false, coldsnap:false, overwatch:false, failsafe:false,
+    overengineered:false, heavyOrd:false };
 }
 function ascendTowers() {
   for (const t of towers) {

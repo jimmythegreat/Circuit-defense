@@ -837,6 +837,13 @@ function effDmg(t) {
   // hash only churns the panel per notch, not on every bounty. Capped below Diamond Core (+30%), and
   // spending the gold spends the bonus, so hoarding is a real trade-off rather than free damage.
   if (perkState.warChest) d *= 1 + Math.min(0.25, Math.floor(gold / 1000) * 0.01);
+  // Overengineered rare (v2.63.0): +4% damage per tower UPGRADE LEVEL above 1 (a "tall build" axis,
+  // the inverse of Phalanx/Overwhelm). L1 → +0%, L5 → +16%, L7 (Overdrive) → +24%. upgradeKey hashes
+  // t.level, so the panel steps up on each upgrade. Conditional + bounded → below Diamond Core.
+  if (perkState.overengineered) d *= 1 + 0.04 * (t.level - 1);
+  // Heavy Ordnance legendary (v2.63.0): +60% damage per shot (paired with a −25% fire-rate cut in
+  // effRate → net DPS ~+20%). The rate/damage inverse of Hair Trigger; favours slow burst towers.
+  if (perkState.heavyOrd) d *= 1.6;
   // 📣 Amplify ability (v2.48.0): +30% damage while the tower-overdrive burst is active.
   // Run-only `overdriveT` (set on cast, decayed in update()); effDmg is hashed by upgradeKey,
   // so the upgrade panel's dmg line steps up/down with the buff.
@@ -852,6 +859,8 @@ function effRate(t) {
 
   // Hair Trigger legendary (v1.68.0): +55% fire rate (shorter reload; paired with −25% dmg in effDmg).
   if (perkState.hairTrigger) r /= 1.55;
+  // Heavy Ordnance legendary (v2.63.0): −25% fire rate (LONGER reload; paired with +60% dmg in effDmg).
+  if (perkState.heavyOrd) r *= 1 / 0.75;
   // 📣 Amplify ability (v2.48.0): +30% fire rate (shorter reload) while overdrive is active.
   if (overdriveT > 0) r /= OVERDRIVE_MULT;
   return r;

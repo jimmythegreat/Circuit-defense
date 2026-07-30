@@ -206,9 +206,10 @@ _None currently known._ (Add any here as found — top priority.)
   swarm-clearer, poor vs bosses; the inverse of the Laser); specs Overload/Resonance; no number hotkey; mastery_pulsar.
   Arc = a travelling ricochet bolt (`proj:'ricochet'`, hops to the nearest unhit enemy ≤150px, 5 hits/bolt,
   0.85 falloff → spread-swarm sweeper, weak single-target); specs Ball Lightning/Magnet Coil; no number hotkey; mastery_arc.
-- 10 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
+- 11 targeting modes (first/last/strong/close + Weak v1.70.0 [80] + Support v1.49.0 [66] + Fastest v2.41.0 [163]
   + Boss v2.45.0 [173] + Cluster v2.53.0 [195] — densest knot for max AoE splash + Armored v2.60.0 [219] — highest
-  flat armor, for armor-ignoring/Poison towers to focus hard-shelled units); default-mode
+  flat armor, for armor-ignoring/Poison towers to focus hard-shelled units + Bounty v2.63.0 [229] — highest gold
+  value, an economy/value axis to pop escorts/bosses first); default-mode
   device pref v1.89.0 [97]. Spec rework v1.10.0 (Network/Mega/Poison), Executioner buff v1.26.0,
   Superconductor falloff 0.7→0.8 v1.55.0 [17]. Railgun Penetrator nerfed +35%→+20% v2.0.0 [109].
 - Tower veterancy (cosmetic kill-rank pips) v1.100.0 [107].
@@ -229,7 +230,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
-  cost rework v1.38.0 [55]. 56 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 57 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -254,6 +255,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 🐋 Leviathan v2.60.0 [220] — defeat 10 bosses in a single run (the rung above Big Game Hunter);
   + 💥 Shock and Awe v2.61.0 [222] — kill 8+ enemies with a single explosive tower detonation;
   + 🚦 Gridlock + ⚡ Chain Reaction v2.62.0 [225]/[226] — stack the max 8 concurrent waves / strike 5+ enemies with one Tesla chain (Tesla's first feat);
+  + ⚙️ Peak Performance v2.63.0 [230] — win with 6+ towers at max level (the deeper rung above 🏗️ Maxed Out);
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -274,7 +276,9 @@ _None currently known._ (Add any here as found — top priority.)
   Aftershock(on a leak, knock the whole field backward — a defensive repositioning comeback, the sibling of Retaliation, v2.56.0 [205])/
   Cold Snap(+30% dmg to frozen/slowed enemies — a cold-CC synergy, the sibling of Corrosive's poison, v2.59.0 [215])/
   Overwatch(+25% dmg to enemies BEYOND half a tower's range — the positional MIRROR of Point Blank, v2.60.0 [218])/
-  Failsafe(leaks cost 1 fewer life, min 1 — the leak-cost counter completing the counter-content family, "too easy"-safe; named to avoid the Bulwark boss clash, v2.62.0 [224]);
+  Failsafe(leaks cost 1 fewer life, min 1 — the leak-cost counter completing the counter-content family, "too easy"-safe; named to avoid the Bulwark boss clash, v2.62.0 [224])/
+  Overengineered(+4% dmg per tower UPGRADE LEVEL, L5 +16% — a "tall build" axis, the inverse of Phalanx/Overwhelm, v2.63.0 [227]);
+  legendaries also incl. Heavy Ordnance(+60% dmg / −25% fire rate, net ~+20% DPS — the rate/damage TRADE-OFF inverse of Hair Trigger, favours slow burst towers, v2.63.0 [228]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
 - 6 abilities (meteor/freeze/rush + Shockwave v1.67.0 [77] + Barrier v1.93.0 [101], faded v1.100.1 [108]

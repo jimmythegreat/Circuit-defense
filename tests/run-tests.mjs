@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 56 badges', r.total === 56, `total=${r.total}`);
+    check('achievement roster grew to 57 badges', r.total === 57, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 56;   // +gridlock 🚦 +chainreaction ⚡ (v2.62.0)
+      const rosterOk = ACHIEVEMENTS.length === 57;   // +peakperf ⚙️ (v2.63.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 56;
+      const rosterOk = ACHIEVEMENTS.length === 57;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13440,7 +13440,7 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 56', r.rosterOk);
+    check('achievement roster grew to 57', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
     check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
@@ -14515,6 +14515,209 @@ async function main() {
     check('Chain Reaction withheld at a 4-enemy chain', r.withheld === false);
     check('a Superconductor Tesla chains all 5 clustered enemies', r.chained === 5, `chain=${r.chained}`);
     check('no console errors during Chain Reaction test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [227] Overengineered perk (rare, v2.63.0): a "tall build" damage axis — +4% damage per tower
+  // UPGRADE LEVEL above 1 (L1 → +0%, L5 → +16%). Lives in effDmg (keyed to t.level, hashed by
+  // upgradeKey — so it CAN be verified via effDmg). Conditional/bounded; save-safe; rare (no Wildcard).
+  console.log('\n[227] Overengineered perk (per-tower-level damage)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      meta.talents = {};   // zero masteries so the ratio isolates the perk factor
+
+      const def = PERKS.find(p => p.id === 'overengineered');
+      const inPool = !!def && def.rarity === 'rare';
+
+      const mk = lvl => ({ type:'gun', x:300, y:300, level:lvl, spec:null, dmg:10, range:120, rate:1,
+        dealt:0, kills:0, buffPower:0.25, dampened:0 });
+      function ratio(lvl) {
+        const t = mk(lvl); towers.length = 0; towers.push(t);
+        perkState.overengineered = false; const off = effDmg(t);
+        perkState.overengineered = true;  const on  = effDmg(t);
+        return on / off;
+      }
+      const l1  = ratio(1);   // +0%
+      const l3  = ratio(3);   // +8%
+      const l5  = ratio(5);   // +16%
+      const l1ok = Math.abs(l1 - 1.00) < 1e-9;
+      const l3ok = Math.abs(l3 - 1.08) < 1e-9;
+      const l5ok = Math.abs(l5 - 1.16) < 1e-9;
+
+      // freshPerkState default + save/reload round-trip + old-save migration
+      const defaultsOk = freshPerkState().overengineered === false;
+      towers.length = 0; enemies.length = 0; projectiles.length = 0;
+      perkState.overengineered = true; saveRun();
+      perkState.overengineered = false; const loaded = loadRun();
+      const restored = perkState.overengineered === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.overengineered;
+      localStorage.setItem('cd_save', JSON.stringify(old)); loadRun();
+      const migratedOk = perkState.overengineered === false;
+      localStorage.removeItem('cd_save');
+
+      const wildcardSkips = !resolveWildcard || resolveWildcard().id !== 'overengineered';
+      towers.length = 0; backToMenu();
+      return { inPool, l1, l3, l5, l1ok, l3ok, l5ok, defaultsOk, loaded, restored, migratedOk, wildcardSkips };
+    });
+    check('Overengineered is a rare perk in the pool', r.inPool);
+    check('Overengineered gives +0% at level 1', r.l1ok, `l1=${r.l1}`);
+    check('Overengineered gives +8% at level 3', r.l3ok, `l3=${r.l3}`);
+    check('Overengineered gives +16% at level 5', r.l5ok, `l5=${r.l5}`);
+    check('freshPerkState defaults overengineered:false', r.defaultsOk);
+    check('save/reload round-trips the overengineered flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing overengineered migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Overengineered', r.wildcardSkips);
+    check('no console errors during Overengineered test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [228] Heavy Ordnance perk (legendary, v2.63.0): the rate/damage TRADE-OFF inverse of Hair Trigger —
+  // +60% damage per shot (effDmg ×1.6) but −25% fire rate (effRate ×1.3333 = slower reload). Net DPS
+  // ~+20% (< Diamond Core). Both eff* helpers change; save-safe; a legendary (Wildcard-eligible).
+  console.log('\n[228] Heavy Ordnance perk (damage-for-rate trade-off)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      meta.talents = {};
+
+      const def = PERKS.find(p => p.id === 'heavyord');
+      const inPool = !!def && def.rarity === 'legendary';
+
+      const t = { type:'sniper', x:300, y:300, level:1, spec:null, dmg:40, range:200, rate:2,
+        dealt:0, kills:0, buffPower:0.25, dampened:0, suppressed:0 };
+      towers.length = 0; towers.push(t);
+      perkState.heavyOrd = false; const dOff = effDmg(t), rOff = effRate(t);
+      perkState.heavyOrd = true;  const dOn  = effDmg(t), rOn  = effRate(t);
+      const dmgOk  = Math.abs(dOn / dOff - 1.6) < 1e-9;             // +60% damage
+      const rateOk = Math.abs(rOn / rOff - (1 / 0.75)) < 1e-9;      // reload ×1.3333 (−25% fire rate)
+      const dpsOk  = Math.abs((dOn / rOn) / (dOff / rOff) - 1.2) < 1e-9;  // net DPS ~+20%
+
+      // freshPerkState default + save/reload round-trip + old-save migration
+      const defaultsOk = freshPerkState().heavyOrd === false;
+      towers.length = 0; enemies.length = 0; projectiles.length = 0;
+      perkState.heavyOrd = true; saveRun();
+      perkState.heavyOrd = false; const loaded = loadRun();
+      const restored = perkState.heavyOrd === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.heavyOrd;
+      localStorage.setItem('cd_save', JSON.stringify(old)); loadRun();
+      const migratedOk = perkState.heavyOrd === false;
+      localStorage.removeItem('cd_save');
+
+      towers.length = 0; backToMenu();
+      return { inPool, dmgOk, rateOk, dpsOk, defaultsOk, loaded, restored, migratedOk };
+    });
+    check('Heavy Ordnance is a legendary perk in the pool', r.inPool);
+    check('Heavy Ordnance gives +60% damage per shot', r.dmgOk);
+    check('Heavy Ordnance gives −25% fire rate (longer reload)', r.rateOk);
+    check('Heavy Ordnance nets ~+20% DPS', r.dpsOk);
+    check('freshPerkState defaults heavyOrd:false', r.defaultsOk);
+    check('save/reload round-trips the heavyOrd flag', r.loaded === true && r.restored, JSON.stringify(r));
+    check('old save missing heavyOrd migrates to default false', r.migratedOk);
+    check('no console errors during Heavy Ordnance test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [229] Bounty targeting mode (v2.63.0): an 11th per-tower mode that prioritises the enemy worth the
+  // most gold — pop the high-value escorts/bosses first to bank income. Distinct from 'strong' (a
+  // low-HP high-bounty warden outranks a full-HP plain tank). Degrades to 'first'. Mirrors [219].
+  console.log('\n[229] Bounty targeting mode (highest-bounty priority)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const inModes = MODES.includes('bounty');
+      const hasIcon = typeof MODE_ICON.bounty === 'string' && MODE_ICON.bounty.length > 0;
+
+      const p = pointAt(pathLen * 0.5);
+      const mkT = () => { towers.length = 0; const T = { type:'gun', x:p.x, y:p.y, range:400, dmg:1,
+        rate:1, cd:99, level:1, kills:0, dealt:0, mode:'bounty', invested:0, spec:null, buffPower:0.25, flash:0 };
+        towers.push(T); return T; };
+      const mkE = (extra = {}) => ({ kind:'norm', hp:100, maxHp:100, spd:1, r:12, bounty:1, color:'#fff',
+        armor:0, dist:pathLen*0.5, x:p.x, y:p.y, slow:0, slowF:0.6, frozen:0, poison:null, flash:0,
+        px:0, py:0, dead:false, blinkInvuln:0, ...extra });
+
+      // a low-HP but high-BOUNTY warden outranks a full-HP low-bounty tank (distinct from 'strong')
+      const T = mkT();
+      enemies.length = 0;
+      const tank   = mkE({ kind:'tank', hp:9999, maxHp:9999, bounty:2 });
+      const warden = mkE({ kind:'warden', hp:60, maxHp:100, bounty:30 });
+      enemies.push(tank, warden);
+      const picksBounty = pickTarget(T) === warden;
+
+      // with equal bounty, degrades to 'first' (furthest-along enemy wins)
+      enemies.length = 0;
+      const back  = mkE({ dist: 100, bounty: 5 });
+      const front = mkE({ dist: 400, bounty: 5 });
+      enemies.push(back, front);
+      const degradesToFirst = pickTarget(T) === front;
+
+      // cycleMode eventually reaches 'bounty'
+      selectedTower = T; T.mode = 'first';
+      let reachedBounty = false;
+      for (let i = 0; i < MODES.length; i++) { cycleMode(); if (T.mode === 'bounty') reachedBounty = true; }
+      hideUpgrade();
+
+      // save/resume round-trips the bounty mode (loadRun validates against MODES)
+      T.mode = 'bounty'; enemies.length = 0; projectiles.length = 0;
+      saveRun();
+      const rt = loadRun();
+      const restored = rt === true && towers.length === 1 && towers[0].mode === 'bounty';
+
+      enemies.length = 0; towers.length = 0; selectedTower = null;
+      localStorage.removeItem('cd_save'); backToMenu();
+      return { inModes, hasIcon, picksBounty, degradesToFirst, reachedBounty, restored };
+    });
+    check('bounty is in the MODES list', r.inModes);
+    check('bounty has a MODE_ICON label', r.hasIcon);
+    check('bounty mode picks a low-HP high-bounty warden over a full-HP tank', r.picksBounty);
+    check('bounty mode degrades to first-along with equal bounty', r.degradesToFirst);
+    check('cycleMode reaches the bounty mode', r.reachedBounty);
+    check('save/resume round-trips the bounty mode', r.restored);
+    check('no console errors during bounty-mode test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [230] Peak Performance achievement (⚙️ v2.63.0): win with 6+ towers at max level — the deeper
+  // rung above 🏗️ Maxed Out (3+). Reads the final board; win-gated. Mirrors [208].
+  console.log('\n[230] Peak Performance achievement');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const inRoster = ACHIEVEMENTS.some(a => a.id === 'peakperf');
+      const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1; beginGame();
+      const ml = maxTowerLevel();
+      const mk = lvl => ({ type:'gun', level:lvl, dealt:0, kills:0 });
+
+      // 5 max-level towers → withheld (needs 6).
+      freshMeta(); towers.length = 0;
+      for (let i = 0; i < 5; i++) towers.push(mk(ml));
+      const withheldAt5 = grantAchievements(true).map(a => a.id).includes('peakperf');
+
+      // 6 max-level towers → granted.
+      freshMeta(); towers.length = 0;
+      for (let i = 0; i < 6; i++) towers.push(mk(ml));
+      const grantedAt6 = grantAchievements(true).map(a => a.id).includes('peakperf');
+
+      // A LOSS with 6 max-level towers → withheld (win-gated).
+      freshMeta(); towers.length = 0;
+      for (let i = 0; i < 6; i++) towers.push(mk(ml));
+      const withheldOnLoss = grantAchievements(false).map(a => a.id).includes('peakperf');
+
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      towers.length = 0; backToMenu(); localStorage.removeItem('cd_save');
+      return { inRoster, withheldAt5, grantedAt6, withheldOnLoss };
+    });
+    check('Peak Performance is in the achievement roster', r.inRoster);
+    check('Peak Performance withheld with only 5 max-level towers', !r.withheldAt5);
+    check('Peak Performance granted with 6 max-level towers on a win', r.grantedAt6);
+    check('Peak Performance withheld on a loss (win-gated)', !r.withheldOnLoss);
+    check('no console errors during Peak Performance test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 
