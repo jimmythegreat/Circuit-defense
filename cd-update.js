@@ -829,6 +829,16 @@ function update(dt) {
     // BEYOND half the tower's effective range (rewards a spread / long-reach placement). Keyed to
     // the primary target's distance, so it lives here (not effDmg); effRange gated behind the flag.
     if (perkState.overwatch && Math.hypot(target.x - t.x, target.y - t.y) > effRange(t) * 0.5) dmg *= 1.25;
+    // Vanguard / Backstop rares (v2.64.0): a fresh POSITIONAL axis keyed to the target's PROGRESS
+    // ALONG THE PATH (Point Blank/Overwatch key off distance from the TOWER — this keys off how far
+    // the enemy has travelled). Vanguard rewards front-loaded, aggressive defense (+25% to enemies in
+    // the FIRST 30% of the path); Backstop rewards a final defensive stand (+25% in the LAST 30%). The
+    // two are non-dominated — mutually-exclusive path zones for one target, opposite strategies, like
+    // the Point Blank/Overwatch and Ambush/Finisher pairs. Keyed to target.dist/pathLen, so they live
+    // here (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
+    // Conditional (each covers a single band) → strictly narrower than a flat +25%, modest rares.
+    if (perkState.vanguard && target.dist < pathLen * 0.3) dmg *= 1.25;
+    if (perkState.backstop && target.dist > pathLen * 0.7) dmg *= 1.25;
     // Corrosive Rounds rare (v2.50.0): +30% damage to a target with an active poison DoT — a
     // poison-anchored synergy. Keyed to the primary target's live poison state, so it lives here
     // (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.

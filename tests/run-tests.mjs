@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 57 badges', r.total === 57, `total=${r.total}`);
+    check('achievement roster grew to 59 badges', r.total === 59, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 57;   // +peakperf ⚙️ (v2.63.0)
+      const rosterOk = ACHIEVEMENTS.length === 59;   // +endless300 💫 +combo150 🎇 (v2.64.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -13404,7 +13404,7 @@ async function main() {
       MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 57;
+      const rosterOk = ACHIEVEMENTS.length === 59;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -14718,6 +14718,102 @@ async function main() {
     check('Peak Performance granted with 6 max-level towers on a win', r.grantedAt6);
     check('Peak Performance withheld on a loss (win-gated)', !r.withheldOnLoss);
     check('no console errors during Peak Performance test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  // [231] Vanguard / Backstop rare perks (v2.64.0): a fresh POSITIONAL axis keyed to the enemy's
+  // PROGRESS along the path (dist/pathLen), distinct from Point Blank/Overwatch (tower-relative
+  // distance). Vanguard = +25% in the first third; Backstop = +25% in the last third. Fire-path,
+  // so NOT in effDmg. Mirrors [218]'s on-path rail pattern (enemy stationary ON the path via pointAt,
+  // tower 30px off, one instant rail shot), varying the enemy's path DIST to move between bands.
+  console.log('\n[231] Vanguard / Backstop perks (path-progress damage bonus)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {}; // zero critlab so crit RNG can't perturb the damage comparison
+
+      const vDef = PERKS.find(p => p.id === 'vanguard');
+      const bDef = PERKS.find(p => p.id === 'backstop');
+      const inPool = !!vDef && vDef.rarity === 'rare' && !!bDef && bDef.rarity === 'rare';
+
+      // dist-keyed in the fire loop, so neither must be in effDmg (no panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, buffPower:0.25 };
+      towers.push(probe);
+      perkState.vanguard = false; perkState.backstop = false;
+      const effBefore = effDmg(probe);
+      perkState.vanguard = true; perkState.backstop = true;
+      const notInEffDmg = Math.abs(effDmg(probe) - effBefore) < 1e-9;
+      perkState.vanguard = false; perkState.backstop = false;
+
+      const PL = pathLen;
+      // fire one instant rail shot; the enemy sits ON the path (via pointAt) at a controlled path DIST
+      // and is stationary (spd:0) so update() can't shove it off the beam. The tower is 30px off the
+      // point (constant geometric distance → firing is consistent); only the enemy's band changes.
+      function shot(vg, bs, enemyDist) {
+        perkState.vanguard = vg; perkState.backstop = bs;
+        perkState.critChance = 0; perkState.rangeMult = 1;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const ep = pointAt(enemyDist);
+        const rg = { type:'rail', x:ep.x, y:ep.y - 30, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:enemyDist, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp;
+        update(1/60);          // one tick → exactly one rail shot (reload 1.7s ≫ dt)
+        return { dealt: before - e.hp, hits: railBestHit };
+      }
+      const baseEarly = shot(false, false, PL * 0.15);   // first third, no perk
+      const baseLate  = shot(false, false, PL * 0.85);   // last third, no perk
+      const baseMid   = shot(false, false, PL * 0.50);   // mid path, no perk
+      const vgEarly   = shot(true,  false, PL * 0.15);   // Vanguard in-band → +25%
+      const vgMid     = shot(true,  false, PL * 0.50);   // Vanguard out-of-band → +0%
+      const bsLate    = shot(false, true,  PL * 0.85);   // Backstop in-band → +25%
+      const bsMid     = shot(false, true,  PL * 0.50);   // Backstop out-of-band → +0%
+
+      const fired = [baseEarly, baseLate, baseMid, vgEarly, vgMid, bsLate, bsMid].every(s => s.hits === 1);
+      const vgBonusOk = Math.abs(vgEarly.dealt - baseEarly.dealt * 1.25) < 1e-4;
+      const vgNoMid   = Math.abs(vgMid.dealt - baseMid.dealt) < 1e-4;
+      const bsBonusOk = Math.abs(bsLate.dealt - baseLate.dealt * 1.25) < 1e-4;
+      const bsNoMid   = Math.abs(bsMid.dealt - baseMid.dealt) < 1e-4;
+
+      const defaultsOk = freshPerkState().vanguard === false && freshPerkState().backstop === false;
+      perkState.vanguard = true; perkState.backstop = true;
+      saveRun();
+      perkState.vanguard = false; perkState.backstop = false;
+      loadRun();
+      const restored = perkState.vanguard === true && perkState.backstop === true;
+      const old = JSON.parse(localStorage.getItem('cd_save'));
+      delete old.perkState.vanguard; delete old.perkState.backstop;
+      localStorage.setItem('cd_save', JSON.stringify(old));
+      loadRun();
+      const migratedOk = perkState.vanguard === false && perkState.backstop === false;
+      localStorage.removeItem('cd_save');
+
+      // legendary-only Wildcard must never roll either rare (sample many times)
+      let wildcardSkips = true;
+      for (let i = 0; i < 30; i++) { const id = resolveWildcard && resolveWildcard().id; if (id === 'vanguard' || id === 'backstop') wildcardSkips = false; }
+      backToMenu();
+      return { inPool, notInEffDmg, fired, vgBonusOk, vgNoMid, bsBonusOk, bsNoMid, defaultsOk, restored, migratedOk, wildcardSkips,
+               baseEarly: baseEarly.dealt, vgEarly: vgEarly.dealt, baseLate: baseLate.dealt, bsLate: bsLate.dealt };
+    });
+    check('Vanguard & Backstop are rare perks in the pool', r.inPool);
+    check('neither Vanguard nor Backstop is applied in effDmg (no panel churn)', r.notInEffDmg);
+    check('path-band perk test actually fires the rail (non-vacuous)', r.fired);
+    check('Vanguard gives +25% in the first third of the path', r.vgBonusOk, `base=${r.baseEarly} vg=${r.vgEarly}`);
+    check('Vanguard gives no bonus mid-path', r.vgNoMid);
+    check('Backstop gives +25% in the last third of the path', r.bsBonusOk, `base=${r.baseLate} bs=${r.bsLate}`);
+    check('Backstop gives no bonus mid-path', r.bsNoMid);
+    check('freshPerkState defaults vanguard/backstop:false', r.defaultsOk);
+    check('save/reload round-trips the vanguard & backstop flags', r.restored, JSON.stringify(r));
+    check('old save missing vanguard/backstop migrates to default false', r.migratedOk);
+    check('Wildcard (legendary-only) never resolves to the rare Vanguard/Backstop', r.wildcardSkips);
+    check('no console errors during Vanguard/Backstop test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

@@ -795,6 +795,19 @@ const PERKS = [
   // Object.assign(freshPerkState(), s.perkState)). A RARE, so the legendary-only resolveWildcard()
   // skips it. Test group [218].
   { id:'overwatch', rarity:'rare', icon:'📡', name:'Overwatch',          desc:'+25% damage to enemies beyond half a tower’s range', apply:s=>s.overwatch = true },
+  // Vanguard / Backstop (rares, v2.64.0): a fresh POSITIONAL axis keyed to the enemy's PROGRESS along
+  // the path (Point Blank/Overwatch key off distance from the TOWER; these key off how far the enemy
+  // has travelled). Vanguard = +25% to enemies in the FIRST 30% of the path (front-loaded, aggressive
+  // defense); Backstop = +25% in the LAST 30% (a final defensive stand). The two are NON-DOMINATED —
+  // mutually-exclusive path bands for a single target, opposite strategies — like the Point Blank/
+  // Overwatch and Ambush/Finisher pairs, completing a positional-progress family. Applied in the FIRE
+  // path (keyed to target.dist/pathLen, so they can't live in effDmg, like the other positional perks).
+  // "Too easy"-safe: each covers a single 30% band → strictly narrower than a flat +25%, modest rares
+  // comparable to Point Blank/Overwatch; add no HP/economy. Both flags live in perkState (save-safe
+  // default false; round-trip via loadRun's Object.assign). RARES, so resolveWildcard() skips them.
+  // Test group [231].
+  { id:'vanguard', rarity:'rare', icon:'🚩', name:'Vanguard',            desc:'+25% damage to enemies in the first third of the path', apply:s=>s.vanguard = true },
+  { id:'backstop', rarity:'rare', icon:'🚧', name:'Backstop',            desc:'+25% damage to enemies in the last third of the path', apply:s=>s.backstop = true },
   // Warpath (legendary, v2.47.0): a fresh SCALING axis — tower damage grows +2% per wave you've
   // reached this run, capped +40% (at wave 20). A "scale into the late game" pick: drafted early it
   // starts weak (+10% at wave 5), CROSSES the flat 💎 Diamond Core (+30%) around wave 15, and edges
@@ -859,7 +872,7 @@ function freshPerkState() {
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
     warChest:false, coldsnap:false, overwatch:false, failsafe:false,
-    overengineered:false, heavyOrd:false };
+    overengineered:false, heavyOrd:false, vanguard:false, backstop:false };
 }
 function ascendTowers() {
   for (const t of towers) {

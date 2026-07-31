@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.64.0 — 2026-07-31 — Vanguard + Backstop perks, Empyrean + Combo Immortal badges
+
+**Type:** Minor (feature/content). Suite green (baseline 2261/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all four picked from ROADMAP (perk-pool variety + deep-endless feats). 6th normal run after the v2.58.1 health check — **the next run is the health check.** Cohesive theme: **reward WHERE on the path you kill.**
+
+- **🚩 Vanguard — a new rare perk (a fresh positional axis keyed to path PROGRESS):** each tower deals **+25% damage to enemies in the FIRST 30% of the path**, rewarding a front-loaded, aggressive defense that stops the wave early. Distinct from 🎯 Point Blank / 📡 Overwatch (which key off distance from the TOWER) — this keys off how far the enemy has TRAVELLED (`target.dist / pathLen`). Fire-path (not `effDmg`), conditional on the early band → strictly narrower than a flat +25%, a modest rare. `vanguard` lives in `perkState` (default false). A rare, so Wildcard skips it. Test group `[231]`.
+- **🚧 Backstop — a new rare perk (the path-progress MIRROR of Vanguard):** **+25% damage to enemies in the LAST 30% of the path** — a clutch final stand for whatever slips through your main line. Non-dominated vs Vanguard (mutually-exclusive path bands, opposite strategies — kill early vs kill late), completing a positional-progress family alongside the Point Blank/Overwatch and Ambush/Finisher pairs. Same fire-path/conditional/"too easy"-safe implementation; `backstop` in `perkState` (default false). A rare. Test group `[231]`.
+- **💫 Empyrean — a new achievement (roster 57 → 58):** reach **wave 300** in a single run — the next deep-endless rung above 🌟 Ascendant (w250). No `won` gate (a feat). Additive/save-safe.
+- **🎇 Combo Immortal — a new achievement (roster 58 → 59):** reach a **150× kill-streak** — the next rung above 🎆 Combo Deity (100×). No `won` gate; reads the run's `comboBest`. Additive/save-safe.
+
 ## v2.63.0 — 2026-07-30 — Overengineered + Heavy Ordnance perks, Bounty targeting, Peak Performance badge
 
 **Type:** Minor (feature/content). Suite green (baseline 2232/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all four picked from ROADMAP (perk-pool variety + a targeting axis + a build feat). 5th normal run after the v2.58.1 health check (next run is the health check). Cohesive theme: **reward a heavily-invested "tall" board.**

@@ -230,7 +230,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
-  cost rework v1.38.0 [55]. 57 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
+  cost rework v1.38.0 [55]. 59 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
   reach a tower's top Legend veterancy rank; + 🌌 Eternity v2.34.0 [142] — reach wave 100 in a run;
   + 💰 Hoarder v2.35.0 [145] — bank 10,000 gold at once; + 🌠 Combo God v2.36.0 [148] — reach a 50× kill-streak;
   + 💯 Centurion + ⚰️ Gravekeeper v2.38.0 [152] — finish 100 runs / defeat 100k enemies lifetime;
@@ -256,6 +256,7 @@ _None currently known._ (Add any here as found — top priority.)
   + 💥 Shock and Awe v2.61.0 [222] — kill 8+ enemies with a single explosive tower detonation;
   + 🚦 Gridlock + ⚡ Chain Reaction v2.62.0 [225]/[226] — stack the max 8 concurrent waves / strike 5+ enemies with one Tesla chain (Tesla's first feat);
   + ⚙️ Peak Performance v2.63.0 [230] — win with 6+ towers at max level (the deeper rung above 🏗️ Maxed Out);
+  + 💫 Empyrean + 🎇 Combo Immortal v2.64.0 — reach wave 300 / a 150× kill-streak (the next rungs above Ascendant / Combo Deity);
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
@@ -277,7 +278,9 @@ _None currently known._ (Add any here as found — top priority.)
   Cold Snap(+30% dmg to frozen/slowed enemies — a cold-CC synergy, the sibling of Corrosive's poison, v2.59.0 [215])/
   Overwatch(+25% dmg to enemies BEYOND half a tower's range — the positional MIRROR of Point Blank, v2.60.0 [218])/
   Failsafe(leaks cost 1 fewer life, min 1 — the leak-cost counter completing the counter-content family, "too easy"-safe; named to avoid the Bulwark boss clash, v2.62.0 [224])/
-  Overengineered(+4% dmg per tower UPGRADE LEVEL, L5 +16% — a "tall build" axis, the inverse of Phalanx/Overwhelm, v2.63.0 [227]);
+  Overengineered(+4% dmg per tower UPGRADE LEVEL, L5 +16% — a "tall build" axis, the inverse of Phalanx/Overwhelm, v2.63.0 [227])/
+  Vanguard(+25% dmg to enemies in the FIRST third of the path — front-loaded defense, v2.64.0 [231])/
+  Backstop(+25% dmg to enemies in the LAST third — the path-progress MIRROR of Vanguard, a non-dominated pair, v2.64.0 [231]);
   legendaries also incl. Heavy Ordnance(+60% dmg / −25% fire rate, net ~+20% DPS — the rate/damage TRADE-OFF inverse of Hair Trigger, favours slow burst towers, v2.63.0 [228]);
   **Critical Mass**(+10% crit chance & ×1.5 crit DAMAGE — the crit-multiplier axis, v2.20.0 [130]).
   [41]/[51]/[65]/[70]/[75]/[78]/[82]/[89]/[93]/[94]/[104]/[115]/[120]/[123]/[125]/[130]/[154]/[161]/[167]/[174]/[191]/[205].
