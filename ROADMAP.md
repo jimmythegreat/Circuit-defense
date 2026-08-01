@@ -21,9 +21,9 @@ _None currently known._ (Add any here as found — top priority.)
       verbatim into a new `cd-combat.js` (9th game file, loads after cd-update.js / before cd-endgame.js),
       leaving cd-update.js as just the per-frame `update()` sim: **1371 → 907 lines**, cd-combat.js 478.
       Zero behaviour change (2012/0 green before, 2017/0 after with 5 new anti-regression guards).
-      **Size watch (health check v2.58.1):** `cd-render.js` (**1240**, was 1191 at v2.53.1, ~8 lines/run) is
+      **Size watch (health check v2.64.1):** `cd-render.js` (**1274**, was 1240 at v2.58.1, ~6 lines/run) is
       the largest game file — next split candidate if it nears ~1400 (~20 runs of headroom). cd-game.js is
-      1131; cd-update.js dropped to 943 after this split so it has ample room.
+      1140; cd-update.js is 962. All nine game files have comfortable headroom under the ~1500 cap.
 
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger
@@ -173,10 +173,10 @@ _None currently known._ (Add any here as found — top priority.)
       **1448 → 963** (now just the per-frame `update()` sim + combat: pickTarget/fire*/hitEnemy/damage). Zero
       behaviour change (suite 1339→1342, +3 from the new file's coverage); HTML/sw.js/harness/CLAUDE.md updated
       in the same run. All 8 game files now have comfortable headroom (largest: cd-render 984, cd-game 909).
-- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **13,978 lines (214 groups, 2155
-      assertions)** (health check v2.58.1; was 13,134/193/2012 at v2.53.1 → ~140 lines/run). By far the
+- [ ] **Split the test harness file** — `tests/run-tests.mjs` is **14,833 lines (231 groups, 2273
+      assertions)** (health check v2.64.1; was 13,978/214/2155 at v2.58.1 → ~140 lines/run). By far the
       largest file in the repo. Could split per-group into `tests/groups/*.mjs` with a small runner.
-      Dev-only, suite green in ~70s, no flakiness observed. Worth doing before it doubles.
+      Dev-only, suite green in ~80s, no flakiness observed. Worth doing before it doubles.
 - [x] **Watch: `cd-update.js` size** — trigger REACHED at health check v2.53.1 (1371 lines). Promoted to the
       `[refactor]` section at the top of this file; do it in a normal run.
 - [x] **Expand harness coverage** — ~~abilities (meteor/freeze/rush/shock/barrier)~~ DONE v2.37.0 [149];
@@ -227,7 +227,7 @@ _None currently known._ (Add any here as found — top priority.)
 - 4 difficulties: easy/normal/hard + **🌑 Nightmare v2.0.0** [109] (top tier, 2.2× chips, never in Daily).
 - Quick-mode `lateScale` on hard/nightmare v2.0.0 + **uncapped deep ramp from w40 v2.31.0** [109] (deep-endless
   HP keeps climbing — hard +5%/wave, nightmare +8%/wave; bosses inherit it; Normal/Easy/Campaign exempt).
-- 29 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
+- 30 talents (CORE + 8 masteries + mastery_mortar v1.23.0 + mastery_rail v1.83.0 + mastery_laser v2.9.0 + mastery_arc v2.52.0
   + mastery_pulsar v2.23.0 + Farsight range v1.92.0 [100] + Aegis Barrier-charges v2.6.0 [118]
   + Rampart Barrier-cooldown v2.46.0 [176] + ⛏️ Prospector auto-Gold-Rush v2.57.0 [210]);
   cost rework v1.38.0 [55]. 59 achievements (+ Nightmare Walker v2.0.0 + 🏵️ Living Legend v2.19.0 [129] —
@@ -308,10 +308,10 @@ touch/pointer (v1.16.3 [34]) · 44px tap targets (v1.46.0 [64]) · gamepad (v1.4
 (v1.19.0 [37]) + draft (v1.20.0 [38]) · colorblind aid (v1.18.0 [36]) · reduced-motion (v1.10.0) · volume slider
 (v1.13.2 [25]) · high-DPI scaling (v1.17.0 [35]) · high-contrast mode (v2.38.0 [151]) · settings persistence
 (shake/particles/grid/colorblind/high-contrast/vol/speed/default-mode/auto-wave [v2.38.0 153]).
-**Re-audited v2.58.1** — every item above still present and working (all table-stakes helper functions
-resolve in code); `sw.js` cache version tracks `GAME_VERSION` (test [49]); all five `JSON.parse` storage
+**Re-audited v2.64.1** — every item above still present and working (all table-stakes helper functions
+resolve in code); `sw.js` cache version tracks `GAME_VERSION` (test [49]); all storage
 reads are try/catch-guarded, so a corrupted `cd_save`/`cd_meta`/`cd_daily_streak` degrades to defaults
-instead of a white screen.
+instead of a white screen. Live-verified a minimal old-format save migrates + resumes with zero console errors.
 _New table-stakes can be added here as the bar rises:_
 - [x] **Screen-reader announcements** — DONE v2.54.0 [201]. A visually-hidden `aria-live="polite"`
       `#srLive` region + an `announce()` helper (cd-core.js) narrate wave starts, leaked lives and the

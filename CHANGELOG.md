@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.64.1 — 2026-08-01 — 🩺 Health check
+
+**Type:** Patch (maintenance — no new feature). 7th run after the v2.58.1 health check → this run is the health check. FEEDBACK PENDING empty; no owner vetoes/reverts in `git log`. Suite green **2273/0** (231 groups). Baseline confirmed green on the clean pull before any edit.
+
+- **Refactor audit** — all nine game files under the ~1500-line cap: cd-render.js 1274 (largest, still the next split candidate ~130 lines of headroom), cd-game.js 1140, cd-defs.js 968, cd-update.js 962, cd-endgame.js 811, cd-core.js 661, cd-combat.js 508, cd-maps.js 347, cd-state.js 336. No dead code, debug logging or TODOs. The dev-only `tests/run-tests.mjs` is 14,833 lines / 231 groups — by far the largest file, still the top split candidate (logged in ROADMAP).
+- **Docs coherence** — every CLAUDE.md headline count re-verified against code: 12 towers, 6 abilities, **30 talents**, 59 achievements, 24 boss archetypes, 11 targeting modes, 23 Mayhem wave mods, 4 difficulties, 8 maps. CHANGELOG top / GAME_VERSION / sw.js cache all consistent (v2.64.1). Fixed a stale "29 talents" count in ROADMAP (Munitions v2.61.0 brought it to 30).
+- **Integrity spot-checks** — live-verified in the browser: (a) a minimal old-format save (`cd_meta` with only `chips`; a bare `cd_save` missing every newer field) migrates cleanly and resumes with **zero console errors**, all newer fields defaulting safely; (b) a fresh quick run drives several waves cleanly; (c) file:// playability intact (9 classic scripts in order, no ES modules, deploy workflow copies all files incl. the PWA trio).
+- **Table-stakes audit** — the polished-browser-game checklist remains complete (favicon/meta/OG, PWA install+offline, responsive/touch/44px targets, gamepad, keyboard+draft a11y, colorblind, reduced-motion, high-contrast, volume, screen-reader announcements). Open follow-ups still logged: harness split, key rebinding.
+
 ## v2.64.0 — 2026-07-31 — Vanguard + Backstop perks, Empyrean + Combo Immortal badges
 
 **Type:** Minor (feature/content). Suite green (baseline 2261/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all four picked from ROADMAP (perk-pool variety + deep-endless feats). 6th normal run after the v2.58.1 health check — **the next run is the health check.** Cohesive theme: **reward WHERE on the path you kill.**
