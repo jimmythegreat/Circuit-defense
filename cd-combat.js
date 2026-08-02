@@ -382,6 +382,9 @@ function damage(e, dmg, src, silent=false, ignoreArmor=false, fromOverkill=false
     kills++;
     if (src) {
       src.kills++;
+      // 🩸 Bloodlust perk (v2.65.0): this tower just killed → bump its kill-momentum stacks (capped)
+      // and refresh the decay timer. Per-tower run-only fields, never serialized. Read in the fire path.
+      if (perkState.bloodlust) { src.rageStacks = Math.min(BLOODLUST_CAP, (src.rageStacks || 0) + 1); src.rageT = BLOODLUST_DUR; }
       // Tower veterancy (v1.100.0): a kill that crosses a rank threshold promotes the
       // tower — a chunky cosmetic flash (no stat change, "too easy"-safe). Compare the
       // tier before/after this single kill so it fires exactly once at each milestone.

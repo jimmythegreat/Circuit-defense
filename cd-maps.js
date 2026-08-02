@@ -22,6 +22,15 @@ const MAPS = {
   vortex: { name:'Vortex', desc:'Inward-spiral kill-funnel', pts: [
     [-30,80],[820,80],[820,470],[90,470],[90,180],[690,180],[690,380],[240,380],[240,280],[490,280],[490,430],[930,430]
   ]},
+  // Junction (v2.65.0): a static axis-aligned "central crossroads" — a single tall vertical spine at
+  // x=520 (y 40..520) that the crowd is routed across THREE times (the y=180, y=360 and y=280 runs all
+  // cross it), so a tower cluster on that column rakes the wave repeatedly from every pass. Distinct
+  // from Nexus (perpendicular convergence that folds through the centre) and Vortex (an inward spiral):
+  // here the traffic funnels through ONE dominant hot column. ~4100px, themed the new Solar gold palette
+  // (8th static theme). Inserted BEFORE mayhem so mayhem stays the last key. Test group [232].
+  junction: { name:'Junction', desc:'Central crossroads column', pts: [
+    [-30,280],[250,280],[250,40],[520,40],[520,520],[120,520],[120,180],[820,180],[820,360],[300,360],[300,280],[930,280]
+  ]},
   mayhem: { name:'🌀 Mayhem', desc:'Path shifts every 5 waves · chaos modifiers', pts: null },
 };
 let mapKey = 'classic';
@@ -301,6 +310,9 @@ const THEMES = {
   ice:     { name:'Ice',     bgIn:'#0a1620', bgOut:'#04090f', star:'#aef0ff', grid:'rgba(120,210,255,0.05)', pDark:'#03070a', pMid:'#173040', pLite:'#1f4458', glow:'rgba(120,210,255,0.4)', dash:'rgba(170,230,255,0.25)' },
   crimson: { name:'Crimson', bgIn:'#1c0a0c', bgOut:'#0c0405', star:'#ff9ba6', grid:'rgba(255,80,100,0.05)', pDark:'#0a0203', pMid:'#341619', pLite:'#48202a', glow:'rgba(255,80,100,0.4)',  dash:'rgba(255,130,150,0.25)' },
   neon:    { name:'Neon',    bgIn:'#1a0a18', bgOut:'#0b040a', star:'#ffb3ec', grid:'rgba(255,90,210,0.05)', pDark:'#0a0308', pMid:'#321630', pLite:'#481f44', glow:'rgba(255,90,210,0.4)',  dash:'rgba(255,140,230,0.25)' },
+  // Solar (v2.65.0): a warm gold/amber palette — the 8th static theme, the fixed identity of the new
+  // Junction map. Distinct from Ember (orange) by being a brighter yellow-gold (a "power grid" look).
+  solar:   { name:'Solar',   bgIn:'#1a1508', bgOut:'#0b0803', star:'#ffe7a0', grid:'rgba(245,205,90,0.05)', pDark:'#0a0703', pMid:'#33290f', pLite:'#4a3c17', glow:'rgba(245,205,90,0.4)',  dash:'rgba(255,224,120,0.25)' },
 };
 // Per-theme PATH TEXTURE (v2.58.0, ROADMAP "path fills are still solid-colour"): each theme gets a
 // distinct tiled pattern painted faintly over the path surface, so the maps read apart by SURFACE as
@@ -316,11 +328,12 @@ const PATH_TEX = {
   ice:     { kind:'crystal', color:'rgba(170,230,255,0.10)' },
   crimson: { kind:'chevron', color:'rgba(255,130,150,0.09)' },
   neon:    { kind:'scan',    color:'rgba(255,140,230,0.10)' },
+  solar:   { kind:'circuit', color:'rgba(245,210,110,0.10)' },   // a gold "power-grid" trace look for Junction
   chaos:   { kind:'cross',   color:'rgba(255,210,150,0.09)' },
 };
 // Fixed identity per named quick-map; campaign draws from the tame set below.
-const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet', vortex:'neon' };
-const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson', 'neon'];
+const MAP_THEME = { classic:'circuit', spiral:'verdant', serpent:'ember', gauntlet:'crimson', cascade:'ice', nexus:'violet', vortex:'neon', junction:'solar' };
+const CAMPAIGN_THEMES = ['circuit', 'verdant', 'ember', 'violet', 'ice', 'crimson', 'neon', 'solar'];
 let mapTheme = 'circuit';   // resolved theme KEY for the current run (run-only; saved for resume parity)
 function pickMapTheme() {
   if (gameMode === 'campaign') return CAMPAIGN_THEMES[Math.floor(Math.random() * CAMPAIGN_THEMES.length)];

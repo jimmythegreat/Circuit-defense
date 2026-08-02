@@ -28,8 +28,8 @@ _None currently known._ (Add any here as found — top priority.)
 ### Content & variety
 - [ ] **Map: "Crossroads"** — a path that forks and rejoins, or two simultaneous lanes. Bigger
       lift: needs multi-path enemy distribution + targeting/`distToPath` over >1 path. Its own run.
-      (All SEVEN static `THEMES` palettes are now claimed as map identities — an 8th *named* map needs a
-      brand-new palette; but Crossroads could reuse one or get an 8th.)
+      (All EIGHT static `THEMES` palettes are now claimed as map identities — circuit/verdant/ember/violet/
+      ice/crimson/neon/solar — so a 9th *named* map needs a brand-new palette; Crossroads could reuse one.)
 - [x] **New single-path map (the 🌀 Vortex)** — DONE v2.25.0 [135], a rectangular inward-spiral kill-funnel
       with a new Neon (hot-magenta) palette (7th map / 7th theme).
 - [x] **New tower (the 🔆 Laser)** — DONE v2.9.0 [121], a ramp-up beam (the 10th tower). The
@@ -154,7 +154,7 @@ _None currently known._ (Add any here as found — top priority.)
       DONE v2.29.0 [138] — board DPS 🗡 shown beside the ⚔ threat HP via `boardDps()`);
       ~~visible grid lines (not just dots) + a "snap" tick sound~~ (DONE v2.24.0 [134] — full grid lines +
       target-cell highlight + a `SFX.tick()` on cell-cross while placing);
-      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE) +
+      ~~combo-tier label~~ (DONE v2.36.0 [148] — the meter shouts HEATING UP→RAMPAGE→UNSTOPPABLE→GODLIKE→MYTHIC(75×)→IMMORTAL(100×), the top two rungs added v2.65.0 [234]) +
       ~~combo-tier shape~~ (DONE v2.39.0 [156] — an escalating star-burst above the tier word);
       ~~high-contrast mode~~ (DONE v2.38.0 [151] — ◐ Settings toggle, bold dual-halo enemy outlines);
       ~~wave-start announcement banner~~ (DONE v2.44.0 [170] — centered "WAVE N" / "☠ BOSS WAVE N" flash);
@@ -257,13 +257,15 @@ _None currently known._ (Add any here as found — top priority.)
   + 🚦 Gridlock + ⚡ Chain Reaction v2.62.0 [225]/[226] — stack the max 8 concurrent waves / strike 5+ enemies with one Tesla chain (Tesla's first feat);
   + ⚙️ Peak Performance v2.63.0 [230] — win with 6+ towers at max level (the deeper rung above 🏗️ Maxed Out);
   + 💫 Empyrean + 🎇 Combo Immortal v2.64.0 — reach wave 300 / a 150× kill-streak (the next rungs above Ascendant / Combo Deity);
+  + 🤑 Tycoon v2.65.0 [234] — bank 50,000 gold at once (the deep gold-pile rung above 💰 Hoarder);
   lifetime tower-kills stat in Records); roster data-driven [48]/[92]. Badge-unlock chime (SFX.badge) v2.55.0 [204].
 - Run perks w/ rarity drafts; legendaries Last Stand/Glass Cannon/Wildcard/Overkill/Reaper/Hair Trigger/
   Killing Spree/Eagle Eye(+40% range, v2.3.0 [115])/Veteran's Edge(+5% dmg per tower veteran rank, max +20%,
   v2.13.0 [123])/Phoenix(once-per-run revive +12 lives & field-knockback, v2.15.0 [125])/
   Warpath(+2% dmg per wave reached, max +40% — a back-loaded scaling axis, v2.47.0 [180])/
   Overwhelm(+8% dmg per DISTINCT tower type on the board, max +40% at 5 — a build-DIVERSITY axis, the inverse of Phalanx, v2.55.0 [202])/
-  War Chest(+1% dmg per 1,000 gold HELD, max +25% at 25k — the first gold→power conversion; spending spends the bonus, v2.57.0 [211]); rares Targeting
+  War Chest(+1% dmg per 1,000 gold HELD, max +25% at 25k — the first gold→power conversion; spending spends the bonus, v2.57.0 [211])/
+  Bloodlust(+5% dmg per RECENT kill by that tower, stacking to +40%, decays after 2.5s — a per-tower kill-momentum axis, v2.65.0 [233]); rares Targeting
   Array/Ambush/Capacitor/Surge Protector/Shaped Charges(pierce ⬢ Bastion blast-shells, v2.8.0 [120])/
   Retaliation(+25% dmg for 4s after a leak — a comeback rare, v2.39.0 [154])/
   Hardened Circuits(towers ignore the Suppressor/Distorter dampening auras — counter-content rare, v2.40.0 [158])/
@@ -288,8 +290,9 @@ _None currently known._ (Add any here as found — top priority.)
   + **📣 Amplify v2.48.0 [183]** — the first offensive-BUFF ability: +30% tower dmg & fire rate for 5s, cd 55, hotkey Y).
   💰 Gold Rush **banks 25% of every bounty** toward its next cast (v2.57.0 [209]) and can be auto-cast by the
   ⛏️ Prospector talent (v2.57.0 [210]).
-- 7 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
-  + vortex v2.25.0 [135], inward-spiral funnel + Neon theme — 7th static palette);
+- 8 quick maps (classic/spiral/serpent + gauntlet v1.54.0 [68] + cascade v1.87.0 [95] + nexus v1.98.0 [105]
+  + vortex v2.25.0 [135], inward-spiral funnel + Neon theme + junction v2.65.0 [232], central-crossroads
+  column + Solar gold theme — 8th static palette);
   per-map themes v1.13.8 [28]. Campaign 40 levels; **auto-level-select v2.0.0** [109].
 - Daily Challenge (date-seeded) v1.28.0 [47] + streak v1.31.0 [50] + preview v1.47.0; combo meter v1.7.0 [71].
 - **♾️ Endless mode** v2.17.0 [127] (FEEDBACK): menu tile (quick-mode + `endless` flag, NOT a 3rd gameMode);

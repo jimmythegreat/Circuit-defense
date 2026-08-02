@@ -139,14 +139,15 @@ function comboGlowTier(n) {
 // shout at the same 10/20/30/50 tier breakpoints as comboColor/comboGlowTier (so colour + word + glow
 // all step together). Pure mapping → unit-testable; render-only, no gameplay/economy/save impact.
 function comboTierLabel(n) {
-  return n >= 50 ? 'GODLIKE' : n >= 30 ? 'UNSTOPPABLE' : n >= 20 ? 'RAMPAGE' : n >= 10 ? 'HEATING UP' : '';
+  // Two extra top rungs (v2.65.0) reward the deep streaks the 🎆/🎇 Combo Deity/Immortal badges chase.
+  return n >= 100 ? 'IMMORTAL' : n >= 75 ? 'MYTHIC' : n >= 50 ? 'GODLIKE' : n >= 30 ? 'UNSTOPPABLE' : n >= 20 ? 'RAMPAGE' : n >= 10 ? 'HEATING UP' : '';
 }
 // Combo-tier SHAPE (v2.39.0, game-feel polish): an escalating decorative spark mark shown on the
 // combo meter, stepping at the SAME 10/20/30/50 breakpoints as the colour/word/glow so all four
 // step together — '' below the first milestone, then a rising star-burst that grows with the tier.
 // Pure mapping → unit-testable; render-only, no gameplay/economy/save impact.
 function comboTierShape(n) {
-  return n >= 50 ? '✸✦✸✦✸' : n >= 30 ? '✸✦✸✦' : n >= 20 ? '✦✸✦' : n >= 10 ? '✦✸' : '';
+  return n >= 100 ? '✸✦✸✦✸✦✸' : n >= 75 ? '✸✦✸✦✸✦' : n >= 50 ? '✸✦✸✦✸' : n >= 30 ? '✸✦✸✦' : n >= 20 ? '✦✸✦' : n >= 10 ? '✦✸' : '';
 }
 // Killing Spree perk (v1.73.0): the damage multiplier a HOT kill-combo grants when the
 // 🔥 Killing Spree legendary is held — +1% per combo, capped +25% at a 25× streak. Returns

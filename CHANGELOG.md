@@ -3,6 +3,15 @@
 All notable changes to Circuit Defense. Newest first. Versions are semver-ish:
 patch = fixes/balance, minor = features/content.
 
+## v2.65.0 — 2026-08-02 — Junction map + Solar theme, Bloodlust perk, Tycoon badge
+
+**Type:** Minor (feature/content). Suite green (baseline 2273/0 confirmed green on the clean pull before any edit). FEEDBACK PENDING empty; all four picked from ROADMAP (a new map — the least-saturated content area — plus a fresh perk axis, a deep-run feat, and a combo-tier polish). 1st normal run after the v2.64.1 health check.
+
+- **🟡 Junction — a new (8th static) map + Solar theme:** a static axis-aligned "central crossroads" that routes the whole wave across ONE tall vertical spine (x=520) **three separate times** (the y=180/280/360 runs all cross it), so a tower cluster on that column rakes every wave repeatedly. Distinct from Nexus (perpendicular convergence) / Vortex (inward spiral) by funnelling everything through a single hot lane; ~4120px. Themed the new **Solar** gold/amber palette (8th static `THEMES` entry, with a gold "power-grid" `circuit` path texture) — the 7 static themes were all claimed, so an 8th map needed a new one. Fully additive: a `MAPS` entry (before Mayhem) + `THEMES`/`PATH_TEX`/`MAP_THEME`/`CAMPAIGN_THEMES` entries; the start-screen selector, Records grids, per-map best keys and the 🗺️ Cartographer badge all auto-include it (data-driven). Test group `[232]`.
+- **🩸 Bloodlust — a new legendary perk (a fresh PER-TOWER kill-momentum axis):** each kill a tower lands gives THAT tower **+5% damage, stacking to +40%** (8 stacks), decaying if it stops killing for 2.5s. Rewards putting towers in the thick of a swarm — a distinct feel from the run-wide combo (Killing Spree) or the flat Diamond Core. Per-tower run-only state (`t.rageStacks`/`t.rageT`, bumped in `damage()`'s kill block, decayed in the tower-fire loop, read in the fire path — not `effDmg`), **never serialized** (a resumed run re-ramps from 0). "Too easy"-safe: conditional, decays, capped +40%. `perkState.bloodlust` (old saves → false); a legendary, so Wildcard can roll it. Test group `[233]`.
+- **🤑 Tycoon — a new achievement (roster 59 → 60):** bank **50,000 gold at once** in a single run — the deeper gold-pile rung above 💰 Hoarder (10k), most natural deep in Endless. No `won` gate; reads the run-only `peakGold`. Additive/save-safe. Test group `[234]`.
+- **Combo-tier top rungs (polish):** kill-streaks past **75×** and **100×** now shout **MYTHIC** and **IMMORTAL** on the combo meter (with a bigger star-burst), matching the deep-combo 🎆/🎇 badges. Pure render mapping in `comboTierLabel`/`comboTierShape`; no gameplay/economy/save impact. Test group `[234]`.
+
 ## v2.64.1 — 2026-08-01 — 🩺 Health check
 
 **Type:** Patch (maintenance — no new feature). 7th run after the v2.58.1 health check → this run is the health check. FEEDBACK PENDING empty; no owner vetoes/reverts in `git log`. Suite green **2273/0** (231 groups). Baseline confirmed green on the clean pull before any edit.

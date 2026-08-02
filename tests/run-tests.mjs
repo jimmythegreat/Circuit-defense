@@ -3111,7 +3111,7 @@ async function main() {
     check('Daily Devotee withheld outside a daily run', !r.dailyNoFlag);
     check('Streak Keeper granted on reaching a 7-day daily streak', r.streak7Yes);
     check('Streak Keeper withheld below a 7-day streak', !r.streak7No);
-    check('achievement roster grew to 59 badges', r.total === 59, `total=${r.total}`);
+    check('achievement roster grew to 60 badges', r.total === 60, `total=${r.total}`);
     check('no console errors during achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -9046,7 +9046,7 @@ async function main() {
       // badge defined & wired
       const badgeOk = !!ACH_BY_ID.legend_tower && /Legend rank/.test(ACH_BY_ID.legend_tower.desc);
       // roster grew by one (18 → 19)
-      const rosterOk = ACHIEVEMENTS.length === 59;   // +endless300 💫 +combo150 🎇 (v2.64.0)
+      const rosterOk = ACHIEVEMENTS.length === 60;   // +tycoon 🤑 (v2.65.0)
       // a fresh meta carries the migrated lifetime tower-kills stat
       loadMeta();
       const migrated = typeof meta.stats.towerKills === 'number';
@@ -9085,7 +9085,7 @@ async function main() {
       return { badgeOk, rosterOk, migrated, grantedOnLoss, kAfter1, kAfter2, notUnder200, recordsShowsKills };
     });
     check('Living Legend badge defined (legend_tower, "Legend rank" desc)', r.badgeOk);
-    check('achievement roster is 51 badges', r.rosterOk);
+    check('achievement roster is 60 badges', r.rosterOk);
     check('loadMeta migrates meta.stats.towerKills (defaults to a number)', r.migrated);
     check('a Legend-rank tower (>=200 kills) grants Living Legend (win or loss)', r.grantedOnLoss);
     check('lifetime tower-kills accumulates the run total (210+30=240)', r.kAfter1 === 240, `kAfter1=${r.kAfter1}`);
@@ -10785,7 +10785,8 @@ async function main() {
       const distinct = new Set([comboTierShape(10), comboTierShape(20), comboTierShape(30), comboTierShape(50)]).size === 4;
       // breakpoints align with the colour/word/glow (constant within a tier band)
       const boundary = comboTierShape(10) === comboTierShape(19) && comboTierShape(20) === comboTierShape(29)
-                    && comboTierShape(50) === comboTierShape(999) && comboTierShape(10) !== '';
+                    && comboTierShape(50) === comboTierShape(74) && comboTierShape(75) === comboTierShape(99)
+                    && comboTierShape(100) === comboTierShape(999) && comboTierShape(10) !== '';
 
       gameMode = 'quick'; mapKey = 'classic'; diffKey = 'easy'; beginGame();
       comboCount = 55; comboTimer = 1.5; comboFlash = 0.5;
@@ -13400,11 +13401,11 @@ async function main() {
   {
     const { page, consoleErrors } = await newPage(browser);
     const r = await page.evaluate(() => {
-      const MAP7 = ['classic','spiral','serpent','gauntlet','cascade','nexus','vortex'];
-      MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
+      const MAP8 = ['classic','spiral','serpent','gauntlet','cascade','nexus','vortex','junction'];
+      MAP8.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       const jackInRoster = ACHIEVEMENTS.some(a => a.id === 'jack');
       const cartoInRoster = ACHIEVEMENTS.some(a => a.id === 'cartographer');
-      const rosterOk = ACHIEVEMENTS.length === 59;
+      const rosterOk = ACHIEVEMENTS.length === 60;
       // freshMeta sets meta directly (no loadMeta) so a prior grant's saved cd_meta can't reload.
       const freshMeta = () => { meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } }; };
 
@@ -13419,11 +13420,11 @@ async function main() {
       const jackAt8 = grantAchievements(false).map(a => a.id).includes('jack');
       peakTowerTypes = 0;
 
-      // Cartographer: 6 of 7 maps conquered → withheld (current map 'classic' at wave 1 doesn't count).
-      MAP7.filter(m => m !== 'vortex').forEach(m => localStorage.setItem('cd_best_' + m + '_normal', '30'));
+      // Cartographer: 7 of 8 maps conquered → withheld (current map 'classic' at wave 1 doesn't count).
+      MAP8.filter(m => m !== 'vortex').forEach(m => localStorage.setItem('cd_best_' + m + '_normal', '30'));
       freshMeta(); mapKey = 'classic'; wave = 1;
       const cartoAt6 = grantAchievements(false).map(a => a.id).includes('cartographer');
-      // all 7 keys → granted.
+      // all 8 keys → granted.
       localStorage.setItem('cd_best_vortex_normal', '30');
       freshMeta(); wave = 1;
       const cartoAt7 = grantAchievements(false).map(a => a.id).includes('cartographer');
@@ -13432,7 +13433,7 @@ async function main() {
       freshMeta(); gameMode = 'quick'; mapKey = 'vortex'; wave = 30;
       const cartoInline = grantAchievements(false).map(a => a.id).includes('cartographer');
 
-      MAP7.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
+      MAP8.forEach(m => localStorage.removeItem('cd_best_' + m + '_normal'));
       towers.length = 0; wave = 1; mapKey = 'classic';
       meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
       backToMenu(); localStorage.removeItem('cd_save');
@@ -13440,12 +13441,12 @@ async function main() {
     });
     check('Jack of All Trades is in the achievement roster', r.jackInRoster);
     check('Cartographer is in the achievement roster', r.cartoInRoster);
-    check('achievement roster grew to 57', r.rosterOk);
+    check('achievement roster grew to 60', r.rosterOk);
     check('Jack withheld at 7 distinct tower types', !r.jackAt7);
     check('Jack granted at 8 distinct tower types', r.jackAt8);
-    check('Cartographer withheld with 6 of 7 maps conquered', !r.cartoAt6);
-    check('Cartographer granted with all 7 maps conquered', r.cartoAt7);
-    check('Cartographer counts the current run inline (win on the 7th map)', r.cartoInline);
+    check('Cartographer withheld with 7 of 8 maps conquered', !r.cartoAt6);
+    check('Cartographer granted with all 8 maps conquered', r.cartoAt7);
+    check('Cartographer counts the current run inline (win on the last map)', r.cartoInline);
     check('no console errors during new-achievements test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
@@ -14814,6 +14815,219 @@ async function main() {
     check('old save missing vanguard/backstop migrates to default false', r.migratedOk);
     check('Wildcard (legendary-only) never resolves to the rare Vanguard/Backstop', r.wildcardSkips);
     check('no console errors during Vanguard/Backstop test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  console.log('\n[232] Junction map (central crossroads column + Solar theme)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+
+    const def = await page.evaluate(() => {
+      const m = MAPS.junction;
+      const pts = m && m.pts;
+      let axisAligned = !!pts && pts.length >= 4;
+      if (pts) for (let i = 0; i < pts.length - 1; i++) {
+        const sameX = pts[i][0] === pts[i + 1][0], sameY = pts[i][1] === pts[i + 1][1];
+        if (sameX === sameY) { axisAligned = false; break; }
+      }
+      const inBounds = !!pts && pts.every(([x, y]) => x >= -40 && x <= 940 && y >= 0 && y <= 560);
+      return {
+        exists: !!m, named: !!m && typeof m.name === 'string' && m.name.length > 0,
+        hasPath: Array.isArray(pts), axisAligned, inBounds,
+        entersLeft: !!pts && pts[0][0] === -30, exitsRight: !!pts && pts[pts.length - 1][0] === 930,
+        notLast: Object.keys(MAPS).indexOf('junction') < Object.keys(MAPS).indexOf('mayhem'),
+      };
+    });
+    check('Junction map exists and is named', def.exists && def.named);
+    check('Junction has an axis-aligned path (no diagonals/zero-length segs)', def.axisAligned);
+    check('Junction path stays within the board', def.inBounds);
+    check('Junction path enters off-left (-30) and exits off-right (930)', def.entersLeft && def.exitsRight);
+    check('Junction sits before Mayhem in the map order', def.notLast);
+
+    const theme = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'junction'; diffKey = 'normal';
+      const fixed = MAP_THEME.junction;
+      const hasPalette = !!THEMES.solar && typeof THEMES.solar.glow === 'string';
+      const hasTex = !!PATH_TEX.solar && !!PATH_TEX.solar.kind;
+      const inCampaignPool = CAMPAIGN_THEMES.includes('solar');
+      const picks = pickMapTheme();
+      beginGame();
+      const resolved = mapTheme;
+      const pal = mapPalette();
+      const ok = pal && pal.glow === THEMES.solar.glow;
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { fixed, hasPalette, hasTex, inCampaignPool, picks, resolved, ok };
+    });
+    check('Solar theme palette exists', theme.hasPalette);
+    check('Solar has a PATH_TEX entry', theme.hasTex);
+    check('Junction maps to the Solar theme', theme.fixed === 'solar' && theme.picks === 'solar');
+    check('Solar is available to the campaign palette pool', theme.inCampaignPool);
+    check('a Junction run resolves to the Solar palette', theme.resolved === 'solar' && theme.ok);
+
+    const btn = await page.evaluate(() => {
+      renderStartScreen();
+      return /Junction/.test(document.getElementById('mapRow').innerHTML);
+    });
+    check('Junction appears in the start-screen map selector', btn);
+
+    // The identity: the tall central spine at x=520 is crossed by 3 horizontal runs (y=180/280/360).
+    const crosses = await page.evaluate(() => {
+      const pts = MAPS.junction.pts;
+      const onSeg = (a, b, px, py) => {
+        if (a[0] === b[0]) return a[0] === px && py >= Math.min(a[1], b[1]) && py <= Math.max(a[1], b[1]);
+        return a[1] === py && px >= Math.min(a[0], b[0]) && px <= Math.max(a[0], b[0]);
+      };
+      let hits = 0;
+      for (const y of [180, 280, 360]) for (let i = 0; i < pts.length - 1; i++) if (onSeg(pts[i], pts[i + 1], 520, y)) hits++;
+      return hits;
+    });
+    check('Junction routes the crowd across the x=520 spine 3+ times', crosses >= 3, 'hits=' + crosses);
+
+    const drove = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'junction'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      const pathOk = pathLen > 1000 && Array.isArray(waypoints) && waypoints === MAPS.junction.pts;
+      __cdGodTowers(8);
+      __cdDrive({ maxWave: 6 });
+      const out = { reached: wave >= 5, wave, pathOk };
+      backToMenu(); localStorage.removeItem('cd_save');
+      return out;
+    });
+    check('Junction buildPath wires the static path', drove.pathOk, JSON.stringify(drove));
+    check('a Junction run drives clean to wave 5+', drove.reached, JSON.stringify(drove));
+
+    const rec = await page.evaluate(() => {
+      localStorage.removeItem('cd_best_junction_hard');
+      gameMode = 'quick'; mapKey = 'junction'; diffKey = 'hard';
+      beginGame();
+      best = 0; wave = 9; lives = 0;
+      endGame();
+      const mapBest = +(localStorage.getItem('cd_best_junction_hard') || 0);
+      gameMode = 'quick'; mapKey = 'junction'; diffKey = 'normal';
+      beginGame(); wave = 3;
+      saveRun();
+      const loaded = loadRun();
+      const restored = loaded === true && mapKey === 'junction';
+      ['cd_best_junction_hard', 'cd_best_hard', 'cd_save'].forEach(k => localStorage.removeItem(k));
+      backToMenu();
+      return { mapBest, restored };
+    });
+    check('Junction records a per-map best (hard = 9)', rec.mapBest === 9, JSON.stringify(rec));
+    check('Junction save/resume round-trips', rec.restored, JSON.stringify(rec));
+    check('no console errors during Junction map test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  console.log('\n[233] Bloodlust legendary (per-tower kill-momentum)');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; campLevel = 1;
+      beginGame();
+      meta.talents = {};
+      const def = PERKS.find(p => p.id === 'bloodlust');
+      const inPool = !!def && def.rarity === 'legendary';
+      const leversOk = BLOODLUST_STEP === 0.05 && BLOODLUST_CAP === 8 && BLOODLUST_DUR === 2.5;
+
+      // keyed to per-tower live state → must NOT be in effDmg (no upgrade-panel churn)
+      towers.length = 0;
+      const probe = { type:'gun', x:300, y:300, level:1, spec:null, dmg:10, range:120, rate:1, dealt:0, kills:0, rageStacks:5, rageT:5, buffPower:0.25 };
+      towers.push(probe);
+      perkState.bloodlust = false; const effBefore = effDmg(probe);
+      perkState.bloodlust = true;  const notInEffDmg = Math.abs(effDmg(probe) - effBefore) < 1e-9;
+
+      // a tower's kills stack Bloodlust (capped at 8) and refresh the decay timer
+      const t = { type:'gun', x:100, y:100, level:1, kills:0, dealt:0, rageStacks:0, rageT:0 };
+      towers.length = 0; towers.push(t); enemies.length = 0;
+      for (let i = 0; i < 12; i++) {
+        const e = { x:100, y:100, r:10, kind:'norm', hp:1, maxHp:10, bounty:1, dist:10, dead:false, armor:0, frozen:0, slow:0 };
+        enemies.push(e); damage(e, 999, t);
+      }
+      const cappedAt8 = t.rageStacks === 8, timerSet = t.rageT > 0;
+
+      // stacks decay to 0 after BLOODLUST_DUR with no kills
+      enemies.length = 0;
+      for (let i = 0; i < 200; i++) update(1 / 60);   // ~3.3s > 2.5s
+      const decayed = t.rageStacks === 0;
+
+      // fire-path multiplier: an on-path rail shot with 8 stacks deals ×1.4 vs the perk off
+      function shot(bloodlust, stacks) {
+        perkState.bloodlust = bloodlust; perkState.critChance = 0; perkState.rangeMult = 1;
+        towers.length = 0; enemies.length = 0; beams.length = 0; projectiles.length = 0; railBestHit = 0;
+        const ep = pointAt(pathLen * 0.5);
+        const rg = { type:'rail', x:ep.x, y:ep.y - 30, level:1, spec:null, dmg:36, rate:1.7, range:300,
+                     dealt:0, kills:0, rageStacks:stacks, rageT:5, buffPower:0.25, mode:'first', cd:0, flash:0, angle:0 };
+        towers.push(rg);
+        const maxHp = 100000;
+        const e = { x:ep.x, y:ep.y, r:11, hp:maxHp, maxHp, armor:0, dead:false, flash:0, spd:0,
+                    kind:'norm', blinkInvuln:0, bounty:1, dist:pathLen * 0.5, frozen:0, slow:0 };
+        enemies.push(e);
+        const before = e.hp; update(1 / 60);
+        return { dealt: before - e.hp, hits: railBestHit };
+      }
+      const baseShot = shot(false, 8);   // perk OFF, has stacks → no bonus
+      const buffShot = shot(true, 8);    // perk ON, 8 stacks → +40%
+      const fired = baseShot.hits === 1 && buffShot.hits === 1;
+      const bonusOk = Math.abs(buffShot.dealt - baseShot.dealt * 1.4) < 1e-3;
+
+      // save-safe: default false; the per-tower rage fields are never serialized
+      const defaultsOk = freshPerkState().bloodlust === false;
+      perkState.bloodlust = true; saveRun();
+      const savedNoRage = !/rageStacks|rageT/.test(localStorage.getItem('cd_save') || '');
+      perkState.bloodlust = false; loadRun();
+      const restored = perkState.bloodlust === true;
+      const old = JSON.parse(localStorage.getItem('cd_save')); delete old.perkState.bloodlust;
+      localStorage.setItem('cd_save', JSON.stringify(old)); loadRun();
+      const migratedOk = perkState.bloodlust === false;
+      localStorage.removeItem('cd_save');
+      backToMenu();
+      return { inPool, leversOk, notInEffDmg, cappedAt8, timerSet, decayed, fired, bonusOk,
+               baseDealt: baseShot.dealt, buffDealt: buffShot.dealt, defaultsOk, restored, savedNoRage, migratedOk };
+    });
+    check('Bloodlust is a legendary in the pool', r.inPool);
+    check('Bloodlust levers (step .05 / cap 8 / dur 2.5)', r.leversOk);
+    check('Bloodlust is not applied in effDmg (no panel churn)', r.notInEffDmg);
+    check("a tower's kills stack Bloodlust, capped at 8 (+40%)", r.cappedAt8);
+    check('a kill refreshes the Bloodlust decay timer', r.timerSet);
+    check('Bloodlust stacks decay to 0 after the duration without a kill', r.decayed);
+    check('Bloodlust perk test actually fires the rail (non-vacuous)', r.fired);
+    check('Bloodlust at 8 stacks grants +40% damage', r.bonusOk, `base=${r.baseDealt} buff=${r.buffDealt}`);
+    check('freshPerkState defaults bloodlust:false', r.defaultsOk);
+    check('save/reload round-trips the bloodlust flag', r.restored);
+    check('per-tower rage fields are never serialized', r.savedNoRage);
+    check('old save missing bloodlust migrates to default false', r.migratedOk);
+    check('no console errors during Bloodlust test', consoleErrors.length === 0, consoleErrors.join(' | '));
+    await page.close();
+  }
+
+  console.log('\n[234] Tycoon achievement + combo-tier top rungs');
+  {
+    const { page, consoleErrors } = await newPage(browser);
+    const r = await page.evaluate(() => {
+      const tycoonInRoster = ACHIEVEMENTS.some(a => a.id === 'tycoon');
+      const rosterOk = ACHIEVEMENTS.length === 60;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0, towerKills:0, bestCombo:0 } };
+      gameMode = 'quick'; mapKey = 'classic'; diffKey = 'normal'; beginGame();
+      towers.length = 0; wave = 1; comboBest = 0; peakTowers = 0; peakConcurrentWaves = 0;
+      gameTime = 0; railBestHit = 0; arcBestChain = 0; bossKills = 0; bestFreeze = 0; meteorBestKills = 0; peakTowerTypes = 0;
+      peakGold = 49999;
+      const at49999 = grantAchievements(false).map(a => a.id).includes('tycoon');
+      meta.achievements = {}; peakGold = 50000;
+      const at50000 = grantAchievements(false).map(a => a.id).includes('tycoon');
+      const labels = { l50: comboTierLabel(50), l74: comboTierLabel(74), l75: comboTierLabel(75), l99: comboTierLabel(99), l100: comboTierLabel(100) };
+      const shapesGrow = comboTierShape(100).length > comboTierShape(75).length && comboTierShape(75).length > comboTierShape(50).length;
+      meta = { chips:0, talents:{}, achievements:{}, stats:{ dmg:0, runs:0 } }; loadMeta();
+      backToMenu(); localStorage.removeItem('cd_save');
+      return { tycoonInRoster, rosterOk, at49999, at50000, labels, shapesGrow };
+    });
+    check('Tycoon is in the achievement roster (60 total)', r.tycoonInRoster && r.rosterOk);
+    check('Tycoon withheld below 50,000 gold banked', !r.at49999);
+    check('Tycoon granted at 50,000 gold banked', r.at50000);
+    check('combo tier stays GODLIKE at 50–74', r.labels.l50 === 'GODLIKE' && r.labels.l74 === 'GODLIKE');
+    check('combo tier becomes MYTHIC at 75', r.labels.l75 === 'MYTHIC' && r.labels.l99 === 'MYTHIC');
+    check('combo tier becomes IMMORTAL at 100', r.labels.l100 === 'IMMORTAL');
+    check('combo-tier shape grows at the new top rungs', r.shapesGrow);
+    check('no console errors during Tycoon/combo-tier test', consoleErrors.length === 0, consoleErrors.join(' | '));
     await page.close();
   }
 

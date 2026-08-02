@@ -844,6 +844,19 @@ const PERKS = [
   // perkState (save-safe default false; round-trips via loadRun's Object.assign). resolveWildcard
   // rolls it automatically (a legendary). Test group [211].
   { id:'warchest', rarity:'legendary', icon:'🏦', name:'War Chest',        desc:'+1% tower damage per 1,000 gold banked (max +25%)', apply:s=>s.warChest = true },
+  // 🩸 Bloodlust (legendary, v2.65.0): a fresh PER-TOWER KILL-MOMENTUM axis — no existing perk keys
+  // off a single tower's recent kills. Each kill a tower lands grants IT a stacking +BLOODLUST_STEP
+  // (+5%) damage buff, capped at BLOODLUST_CAP stacks (+40%), that decays if it stops killing for
+  // BLOODLUST_DUR (2.5s). So a tower in the thick of a swarm ramps toward its cap while a slow/idle
+  // tower gets little — it rewards high-throughput placement, a distinct feel from the run-wide combo
+  // (Killing Spree) or the flat 💎 Diamond Core. Per-tower run-only state (`t.rageStacks`/`t.rageT`,
+  // bumped in damage()'s kill block, decayed in the tower-fire loop, read in the fire path — NOT
+  // effDmg, so no panel churn), NEVER serialized (a resumed run simply re-ramps from 0 → save-safe).
+  // "Too easy"-safe: CONDITIONAL (needs sustained kills), DECAYS between waves / in slow moments, and
+  // CAPPED +40% — a losing/leaking run (few kills) gets almost nothing, and it doesn't feed any watched
+  // snowball. `bloodlust` lives in perkState (save-safe default false; round-trips via loadRun's
+  // Object.assign(freshPerkState(), s.perkState)). A legendary, so resolveWildcard() rolls it. Test [233].
+  { id:'bloodlust', rarity:'legendary', icon:'🩸', name:'Bloodlust',        desc:'Each kill gives that tower +5% damage, stacking to +40% (decays)', apply:s=>s.bloodlust = true },
   // 💠 SECOND WIND (v2.54.0) — the pool's first SECRET perk. It stays out of the draft (and out of
   // Wildcard's roll) until the player has earned the 🛡️ Flawless achievement; `secret()` is the gate,
   // read live from meta so it unlocks the moment that badge lands. The first perk to RESTORE lives:
@@ -872,7 +885,7 @@ function freshPerkState() {
     phaseSight:false, phalanx:false, finisher:false, pointBlank:false, warpath:false, abilityPower:1,
     corrosive:false, swarmbane:false, secondWind:false, overwhelm:false, aftershock:false,
     warChest:false, coldsnap:false, overwatch:false, failsafe:false,
-    overengineered:false, heavyOrd:false, vanguard:false, backstop:false };
+    overengineered:false, heavyOrd:false, vanguard:false, backstop:false, bloodlust:false };
 }
 function ascendTowers() {
   for (const t of towers) {

@@ -21,6 +21,14 @@ function enemyMechScale() {
 // site and read in the fire loop; "too easy"-safe (only ever fires while you're losing lives).
 const RETALIATE_DMG = 1.25;   // tower damage multiplier while the buff is active
 const RETALIATE_DUR = 4;      // seconds the buff lasts (refreshed by each fresh leak)
+// 🩸 Bloodlust perk (v2.65.0) levers: a per-tower kill-momentum buff. Each kill bumps that tower's
+// `rageStacks` (capped at BLOODLUST_CAP) and refreshes `rageT`; the stacks give +BLOODLUST_STEP dmg
+// each and reset to 0 when `rageT` expires (BLOODLUST_DUR seconds without a kill). Run-only per-tower
+// state (never serialized); read in the fire path, bumped in damage()'s kill block. "Too easy"-safe:
+// conditional on sustained kills, decays, capped (+40% at 8 stacks).
+const BLOODLUST_STEP = 0.05;  // damage bonus per stack
+const BLOODLUST_CAP = 8;      // max stacks (+40% at cap)
+const BLOODLUST_DUR = 2.5;    // seconds a stack survives without a fresh kill
 // ---- Boss-archetype tick levers (read by update()'s enemy loop below) ----
 // Relocated here from cd-update.js's old combat section when the combat helpers moved out to
 // cd-combat.js (v2.53.2) — these are read only by the archetype tick blocks in update(). The
@@ -789,6 +797,7 @@ function update(dt) {
     if (t.suppressed > 0) t.suppressed = Math.max(0, t.suppressed - dt);   // Suppressor boss aura: decays once out of range (effRate reads it, +25% reload while >0)
     if (t.distorted > 0) t.distorted = Math.max(0, t.distorted - dt);   // Distorter boss aura: decays once out of range (effRange reads it, −20% range while >0)
     if (t.dampened > 0) t.dampened = Math.max(0, t.dampened - dt);   // Nullifier boss aura (v2.53.0): decays once out of range (effDmg reads it, −25% damage while >0)
+    if (t.rageStacks) { t.rageT -= dt; if (t.rageT <= 0) t.rageStacks = 0; }   // 🩸 Bloodlust (v2.65.0): kill-momentum stacks decay after BLOODLUST_DUR without a kill
     if (t.type === 'buff') continue;
     t.cd -= dt;
     if (t.empT > 0) continue;   // Static Storm: tower is knocked offline, can't fire
@@ -852,6 +861,10 @@ function update(dt) {
     // (the mirror of Phalanx's per-tower scaling). Keyed to the live enemies.length, so it lives
     // here (not effDmg); applied before the proj branch so chain/rail/poison shots benefit too.
     if (perkState.swarmbane) dmg *= 1 + Math.min(0.25, enemies.length * 0.01);
+    // 🩸 Bloodlust legendary (v2.65.0): a per-tower kill-momentum buff — this tower's own recent kills
+    // stack +BLOODLUST_STEP damage each (capped, decaying). Keyed to live per-tower state (t.rageStacks),
+    // so it lives here in the fire path (not effDmg → no panel churn), before the proj branch.
+    if (perkState.bloodlust && t.rageStacks) dmg *= 1 + BLOODLUST_STEP * t.rageStacks;
     // Killing Spree legendary (v1.73.0): a hot kill-combo amplifies ALL tower damage (+1%/combo,
     // cap +25% at 25×). Conditional on an active streak (gated inside comboDmgMult) so it's
     // self-limiting; applied here — before the proj branch, so it covers chain/poison too — and

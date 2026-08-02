@@ -67,6 +67,7 @@ const ACHIEVEMENTS = [
   { id:'peakperf',      icon:'⚙️', name:'Peak Performance',      desc:'Win with 6+ towers at max level' },
   { id:'endless300',    icon:'💫', name:'Empyrean',             desc:'Reach wave 300 in a single run' },
   { id:'combo150',      icon:'🎇', name:'Combo Immortal',        desc:'Reach a 150× kill-streak in a single run' },
+  { id:'tycoon',        icon:'🤑', name:'Tycoon',               desc:'Bank 50,000 gold at once in a single run' },
 ];
 const ACH_BY_ID = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 function achDone() { return ACHIEVEMENTS.filter(a => meta.achievements[a.id]).length; }
@@ -117,6 +118,7 @@ function grantAchievements(won) {
   // ricochets through 6+ enemies. Needs a spec (Ball Lightning's 7 hits) or a dense swarm.
   if (arcBestChain >= 6) give('pinball');
   if (peakGold >= 10000) give('hoarder');   // 💰 v2.35.0 — a feat (no `won` gate), most natural in a rich/deep run
+  if (peakGold >= 50000) give('tycoon');   // 🤑 v2.65.0 — the deeper gold-pile rung above Hoarder (10k), most natural deep in Endless
   if (peakTowers >= 12) give('overlord');   // 🗼 v2.39.0 — a feat (no `won` gate): a big sprawling board
   // Exterminator (🪳 v2.51.0): a feat (no `won` gate) — defeat 2,000 enemies in a single run. Reads
   // runKills (the sum of every tower's kills this run, already tallied above) — the per-run version of
